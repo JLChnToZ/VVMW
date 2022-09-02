@@ -1,0 +1,57 @@
+name: Build Release
+
+on: 
+  workflow_dispatch:
+  push:
+    branches: main
+    paths: Packages/com.vrchat.demo-template/**
+
+env:
+  packageName: "com.vrchat.demo-template"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    
+      - name: Checkout
+        uses: actions/checkout@v3
+    
+      - name: get version
+        id: version
+        uses: notiz-dev/github-action-json-property@release
+        with: 
+            path: "Packages/${{env.packageName}}/package.json"
+            prop_path: "version"
+            
+      - run: echo ${{steps.version.outputs.prop}} 
+    
+      - name: Set Environment Variables
+        run: |
+          echo "zipFile=${{ env.packageName }}-${{ steps.version.outputs.prop }}".zip >> $GITHUB_ENV
+          echo "unityPackage=${{ env.packageName }}-${{ steps.version.outputs.prop }}.unitypackage" >> $GITHUB_ENV
+        
+      - name: Create Zip
+        uses: thedoctor0/zip-release@0.6.2
+        with:
+          type: "zip"
+          directory: "Packages/${{env.packageName}}/"
+          filename: "../../${{env.zipFile}}" # make the zip file two directories up, since we start two directories in above
+          
+      - run: find "Packages/${{env.packageName}}/" -name \*.meta >> metaList
+          
+      - name: Create UnityPackage
+        uses: pCYSl5EDgo/create-unitypackage@1.a
+        with:
+          package-path: ${{ env.unityPackage }}
+          include-files: metaList
+        
+        
+      - name: Make Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.prop }}
+          files: |
+            ${{ env.zipFile }}
+            ${{ env.unityPackage }}
+            Packages/${{ env.packageName }}/package.json
