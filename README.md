@@ -16,6 +16,13 @@ to start a new GitHub project based on this template, and follow the directions 
 ## 🚇 Migrating Assets Package
 * Full details at [Converting Assets to a VPM Package](https://vcc.docs.vrchat.com/guides/convert-unitypackage)
 
+## Working on Your Package
+
+You can delete the "Packages/com.vrchat.demo-template" directory or reuse it for your own package.
+Update the `.gitignore` file in the "Packages" directory to include your package. It has an example of including the demo package which you can easily change out for your own package name.
+
+You can open the Unity project and work on your package's files in your favorite Code Editor. Then commit and push your changes. Once you've set up the automation as described below, you can easily publish new versions.
+
 ## Setting up the Automation
 
 You'll need to make a few changes in [release.yml](.github/workflows/release.yml):
