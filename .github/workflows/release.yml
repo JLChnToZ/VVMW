@@ -9,6 +9,9 @@ on:
 env:
   packageName: "com.vrchat.demo-template"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
