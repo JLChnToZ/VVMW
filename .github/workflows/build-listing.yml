@@ -1,5 +1,10 @@
 name: Build Repo Listing
 
+env:
+  PackageName: com.vrchat.demo-template
+  listPublishDirectory: Website
+  pathToCi: ci
+  
 on: 
   workflow_dispatch:
   workflow_run:
@@ -19,10 +24,6 @@ permissions:
 concurrency:
   group: "pages"
   cancel-in-progress: true
-  
-env:
-  listPublishDirectory: Website
-  pathToCi: ci
 
 jobs:
   
