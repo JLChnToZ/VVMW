@@ -40,6 +40,7 @@ jobs:
           repository: vrchat-community/package-list-action
           path: ${{env.pathToCi}}
           clean: false # otherwise the local repo will no longer be checked out
+          ref: "feature/add-multipackage-target"
           
       - name: Restore Cache
         uses: actions/cache@v2
