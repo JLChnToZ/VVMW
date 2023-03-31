@@ -36,6 +36,7 @@
     <div class="addToVccBlock mt-4 row align-items-center">
       <fluent-text-field aria-readonly="true" id="vccUrlField" class="vccUrlField" readonly value="{{ listingInfo.Url }}">
       </fluent-text-field>
+      <fluent-button appearance="accent" class="ms-2" id="vccAddRepoButton" >Add to VCC</fluent-button>
       <fluent-button class="ms-2" id="vccUrlFieldCopy">
         <svg slot="start" width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
           <path d="M8 2C6.89543 2 6 2.89543 6 4V14C6 15.1046 6.89543 16 8 16H14C15.1046 16 16 15.1046 16 14V4C16 2.89543 15.1046 2 14 2H8ZM7 4C7 3.44772 7.44772 3 8 3H14C14.5523 3 15 3.44772 15 4V14C15 14.5523 14.5523 15 14 15H8C7.44772 15 7 14.5523 7 14V4ZM4 6.00001C4 5.25973 4.4022 4.61339 5 4.26758V14.5C5 15.8807 6.11929 17 7.5 17H13.7324C13.3866 17.5978 12.7403 18 12 18H7.5C5.567 18 4 16.433 4 14.5V6.00001Z"/>
@@ -71,10 +72,11 @@
         </p>
         <ul class="mt-1 ps-5">
           <li class="mb-2">Open your VCC and go to Settings</li>
-          <li class="mb-2">Scroll to "Package Listings" section</li>
-          <li class="mb-2">Click "Add"</li>
+          <li class="mb-2">Click the "Packages" tab</li>
+          <li class="mb-2">Click "Add Repository"</li>
           <li class="mb-2">In the field that appears - paste the url displayed below</li>
-          <li class="mb-2">Click "Save"</li>
+          <li class="mb-2">Click "Add"</li>
+          <li class="mb-2">Check the repository info and click "I Understand"</li>
           <li class="mb-2">Go to any of your projects to see the packages from the newly added listing.</li>
         </ul>
         <h5 class="m-0 mb-2">Listing URL</h5>
@@ -192,7 +194,7 @@
             </fluent-data-grid-cell>
             <fluent-data-grid-cell grid-column="3" class="row align-items-center justify-content-end">
               <fluent-button appearance="accent" class="rowAddToVccButton" data-package-id="{{ package.Name }}">Add to VCC</fluent-button>
-              <fluent-button title="Package Info" class="rowAddToVccButton ms-2" data-package-id="{{ package.Name }}">
+              <fluent-button title="Package Info" class="rowPackageInfoButton ms-2" data-package-id="{{ package.Name }}">
                 <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path d="M10.4921 8.91012C10.4497 8.67687 10.2456 8.49999 10.0001 8.49999C9.72397 8.49999 9.50011 8.72385 9.50011 8.99999V13.5021L9.50817 13.592C9.55051 13.8253 9.75465 14.0021 10.0001 14.0021C10.2763 14.0021 10.5001 13.7783 10.5001 13.5021V8.99999L10.4921 8.91012ZM10.7988 6.74999C10.7988 6.33578 10.463 5.99999 10.0488 5.99999C9.63461 5.99999 9.29883 6.33578 9.29883 6.74999C9.29883 7.16421 9.63461 7.49999 10.0488 7.49999C10.463 7.49999 10.7988 7.16421 10.7988 6.74999ZM18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10ZM3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10Z"/>
                   </svg>
