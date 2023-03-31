@@ -1,5 +1,7 @@
 import { baseLayerLuminance, StandardLuminance } from 'https://unpkg.com/@fluentui/web-components';
 
+const LISTING_URL = "{{ listingInfo.Url }}";
+
 const PACKAGES = {
 {{~ for package in packages ~}}
   "{{ package.Name }}": {
@@ -85,6 +87,9 @@ const setTheme = () => {
     }, 1000);
   });
 
+  const vccAddRepoButton = document.getElementById('vccAddRepoButton');
+  vccAddRepoButton.addEventListener('click', () => window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`));
+
   const vccUrlFieldCopy = document.getElementById('vccUrlFieldCopy');
   vccUrlFieldCopy.addEventListener('click', () => {
     const vccUrlField = document.getElementById('vccUrlField');
@@ -149,7 +154,12 @@ const setTheme = () => {
   const packageInfoLicense = document.getElementById('packageInfoLicense');
 
   const rowAddToVccButtons = document.querySelectorAll('.rowAddToVccButton');
-  rowAddToVccButtons.forEach(button => {
+  rowAddToVccButtons.forEach((button) => {
+    button.addEventListener('click', () => window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`));
+  });
+
+  const rowPackageInfoButton = document.querySelectorAll('.rowPackageInfoButton');
+  rowPackageInfoButton.forEach((button) => {
     button.addEventListener('click', e => {
       const packageId = e.target.dataset?.packageId;
       const packageInfo = PACKAGES?.[packageId];
