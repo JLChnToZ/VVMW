@@ -8,29 +8,47 @@ Multi-package repo support is yet to come.
 ## ▶ Getting Started
 
 * Press [![Use This Template](https://user-images.githubusercontent.com/737888/185467681-e5fdb099-d99f-454b-8d9e-0760e5a6e588.png)](https://github.com/vrchat-community/template-package/generate)
-to start a new GitHub project based on this template, and follow the directions there. 
-* Clone this repository locally using git.
-* Open the folder as a Unity Project.
-* Wait while the VPM resolver is downloaded and added to your project. This gives you access to the VPM Package Maker and Package Resolver tools.
+to start a new GitHub project based on this template.
+  * Choose a fitting repository name and description.
+  * Set the visibility to 'Public'. You can also choose 'Private' and change it later.
+  * You don't need to select 'Include all branches.'
+* Clone this repository locally using Git.
+  * If you're unfamiliar with Git and GitHub, [visit GitHub's documentation](https://docs.github.com/en/get-started/quickstart/git-and-github-learning-resources) to learn more.
+* Add the folder to Unity Hub and open it as a Unity Project.
+* After opening the project, wait while the VPM resolver is downloaded and added to your project.
+  * This gives you access to the VPM Package Maker and Package Resolver tools.
 
 ## 🚇 Migrating Assets Package
-* Full details at [Converting Assets to a VPM Package](https://vcc.docs.vrchat.com/guides/convert-unitypackage)
+Full details at [Converting Assets to a VPM Package](https://vcc.docs.vrchat.com/guides/convert-unitypackage)
 
 ## Working on Your Package
 
-You can delete the "Packages/com.vrchat.demo-template" directory or reuse it for your own package.
-Update the `.gitignore` file in the "Packages" directory to include your package. It has an example of including the demo package which you can easily change out for your own package name.
-
-You can open the Unity project and work on your package's files in your favorite Code Editor. Then commit and push your changes. Once you've set up the automation as described below, you can easily publish new versions.
+* Delete the "Packages/com.vrchat.demo-template" directory or reuse it for your own package.
+  * If you reuse the package, don't forget to rename it!
+* Update the `.gitignore` file in the "Packages" directory to include your package.
+  * For example, change `!com.vrchat.demo-template` to `!com.username.package-name`.
+  * `.gitignore` files normally *exclude* the contents of your "Packages" directory. This `.gitignore` in this template show how to *include* the demo package. You can easily change this out for your own package name.
+* Open the Unity project and work on your package's files in your favorite code editor.
+* When you're ready, commit and push your changes.
+* Once you've set up the automation as described below, you can easily publish new versions.
 
 ## Setting up the Automation
 
 You'll need to make a few changes in [release.yml](.github/workflows/release.yml):
-* Changed the `paths` property on line 7 to point to the directory where your Package's source files are. Leave the `/**` at the end so GitHub knows to run this action whenever any file in that directory is changed. In the example, this property reads: `paths: Packages/com.vrchat.demo-template/**`
+* Change the `paths` property on line 7 to point to the directory where your package's source files are. Leave the `/**` at the end so GitHub knows to run this action whenever any file in that directory is changed.
+  * In the template, this property is `paths: Packages/com.vrchat.demo-template/**`
 * Change the `packageName` property on line 10 to include the name of your package, like `packageName: "com.vrchat.demo-template"`
-* We highly recommend you keep the existing folder structure where the root of the project is a Unity Repo, and your packages are in the "Packages" directory, If you change this, you'll need to update the paths that assume your package is in the "Packages" directory, on lines 24, 38, 41 and 57.
 
-That's it. If you want to store and generate your web files in a folder other than "Website" in the root, you can change the `listPublicDirectory` item [here in build-listing.yml](.github/workflows/build-listing.yml#L17).
+You'll also need to make a change to [build-listing.yml](.github/workflows/build-listing.yml):
+* Change `CurrentPackageName` in line 4 from `com.vrchat.demo-template` to your own package name.
+
+That's it!
+Some other notes:
+* We highly recommend you keep the existing folder structure of this template.
+  * The root of the project should be a Unity project.
+  * Your packages should be in the "Packages" directory.
+  * If you deviate from this folder structure, you'll need to update the paths that assume your package is in the "Packages" directory on lines 24, 38, 41 and 57.
+* If you want to store and generate your web files in a folder other than "Website" in the root, you can change the `listPublicDirectory` item [here in build-listing.yml](.github/workflows/build-listing.yml#L17).
 
 ## 🎉 Publishing a Release
 
