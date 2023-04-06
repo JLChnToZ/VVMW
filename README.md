@@ -41,6 +41,8 @@ You'll need to make a few changes in [release.yml](.github/workflows/release.yml
 You'll also need to make a change to [build-listing.yml](.github/workflows/build-listing.yml):
 * Change `CurrentPackageName` in line 4 from `com.vrchat.demo-template` to your own package name.
 
+Finally, go to the "Settings" page for your repo, then choose "Pages", and look for the heading "Build and deployment". Change the "Source" dropdown from "Deploy from a branch" to "GitHub Actions".
+
 That's it!
 Some other notes:
 * We highly recommend you keep the existing folder structure of this template.
