@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEditor;
@@ -17,7 +16,7 @@ namespace VRC.PackageManagement.Core
         
         // VRC Values
         public const string VRC_CONFIG = "https://api.vrchat.cloud/api/1/config";
-        public const string VRCAgent = "VCCBootstrap/1.0";
+        public const string VRC_AGENT = "VCCBootstrap 1.0";
         public const string VRC_RESOLVER_PACKAGE = "com.vrchat.core.vpm-resolver";
         
         // Finds url for bootstrap package without using JSON
@@ -59,52 +58,35 @@ namespace VRC.PackageManagement.Core
                 return;
             }
 
-            var url = $"{bootstrapMatch.Groups[1].Value}";
+            var url = bootstrapMatch.Groups[1].Value;
             
             var targetFile =  Path.Combine(Path.GetTempPath(), $"resolver-{DateTime.Now.ToString("yyyyMMddTHHmmss")}.unitypackage");
-
-            // Download to dir
-            var bytes = await Http.GetByteArrayAsync(url);
-            if (bytes == null || bytes.Length == 0)
-            {
-                Debug.LogError($"Could not download Resolver, try again later.");
-                return;
-            }
             
-            File.WriteAllBytes(targetFile, bytes);
+            // Download to dir
+            using (var client = new WebClient())
+            {
+                // Add User Agent or else CloudFlare will return 1020
+                client.Headers.Add(HttpRequestHeader.UserAgent, VRC_AGENT);
+            
+                await client.DownloadFileTaskAsync(url, targetFile);
                 
-            if (File.Exists(targetFile))
-            {
-                AssetDatabase.ImportPackage(targetFile, false);
+                if (File.Exists(targetFile))
+                {
+                    Debug.Log($"Downloaded Resolver to {targetFile}");
+                    AssetDatabase.ImportPackage(targetFile, false);
+                }
             }
-            else
-            {
-                Debug.LogError($"Could not save Resolver, do you have access to write into the Temp folder?");
-            }
+            return;
         }
         
-        static HttpClient _http;
-
-        public static HttpClient Http
-        {
-            get
-            {
-                if (_http != null)
-                {
-                    return _http;
-                }
-
-                _http = new HttpClient();
-                _http.DefaultRequestHeaders.UserAgent.ParseAdd(VRCAgent);
-                _http.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue()
-                    { MaxAge = TimeSpan.FromHours(1) };
-                return _http;
-            }
-        }
-
         public static async Task<string> GetRemoteString(string url)
         {
-            return await Http.GetStringAsync(url);
+            using (var client = new WebClient())
+            {
+                // Add User Agent or else CloudFlare will return 1020
+                client.Headers.Add(HttpRequestHeader.UserAgent, VRC_AGENT);
+                return await client.DownloadStringTaskAsync(url);
+            }
         }
     }
 }
