@@ -53,7 +53,7 @@ Some other notes:
 
 ## 🎉 Publishing a Release
 
-A release will be automatically built whenever you push changes to your main branch which update files in the package folder you specified in `release.yml`. The version specified in your `package.json` file will be used to define the version of the release.
+You can make a release by running the [Build Release](.github/workflows/release.yml) action. The version specified in your `package.json` file will be used to define the version of the release.
 
 ## 📃 Rebuilding the Listing
 
