@@ -2,9 +2,6 @@ name: Build Release
 
 on: 
   workflow_dispatch:
-  push:
-    branches: main
-    paths: Packages/com.vrchat.demo-template/**
 
 env:
   packageName: "com.vrchat.demo-template"
@@ -46,13 +43,19 @@ jobs:
         with:
           package-path: ${{ env.unityPackage }}
           include-files: metaList
-        
+      
+      - name: Create Tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@86301c823dac64d427711dd6b99d7ffdd894d2dd
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          custom_tag: ${{ steps.version.outputs.prop }}
         
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
         with:
-          tag_name: ${{ steps.version.outputs.prop }}
           files: |
             ${{ env.zipFile }}
             ${{ env.unityPackage }}
             Packages/${{ env.packageName }}/package.json
+          tag_name: ${{ steps.version.outputs.prop }}
