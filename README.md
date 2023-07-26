@@ -33,9 +33,7 @@ Full details at [Converting Assets to a VPM Package](https://vcc.docs.vrchat.com
 
 ## Setting up the Automation
 
-You'll need to make a few changes in [release.yml](.github/workflows/release.yml):
-* Change the `paths` property on line 7 to point to the directory where your package's source files are. Leave the `/**` at the end so GitHub knows to run this action whenever any file in that directory is changed.
-  * In the template, this property is `paths: Packages/com.vrchat.demo-template/**`
+You'll need to make a change in [release.yml](.github/workflows/release.yml):
 * Change the `packageName` property on line 10 to include the name of your package, like `packageName: "com.vrchat.demo-template"`
 
 You'll also need to make a change to [build-listing.yml](.github/workflows/build-listing.yml):
@@ -57,7 +55,7 @@ You can make a release by running the [Build Release](.github/workflows/release.
 
 ## 📃 Rebuilding the Listing
 
-Whenever you make a change to a release - automatically publishing it, or manually creating, editing or deleting one, the [Build Repo Listing](.github/workflows/build-listing.yml) action will make a new index of all the releases available, and publish them as a website hosted fore free on [GitHub Pages](https://pages.github.com/). This listing can be used by the VPM to keep your package up to date, and the generated index page can serve as a simple landing page with info for your package. The URL for your package will be in the format `https://username.github.io/repo-name`.
+Whenever you make a change to a release - manually publishing it, or manually creating, editing or deleting a release, the [Build Repo Listing](.github/workflows/build-listing.yml) action will make a new index of all the releases available, and publish them as a website hosted fore free on [GitHub Pages](https://pages.github.com/). This listing can be used by the VPM to keep your package up to date, and the generated index page can serve as a simple landing page with info for your package. The URL for your package will be in the format `https://username.github.io/repo-name`.
 
 ## 🏠 Customizing the Landing Page
 
