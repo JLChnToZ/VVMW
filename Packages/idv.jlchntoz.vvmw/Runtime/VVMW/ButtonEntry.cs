@@ -1,15 +1,15 @@
 ﻿using UdonSharp;
 using UnityEngine;
 using UnityEngine.UI;
-using JLChnToZ.VRC.I18N;
+using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [RequireComponent(typeof(Button))]
+    [DisallowMultipleComponent]
+    [BindEvent(typeof(Button), nameof(Button.onClick), nameof(_OnClick))]
     public class ButtonEntry : UdonSharpBehaviour {
         LanguageManager manager;
-        [BindEvent(nameof(Button.onClick), nameof(_OnClick))]
-        [SerializeField] Button button;
         [SerializeField] Text buttonText;
         object[] args;
         string key;

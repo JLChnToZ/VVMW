@@ -1,10 +1,11 @@
 ﻿using UdonSharp;
 using UnityEngine;
-using JLChnToZ.VRC.I18N;
+using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW.Pickups {
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     [RequireComponent(typeof(Collider))]
+    [DisallowMultipleComponent]
     public class PickupReset : UdonSharpBehaviour {
         [SerializeField] PickupPanel pickupPanel;
         [SerializeField] LanguageManager languageManager;

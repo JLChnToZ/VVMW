@@ -9,6 +9,7 @@ using VRC.Udon.Common.Interfaces;
 namespace JLChnToZ.VRC.VVMW {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
+    [DisallowMultipleComponent]
     public class Core : UdonSharpEventSender {
         const byte IDLE = 0, LOADING = 1, PLAYING = 2, PAUSED = 3;
         // Non-exclusive list of trusted domains from VRChat documentation

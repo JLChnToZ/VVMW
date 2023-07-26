@@ -3,7 +3,7 @@ using UdonSharp;
 using UnityEngine;
 using VRC.SDK3.Data;
 
-namespace JLChnToZ.VRC.I18N {
+namespace JLChnToZ.VRC.VVMW.I18N {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     public class LanguageManager : UdonSharpEventSender {

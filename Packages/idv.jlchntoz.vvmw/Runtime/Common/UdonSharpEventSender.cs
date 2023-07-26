@@ -2,7 +2,7 @@
 using UnityEngine;
 using UdonSharp;
 
-namespace JLChnToZ.VRC {
+namespace JLChnToZ.VRC.VVMW {
     public abstract class UdonSharpEventSender : UdonSharpBehaviour {
         [Tooltip("UdonSharpBehavior that will receive the event from this object.")]
         [SerializeField] protected UdonSharpBehaviour[] targets;

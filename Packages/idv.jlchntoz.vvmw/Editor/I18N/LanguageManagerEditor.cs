@@ -13,7 +13,7 @@ using UdonSharpEditor;
 
 using static UnityEngine.Object;
 
-namespace JLChnToZ.VRC.I18N {
+namespace JLChnToZ.VRC.VVMW.I18N.Editors {
     [CustomEditor(typeof(LanguageManager))]
     public class LanguageManagerEditor : Editor {
         static GUIContent textContent;

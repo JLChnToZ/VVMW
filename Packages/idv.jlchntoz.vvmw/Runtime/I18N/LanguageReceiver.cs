@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-namespace JLChnToZ.VRC.I18N {
+namespace JLChnToZ.VRC.VVMW.I18N {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     public class LanguageReceiver : UdonSharpBehaviour {

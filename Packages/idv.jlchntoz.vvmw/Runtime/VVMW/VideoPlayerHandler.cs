@@ -10,6 +10,7 @@ namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [RequireComponent(typeof(BaseVRCVideoPlayer))]
     [RequireComponent(typeof(Renderer))]
+    [DisallowMultipleComponent]
     public class VideoPlayerHandler : UdonSharpBehaviour {
         string[] rtspVaildProtocols = new string[] { "rtsp", "rtmp", "rtspt", "rtspu", "rtmps", "rtsps" };
         [NonSerialized] public Core core;

@@ -3,13 +3,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRC.SDKBase;
 using VRC.Udon.Common;
-using JLChnToZ.VRC.I18N;
+using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW.Pickups {
     // Recreated U# form YamaButa's PickUpToggle, PickupSetScale_VR, PickupSetScale_PC Udon Graphs.
     // Source: https://yamabuta.booth.pm/items/4189997
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     [RequireComponent(typeof(VRC_Pickup))]
+    [DisallowMultipleComponent]
     public class PickupPanel : UdonSharpBehaviour {
         [Header("References")]
         [SerializeField] Transform scalingTarget;

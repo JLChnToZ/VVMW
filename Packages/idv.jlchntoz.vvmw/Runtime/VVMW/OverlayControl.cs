@@ -3,12 +3,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRC.SDKBase;
 using VRC.Udon;
-
-using JLChnToZ.VRC.I18N;
+using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
+    [DisallowMultipleComponent]
     public class OverlayControl : UdonSharpBehaviour {
         [Header("References")]
         [SerializeField] Core core;

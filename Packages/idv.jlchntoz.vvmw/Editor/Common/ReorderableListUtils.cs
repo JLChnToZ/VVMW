@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
 
-namespace JLChnToZ {
+namespace JLChnToZ.VRC.VVMW.Editors {
     public class ReorderableListUtils {
         public readonly SerializedProperty property;
         public readonly ReorderableList list;

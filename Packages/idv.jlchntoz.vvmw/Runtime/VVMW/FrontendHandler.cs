@@ -5,6 +5,7 @@ using VRC.SDKBase;
 
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
+    [DisallowMultipleComponent]
     public class FrontendHandler : UdonSharpEventSender {
         protected const byte NONE = 0, REPEAT_ONE = 0x1, REPEAT_ALL = 0x2, SHUFFLE = 0x4;
         [SerializeField] public Core core;

@@ -23,7 +23,7 @@ SOFTWARE.
 */
 using System;
 
-namespace JLChnToZ.VRC {
+namespace JLChnToZ.VRC.VVMW {
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
     public class BindEventAttribute : Attribute {

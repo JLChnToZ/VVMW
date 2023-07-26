@@ -3,7 +3,7 @@ using UdonSharp;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace JLChnToZ.VRC.I18N {
+namespace JLChnToZ.VRC.VVMW.I18N {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     public class LanguageSetter : UdonSharpBehaviour {

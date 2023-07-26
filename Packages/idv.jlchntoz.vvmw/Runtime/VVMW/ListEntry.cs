@@ -4,6 +4,7 @@ using UdonSharp;
 
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
+    [DisallowMultipleComponent]
     public class ListEntry : UdonSharpBehaviour {
         [SerializeField] Text content;
         [BindEvent(nameof(Button.onClick), nameof(_OnClick))]

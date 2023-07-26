@@ -42,7 +42,7 @@ using UdonSharpEditor;
 
 using UnityObject = UnityEngine.Object;
 
-namespace JLChnToZ.VRC {
+namespace JLChnToZ.VRC.VVMW.Editors {
     internal sealed class BindEventPreprocessor : IProcessSceneWithReport {
         static readonly Regex regexCompositeFormat = new Regex(@"\{(\d+)[,:]?[^\}]*\}", RegexOptions.Compiled);
         readonly Dictionary<Type, FieldInfo[]> filteredFields = new Dictionary<Type, FieldInfo[]>();
