@@ -46,10 +46,9 @@ jobs:
       
       - name: Create Tag
         id: tag_version
-        uses: mathieudutour/github-tag-action@86301c823dac64d427711dd6b99d7ffdd894d2dd
+        uses: rickstaa/action-create-tag@07b918ecbf94359b859f25f7a70553a84e804923
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          custom_tag: ${{ steps.version.outputs.prop }}
+          tag: ${{ steps.version.outputs.prop }}
         
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
