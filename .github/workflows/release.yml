@@ -49,7 +49,7 @@ jobs:
         id: tag_version
         uses: rickstaa/action-create-tag@07b918ecbf94359b859f25f7a70553a84e804923
         with:
-          tag: ${{env.version}}
+          tag: "${{env.version}}"
         
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
