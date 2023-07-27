@@ -28,6 +28,7 @@ jobs:
         run: |
           echo "zipFile=${{ env.packageName }}-${{ steps.version.outputs.value }}".zip >> $GITHUB_ENV
           echo "unityPackage=${{ env.packageName }}-${{ steps.version.outputs.value }}.unitypackage" >> $GITHUB_ENV
+          echo "version=${{ steps.version.outputs.value }} >> $GITHUB_ENV"
         
       - name: Create Zip
         uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
@@ -48,7 +49,7 @@ jobs:
         id: tag_version
         uses: rickstaa/action-create-tag@07b918ecbf94359b859f25f7a70553a84e804923
         with:
-          tag: ${{ steps.version.outputs.prop }}
+          tag: ${{env.version}}
         
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
@@ -57,4 +58,4 @@ jobs:
             ${{ env.zipFile }}
             ${{ env.unityPackage }}
             Packages/${{ env.packageName }}/package.json
-          tag_name: ${{ steps.version.outputs.prop }}
+          tag_name: ${{env.version}}
