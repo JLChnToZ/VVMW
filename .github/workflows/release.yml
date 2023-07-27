@@ -28,7 +28,7 @@ jobs:
         run: |
           echo "zipFile=${{ env.packageName }}-${{ steps.version.outputs.value }}".zip >> $GITHUB_ENV
           echo "unityPackage=${{ env.packageName }}-${{ steps.version.outputs.value }}.unitypackage" >> $GITHUB_ENV
-          echo "version=${{ steps.version.outputs.value }} >> $GITHUB_ENV"
+          echo "version=${{ steps.version.outputs.value }}" >> $GITHUB_ENV
         
       - name: Create Zip
         uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
