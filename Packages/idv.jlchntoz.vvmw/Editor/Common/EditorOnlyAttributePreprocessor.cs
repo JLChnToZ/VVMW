@@ -1,4 +1,5 @@
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -12,9 +13,15 @@ namespace JLChnToZ.VRC.VVMW {
         public int callbackOrder => 0;
 
         public void OnProcessScene(Scene scene, BuildReport report) {
-            foreach (var mb in scene.GetRootGameObjects().SelectMany(go => go.GetComponentsInChildren<MonoBehaviour>(true)))
-                if (mb.GetType().GetCustomAttribute<EditorOnlyAttribute>() != null)
-                    DestroyImmediate(mb, true);
+            var hasAttributeCache = new Dictionary<Type, bool>();
+            foreach (var behaviour in scene.IterateAllComponents<MonoBehaviour>()) {
+                var type = behaviour.GetType();
+                if (!hasAttributeCache.TryGetValue(type, out var hasAttribute)) {
+                    hasAttribute = type.GetCustomAttribute<EditorOnlyAttribute>() != null;
+                    hasAttributeCache[type] = hasAttribute;
+                }
+                if (hasAttribute) DestroyImmediate(behaviour, true);
+            }
         }
     }
 }

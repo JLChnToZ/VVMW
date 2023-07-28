@@ -50,7 +50,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         public int callbackOrder => 0;
 
         public void OnProcessScene(Scene scene, BuildReport report) {
-            foreach (var usharp in scene.GetRootGameObjects().SelectMany(go => go.GetComponentsInChildren<UdonSharpBehaviour>(true))) {
+            foreach (var usharp in scene.IterateAllComponents<UdonSharpBehaviour>()) {
                 var type = usharp.GetType();
                 var udon = UdonSharpEditorUtility.GetBackingUdonBehaviour(usharp);
                 ProcessEntry(type, udon);
