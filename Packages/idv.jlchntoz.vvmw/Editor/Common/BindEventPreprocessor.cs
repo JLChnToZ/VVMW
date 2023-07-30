@@ -38,6 +38,7 @@ using UnityEditor.Build.Reporting;
 using UnityEditor.Callbacks;
 
 using VRC.Udon;
+using VRC.Udon.Editor;
 using UdonSharp;
 using UdonSharpEditor;
 
@@ -47,7 +48,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
     internal sealed class BindEventPreprocessor : IProcessSceneWithReport {
         static readonly Regex regexCompositeFormat = new Regex(@"\{(\d+)[,:]?[^\}]*\}", RegexOptions.Compiled);
         static readonly Dictionary<Type, MonoScript> scriptMap = new Dictionary<Type, MonoScript>();
+        static readonly Dictionary<string, string> typeNameMapping = new Dictionary<string, string>();
         readonly Dictionary<Type, FieldInfo[]> filteredFields = new Dictionary<Type, FieldInfo[]>();
+        static bool hasTypeNameMappingInit;
 
         public int callbackOrder => 0;
 
@@ -55,15 +58,20 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             foreach (var usharp in scene.IterateAllComponents<UdonSharpBehaviour>()) {
                 var type = usharp.GetType();
                 var udon = UdonSharpEditorUtility.GetBackingUdonBehaviour(usharp);
-                ProcessEntry(type, udon);
+                if (udon == null) {
+                    Debug.LogError($"[BindEventPreprocessor] `{usharp.name}` is not correctly configured.", usharp);
+                    continue;
+                }
+                UnityAction<string> call = udon.SendCustomEvent;
+                ProcessEntry(type, udon, call);
                 var fieldInfos = GetFields(type);
                 foreach (var field in fieldInfos) {
                     var targetObj = field.GetValue(usharp);
                     if (targetObj is Array array)
                         for (int i = 0, length = array.GetLength(0); i < length; i++)
-                            ProcessEntry(array.GetValue(i) as UnityObject, field, udon, i);
+                            ProcessEntry(array.GetValue(i) as UnityObject, field, call, i);
                     else if (targetObj is UnityObject unityObject)
-                        ProcessEntry(unityObject, field, udon, 0);
+                        ProcessEntry(unityObject, field, call, 0);
                 }
             }
         }
@@ -77,21 +85,21 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             return fieldInfos;
         }
 
-        static void ProcessEntry(Type type, UdonBehaviour udon) {
+        static void ProcessEntry(Type type, Component component, UnityAction<string> call) {
             foreach (var attribute in type.GetCustomAttributes<BindEventAttribute>(true)) {
                 var srcType = attribute.SourceType;
                 if (srcType == null) continue;
-                var targetObjs = udon.GetComponents(srcType);
+                var targetObjs = component.GetComponents(srcType);
                 for (int i = 0; i < targetObjs.Length; i++)
-                    BindSingleEvent(targetObjs[i], srcType, attribute, udon, i);
+                    BindSingleEvent(targetObjs[i], srcType, attribute, call, i);
             }
         }
 
-        static void ProcessEntry(UnityObject targetObj, MemberInfo member, UdonBehaviour udon, int index) {
+        static void ProcessEntry(UnityObject targetObj, MemberInfo member, UnityAction<string> call, int index) {
             if (targetObj == null) return;
             var srcType = targetObj.GetType();
             foreach (var attribute in member.GetCustomAttributes<BindEventAttribute>(true))
-                BindSingleEvent(targetObj, srcType, attribute, udon, index);
+                BindSingleEvent(targetObj, srcType, attribute, call, index);
         }
 
         static bool TryGetValue(object source, Type srcType, string fieldName, out object result) {
@@ -109,9 +117,20 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             return false;
         }
 
-        static void BindSingleEvent(UnityObject targetObj, Type srcType, BindEventAttribute attribute, UdonBehaviour udon, int index) {
-            if (TryGetValue(targetObj, srcType, attribute.Source, out var otherObj) && otherObj is UnityEventBase callback)
-                UnityEventTools.AddStringPersistentListener(callback, udon.SendCustomEvent, string.Format(attribute.Destination, index, targetObj.name));
+        static void BindSingleEvent(UnityObject targetObj, Type srcType, BindEventAttribute attribute, UnityAction<string> call, int index) {
+            if (TryGetValue(targetObj, srcType, attribute.Source, out var otherObj) && otherObj is UnityEventBase callback) {
+                var targetEventName = string.Format(attribute.Destination, index, targetObj.name);
+                if (!hasTypeNameMappingInit) {
+                    foreach (var def in UdonEditorManager.Instance.GetNodeDefinitions()) {
+                        if (!def.fullName.StartsWith("Event_")) continue;
+                        typeNameMapping[def.fullName.Substring(6)] = $"_{char.ToLower(def.fullName[6])}{def.fullName.Substring(7)}";
+                    }
+                    hasTypeNameMappingInit = true;
+                }
+                if (typeNameMapping.TryGetValue(targetEventName, out var mappedEventName))
+                    targetEventName = mappedEventName;
+                UnityEventTools.AddStringPersistentListener(callback, call, targetEventName);
+            }
         }
 
         [DidReloadScripts]
@@ -189,7 +208,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 Debug.LogError($"{messagePrefix} None of destination methods matches {destName}.", currentScript);
             else if (!destName.StartsWith("_"))
                 Debug.LogWarning($"{messagePrefix} Destination {destName} does not start with underscore, which can be called over network RPC.\nIf this is intentional, you may safely ignore this warning.", currentScript);
-
         }
 
         static string ReplaceRegex(Match match) {
