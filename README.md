@@ -1,6 +1,20 @@
 # VVMW
 Welcome! VVMW is a general-purpose video player wrapper for use in VRChat. It aims to cover many use cases, from watch-together video/live stream player in lounges, to large event venue for music performances, or even booths for exhibitions or showcases. Due to its target customers, it has a flexible architecture, just like a factory made electronic but with a easy to open back lid, make it easier to let users mess them around for their needs.
 
+## Features
+- Basic playback, seeking controls
+- Pre-defined playlists & user queue list
+- Low latency mode, (tested with RTSP/RTMP streams)
+- Local mode (toggleable syncing with other users within instance before uploading)
+- Modulized screen, audio & UI architecture, support multiple instances
+- Local pickupable & scaleable screen
+- Wrist band (VR) / keyboard (desktop) resync button & volume controls
+- Localization system with auto language detection (English, Traditional Chinese, Japanese & Korean)
+- Locked UI with [Udon Auth](https://xtl.booth.pm/items/3826907).
+- Basic [Audio Link](https://github.com/llealloo/vrc-udon-audio-link) support, which will auto switch audio source when playing.
+- Basic [LTCGI](https://ltcgi.dev/) integration, provided CustomRenderTexture for use.
+- Simple API for [your own udons] integration.
+
 ## Documentation
 Please refer to [another readme](./Packages/idv.jlchntoz.vvmw/README.md) for details.
 
