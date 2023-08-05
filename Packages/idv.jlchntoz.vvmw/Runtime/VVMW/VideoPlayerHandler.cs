@@ -64,6 +64,10 @@ namespace JLChnToZ.VRC.VVMW {
             videoPlayer = (BaseVRCVideoPlayer)GetComponent(typeof(BaseVRCVideoPlayer));
             renderer = (Renderer)GetComponent(typeof(Renderer));
             texturePropertyID = VRCShader.PropertyToID(texturePropertyName);
+            // This will actually instantiate a material clone,
+            // and then the video screen output texture will be assigned to the clone instead of the original material.
+            if (useSharedMaterial)
+                renderer.sharedMaterial = renderer.material;
         }
 
         public void _GetTexture() {
@@ -73,7 +77,7 @@ namespace JLChnToZ.VRC.VVMW {
                 return;
             }
             if (useSharedMaterial)
-                texture = renderer.material.GetTexture(texturePropertyID);
+                texture = renderer.sharedMaterial.GetTexture(texturePropertyID);
             else {
                 if (propertyBlock == null) propertyBlock = new MaterialPropertyBlock();
                 renderer.GetPropertyBlock(propertyBlock);
@@ -124,6 +128,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public override void OnVideoError(VideoError videoError) {
             if (!isActive) return;
+            isReady = false;
             core.OnVideoError(videoError);
         }
 

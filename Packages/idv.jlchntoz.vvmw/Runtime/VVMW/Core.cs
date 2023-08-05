@@ -238,8 +238,11 @@ namespace JLChnToZ.VRC.VVMW {
             }
             screenTargetPropertyBlock = new MaterialPropertyBlock();
             Volume = defaultVolume;
-            if (IsUrlValid(defaultUrl) && (!synced || Networking.IsOwner(gameObject)))
-                PlayUrl(null, 0);
+            if (!synced || Networking.IsOwner(gameObject)) _PlayDefaultUrl();
+        }
+
+        public void _PlayDefaultUrl() {
+            if (IsUrlValid(defaultUrl)) PlayUrl(null, 0);
         }
 
         public void PlayUrl(VRCUrl url, byte playerType) {
