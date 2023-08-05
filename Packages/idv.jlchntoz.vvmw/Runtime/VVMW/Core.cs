@@ -390,11 +390,14 @@ namespace JLChnToZ.VRC.VVMW {
             if (IsUrlValid(loadingUrl) || isLocalReloading) return;
             lastActivePlayer = activePlayer;
             lastUrl = localUrl;
-            ActivePlayer = 0;
+            if (lastActivePlayer != 0)
+                ActivePlayer = 0;
+            else {
+                SendEvent("_onVideoEnd");
+                _OnTextureChanged();
+            }
             localUrl = synced ? null : defaultUrl;
             trustUpdated = false;
-            SendEvent("_onVideoEnd");
-            _OnTextureChanged();
             if (!synced || !Networking.IsOwner(gameObject)) return;
             state = IDLE;
             RequestSerialization();
