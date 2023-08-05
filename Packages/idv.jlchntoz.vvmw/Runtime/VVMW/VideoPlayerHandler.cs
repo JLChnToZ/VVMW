@@ -165,6 +165,10 @@ namespace JLChnToZ.VRC.VVMW {
 
         public override void OnVideoEnd() {
             if (isRTSP) return; // Don't do anything if it's RTSP
+            // For AVPro players, even it fires OnVideoEnd event,
+            // its IsPlaying flag doesn't change to false,
+            // so we have to stop it manually.
+            if (videoPlayer.IsPlaying) videoPlayer.Stop();
             isPaused = false;
             if (!isActive) return;
             texture = null;
