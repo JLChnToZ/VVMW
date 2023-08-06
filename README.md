@@ -9,6 +9,7 @@ Welcome! VVMW is a general-purpose video player wrapper for use in VRChat. It ai
 - Modulized screen, audio & UI architecture, support multiple instances
 - Local pickupable & scaleable screen
 - Wrist band (VR) / keyboard (desktop) resync button & volume controls
+- Custom shader with various display modes built-in (Stretch, Contain, Cover, Stereographic Video Source)
 - Localization system with auto language detection (English, Traditional Chinese, Japanese & Korean)
 - Locked UI with [Udon Auth](https://xtl.booth.pm/items/3826907).
 - Basic [Audio Link](https://github.com/llealloo/vrc-udon-audio-link) support, which will auto switch audio source when playing.
