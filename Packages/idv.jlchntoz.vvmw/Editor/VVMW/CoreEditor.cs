@@ -98,6 +98,19 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 EditorGUILayout.HelpBox("It is required to set a default texture to display when no video is playing.", MessageType.Error);
             DrawScreenList();
             audioSourcesList.list.DoLayoutList();
+            var newAudioSource = EditorGUILayout.ObjectField("Add Audio Source", null, typeof(AudioSource), true) as AudioSource;
+            if (newAudioSource != null) {
+                bool hasExisting = false;
+                for (int i = 0, count = audioSourcesProperty.arraySize; i < count; i++)
+                    if (audioSourcesProperty.GetArrayElementAtIndex(i).objectReferenceValue == newAudioSource) {
+                        hasExisting = true;
+                        break;
+                    }
+                if (!hasExisting) {
+                    var index = audioSourcesProperty.arraySize++;
+                    audioSourcesProperty.GetArrayElementAtIndex(index).objectReferenceValue = newAudioSource;
+                }
+            }
             EditorGUILayout.PropertyField(defaultVolumeProperty);
             EditorGUILayout.PropertyField(syncedProperty);
             EditorGUILayout.PropertyField(audioLinkProperty);
@@ -204,6 +217,19 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 using (new EditorGUILayout.HorizontalScope()) {
                     screenTargetVisibilityState[i] = EditorGUILayout.Toggle(screenTargetVisibilityState[i], EditorStyles.foldout, GUILayout.Width(13));
                     EditorGUILayout.PropertyField(targetProperty, GetTempContent($"Video Screen Target {i + 1}"));
+                    var value = targetProperty.objectReferenceValue;
+                    if (value is GameObject gameObject) {
+                        if (gameObject.TryGetComponent(out Renderer renderer))
+                            targetProperty.objectReferenceValue = renderer;
+                        else if (gameObject.TryGetComponent(out RawImage rawImage))
+                            targetProperty.objectReferenceValue = rawImage;
+                        else targetProperty.objectReferenceValue = null;
+                    } else if (value is CustomRenderTexture crt)
+                        targetProperty.objectReferenceValue = crt.material;
+                    else if (value is Renderer) {}
+                    else if (value is Material) {}
+                    else if (value is RawImage) {}
+                    else targetProperty.objectReferenceValue = null;
                     if (GUILayout.Button("Remove", GUILayout.ExpandWidth(false)))
                         targetProperty.objectReferenceValue = null;
                 }
