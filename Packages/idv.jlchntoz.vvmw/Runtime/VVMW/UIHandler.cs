@@ -16,6 +16,8 @@ namespace JLChnToZ.VRC.VVMW {
         public FrontendHandler handler;
         [SerializeField] LanguageManager languageManager;
         [Header("Main UI")]
+        [SerializeField] Animator uiAnimator;
+        [SerializeField] string interactTriggerKey = "Stage2";
         [BindEvent(nameof(Button.onClick), nameof(_Play))]
         [SerializeField] Button playButton;
         [BindEvent(nameof(Button.onClick), nameof(_Pause))]
@@ -24,21 +26,27 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Button stopButton;
         [BindEvent(nameof(Button.onClick), nameof(_LocalSync))]
         [SerializeField] Button reloadButton;
+        [BindEvent(nameof(Button.onClick), nameof(_GlobalSync))]
+        [SerializeField] Button globalReloadButton;
         [BindEvent(nameof(Button.onClick), nameof(_Skip))]
         [SerializeField] Button playNextButton;
-        [BindEvent(nameof(Toggle.onValueChanged), nameof(_RepeatOne))]
-        [SerializeField] Toggle repeatOneToggle;
-        [BindEvent(nameof(Toggle.onValueChanged), nameof(_RepeatAll))]
-        [SerializeField] Toggle repeatAllToggle;
-        [BindEvent(nameof(Toggle.onValueChanged), nameof(_Shuffle))]
-        [SerializeField] Toggle shuffleToggle;
+        [BindEvent(nameof(Button.onClick), nameof(_RepeatOne))]
+        [SerializeField] Button repeatOffButton;
+        [BindEvent(nameof(Button.onClick), nameof(_RepeatAll))]
+        [SerializeField] Button repeatOneButton;
+        [BindEvent(nameof(Button.onClick), nameof(_RepeatOff))]
+        [SerializeField] Button RepeatAllButton;
+        [BindEvent(nameof(Button.onClick), nameof(_ShuffleOn))]
+        [SerializeField] Button shuffleOffButton;
+        [BindEvent(nameof(Button.onClick), nameof(_ShuffleOff))]
+        [SerializeField] Button shuffleOnButton;
         [BindEvent(nameof(Toggle.onValueChanged), nameof(_PlayListToggle))]
         [SerializeField] Toggle playlistToggle;
         [SerializeField] Text enqueueCountText;
         [BindEvent(nameof(VRCUrlInputField.onValueChanged), nameof(_OnURLChanged))]
         [BindEvent(nameof(VRCUrlInputField.onEndEdit), nameof(_OnURLEndEdit))]
         [SerializeField] VRCUrlInputField urlInput;
-        [SerializeField] Text statusText;
+        [SerializeField] Text statusText, timeText, durationText;
         [SerializeField] GameObject videoPlayerSelectButtonTemplate;
         [BindEvent(nameof(Button.onClick), nameof(_InputCancelClick))]
         [SerializeField] Button cancelButton;
@@ -46,12 +54,17 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Slider progressSlider;
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnVolumeSlide))]
         [SerializeField] Slider volumeSlider;
+        [SerializeField] GameObject idleScreenRoot;
         [Header("Queue List / Play List")]
         [SerializeField] GameObject playListPanelRoot;
         [SerializeField] GameObject playListTemplate;
         [SerializeField] Transform playListContainer;
+        [SerializeField] GameObject playListTogglePanel;
+        [BindEvent(nameof(Button.onClick), nameof(_PlayListTogglePanel))]
+        [SerializeField] Button playListTogglePanelButton;
         [SerializeField] GameObject queueEntryTemplate;
         [SerializeField] Transform queueEntryContainer;
+        [SerializeField] Text selectedPlayListText;
         [Header("Sync Offset Controls")]
         [BindEvent(nameof(Button.onClick), nameof(_ShiftBack100ms))]
         [SerializeField] Button shiftBack100msButton;
@@ -73,6 +86,8 @@ namespace JLChnToZ.VRC.VVMW {
         int lastDisplayCount;
         bool hasUpdate, wasUnlocked;
         string enqueueCountFormat;
+        byte selectedPlayer = 1;
+        int interactTriggerId;
 
         void Start() {
             var hasHandler = Utilities.IsValid(handler);
@@ -82,25 +97,34 @@ namespace JLChnToZ.VRC.VVMW {
                 enqueueCountText.text = string.Format(enqueueCountFormat, 0);
             }
             selectedPlayListIndex = hasHandler ? handler.PlayListIndex : 0;
-            var playListRoot = playListContainer.GetComponentInParent<ScrollRect>();
-            var playListRootGameObject = playListRoot != null ? playListRoot.gameObject : playListContainer.gameObject;
-            var queueListRoot = queueEntryContainer.GetComponentInParent<ScrollRect>();
-            var queueListRootGameObject = queueListRoot != null ? queueListRoot.gameObject : queueEntryContainer.gameObject;
-            if (playListTemplate != null) {
-                var playListNames = hasHandler ? handler.PlayListTitles : null;
-                if (playListNames != null) {
-                    playListEntries = new ListEntry[playListNames.Length + 1];
-                    if (handler.HasQueueList)
-                        InstantiatePlayListTemplate(0, languageManager.GetLocale("QueueList"));
-                    for (int i = 0; i < playListNames.Length; i++)
-                        InstantiatePlayListTemplate(i + 1, playListNames[i]);
-                } else if (playListEntries == null)
-                    playListEntries = new ListEntry[0];
-                playListRootGameObject.SetActive(playListEntries.Length > 1);
-            } else {
-                playListRootGameObject.SetActive(false);
+            if (playListContainer != null) {
+                var playListRoot = playListContainer.GetComponentInParent<ScrollRect>();
+                var playListRootGameObject = playListRoot != null ? playListRoot.gameObject : playListContainer.gameObject;
+                if (playListTemplate != null) {
+                    var playListNames = hasHandler ? handler.PlayListTitles : null;
+                    if (playListNames != null) {
+                        playListEntries = new ListEntry[playListNames.Length + 1];
+                        if (handler.HasQueueList)
+                            InstantiatePlayListTemplate(0, languageManager.GetLocale("QueueList"));
+                        for (int i = 0; i < playListNames.Length; i++)
+                            InstantiatePlayListTemplate(i + 1, playListNames[i]);
+                    } else if (playListEntries == null)
+                        playListEntries = new ListEntry[0];
+                    bool hasPlayList = playListEntries.Length > 1;
+                    playListRootGameObject.SetActive(hasPlayList);
+                    if (playListTogglePanelButton != null) playListTogglePanelButton.interactable = hasPlayList;
+                } else {
+                    playListRootGameObject.SetActive(false);
+                    if (playListTogglePanelButton != null) playListTogglePanelButton.interactable = false;
+                }
+                if (playListPanelRoot != null) playListPanelRoot.SetActive(true);
+            } else if (playListPanelRoot != null) playListPanelRoot.SetActive(true);
+            if (playListTogglePanel != null) playListTogglePanel.SetActive(false);
+            if (queueEntryContainer != null) {
+                var queueListRoot = queueEntryContainer.GetComponentInParent<ScrollRect>();
+                var queueListRootGameObject = queueListRoot != null ? queueListRoot.gameObject : queueEntryContainer.gameObject;
+                queueListRootGameObject.SetActive(hasHandler);
             }
-            queueListRootGameObject.SetActive(hasHandler);
             if (videoPlayerSelectButtonTemplate != null) {
                 var templateTransform = videoPlayerSelectButtonTemplate.transform;
                 var parent = templateTransform.parent;
@@ -122,8 +146,8 @@ namespace JLChnToZ.VRC.VVMW {
                     videoPlayerSelectButtons[i] = button;
                 }
             }
-            if (repeatAllToggle != null) repeatAllToggle.gameObject.SetActive(hasHandler);
-            if (shuffleToggle != null) shuffleToggle.gameObject.SetActive(hasHandler);
+            if (uiAnimator != null)
+                interactTriggerId = Animator.StringToHash(interactTriggerKey);
             bool isSynced = core.IsSynced;
             if (shiftBack100msButton != null) shiftBack100msButton.gameObject.SetActive(isSynced);
             if (shiftBack50msButton != null) shiftBack50msButton.gameObject.SetActive(isSynced);
@@ -155,6 +179,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _Play() {
+            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler._Play();
             else
@@ -163,6 +188,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _Pause() {
+            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler._Pause();
             else
@@ -171,6 +197,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _Stop() {
+            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler._Stop();
             else
@@ -180,29 +207,50 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _Skip() {
+            _OnInteract();
             if (!Utilities.IsValid(handler)) return;
             handler._Skip();
             _InputCancelClick();
         }
 
-        public void _RepeatOne() {
+        public void _RepeatOff() {
+            _OnInteract();
             if (Utilities.IsValid(handler))
-                handler.RepeatOne = !handler.RepeatOne;
+                handler.NoRepeat();
             else
-                core.Loop = !core.Loop;
+                core.Loop = false;
+        }
+
+        public void _RepeatOne() {
+            _OnInteract();
+            if (Utilities.IsValid(handler))
+                handler.RepeatOne = true;
+            else
+                core.Loop = true;
         }
 
         public void _RepeatAll() {
-            if (!Utilities.IsValid(handler)) return;
-            handler.RepeatAll = !handler.RepeatAll;
+            _OnInteract();
+            if (Utilities.IsValid(handler))
+                handler.RepeatAll = true;
+            else
+                core.Loop = true;
         }
 
-        public void _Shuffle() {
-            if (!Utilities.IsValid(handler)) return;
-            handler.Shuffle = !handler.Shuffle;
+        public void _ShuffleOff() {
+            _OnInteract();
+            if (Utilities.IsValid(handler))
+                handler.Shuffle = false;
+        }
+
+        public void _ShuffleOn() {
+            _OnInteract();
+            if (Utilities.IsValid(handler))
+                handler.Shuffle = true;
         }
 
         public void _LocalSync() {
+            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler._LocalSync();
             else
@@ -211,6 +259,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _GlobalSync() {
+            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler._GlobalSync();
             else
@@ -219,10 +268,12 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnSeek() {
+            _OnInteract();
             core.Progress = progressSlider.value;
         }
 
         public void _OnVolumeSlide() {
+            _OnInteract();
             core.Volume = volumeSlider.value;
         }
 
@@ -232,22 +283,35 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnURLChanged() {
-            statusText.enabled = string.IsNullOrEmpty(urlInput.textComponent.text);
+            _OnInteract();
+            if (statusText != null) statusText.enabled = string.IsNullOrEmpty(urlInput.textComponent.text);
         }
 
         public void _OnURLEndEdit() {
-            _OnUIUpdate();
-            _OnURLChanged();
+            var url = urlInput.GetUrl();
+            if (Utilities.IsValid(handler))
+                handler.PlayUrl(url, selectedPlayer);
+            else
+                core.PlayUrl(url, selectedPlayer);
+            _InputCancelClick();
         }
 
         public void _InputCancelClick() {
+            _OnInteract();
             urlInput.SetUrl(VRCUrl.Empty);
             _OnUIUpdate();
             _OnURLChanged();
         }
 
+        public void _PlayListTogglePanel() {
+            _OnInteract();
+            if (playListTogglePanel == null) return;
+            playListTogglePanel.SetActive(!playListTogglePanel.activeSelf);
+        }
+
         public void _PlayListToggle() {
-            if (playListPanelRoot == null) return;
+            _OnInteract();
+            if (playListTogglePanel == null) return;
             if (playlistToggle.isOn) {
                 playListPanelRoot.SetActive(true);
                 if (Utilities.IsValid(handler)) {
@@ -266,13 +330,8 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _LoadPlayerClick() {
-            var url = urlInput.GetUrl();
-            urlInput.SetUrl(VRCUrl.Empty);
-            if (Utilities.IsValid(handler))
-                handler.PlayUrl(url, loadWithIndex);
-            else
-                core.PlayUrl(url, loadWithIndex);
-            _OnURLChanged();
+            _OnInteract();
+            selectedPlayer = loadWithIndex;
         }
 
         public void _OnUIUpdate() {
@@ -282,16 +341,25 @@ namespace JLChnToZ.VRC.VVMW {
             bool canPause = false;
             bool canStop = false;
             bool canLocalSync = false;
-            bool canSelectPlayer = false;
             bool canSeek = false;
             switch (core.State) {
                 case 0: // Idle
+                    if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
+                    if (statusText == null) break;
                     statusText.text = languageManager.GetLocale("VVMW_Name");
+                    if (durationText != null) durationText.text = languageManager.GetLocale("TimeIdleFormat");
+                    if (timeText != null) timeText.text = languageManager.GetLocale("TimeIdleFormat");
                     break;
                 case 1: // Loading
+                    if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
+                    if (statusText == null) break;
                     statusText.text = languageManager.GetLocale("Loading");
+                    if (durationText != null) durationText.text = languageManager.GetLocale("TimeIdleFormat");
+                    if (timeText != null) timeText.text = languageManager.GetLocale("TimeIdleFormat");
                     break;
                 case 2: // Error
+                    if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
+                    if (statusText == null) break;
                     var errorCode = core.LastError;
                     switch (errorCode) {
                         case VideoError.InvalidURL: statusText.text = languageManager.GetLocale("InvalidURL"); break;
@@ -300,67 +368,53 @@ namespace JLChnToZ.VRC.VVMW {
                         case VideoError.RateLimited: statusText.text = languageManager.GetLocale("RateLimited"); break;
                         default: statusText.text = string.Format(languageManager.GetLocale("Unknown"), (int)errorCode); break;
                     }
+                    if (durationText != null) durationText.text = "";
+                    if (timeText != null) timeText.text = "";
                     break;
                 case 3: // Ready
-                    statusText.text = languageManager.GetLocale("Ready");
+                    if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
+                    if (statusText != null)
+                        statusText.text = languageManager.GetLocale("Ready");
                     if (progressSlider != null) {
                         progressSlider.SetValueWithoutNotify(1);
                         progressSlider.interactable = false;
                     }
-                    canPlay = unlocked && !canSelectPlayer;
+                    canPlay = unlocked;
                     break;
                 case 4: // Playing
-                    canPause = unlocked && !canSelectPlayer;
-                    canStop = unlocked && !canSelectPlayer;
+                    if (idleScreenRoot != null) idleScreenRoot.SetActive(false);
+                    canPause = unlocked;
+                    canStop = unlocked;
                     canSeek = true;
                     break;
                 case 5: // Paused
-                    canPlay = unlocked && !canSelectPlayer;
-                    canStop = unlocked && !canSelectPlayer;
+                    if (idleScreenRoot != null) idleScreenRoot.SetActive(false);
+                    canPlay = unlocked;
+                    canStop = unlocked;
                     canSeek = true;
                     break;
             }
-            var url = urlInput.GetUrl();
-            if (unlocked && Utilities.IsValid(url) && !url.Equals(VRCUrl.Empty)) {
-                canSelectPlayer = true;
-            } else if (reloadButton != null) {
+            if (reloadButton != null) {
                 var localUrl = core.Url;
                 canLocalSync = Utilities.IsValid(localUrl) && !localUrl.Equals(VRCUrl.Empty);
             }
             if (playButton != null) playButton.gameObject.SetActive(canPlay);
             if (pauseButton != null) pauseButton.gameObject.SetActive(canPause);
             if (stopButton != null) stopButton.gameObject.SetActive(canStop);
-            if (repeatOneToggle != null) {
-                repeatOneToggle.interactable = unlocked;
-                repeatOneToggle.gameObject.SetActive(!canSelectPlayer);
-                repeatOneToggle.SetIsOnWithoutNotify(hasHandler ? handler.RepeatOne : core.Loop);
-            }
-            if (hasHandler) {
-                if (repeatAllToggle != null) {
-                    repeatAllToggle.interactable = unlocked;
-                    repeatAllToggle.SetIsOnWithoutNotify(handler.RepeatAll);
-                }
-                if (shuffleToggle != null) {
-                    shuffleToggle.interactable = unlocked;
-                    shuffleToggle.SetIsOnWithoutNotify(handler.Shuffle);
-                }
-            }
             if (reloadButton != null) reloadButton.gameObject.SetActive(canLocalSync);
-            if (cancelButton != null) cancelButton.gameObject.SetActive(canSelectPlayer);
-            if (playlistToggle != null) playlistToggle.gameObject.SetActive(!canSelectPlayer);
-            if (canSeek) {
-                UpdateProgressOnce();
-                if (!hasUpdate) {
-                    hasUpdate = true;
-                    _UpdateProgress();
+            if (progressSlider != null) {
+                if (canSeek) {
+                    UpdateProgressOnce();
+                    if (!hasUpdate) {
+                        hasUpdate = true;
+                        _UpdateProgress();
+                    }
+                    progressSlider.interactable = true;
+                } else {
+                    progressSlider.SetValueWithoutNotify(1);
+                    progressSlider.interactable = false;
                 }
-                progressSlider.interactable = true;
-            } else {
-                progressSlider.SetValueWithoutNotify(1);
-                progressSlider.interactable = false;
             }
-            for (int i = 0; i < videoPlayerSelectButtons.Length; i++)
-                videoPlayerSelectButtons[i].SetActive(canSelectPlayer);
             if (wasUnlocked != unlocked) {
                 wasUnlocked = unlocked;
                 if (playListEntries != null)
@@ -375,6 +429,29 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                 urlInput.interactable = unlocked;
                 if (!unlocked) urlInput.SetUrl(VRCUrl.Empty);
+            }
+            if (hasHandler) {
+                bool isRepeatOne = handler.RepeatOne;
+                bool isRepeatAll = handler.RepeatAll;
+                bool isShuffle = handler.Shuffle;
+                if (repeatOffButton != null) repeatOffButton.gameObject.SetActive(!isRepeatOne && !isRepeatAll);
+                if (repeatOneButton != null) repeatOneButton.gameObject.SetActive(isRepeatOne);
+                if (RepeatAllButton != null) RepeatAllButton.gameObject.SetActive(isRepeatAll);
+                if (shuffleOffButton != null) {
+                    shuffleOffButton.gameObject.SetActive(!isShuffle);
+                    shuffleOffButton.interactable = true;
+                }
+                if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(isShuffle);
+            } else {
+                bool isRepeatOne = core.Loop;
+                if (repeatOffButton != null) repeatOffButton.gameObject.SetActive(!isRepeatOne);
+                if (repeatOneButton != null) repeatOneButton.gameObject.SetActive(isRepeatOne);
+                if (RepeatAllButton != null) RepeatAllButton.gameObject.SetActive(false);
+                if (shuffleOffButton != null) {
+                    shuffleOffButton.gameObject.SetActive(true);
+                    shuffleOffButton.interactable = false;
+                }
+                if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(false);
             }
             if (hasHandler) UpdatePlayList();
         }
@@ -396,6 +473,10 @@ namespace JLChnToZ.VRC.VVMW {
             if (playNextButton != null) playNextButton.gameObject.SetActive(playingIndex < pendingCount - 1);
             if (enqueueCountText != null)
                 enqueueCountText.text = string.Format(enqueueCountFormat, pendingCount - playingIndex - 1);
+            if (selectedPlayListText != null)
+                selectedPlayListText.text = selectedPlayListIndex > 0 ?
+                    handler.PlayListTitles[selectedPlayListIndex - 1] :
+                    languageManager.GetLocale("QueueList");
             bool shouldRefreshQueue = selectedPlayListIndex <= 0 || lastSelectedPlayListIndex != selectedPlayListIndex || lastPlayingIndex != playingIndex;
             lastSelectedPlayListIndex = selectedPlayListIndex;
             lastPlayingIndex = playingIndex;
@@ -456,6 +537,8 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnPlayListSelectClick() {
+            _OnInteract();
+            if (playListTogglePanel != null) playListTogglePanel.SetActive(false);
             for (int i = 0; i < playListEntries.Length; i++) {
                 var entry = playListEntries[i];
                 if (entry != null) entry.Selected = i == selectedPlayListIndex;
@@ -463,10 +546,15 @@ namespace JLChnToZ.VRC.VVMW {
             _OnUIUpdate();
         }
 
-        public void _OnQueueEntryClick() => handler._PlayAt(selectedPlayListIndex, queueEntryIndex, false);
+        public void _OnQueueEntryClick() {
+            _OnInteract();
+            handler._PlayAt(selectedPlayListIndex, queueEntryIndex, false);
+        }
 
-        public void _OnQueueEntryDelete() => handler._PlayAt(selectedPlayListIndex, queueEntryIndex, true);
-
+        public void _OnQueueEntryDelete() {
+            _OnInteract();
+            handler._PlayAt(selectedPlayListIndex, queueEntryIndex, true);
+        }
 
         public void _UpdateProgress() {
             if (!core.IsPlaying) {
@@ -480,7 +568,12 @@ namespace JLChnToZ.VRC.VVMW {
         void UpdateProgressOnce() {
             var duration = core.Duration;
             if (duration <= 0 || float.IsInfinity(duration)) {
-                statusText.text = languageManager.GetLocale("Streaming");
+                if (timeText != null)
+                    timeText.text = languageManager.GetLocale("TimeIdleFormat");
+                if (durationText != null)
+                    durationText.text = languageManager.GetLocale("TimeIdleFormat");
+                if (statusText != null)
+                    statusText.text = languageManager.GetLocale("Streaming");
                 if (progressSlider != null) {
                     progressSlider.SetValueWithoutNotify(1);
                     progressSlider.interactable = false;
@@ -488,7 +581,12 @@ namespace JLChnToZ.VRC.VVMW {
             } else {
                 var time = TimeSpan.FromSeconds(core.Time);
                 var durationTS = TimeSpan.FromSeconds(duration);
-                statusText.text = string.Format(languageManager.GetLocale("Playing"), time, durationTS);
+                if (durationText != null)
+                    durationText.text = string.Format(languageManager.GetLocale("TimeFormat"), durationTS);
+                if (timeText != null)
+                    timeText.text = string.Format(languageManager.GetLocale("TimeFormat"), time);
+                if (statusText != null)
+                    statusText.text = string.Format(languageManager.GetLocale(core.IsPaused ? "Paused" : "Playing"), time, durationTS);
                 if (progressSlider != null) {
                     progressSlider.SetValueWithoutNotify(core.Progress);
                     progressSlider.interactable = true;
@@ -497,22 +595,32 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _ShiftBack100ms() {
+            _OnInteract();
             core.SyncOffset -= 0.1F;
         }
         public void _ShiftBack50ms() {
+            _OnInteract();
             core.SyncOffset -= 0.05F;
         }
         public void _ShiftForward50ms() {
+            _OnInteract();
             core.SyncOffset += 0.05F;
         }
         public void _ShiftForward100ms() {
+            _OnInteract();
             core.SyncOffset += 0.1F;
         }
         public void _ShiftReset() {
+            _OnInteract();
             core.SyncOffset = 0;
         }
         public void _OnSyncOffsetChange() {
+            _OnInteract();
             if (shiftOffsetText != null) shiftOffsetText.text = string.Format(languageManager.GetLocale("TimeDrift"), core.SyncOffset);
+        }
+
+        public void _OnInteract() {
+            if (uiAnimator != null) uiAnimator.SetTrigger(interactTriggerId);
         }
 
         #region Core Callbacks

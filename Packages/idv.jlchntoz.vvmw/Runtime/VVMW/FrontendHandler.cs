@@ -115,6 +115,16 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        public void NoRepeat() {
+            byte newFlags = localFlags;
+            newFlags &= ~(REPEAT_ONE | REPEAT_ALL) & 0xFF;
+            if (newFlags != localFlags) {
+                localFlags = newFlags;
+                RequestSync();
+            }
+            UpdateState();
+        }
+
         void Start() {
             synced = core.IsSynced;
             core._AddListener(this);

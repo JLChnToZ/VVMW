@@ -356,7 +356,12 @@ namespace JLChnToZ.VRC.VVMW {
                 return;
             }
             switch (state) {
-                case LOADING: if (Networking.IsOwner(gameObject)) activeHandler.Play(); break;
+                case LOADING:
+                    if (Networking.IsOwner(gameObject))
+                        activeHandler.Play();
+                    else if (synced) // Try to ad-hoc sync
+                        SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(OwnerSync));
+                    break;
                 case PLAYING: activeHandler.Play(); break;
                 case PAUSED: activeHandler.Pause(); break;
                 default: return;
@@ -593,6 +598,11 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         bool IsUrlValid(VRCUrl url) => Utilities.IsValid(url) && !url.Equals(VRCUrl.Empty);
+
+        public void OwnerSync() {
+            if (!Networking.IsOwner(gameObject) || !synced) return;
+            RequestSerialization();
+        }
 
         bool RequestSync() {
             if (!synced) return false;

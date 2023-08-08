@@ -11,12 +11,13 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Button primaryButton;
         [BindEvent(nameof(Button.onClick), nameof(_OnDeleteClick))]
         [SerializeField] Button deleteButton;
-        [SerializeField] GameObject selectedIndicator;
+        [SerializeField] Color selectedColor, normalColor;
         public UdonSharpBehaviour callbackTarget;
         public string callbackEventName;
         public string callbackVariableName;
         public object callbackUserData;
         public string deleteEventName;
+        bool isSelected;
         
         public string TextContent {
             get => content.text;
@@ -37,9 +38,10 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public bool Selected {
-            get => selectedIndicator != null && selectedIndicator.activeSelf;
+            get => isSelected;
             set {
-                if (selectedIndicator != null) selectedIndicator.SetActive(value);
+                isSelected = value;
+                content.color = isSelected ? selectedColor : normalColor;
             }
         }
 
