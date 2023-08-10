@@ -15,9 +15,22 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Core core;
         public FrontendHandler handler;
         [SerializeField] LanguageManager languageManager;
-        [Header("Main UI")]
-        [SerializeField] Animator uiAnimator;
-        [SerializeField] string interactTriggerKey = "Stage2";
+
+        [Header("URL Input")]
+        [BindEvent(nameof(VRCUrlInputField.onValueChanged), nameof(_OnURLChanged))]
+        [BindEvent(nameof(VRCUrlInputField.onEndEdit), nameof(_OnURLEndEdit))]
+        [SerializeField] VRCUrlInputField urlInput;
+        [SerializeField] GameObject videoPlayerSelectButtonTemplate;
+        [SerializeField] GameObject videoPlayerSelectRoot, videoPlayerSelectPanel;
+        [BindEvent(nameof(Button.onClick), nameof(_VideoPlayerSelect))]
+        [SerializeField] Button videoPlayerSelectButton;
+        [BindEvent(nameof(Button.onClick), nameof(_InputCancelClick))]
+        [SerializeField] Button cancelButton;
+        [BindEvent(nameof(Button.onClick), nameof(_InputConfirmClick))]
+        [SerializeField] Button urlInputConfirmButton;
+        [SerializeField] Text selectdPlayerText;
+
+        [Header("Playback Controls")]
         [BindEvent(nameof(Button.onClick), nameof(_Play))]
         [SerializeField] Button playButton;
         [BindEvent(nameof(Button.onClick), nameof(_Pause))]
@@ -30,6 +43,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Button globalReloadButton;
         [BindEvent(nameof(Button.onClick), nameof(_Skip))]
         [SerializeField] Button playNextButton;
+        [SerializeField] Text enqueueCountText;
         [BindEvent(nameof(Button.onClick), nameof(_RepeatOne))]
         [SerializeField] Button repeatOffButton;
         [BindEvent(nameof(Button.onClick), nameof(_RepeatAll))]
@@ -42,19 +56,15 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Button shuffleOnButton;
         [BindEvent(nameof(Toggle.onValueChanged), nameof(_PlayListToggle))]
         [SerializeField] Toggle playlistToggle;
-        [SerializeField] Text enqueueCountText;
-        [BindEvent(nameof(VRCUrlInputField.onValueChanged), nameof(_OnURLChanged))]
-        [BindEvent(nameof(VRCUrlInputField.onEndEdit), nameof(_OnURLEndEdit))]
-        [SerializeField] VRCUrlInputField urlInput;
-        [SerializeField] Text statusText, timeText, durationText;
-        [SerializeField] GameObject videoPlayerSelectButtonTemplate;
-        [BindEvent(nameof(Button.onClick), nameof(_InputCancelClick))]
-        [SerializeField] Button cancelButton;
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnSeek))]
         [SerializeField] Slider progressSlider;
+        [SerializeField] Text statusText, timeText, durationText;
+
+        [Header("Volume Control")]
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnVolumeSlide))]
         [SerializeField] Slider volumeSlider;
         [SerializeField] GameObject idleScreenRoot;
+
         [Header("Queue List / Play List")]
         [SerializeField] GameObject playListPanelRoot;
         [SerializeField] GameObject playListTemplate;
@@ -65,6 +75,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] GameObject queueEntryTemplate;
         [SerializeField] Transform queueEntryContainer;
         [SerializeField] Text selectedPlayListText;
+
         [Header("Sync Offset Controls")]
         [BindEvent(nameof(Button.onClick), nameof(_ShiftBack100ms))]
         [SerializeField] Button shiftBack100msButton;
@@ -77,8 +88,9 @@ namespace JLChnToZ.VRC.VVMW {
         [BindEvent(nameof(Button.onClick), nameof(_ShiftReset))]
         [SerializeField] Button shiftResetButton;
         [SerializeField] Text shiftOffsetText;
+
         ListEntry[] queueEntries, playListEntries;
-        GameObject[] videoPlayerSelectButtons;
+        ButtonEntry[] videoPlayerSelectButtons;
         [NonSerialized] public int queueEntryIndex = -1;
         [NonSerialized] public int selectedPlayListIndex;
         [NonSerialized] public byte loadWithIndex;
@@ -127,12 +139,13 @@ namespace JLChnToZ.VRC.VVMW {
             }
             if (videoPlayerSelectButtonTemplate != null) {
                 var templateTransform = videoPlayerSelectButtonTemplate.transform;
-                var parent = templateTransform.parent;
+                var parent = videoPlayerSelectRoot.transform;
                 var sibling = templateTransform.GetSiblingIndex() + 1;
                 var videoPlayerNames = core.PlayerNames;
-                videoPlayerSelectButtons = new GameObject[videoPlayerNames.Length];
+                videoPlayerSelectButtons = new ButtonEntry[videoPlayerNames.Length];
                 for (int i = 0; i < videoPlayerNames.Length; i++) {
                     var button = Instantiate(videoPlayerSelectButtonTemplate);
+                    button.SetActive(true);
                     var buttonTransform = button.transform;
                     buttonTransform.SetParent(parent, false);
                     buttonTransform.SetSiblingIndex(sibling + i);
@@ -143,11 +156,10 @@ namespace JLChnToZ.VRC.VVMW {
                     buttonControl.callbackEventName = nameof(_LoadPlayerClick);
                     buttonControl.callbackVariableName = nameof(loadWithIndex);
                     buttonControl.callbackUserData = (byte)(i + 1);
-                    videoPlayerSelectButtons[i] = button;
+                    videoPlayerSelectButtons[i] = buttonControl;
                 }
+                videoPlayerSelectButtonTemplate.SetActive(false);
             }
-            if (uiAnimator != null)
-                interactTriggerId = Animator.StringToHash(interactTriggerKey);
             bool isSynced = core.IsSynced;
             if (shiftBack100msButton != null) shiftBack100msButton.gameObject.SetActive(isSynced);
             if (shiftBack50msButton != null) shiftBack50msButton.gameObject.SetActive(isSynced);
@@ -161,6 +173,7 @@ namespace JLChnToZ.VRC.VVMW {
             _OnUIUpdate();
             _OnVolumeChange();
             _OnSyncOffsetChange();
+            UpdatePlayerText();
         }
 
         void InstantiatePlayListTemplate(int index, string text) {
@@ -179,7 +192,6 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _Play() {
-            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler._Play();
             else
@@ -188,7 +200,6 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _Pause() {
-            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler._Pause();
             else
@@ -197,7 +208,6 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _Stop() {
-            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler._Stop();
             else
@@ -207,14 +217,12 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _Skip() {
-            _OnInteract();
             if (!Utilities.IsValid(handler)) return;
             handler._Skip();
             _InputCancelClick();
         }
 
         public void _RepeatOff() {
-            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler.NoRepeat();
             else
@@ -222,7 +230,6 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _RepeatOne() {
-            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler.RepeatOne = true;
             else
@@ -230,7 +237,6 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _RepeatAll() {
-            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler.RepeatAll = true;
             else
@@ -238,19 +244,16 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _ShuffleOff() {
-            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler.Shuffle = false;
         }
 
         public void _ShuffleOn() {
-            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler.Shuffle = true;
         }
 
         public void _LocalSync() {
-            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler._LocalSync();
             else
@@ -259,7 +262,6 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _GlobalSync() {
-            _OnInteract();
             if (Utilities.IsValid(handler))
                 handler._GlobalSync();
             else
@@ -268,12 +270,10 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnSeek() {
-            _OnInteract();
             core.Progress = progressSlider.value;
         }
 
         public void _OnVolumeSlide() {
-            _OnInteract();
             core.Volume = volumeSlider.value;
         }
 
@@ -283,34 +283,44 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnURLChanged() {
-            _OnInteract();
-            if (statusText != null) statusText.enabled = string.IsNullOrEmpty(urlInput.textComponent.text);
+            bool isEmpty =  string.IsNullOrEmpty(urlInput.textComponent.text);
+            if (statusText != null) statusText.enabled = isEmpty;
+            if (videoPlayerSelectPanel != null) videoPlayerSelectPanel.SetActive(!isEmpty);
         }
 
         public void _OnURLEndEdit() {
+            _OnURLChanged();
+            if (urlInputConfirmButton == null) _InputConfirmClick();
+        }
+
+        public void _InputConfirmClick() {
             var url = urlInput.GetUrl();
-            if (Utilities.IsValid(handler))
-                handler.PlayUrl(url, selectedPlayer);
-            else
-                core.PlayUrl(url, selectedPlayer);
-            _InputCancelClick();
+            if (Utilities.IsValid(url) && !string.IsNullOrEmpty(url.Get())) {
+                if (Utilities.IsValid(handler))
+                    handler.PlayUrl(url, selectedPlayer);
+                else
+                    core.PlayUrl(url, selectedPlayer);
+                _InputCancelClick();
+            }
+        }
+        
+        public void _VideoPlayerSelect() {
+            if (videoPlayerSelectRoot == null) return;
+            videoPlayerSelectRoot.SetActive(!videoPlayerSelectRoot.activeSelf);
         }
 
         public void _InputCancelClick() {
-            _OnInteract();
             urlInput.SetUrl(VRCUrl.Empty);
             _OnUIUpdate();
             _OnURLChanged();
         }
 
         public void _PlayListTogglePanel() {
-            _OnInteract();
             if (playListTogglePanel == null) return;
             playListTogglePanel.SetActive(!playListTogglePanel.activeSelf);
         }
 
         public void _PlayListToggle() {
-            _OnInteract();
             if (playListTogglePanel == null) return;
             if (playlistToggle.isOn) {
                 playListPanelRoot.SetActive(true);
@@ -327,11 +337,17 @@ namespace JLChnToZ.VRC.VVMW {
             _OnUIUpdate();
             _OnSyncOffsetChange();
             if (Utilities.IsValid(handler) && handler.HasQueueList) playListEntries[0].TextContent = languageManager.GetLocale("QueueList");
+            UpdatePlayerText();
         }
 
         public void _LoadPlayerClick() {
-            _OnInteract();
             selectedPlayer = loadWithIndex;
+            UpdatePlayerText();
+            if (videoPlayerSelectRoot != null) videoPlayerSelectRoot.SetActive(false);
+        }
+
+        void UpdatePlayerText() {
+            selectdPlayerText.text = videoPlayerSelectButtons[selectedPlayer - 1].Text;
         }
 
         public void _OnUIUpdate() {
@@ -537,7 +553,6 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnPlayListSelectClick() {
-            _OnInteract();
             if (playListTogglePanel != null) playListTogglePanel.SetActive(false);
             for (int i = 0; i < playListEntries.Length; i++) {
                 var entry = playListEntries[i];
@@ -547,12 +562,10 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnQueueEntryClick() {
-            _OnInteract();
             handler._PlayAt(selectedPlayListIndex, queueEntryIndex, false);
         }
 
         public void _OnQueueEntryDelete() {
-            _OnInteract();
             handler._PlayAt(selectedPlayListIndex, queueEntryIndex, true);
         }
 
@@ -595,32 +608,22 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _ShiftBack100ms() {
-            _OnInteract();
             core.SyncOffset -= 0.1F;
         }
         public void _ShiftBack50ms() {
-            _OnInteract();
             core.SyncOffset -= 0.05F;
         }
         public void _ShiftForward50ms() {
-            _OnInteract();
             core.SyncOffset += 0.05F;
         }
         public void _ShiftForward100ms() {
-            _OnInteract();
             core.SyncOffset += 0.1F;
         }
         public void _ShiftReset() {
-            _OnInteract();
             core.SyncOffset = 0;
         }
         public void _OnSyncOffsetChange() {
-            _OnInteract();
             if (shiftOffsetText != null) shiftOffsetText.text = string.Format(languageManager.GetLocale("TimeDrift"), core.SyncOffset);
-        }
-
-        public void _OnInteract() {
-            if (uiAnimator != null) uiAnimator.SetTrigger(interactTriggerId);
         }
 
         #region Core Callbacks

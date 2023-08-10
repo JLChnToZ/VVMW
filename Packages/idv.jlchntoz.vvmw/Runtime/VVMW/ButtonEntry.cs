@@ -34,6 +34,8 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        public string Text => buttonText.text;
+
         public LanguageManager LanguageManager {
             get => manager;
             set {
