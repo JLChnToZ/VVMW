@@ -93,9 +93,10 @@ namespace JLChnToZ.VRC.VVMW {
         public void LoadUrl(VRCUrl url, bool reload) {
             if (videoPlayer.IsPlaying) videoPlayer.Stop();
             if (!isActive) return;
-            if (!reload && Utilities.IsValid(lastUrl) && lastUrl.Equals(url) && !isRTSP && IsReady)
+            if (!reload && Utilities.IsValid(lastUrl) && lastUrl.Equals(url) && IsReady && videoPlayer.GetDuration() != 0 && !float.IsInfinity(videoPlayer.GetDuration())) {
+                videoPlayer.SetTime(0);
                 SendCustomEventDelayedFrames("_onVideoReady", 0);
-            else {
+            } else {
                 isReady = false;
                 videoPlayer.LoadURL(url);
             }
