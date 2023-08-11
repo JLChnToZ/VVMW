@@ -127,8 +127,14 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                                         lastTransform = transform;
                                     }
                                     if (languageManager == null) {
-                                        Debug.LogError($"Cannot find LanguageManager for field {field.Name} in {usharpBehaviour.name}. This should not be happened.", usharpBehaviour);
-                                        continue;
+                                        foreach (var root in roots) {
+                                            languageManager = root.GetComponentInChildren<LanguageManager>(true);
+                                            if (languageManager != null) break;
+                                        }
+                                        if (languageManager == null) {
+                                            Debug.LogError($"Cannot find LanguageManager for field {field.Name} in {usharpBehaviour.name}. This should not be happened.", usharpBehaviour);
+                                            continue;
+                                        }
                                     }
                                 } else
                                     continue; // Anything else, skip

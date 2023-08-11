@@ -19,7 +19,7 @@ namespace JLChnToZ.VRC.VVMW {
         [Header("URL Input")]
         [BindEvent(nameof(VRCUrlInputField.onValueChanged), nameof(_OnURLChanged))]
         [BindEvent(nameof(VRCUrlInputField.onEndEdit), nameof(_OnURLEndEdit))]
-        [SerializeField] VRCUrlInputField urlInput;
+        [SerializeField] VRCUrlInputField urlInput; 
         [SerializeField] GameObject videoPlayerSelectButtonTemplate;
         [SerializeField] GameObject videoPlayerSelectRoot, videoPlayerSelectPanel;
         [BindEvent(nameof(Button.onClick), nameof(_VideoPlayerSelect))]
@@ -31,6 +31,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Text selectdPlayerText;
 
         [Header("Playback Controls")]
+        [SerializeField] Animator playbackControlsAnimator;
         [BindEvent(nameof(Button.onClick), nameof(_Play))]
         [SerializeField] Button playButton;
         [BindEvent(nameof(Button.onClick), nameof(_Pause))]
@@ -174,6 +175,7 @@ namespace JLChnToZ.VRC.VVMW {
             _OnVolumeChange();
             _OnSyncOffsetChange();
             UpdatePlayerText();
+            playbackControlsAnimator.SetTrigger("Init");
         }
 
         void InstantiatePlayListTemplate(int index, string text) {
