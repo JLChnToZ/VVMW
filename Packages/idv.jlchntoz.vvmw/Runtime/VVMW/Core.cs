@@ -29,12 +29,15 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, Range(5, 20)] float retryDelay = 5.5F;
         [SerializeField, Range(0, 1), FieldChangeCallback(nameof(Volume))]
         float defaultVolume = 1;
+        [SerializeField, FieldChangeCallback(nameof(Muted))]
+        bool defaultMuted = false;
         [Tooltip("The default texture to use when video is not ready or error occurred. It is required to have a texture when use with property block mode.")]
         [SerializeField] Texture defaultTexture;
         [SerializeField] UnityEngine.Object[] screenTargets;
         [SerializeField] int[] screenTargetModes;
         [SerializeField] int[] screenTargetIndeces;
         [SerializeField] string[] screenTargetPropertyNames, avProPropertyNames;
+        [SerializeField] Texture[] screenTargetDefaultTextures;
         int[] screenTargetPropertyIds, avProPropertyIds;
         [FieldChangeCallback(nameof(SyncOffset))]
         float syncOffset = 0;
@@ -95,19 +98,31 @@ namespace JLChnToZ.VRC.VVMW {
         public byte LastActivePlayer => lastActivePlayer;
 
         public float Volume {
-            get => defaultVolume;
+            get => defaultMuted ? 0 : defaultVolume;
             set {
-                value = Mathf.Clamp01(value);
-                defaultVolume = value;
-                value *= value; // Volume is not linear
-                if (audioSources != null)
-                    for (int i = 0; i < audioSources.Length; i++) {
-                        var audioSource = audioSources[i];
-                        if (audioSource == null) continue;
-                        audioSource.volume = value;
-                    }
-                SendEvent("_OnVolumeChange");
+                defaultVolume = Mathf.Clamp01(value);
+                if (value > 0) defaultMuted = false;
+                UpdateVolume();
             }
+        }
+
+        public bool Muted {
+            get => defaultMuted;
+            set {
+                defaultMuted = value;
+                UpdateVolume();
+            }
+        }
+
+        void UpdateVolume() {
+            var volume = defaultMuted ? 0 : defaultVolume * defaultVolume; // Volume is not linear
+            if (audioSources != null)
+                for (int i = 0; i < audioSources.Length; i++) {
+                    var audioSource = audioSources[i];
+                    if (audioSource == null) continue;
+                    audioSource.volume = volume;
+                }
+            SendEvent("_OnVolumeChange");
         }
 
         public bool Loop {
@@ -415,10 +430,15 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnTextureChanged() {
-            var texture = VideoTexture;
-            if (texture == null) texture = defaultTexture;
+            var videoTexture = VideoTexture;
             var isAvPro = IsAVPro;
-            for (int i = 0, length = screenTargets.Length; i < length; i++)
+            for (int i = 0, length = screenTargets.Length; i < length; i++) {
+                Texture texture = null;
+                if (videoTexture != null)
+                    texture = videoTexture;
+                else if (screenTargetDefaultTextures != null && i < screenTargetDefaultTextures.Length)
+                    texture = screenTargetDefaultTextures[i];
+                if (texture == null) texture = defaultTexture;
                 switch (screenTargetModes[i] & 0x7) {
                     case 0: { // Material
                         SetTextureToMaterial(texture, (Material)screenTargets[i], i, isAvPro);
@@ -462,6 +482,7 @@ namespace JLChnToZ.VRC.VVMW {
                         break;
                     }
                 }
+            }
             SendEvent("_OnTextureChanged");
         }
 

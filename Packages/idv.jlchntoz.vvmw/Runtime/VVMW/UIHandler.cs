@@ -64,6 +64,10 @@ namespace JLChnToZ.VRC.VVMW {
         [Header("Volume Control")]
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnVolumeSlide))]
         [SerializeField] Slider volumeSlider;
+        [BindEvent(nameof(Button.onClick), nameof(_OnMute))]
+        [SerializeField] Button muteButton, unmuteButton;
+
+        [Header("Idle Screen")]
         [SerializeField] GameObject idleScreenRoot;
 
         [Header("Queue List / Play List")]
@@ -279,9 +283,18 @@ namespace JLChnToZ.VRC.VVMW {
             core.Volume = volumeSlider.value;
         }
 
+        public void _OnMute() {
+            core.Muted = !core.Muted;
+        }
+
         public void _OnVolumeChange() {
             if (volumeSlider != null)
                 volumeSlider.SetValueWithoutNotify(core.Volume);
+            if (muteButton != null && unmuteButton != null) {
+                var muted = core.Muted;
+                muteButton.gameObject.SetActive(!muted);
+                unmuteButton.gameObject.SetActive(muted);
+            }
         }
 
         public void _OnURLChanged() {

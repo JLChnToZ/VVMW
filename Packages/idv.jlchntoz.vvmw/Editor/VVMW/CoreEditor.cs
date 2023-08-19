@@ -20,6 +20,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty totalRetryCountProperty;
         SerializedProperty retryDelayProperty;
         SerializedProperty defaultVolumeProperty;
+        SerializedProperty defaultMutedProperty;
         SerializedProperty loopProperty;
         SerializedProperty audioLinkProperty;
         SerializedProperty targetsProperty;
@@ -28,6 +29,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty screenTargetModesProperty;
         SerializedProperty screenTargetIndecesProperty;
         SerializedProperty screenTargetPropertyNamesProperty;
+        SerializedProperty screenTargetDefaultTexturesProperty;
         SerializedProperty avProPropertyNamesProperty;
         ReorderableListUtils playerHandlersList, audioSourcesList, targetsList;
         string[] playerNames;
@@ -40,18 +42,20 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             audioSourcesProperty = serializedObject.FindProperty("audioSources");
             audioSourcesList = new ReorderableListUtils(audioSourcesProperty);
             audioSourcesList.list.drawHeaderCallback = DrawAudioSourcesListHeader;
-            defaultUrlProperty = serializedObject.FindProperty("defaultUrl");
+            defaultUrlProperty = serializedObject.FindProperty("defaultUrl.url");
             autoPlayPlayerTypeProperty = serializedObject.FindProperty("autoPlayPlayerType");
             syncedProperty = serializedObject.FindProperty("synced");
             totalRetryCountProperty = serializedObject.FindProperty("totalRetryCount");
             retryDelayProperty = serializedObject.FindProperty("retryDelay");
             defaultVolumeProperty = serializedObject.FindProperty("defaultVolume");
+            defaultMutedProperty = serializedObject.FindProperty("defaultMuted");
             loopProperty = serializedObject.FindProperty("loop");
             audioLinkProperty = serializedObject.FindProperty("audioLink");
             screenTargetsProperty = serializedObject.FindProperty("screenTargets");
             screenTargetModesProperty = serializedObject.FindProperty("screenTargetModes");
             screenTargetIndecesProperty = serializedObject.FindProperty("screenTargetIndeces");
             screenTargetPropertyNamesProperty = serializedObject.FindProperty("screenTargetPropertyNames");
+            screenTargetDefaultTexturesProperty = serializedObject.FindProperty("screenTargetDefaultTextures");
             avProPropertyNamesProperty = serializedObject.FindProperty("avProPropertyNames");
             defaultTextureProperty = serializedObject.FindProperty("defaultTexture");
             targetsProperty = serializedObject.FindProperty("targets");
@@ -65,7 +69,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
             serializedObject.Update();
             EditorGUILayout.PropertyField(defaultUrlProperty);
-            if (!string.IsNullOrEmpty(defaultUrlProperty.FindPropertyRelative("url").stringValue)) {
+            if (!string.IsNullOrEmpty(defaultUrlProperty.stringValue)) {
                 if (playerNames == null || playerNames.Length != playerHandlersProperty.arraySize)
                     playerNames = new string[playerHandlersProperty.arraySize];
                 for (int i = 0; i < playerNames.Length; i++) {
@@ -112,6 +116,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
             }
             EditorGUILayout.PropertyField(defaultVolumeProperty);
+            EditorGUILayout.PropertyField(defaultMutedProperty);
             EditorGUILayout.PropertyField(syncedProperty);
             EditorGUILayout.PropertyField(audioLinkProperty);
             targetsList.list.DoLayoutList();
@@ -208,6 +213,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 screenTargetPropertyNamesProperty.arraySize = length;
             if (avProPropertyNamesProperty.arraySize != length)
                 avProPropertyNamesProperty.arraySize = length;
+            if (screenTargetDefaultTexturesProperty.arraySize != length)
+                screenTargetDefaultTexturesProperty.arraySize = length;
             while (screenTargetVisibilityState.Count < length)
                 screenTargetVisibilityState.Add(false);
             for (int i = 0; i < length; i++) {
@@ -264,6 +271,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             DeleteElement(screenTargetIndecesProperty, i);
                             DeleteElement(screenTargetPropertyNamesProperty, i);
                             DeleteElement(avProPropertyNamesProperty, i);
+                            DeleteElement(screenTargetDefaultTexturesProperty, i);
                             screenTargetVisibilityState.RemoveAt(i);
                             i--;
                             length--;
@@ -278,6 +286,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                                 if (!useST) EditorGUILayout.PropertyField(avProProperty, GetTempContent("AVPro Flag Property Name", "If it is using AVPro player, this property value will set to 1, otherwise 0."));
                             }
                         }
+                        var textureProperty = screenTargetDefaultTexturesProperty.GetArrayElementAtIndex(i);
+                        var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
+                        var label = GetTempContent("Default Texture", "The texture to display when no video is playing. Will use the global default texture if it is null.");
+                        using (new EditorGUI.PropertyScope(rect, label, textureProperty))
+                        using (var changed = new EditorGUI.ChangeCheckScope()) {
+                            var texture = textureProperty.objectReferenceValue;
+                            if (texture == null) texture = defaultTextureProperty.objectReferenceValue;
+                            texture = EditorGUI.ObjectField(rect, label, texture, typeof(Texture), false);
+                            if (changed.changed) textureProperty.objectReferenceValue = texture;
+                        }
                         modeProperty.intValue = mode | (useST ? 0x8 : 0);
                     }
             }
@@ -289,15 +307,21 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     if (newTarget is Material material) {
                         AppendElement(screenTargetsProperty, material);
                         AppendElement(screenTargetModesProperty, 0);
-                        AppendElement(screenTargetPropertyNamesProperty, FindMainTexturePropertyName(material));
+                        var mainTexturePropertyName = FindMainTexturePropertyName(material);
+                        AppendElement(screenTargetPropertyNamesProperty, mainTexturePropertyName);
+                        AppendElement(screenTargetDefaultTexturesProperty, material.GetTexture(mainTexturePropertyName));
                     } else if (newTarget is Renderer renderer || (newTarget is GameObject rendererGO && rendererGO.TryGetComponent(out renderer))) {
                         AppendElement(screenTargetsProperty, renderer);
                         AppendElement(screenTargetModesProperty, 1);
-                        AppendElement(screenTargetPropertyNamesProperty, FindMainTexturePropertyName(renderer.sharedMaterial));
+                        material = renderer.sharedMaterial;
+                        var mainTexturePropertyName = FindMainTexturePropertyName(material);
+                        AppendElement(screenTargetPropertyNamesProperty, mainTexturePropertyName);
+                        AppendElement(screenTargetDefaultTexturesProperty, material != null ? material.GetTexture(mainTexturePropertyName) : null);
                     } else if (newTarget is RawImage rawImage || (newTarget is GameObject rawImageGO && rawImageGO.TryGetComponent(out rawImage))) {
                         AppendElement(screenTargetsProperty, rawImage);
                         AppendElement(screenTargetModesProperty, 4);
                         AppendElement(screenTargetPropertyNamesProperty, "");
+                        AppendElement(screenTargetDefaultTexturesProperty, rawImage.texture);
                     } else goto skip;
                     AppendElement(screenTargetIndecesProperty, -1);
                     AppendElement(avProPropertyNamesProperty, "_IsAVProVideo");
