@@ -16,7 +16,7 @@ namespace JLChnToZ.VRC.VVMW {
         [Header("References")]
         [SerializeField, Locatable] Core core;
         [SerializeField] LanguageManager languageManager;
-        [Header("References (For use with non-VMMV players)")]
+        [Header("References (For use with non-VizVid players)")]
         [SerializeField] AudioSource[] audioSources;
         [SerializeField] GameObject[] resyncTargets;
         [SerializeField, Range(0, 1)] float volume = 1;
