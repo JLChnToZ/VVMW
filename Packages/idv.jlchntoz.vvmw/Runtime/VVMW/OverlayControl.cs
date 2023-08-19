@@ -89,10 +89,10 @@ namespace JLChnToZ.VRC.VVMW {
                 var hand = localPlayer.GetTrackingData(
                     isLeftHanded ? VRCPlayerApi.TrackingDataType.RightHand : VRCPlayerApi.TrackingDataType.LeftHand
                 );
-                vrModeCanvas.SetActive(Vector3.Angle(head.rotation * Vector3.forward, (hand.position - head.position).normalized) < 30);
                 var canvasRotation = hand.rotation * (isLeftHanded ? rightHandRotation : leftHandRotation);
                 var canvasPosition = hand.position + canvasRotation * (offsetDirection * offset);
                 vrModeCanvasTransform.SetPositionAndRotation(canvasPosition, canvasRotation);
+                vrModeCanvas.SetActive(Vector3.Angle(head.rotation * Vector3.forward, (canvasPosition - head.position).normalized) < 30);
             } else if (Input.anyKey) {
                 if (Input.GetKeyDown(reloadKey))
                     _OnReload();
