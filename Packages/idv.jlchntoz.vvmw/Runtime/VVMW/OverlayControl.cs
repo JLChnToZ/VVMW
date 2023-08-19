@@ -10,8 +10,9 @@ namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [DisallowMultipleComponent]
     public class OverlayControl : UdonSharpBehaviour {
-        Quaternion leftHandRotation = Quaternion.AngleAxis(90, Vector3.right);
-        Quaternion rightHandRotation = Quaternion.AngleAxis(-90, Vector3.right);
+        Quaternion leftHandRotation = Quaternion.Euler(-90, -45, 0);
+        Quaternion rightHandRotation = Quaternion.Euler(90, -45, 180);
+        Vector3 offsetDirection = new Vector3(0, 1, -1);
         [Header("References")]
         [SerializeField, Locatable] Core core;
         [SerializeField] LanguageManager languageManager;
@@ -26,7 +27,7 @@ namespace JLChnToZ.VRC.VVMW {
         [Header("UI References")]
         [SerializeField] GameObject desktopModeCanvas;
         [SerializeField] GameObject vrModeCanvas;
-        [SerializeField] Transform vrModeCanvasContent;
+        Transform vrModeCanvasTransform;
         [SerializeField] GameObject vrModeOptionsCanvas;
         [BindEvent(nameof(Button.onClick), nameof(_OnReload))]
         [SerializeField] Button reloadButton;
@@ -43,6 +44,7 @@ namespace JLChnToZ.VRC.VVMW {
         bool disableHandControls;
         VRCPlayerApi localPlayer;
         [System.NonSerialized] public bool isLeftHanded;
+        float offset = 0.05F;
 
         public float Volume {
             get => volume;
@@ -68,11 +70,12 @@ namespace JLChnToZ.VRC.VVMW {
             desktopModeAnim = desktopModeCanvas.GetComponentInChildren<Animator>();
             if (Utilities.IsValid(core)) core._AddListener(this);
             _OnVolumeChange();
-            offsetSliderVR.SetValueWithoutNotify(Mathf.Log(vrModeCanvasContent.localPosition.magnitude, 1.5F));
+            offsetSliderVR.SetValueWithoutNotify(Mathf.Log(offset, 1.5F));
             if (languageManager != null) {
                 languageManager._AddListener(this);
                 _OnLanguageChange();
             }
+            vrModeCanvasTransform = vrModeCanvas.transform;
         }
 
         void Update() {
@@ -83,9 +86,9 @@ namespace JLChnToZ.VRC.VVMW {
                     isLeftHanded ? VRCPlayerApi.TrackingDataType.RightHand : VRCPlayerApi.TrackingDataType.LeftHand
                 );
                 vrModeCanvas.SetActive(!disableHandControls && Vector3.Angle(head.rotation * Vector3.forward, (hand.position - head.position).normalized) < 30);
-                var canvasRotation = hand.rotation * (isLeftHanded ? leftHandRotation : rightHandRotation);
-                var canvasPosition = hand.position + canvasRotation * (Vector3.right * 0.1F);
-                vrModeCanvas.transform.SetPositionAndRotation(canvasPosition, canvasRotation);
+                var canvasRotation = hand.rotation * (isLeftHanded ? rightHandRotation : leftHandRotation);
+                var canvasPosition = hand.position + canvasRotation * (offsetDirection * offset);
+                vrModeCanvasTransform.SetPositionAndRotation(canvasPosition, canvasRotation);
             } else if (Input.anyKey) {
                 if (Input.GetKey(reloadKey))
                     _OnReload();
@@ -140,7 +143,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnOffsetChange() {
-            vrModeCanvasContent.localPosition = Vector3.back * Mathf.Pow(1.5F, offsetSliderVR.value);
+            offset = Mathf.Pow(1.5F, offsetSliderVR.value);
         }
 
         public void _OnLanguageChange() {
