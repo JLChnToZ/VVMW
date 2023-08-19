@@ -8,7 +8,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     public class FrontendHandler : UdonSharpEventSender {
         protected const byte NONE = 0, REPEAT_ONE = 0x1, REPEAT_ALL = 0x2, SHUFFLE = 0x4;
-        [SerializeField] public Core core;
+        [SerializeField, Locatable] public Core core;
         [Tooltip("If enabled, while user want to play a video and it is playing other video, the video will be queued. Recommend as this is more polite to everyone.")]
         [SerializeField] bool enableQueueList = true;
         [Tooltip("Locks the player frontend by default, this option must be used with other scripts to control the player.")]

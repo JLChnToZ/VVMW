@@ -115,26 +115,10 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                                     if (field == null || !typeof(LanguageManager).IsAssignableFrom(field.FieldType))
                                         continue;
                                     // If we ensure the field type is LanguageManager, we try to find the closest LanguageManager in the hierarchy.
-                                    languageManager = null;
-                                    for (Transform transform = ub.transform, lastTransform = null; transform != null; transform = transform.parent) {
-                                        if (transform.TryGetComponent(out languageManager)) break;
-                                        foreach (Transform child in transform) {
-                                            if (lastTransform == child) continue;
-                                            languageManager = transform.GetComponentInChildren<LanguageManager>(true);
-                                            if (languageManager != null) break;
-                                        }
-                                        if (languageManager != null) break;
-                                        lastTransform = transform;
-                                    }
+                                    languageManager = Utils.FindClosestComponentInHierarchy<LanguageManager>(ub.transform, roots);
                                     if (languageManager == null) {
-                                        foreach (var root in roots) {
-                                            languageManager = root.GetComponentInChildren<LanguageManager>(true);
-                                            if (languageManager != null) break;
-                                        }
-                                        if (languageManager == null) {
-                                            Debug.LogError($"Cannot find LanguageManager for field {field.Name} in {usharpBehaviour.name}. This should not be happened.", usharpBehaviour);
-                                            continue;
-                                        }
+                                        Debug.LogError($"Cannot find LanguageManager for field {field.Name} in {usharpBehaviour.name}. This should not be happened.", usharpBehaviour);
+                                        continue;
                                     }
                                 } else
                                     continue; // Anything else, skip

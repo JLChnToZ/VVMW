@@ -58,14 +58,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         public override void OnInspectorGUI() {
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
             serializedObject.Update();
-            using (new EditorGUILayout.HorizontalScope()) {
-                EditorGUILayout.PropertyField(coreProperty);
-                if (GUILayout.Button("Find", GUILayout.ExpandWidth(false))) {
-                    var core = (target as FrontendHandler).GetComponentInParent<Core>();
-                    if (core == null) core = FindObjectOfType<Core>();
-                    if (core != null) coreProperty.objectReferenceValue = core;
-                }
-            }
+            EditorGUILayout.PropertyField(coreProperty);
             UpdateCore();
             if (coreProperty.objectReferenceValue == null) EditorGUILayout.HelpBox("Core is not assigned.", MessageType.Error);
             EditorGUILayout.PropertyField(enableQueueListProperty);

@@ -13,7 +13,7 @@ namespace JLChnToZ.VRC.VVMW {
     public class Core : UdonSharpEventSender {
         const byte IDLE = 0, LOADING = 1, PLAYING = 2, PAUSED = 3;
         // Non-exclusive list of trusted domains from VRChat documentation
-        string[] trustedUrlDomains = new string[] {
+        string[] trustedUrlDomains = new [] {
             "soundcloud.com", "facebook.com", "nicovideo.jp", "twitch.tv", "vimeo.com",
             "youku.com", "youtube.com", "youtu.be", "mixcloud.com", "vrcdn.live", "vrcdn.video",
         };
@@ -49,6 +49,7 @@ namespace JLChnToZ.VRC.VVMW {
         [UdonSynced] byte state;
         [SerializeField, UdonSynced, FieldChangeCallback(nameof(Loop))]
         bool loop;
+        [Locatable("AudioLink.AudioLink", "VRCAudioLink.AudioLink")]
         [SerializeField] UdonSharpBehaviour audioLink;
         VideoPlayerHandler activeHandler;
         int retryCount = 0;

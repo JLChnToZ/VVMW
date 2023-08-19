@@ -10,8 +10,10 @@ namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [DisallowMultipleComponent]
     public class OverlayControl : UdonSharpBehaviour {
+        Quaternion leftHandRotation = Quaternion.AngleAxis(90, Vector3.right);
+        Quaternion rightHandRotation = Quaternion.AngleAxis(-90, Vector3.right);
         [Header("References")]
-        [SerializeField] Core core;
+        [SerializeField, Locatable] Core core;
         [SerializeField] LanguageManager languageManager;
         [Header("References (For use with non-VMMV players)")]
         [SerializeField] AudioSource[] audioSources;
@@ -34,7 +36,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Slider offsetSliderVR;
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnVolumeSliderChanged))]
         [SerializeField] Slider volumeSliderVR;
-        [SerializeField] Image volumeSliderDesktop;
+        [SerializeField] RectTransform volumeSliderDesktop;
         [SerializeField] Text hintsDesktop;
         Animator desktopModeAnim;
         bool vrMode;
@@ -80,8 +82,10 @@ namespace JLChnToZ.VRC.VVMW {
                 var hand = localPlayer.GetTrackingData(
                     isLeftHanded ? VRCPlayerApi.TrackingDataType.RightHand : VRCPlayerApi.TrackingDataType.LeftHand
                 );
-                vrModeCanvas.SetActive(!disableHandControls && Quaternion.Angle(head.rotation, Quaternion.LookRotation(hand.position - head.position)) < 30);
-                vrModeCanvas.transform.SetPositionAndRotation(hand.position, hand.rotation * Quaternion.AngleAxis(isLeftHanded ? 90 : -90, Vector3.right));
+                vrModeCanvas.SetActive(!disableHandControls && Vector3.Angle(head.rotation * Vector3.forward, (hand.position - head.position).normalized) < 30);
+                var canvasRotation = hand.rotation * (isLeftHanded ? leftHandRotation : rightHandRotation);
+                var canvasPosition = hand.position + canvasRotation * (Vector3.right * 0.1F);
+                vrModeCanvas.transform.SetPositionAndRotation(canvasPosition, canvasRotation);
             } else if (Input.anyKey) {
                 if (Input.GetKey(reloadKey))
                     _OnReload();
@@ -115,7 +119,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (vrMode) {
                 volumeSliderVR.SetValueWithoutNotify(volume);
             } else {
-                volumeSliderDesktop.fillAmount = volume;
+                volumeSliderDesktop.anchorMax = new Vector2(volume, 1);
                 desktopModeAnim.SetTrigger("VolumeChange");
             }
             if (audioSources != null)

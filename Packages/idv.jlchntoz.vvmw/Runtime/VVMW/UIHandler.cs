@@ -12,8 +12,8 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     public class UIHandler : UdonSharpBehaviour {
         [Header("Main Reference")]
-        [SerializeField] Core core;
-        public FrontendHandler handler;
+        [SerializeField, Locatable] Core core;
+        [Locatable] public FrontendHandler handler;
         [SerializeField] LanguageManager languageManager;
 
         [Header("URL Input")]

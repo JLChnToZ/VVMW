@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -17,6 +18,31 @@ namespace JLChnToZ.VRC.VVMW {
                 transform.GetComponents(components);
                 foreach (var component in components) if (component != null) yield return component;
             }
+        }
+
+        public static T FindClosestComponentInHierarchy<T>(Transform startFrom, GameObject[] roots = null) where T : Component =>
+            FindClosestComponentInHierarchy(startFrom, typeof(T), roots) as T;
+
+        public static Component FindClosestComponentInHierarchy(Transform startFrom, Type type, GameObject[] roots = null) {
+            for (Transform transform = startFrom, lastTransform = null; transform != null; transform = transform.parent) {
+                if (transform.TryGetComponent(type, out var result)) return result;
+                foreach (Transform child in transform) {
+                    if (lastTransform == child) continue;
+                    result = transform.GetComponentInChildren(type, true);
+                    if (result != null) return result;
+                }
+                lastTransform = transform;
+            }
+            if (roots == null) {
+                var scene = startFrom.gameObject.scene;
+                if (!scene.IsValid()) return null;
+                roots = scene.GetRootGameObjects();
+            }
+            foreach (var root in roots) {
+                var result = root.GetComponentInChildren(type, true);
+                if (result != null) return result;
+            }
+            return null;
         }
     }
 }
