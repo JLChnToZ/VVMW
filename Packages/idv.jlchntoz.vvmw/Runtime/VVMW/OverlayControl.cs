@@ -81,16 +81,20 @@ namespace JLChnToZ.VRC.VVMW {
         void Update() {
             if (!Utilities.IsValid(localPlayer)) return;
             if (vrMode) {
+                if (disableHandControls) {
+                    vrModeCanvas.SetActive(false);
+                    return;
+                }
                 var head = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
                 var hand = localPlayer.GetTrackingData(
                     isLeftHanded ? VRCPlayerApi.TrackingDataType.RightHand : VRCPlayerApi.TrackingDataType.LeftHand
                 );
-                vrModeCanvas.SetActive(!disableHandControls && Vector3.Angle(head.rotation * Vector3.forward, (hand.position - head.position).normalized) < 30);
+                vrModeCanvas.SetActive(Vector3.Angle(head.rotation * Vector3.forward, (hand.position - head.position).normalized) < 30);
                 var canvasRotation = hand.rotation * (isLeftHanded ? rightHandRotation : leftHandRotation);
                 var canvasPosition = hand.position + canvasRotation * (offsetDirection * offset);
                 vrModeCanvasTransform.SetPositionAndRotation(canvasPosition, canvasRotation);
             } else if (Input.anyKey) {
-                if (Input.GetKey(reloadKey))
+                if (Input.GetKeyDown(reloadKey))
                     _OnReload();
                 if (Input.GetKey(volumeDownKey))
                     Volume -= 0.3F * Time.deltaTime;
