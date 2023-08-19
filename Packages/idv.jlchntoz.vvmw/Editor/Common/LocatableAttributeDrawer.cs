@@ -23,8 +23,13 @@ namespace JLChnToZ.VRC.VVMW {
                     };
                     EditorGUI.PropertyField(propertyRect, property, label);
                     using (new EditorGUI.DisabledGroupScope(so.isEditingMultipleObjects))
-                        if (GUI.Button(buttonRect, findButtonContent, buttonStyle))
-                            property.objectReferenceValue = Find(targetComponent);
+                        if (GUI.Button(buttonRect, findButtonContent, buttonStyle)) {
+                            var result = Find(targetComponent);
+                            if (result != null) {
+                                EditorGUIUtility.PingObject(result);
+                                property.objectReferenceValue = result;
+                            }
+                        }
                 } else
                     EditorGUI.PropertyField(position, property, label);
         }
