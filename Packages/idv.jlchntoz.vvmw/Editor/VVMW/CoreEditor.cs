@@ -266,12 +266,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         } else if (targetProperty.objectReferenceValue is RawImage) {
                             mode = 4;
                         } else {
-                            DeleteElement(screenTargetsProperty, i);
-                            DeleteElement(screenTargetModesProperty, i);
-                            DeleteElement(screenTargetIndecesProperty, i);
-                            DeleteElement(screenTargetPropertyNamesProperty, i);
-                            DeleteElement(avProPropertyNamesProperty, i);
-                            DeleteElement(screenTargetDefaultTexturesProperty, i);
+                            Utils.DeleteElement(screenTargetsProperty, i);
+                            Utils.DeleteElement(screenTargetModesProperty, i);
+                            Utils.DeleteElement(screenTargetIndecesProperty, i);
+                            Utils.DeleteElement(screenTargetPropertyNamesProperty, i);
+                            Utils.DeleteElement(avProPropertyNamesProperty, i);
+                            Utils.DeleteElement(screenTargetDefaultTexturesProperty, i);
                             screenTargetVisibilityState.RemoveAt(i);
                             i--;
                             length--;
@@ -368,12 +368,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             int size = property.arraySize;
             property.arraySize++;
             property.GetArrayElementAtIndex(size).intValue = value;
-        }
-
-        static void DeleteElement(SerializedProperty property, int index) {
-            int size = property.arraySize;
-            property.DeleteArrayElementAtIndex(index);
-            if (size == property.arraySize) property.DeleteArrayElementAtIndex(index);
         }
     }
 }

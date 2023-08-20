@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -43,6 +44,12 @@ namespace JLChnToZ.VRC.VVMW {
                 if (result != null) return result;
             }
             return null;
+        }
+
+        public static void DeleteElement(SerializedProperty property, int index) {
+            int size = property.arraySize;
+            property.DeleteArrayElementAtIndex(index);
+            if (size == property.arraySize) property.DeleteArrayElementAtIndex(index);
         }
     }
 }
