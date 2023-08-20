@@ -1,5 +1,5 @@
-# VVMW Documentation
-Welcome! VVMW is a general-purpose video player wrapper for use in VRChat. It aims to cover many use cases, from watch-together video/live stream player in lounges, to large event venue for music performances, or even booths for exhibitions or showcases. Due to its target customers, it has a flexible architecture, just like a factory made electronic but with a easy to open back lid, make it easier to let users mess them around for their needs.
+# VizVid Documentation
+Welcome! VizVid is a general-purpose video player wrapper for use in VRChat. It aims to cover many use cases, from watch-together video/live stream player in lounges, to large event venue for music performances, or even booths for exhibitions or showcases. Due to its target customers, it has a flexible architecture, just like a factory made electronic but with a easy to open back lid, make it easier to let users mess them around for their needs.
 
 ## What's Out of Box?
 First, you will find a prefab named "VVMW" sitting in its folder, this is mostly everything you need to setup your player. You may just drag this prefab into your world scene, just adjust the screen size and the position of the audio source and you are good to go. If you want to keep everything simple, you can stop reading this documentation from here.
@@ -89,7 +89,7 @@ This is default UI, it provides all basic interface of the player to let user in
 There are a few other prefabs available in Prefabs folder that can be used directly:
 
 ### Pickup Screen
-This component was [originally created by YamaBUTA](https://yamabuta.booth.pm/items/4189997), which is a local-only pickupable screen with scaling feature, and it is rewrited to use with VVMW. To use this, drag this component to the scene, find the "Screen" object under "Pickup_ScalingPanel" > "ScreenScaling", assign it to "Add Video Screen Target" option in VVMW component.
+This component was [originally created by YamaBUTA](https://yamabuta.booth.pm/items/4189997), which is a local-only pickupable screen with scaling feature, and it is rewrited to use with VizVid. To use this, drag this component to the scene, find the "Screen" object under "Pickup_ScalingPanel" > "ScreenScaling", assign it to "Add Video Screen Target" option in VVMW component.
 
 ### Overlay Control
 This is a component that spawns a mini controller on every user's wrist (VR mode) or a overlay UI on screen (PC mode). User can adjust the players volume and reload current video using laser pointer (VR) or keyboard input (PC). To setup this, drag the prefab to the scene, not required but recommend under the video player's hierarchy, and then set the core to the VVMW component, drag the "VR Options Canvas" to anywhere you want, then it is ready to rock.
