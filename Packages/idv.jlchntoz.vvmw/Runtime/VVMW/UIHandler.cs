@@ -80,6 +80,8 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] GameObject queueEntryTemplate;
         [SerializeField] Transform queueEntryContainer;
         [SerializeField] Text selectedPlayListText;
+        [BindEvent(nameof(Button.onClick), nameof(_OnCurrentPlayListSelectClick))]
+        [SerializeField] Button currentPlayListButton;
 
         [Header("Sync Offset Controls")]
         [BindEvent(nameof(Button.onClick), nameof(_ShiftBack100ms))]
@@ -574,6 +576,11 @@ namespace JLChnToZ.VRC.VVMW {
                 if (entry != null) entry.Selected = i == selectedPlayListIndex;
             }
             _OnUIUpdate();
+        }
+
+        public void _OnCurrentPlayListSelectClick() {
+            selectedPlayListIndex = handler != null ? handler.PlayListIndex : 0;
+            _OnPlayListSelectClick();
         }
 
         public void _OnQueueEntryClick() {
