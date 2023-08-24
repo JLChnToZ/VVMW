@@ -16,7 +16,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] bool defaultLoop, defaultShuffle;
         [SerializeField] string[] playListTitles;
         [SerializeField] int[] playListUrlOffsets;
-        [SerializeField] VRCUrl[] playListUrls;
+        [SerializeField] VRCUrl[] playListUrls, playListUrlsQuest;
         [SerializeField] string[] playListEntryTitles;
         [SerializeField] byte[] playListPlayerIndex;
         [UdonSynced] VRCUrl[] queuedUrls;
@@ -58,6 +58,8 @@ namespace JLChnToZ.VRC.VVMW {
         public int[] PlayListUrlOffsets => playListUrlOffsets;
     
         public VRCUrl[] PlayListUrls => playListUrls;
+
+        public VRCUrl[] PlayListUrlsQuest => playListUrlsQuest;
     
         public string[] PlayListEntryTitles => playListEntryTitles;
     
@@ -353,7 +355,7 @@ namespace JLChnToZ.VRC.VVMW {
             Array.Copy(localPlayListOrder, index + 1, newOrderList, index, Mathf.Min(localPlayListOrder.Length - 1, newLength) - index);
             if (isRepeatAll) newOrderList[newLength - 1] = localPlayingIndex;
             localPlayListOrder = newOrderList;
-            core.PlayUrl(playListUrls[localPlayingIndex], playListPlayerIndex[localPlayingIndex]);
+            core.PlayUrlMP(playListUrls[localPlayingIndex], playListUrlsQuest[localPlayingIndex], playListPlayerIndex[localPlayingIndex]);
             RequestSync();
             UpdateState();
         }

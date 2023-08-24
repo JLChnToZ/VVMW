@@ -15,6 +15,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty playListTitlesProperty;
         SerializedProperty playListUrlOffsetsProperty;
         SerializedProperty playListUrlsProperty;
+        SerializedProperty playListUrlsQuestProperty;
         SerializedProperty playListEntryTitlesProperty;
         SerializedProperty playListPlayerIndexProperty;
         SerializedProperty localPlayListIndexProperty;
@@ -38,6 +39,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             playListTitlesProperty = serializedObject.FindProperty("playListTitles");
             playListUrlOffsetsProperty = serializedObject.FindProperty("playListUrlOffsets");
             playListUrlsProperty = serializedObject.FindProperty("playListUrls");
+            playListUrlsQuestProperty = serializedObject.FindProperty("playListUrlsQuest");
             playListEntryTitlesProperty = serializedObject.FindProperty("playListEntryTitles");
             playListPlayerIndexProperty = serializedObject.FindProperty("playListPlayerIndex");
             localPlayListIndexProperty = serializedObject.FindProperty("localPlayListIndex");
@@ -135,7 +137,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             playListEntryView = new ReorderableList(selectedPlayList.entries, typeof(PlayListEntry), true, true, true, true) {
                 drawHeaderCallback = DrawPlayListEntryHeader,
                 drawElementCallback = DrawPlayListEntry,
-                elementHeight = (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 2,
+                elementHeight = (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 3,
             };
         }
 
@@ -143,10 +145,19 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         void DrawPlayListEntry(Rect rect, int index, bool isActive, bool isFocused) {
             var labelSize = EditorGUIUtility.labelWidth;
-            EditorGUIUtility.labelWidth = 40;
+            EditorGUIUtility.labelWidth = 80;
             var entry = selectedPlayList.entries[index];
             var titleRect = rect;
             titleRect.height = EditorGUIUtility.singleLineHeight;
+            float playerRectWidth = titleRect.width;
+            if (playerHandlerNames != null) {
+                if (entry.playerIndex >= 0 && entry.playerIndex < playerHandlerNames.Length)
+                    tempContent.text = playerHandlerNames[entry.playerIndex];
+                else
+                    tempContent.text = "";
+                playerRectWidth = EditorStyles.popup.CalcSize(tempContent).x;
+            }
+            titleRect.xMax = titleRect.width - playerRectWidth - 10;
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 tempContent.text = "Title";
                 titleRect = EditorGUI.PrefixLabel(titleRect, tempContent);
@@ -156,20 +167,24 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     selectedPlayList.entries[index] = entry;
                 }
             }
+            if (playerHandlerNames != null) {
+                var playerRect = rect;
+                playerRect.yMin = titleRect.yMin;
+                playerRect.height = EditorGUIUtility.singleLineHeight;
+                playerRect.xMin = titleRect.xMax;
+                using (var changed = new EditorGUI.ChangeCheckScope()) {
+                    var newPlayerIndex = EditorGUI.Popup(playerRect, entry.playerIndex, playerHandlerNames);
+                    if (changed.changed) {
+                        entry.playerIndex = (byte)newPlayerIndex;
+                        selectedPlayList.entries[index] = entry;
+                    }
+                }
+            }
             var urlRect = rect;
             urlRect.yMin = titleRect.yMax + EditorGUIUtility.standardVerticalSpacing;
             urlRect.height = EditorGUIUtility.singleLineHeight;
-            float playerRectWidth = urlRect.width;
-            if (playerHandlerNames != null) {
-                if (entry.playerIndex >= 0 && entry.playerIndex < playerHandlerNames.Length)
-                    tempContent.text = playerHandlerNames[entry.playerIndex];
-                else
-                    tempContent.text = "";
-                playerRectWidth = EditorStyles.popup.CalcSize(tempContent).x;
-            }
-            urlRect.xMax = urlRect.width - playerRectWidth - 10;
             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                tempContent.text = "URL";
+                tempContent.text = "URL (PC)";
                 urlRect = EditorGUI.PrefixLabel(urlRect, tempContent);
                 var newUrl = EditorGUI.TextField(urlRect, entry.url);
                 if (changed.changed) {
@@ -177,17 +192,17 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     selectedPlayList.entries[index] = entry;
                 }
             }
-            if (playerHandlerNames != null) {
-                var playerRect = rect;
-                playerRect.yMin = titleRect.yMax + EditorGUIUtility.standardVerticalSpacing;
-                playerRect.height = EditorGUIUtility.singleLineHeight;
-                playerRect.xMin = urlRect.xMax;
-                using (var changed = new EditorGUI.ChangeCheckScope()) {
-                    var newPlayerIndex = EditorGUI.Popup(playerRect, entry.playerIndex, playerHandlerNames);
-                    if (changed.changed) {
-                        entry.playerIndex = (byte)newPlayerIndex;
-                        selectedPlayList.entries[index] = entry;
-                    }
+            var urlQuestRect = rect;
+            urlQuestRect.yMin = urlRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+            urlQuestRect.height = EditorGUIUtility.singleLineHeight;
+            using (var changed = new EditorGUI.ChangeCheckScope()) {
+                tempContent.text = "URL (Quest)";
+                urlQuestRect = EditorGUI.PrefixLabel(urlQuestRect, tempContent);
+                var newUrl = string.IsNullOrEmpty(entry.urlForQuest) ? entry.url : entry.urlForQuest;
+                newUrl = EditorGUI.TextField(urlQuestRect, newUrl);
+                if (changed.changed) {
+                    entry.urlForQuest = newUrl == entry.url ? string.Empty : newUrl;
+                    selectedPlayList.entries[index] = entry;
                 }
             }
             EditorGUIUtility.labelWidth = labelSize;
@@ -207,6 +222,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     playList.entries.Add(new PlayListEntry {
                         title = playListEntryTitlesProperty.GetArrayElementAtIndex(urlOffset + j).stringValue,
                         url = playListUrlsProperty.GetArrayElementAtIndex(urlOffset + j).FindPropertyRelative("url").stringValue,
+                        urlForQuest = playListUrlsQuestProperty.GetArrayElementAtIndex(urlOffset + j).FindPropertyRelative("url").stringValue,
                         playerIndex = playListPlayerIndexProperty.GetArrayElementAtIndex(urlOffset + j).intValue - 1
                     });
                 playLists.Add(playList);
@@ -227,11 +243,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 offset += playList.entries.Count;
             }
             playListUrlsProperty.arraySize = offset;
+            playListUrlsQuestProperty.arraySize = offset;
             playListEntryTitlesProperty.arraySize = offset;
             playListPlayerIndexProperty.arraySize = offset;
             for (int i = 0; i < offset; i++) {
                 var entry = temp[i];
                 playListUrlsProperty.GetArrayElementAtIndex(i).FindPropertyRelative("url").stringValue = entry.url;
+                playListUrlsQuestProperty.GetArrayElementAtIndex(i).FindPropertyRelative("url").stringValue = entry.urlForQuest;
                 playListEntryTitlesProperty.GetArrayElementAtIndex(i).stringValue = entry.title;
                 playListPlayerIndexProperty.GetArrayElementAtIndex(i).intValue = entry.playerIndex + 1;
             }
@@ -288,6 +306,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         struct PlayListEntry {
             public string title;
             public string url;
+            public string urlForQuest;
             public int playerIndex;
         }
     }

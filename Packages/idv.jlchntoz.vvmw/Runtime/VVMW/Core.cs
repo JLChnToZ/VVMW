@@ -23,6 +23,8 @@ namespace JLChnToZ.VRC.VVMW {
         [Tooltip("Audio sources to link to video player, will be set to the primary audio source of the video player, and volumes can be controlled by the video player.")]
         [SerializeField] AudioSource[] audioSources;
         [SerializeField] VRCUrl defaultUrl;
+        [Tooltip("The default url to use when playing on Quest. Leave empty to use the same url as PC.")]
+        [SerializeField] VRCUrl defaultQuestUrl;
         [SerializeField, Range(0, 255)] int autoPlayPlayerType = 1;
         [SerializeField] bool synced = true;
         [SerializeField] int totalRetryCount = 3;
@@ -41,8 +43,8 @@ namespace JLChnToZ.VRC.VVMW {
         int[] screenTargetPropertyIds, avProPropertyIds;
         [FieldChangeCallback(nameof(SyncOffset))]
         float syncOffset = 0;
-        [UdonSynced] VRCUrl url;
-        VRCUrl localUrl, loadingUrl, lastUrl;
+        [UdonSynced] VRCUrl pcUrl, questUrl;
+        VRCUrl localUrl, loadingUrl, lastUrl, altUrl;
         // When playing, it is the time when the video started playing;
         // When paused, it is the progress of the video in ticks.
         [UdonSynced] long time;
@@ -261,14 +263,37 @@ namespace JLChnToZ.VRC.VVMW {
             if (IsUrlValid(defaultUrl)) PlayUrl(null, 0);
         }
 
-        public void PlayUrl(VRCUrl url, byte playerType) {
+        public void PlayUrl(VRCUrl url, byte playerType) => PlayUrlMP(url, null, playerType);
+
+        public void PlayUrlMP(VRCUrl pcUrl, VRCUrl questUrl, byte playerType) {
             isError = false;
+            VRCUrl url;
+            #if UNITY_ANDROID
+            url = questUrl;
+            if (!IsUrlValid(url))
+            #else
+                url = pcUrl;
+            #endif
             if (!IsUrlValid(url)) {
-                if (!IsUrlValid(defaultUrl)) return;
-                url = defaultUrl;
+                if (IsUrlValid(defaultUrl)) {
+                    pcUrl = defaultUrl;
+                    questUrl = defaultQuestUrl;
+                } else return;
+                #if UNITY_ANDROID
+                url = questUrl;
+                if (!IsUrlValid(url))
+                #else
+                    url = pcUrl;
+                #endif
                 playerType = (byte)autoPlayPlayerType;
             }
-            localUrl = url;
+            #if UNITY_ANDROID
+            localUrl = questUrl;
+            altUrl = pcUrl;
+            #else
+            localUrl = pcUrl;
+            altUrl = questUrl;
+            #endif
             time = 0;
             ActivePlayer = playerType;
             loadingUrl = null;
@@ -329,7 +354,14 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void LocalSync() {
-            if (synced) localUrl = url;
+            if (synced) {
+                #if UNITY_ANDROID
+                if (IsUrlValid(questUrl))
+                    localUrl = questUrl;
+                else
+                #endif
+                    localUrl = pcUrl;
+            }
             else if (!IsUrlValid(localUrl)) localUrl = defaultUrl;
             loadingUrl = localUrl;
             trustUpdated = false;
@@ -503,10 +535,21 @@ namespace JLChnToZ.VRC.VVMW {
                 activePlayer = 0;
                 state = IDLE;
                 time = 0;
-                url = null;
+                pcUrl = null;
+                questUrl = null;
             } else {
                 activePlayer = localActivePlayer;
-                url = localUrl;
+                #if UNITY_ANDROID
+                if (IsUrlValid(altUrl)) {
+                    pcUrl = altUrl;
+                    questUrl = localUrl;
+                } else
+                #else
+                #endif
+                {
+                    pcUrl = localUrl;
+                    questUrl = altUrl;
+                }
                 if (activeHandler.IsReady) {
                     state = activeHandler.IsPlaying ? PLAYING : PAUSED;
                     time = CalcSyncTime();
@@ -520,6 +563,17 @@ namespace JLChnToZ.VRC.VVMW {
         public override void OnDeserialization() {
             if (!synced) return;
             ActivePlayer = activePlayer;
+            VRCUrl url = null;
+            #if UNITY_ANDROID
+            if (IsUrlValid(questUrl)) {
+                url = questUrl;
+                altUrl = pcUrl;
+            } else
+            #endif
+            {
+                url = pcUrl;
+                altUrl = questUrl;
+            }
             if (state != IDLE && localUrl != url && (!IsUrlValid(localUrl) || !IsUrlValid(url) || localUrl.Get() != url.Get())) {
                 loadingUrl = null;
                 retryCount = 0;

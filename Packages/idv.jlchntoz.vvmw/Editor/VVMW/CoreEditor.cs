@@ -15,6 +15,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty playerHandlersProperty;
         SerializedProperty audioSourcesProperty;
         SerializedProperty defaultUrlProperty;
+        SerializedProperty defaultQuestUrlProperty;
         SerializedProperty autoPlayPlayerTypeProperty;
         SerializedProperty syncedProperty;
         SerializedProperty totalRetryCountProperty;
@@ -42,7 +43,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             audioSourcesProperty = serializedObject.FindProperty("audioSources");
             audioSourcesList = new ReorderableListUtils(audioSourcesProperty);
             audioSourcesList.list.drawHeaderCallback = DrawAudioSourcesListHeader;
-            defaultUrlProperty = serializedObject.FindProperty("defaultUrl.url");
+            defaultUrlProperty = serializedObject.FindProperty("defaultUrl");
+            defaultQuestUrlProperty = serializedObject.FindProperty("defaultQuestUrl");
             autoPlayPlayerTypeProperty = serializedObject.FindProperty("autoPlayPlayerType");
             syncedProperty = serializedObject.FindProperty("synced");
             totalRetryCountProperty = serializedObject.FindProperty("totalRetryCount");
@@ -69,7 +71,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
             serializedObject.Update();
             EditorGUILayout.PropertyField(defaultUrlProperty);
-            if (!string.IsNullOrEmpty(defaultUrlProperty.stringValue)) {
+            if (!string.IsNullOrEmpty(defaultUrlProperty.FindPropertyRelative("url").stringValue)) {
+                EditorGUILayout.PropertyField(defaultQuestUrlProperty);
                 if (playerNames == null || playerNames.Length != playerHandlersProperty.arraySize)
                     playerNames = new string[playerHandlersProperty.arraySize];
                 for (int i = 0; i < playerNames.Length; i++) {
