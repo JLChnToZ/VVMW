@@ -38,6 +38,7 @@
             int _IsAVProVideo;
             int _ScaleMode;
             int _IsMirror;
+            int _VRChatMirrorMode;
             float _AspectRatio;
             float4 _MainTex_TexelSize;
             float4 _StereoShift;
@@ -55,8 +56,9 @@
 
             float4 frag (v2f i) : SV_Target {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                if (_IsMirror && 0 < dot(cross(UNITY_MATRIX_V[0], UNITY_MATRIX_V[1]), UNITY_MATRIX_V[2])) i.uv.x = 1 - i.uv.x;
-                return getVideoTexture(_MainTex, i.uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
+                float2 uv = i.uv;
+                if (_IsMirror == 1 && _VRChatMirrorMode == 1) uv.x = 1.0 - uv.x;
+                return getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
             }
             ENDCG
         }
