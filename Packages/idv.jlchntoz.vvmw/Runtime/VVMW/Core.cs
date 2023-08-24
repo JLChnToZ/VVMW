@@ -595,7 +595,12 @@ namespace JLChnToZ.VRC.VVMW {
                         if (!activeHandler.IsPaused) activeHandler.Pause();
                         break;
                     case PLAYING:
-                        if (activeHandler.IsPaused || !activeHandler.IsPlaying) activeHandler.Play();
+                        if (activeHandler.IsPaused || !activeHandler.IsPlaying) {
+                            activeHandler.Play();
+                            var duration = activeHandler.Duration;
+                            if (duration > 0 && !float.IsInfinity(duration))
+                                activeHandler.Time += UnityEngine.Time.realtimeSinceStartup - Networking.SimulationTime(Networking.GetOwner(gameObject));
+                        }
                         break;
                 }
                 if (!isLocalReloading && !isLoading) SyncTime();

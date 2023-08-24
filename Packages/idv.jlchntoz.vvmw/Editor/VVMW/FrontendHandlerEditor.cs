@@ -260,12 +260,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 title = $"Play List {playLists.Count + 1}",
                 entries = new List<PlayListEntry>(),
             });
-            playListView.index = playLists.Count - 1;
+            list.index = playLists.Count - 1;
+            PlayListSelected(list);
         }
 
         void RemovePlayList(ReorderableList list) {
             playLists.RemoveAt(list.index);
-            playListView.index = Mathf.Clamp(playListView.index, 0, playLists.Count - 1);
+            list.index = Mathf.Clamp(playListView.index, 0, playLists.Count - 1);
             PlayListSelected(list);
         }
 

@@ -132,6 +132,7 @@ namespace JLChnToZ.VRC.VVMW {
                     bool hasPlayList = playListEntries.Length > 1;
                     playListRootGameObject.SetActive(hasPlayList);
                     if (playListTogglePanelButton != null) playListTogglePanelButton.interactable = hasPlayList;
+                    playListTemplate.SetActive(false);
                 } else {
                     playListRootGameObject.SetActive(false);
                     if (playListTogglePanelButton != null) playListTogglePanelButton.interactable = false;
@@ -566,6 +567,7 @@ namespace JLChnToZ.VRC.VVMW {
                 entry.deleteEventName = nameof(_OnQueueEntryDelete);
                 newEntries[i] = entry;
             }
+            queueEntryTemplate.SetActive(false);
             queueEntries = newEntries;
         }
 
