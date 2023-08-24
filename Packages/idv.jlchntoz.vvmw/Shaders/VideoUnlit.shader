@@ -57,7 +57,7 @@
             float4 frag (v2f i) : SV_Target {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 float2 uv = i.uv;
-                if (_IsMirror == 1 && _VRChatMirrorMode == 1) uv.x = 1.0 - uv.x;
+                if (_IsMirror && _VRChatMirrorMode) uv.x = 1.0 - uv.x;
                 return getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
             }
             ENDCG
