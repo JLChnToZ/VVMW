@@ -227,8 +227,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     });
                 playLists.Add(playList);
             }
-            playListView.index = -1;
-            PlayListSelected(playListView);
+            if (playListView != null) {
+                playListView.index = -1;
+                PlayListSelected(playListView);
+            }
         }
 
         void SerializePlayList() {
