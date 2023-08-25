@@ -29,6 +29,7 @@ namespace JLChnToZ.VRC.VVMW {
         [BindEvent(nameof(Button.onClick), nameof(_InputConfirmClick))]
         [SerializeField] Button urlInputConfirmButton;
         [SerializeField] Text selectdPlayerText;
+        [SerializeField] GameObject otherObjectUnderUrlInput;
 
         [Header("Playback Controls")]
         [SerializeField] Animator playbackControlsAnimator;
@@ -60,6 +61,7 @@ namespace JLChnToZ.VRC.VVMW {
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnSeek))]
         [SerializeField] Slider progressSlider;
         [SerializeField] Text statusText, timeText, durationText;
+        [SerializeField] GameObject timeContainer;
 
         [Header("Volume Control")]
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnVolumeSlide))]
@@ -182,7 +184,7 @@ namespace JLChnToZ.VRC.VVMW {
             _OnVolumeChange();
             _OnSyncOffsetChange();
             UpdatePlayerText();
-            playbackControlsAnimator.SetTrigger("Init");
+            if (playbackControlsAnimator != null) playbackControlsAnimator.SetTrigger("Init");
         }
 
         void InstantiatePlayListTemplate(int index, string text) {
@@ -302,7 +304,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _OnURLChanged() {
             bool isEmpty =  string.IsNullOrEmpty(urlInput.textComponent.text);
-            if (statusText != null) statusText.enabled = isEmpty;
+            if (otherObjectUnderUrlInput != null) otherObjectUnderUrlInput.SetActive(isEmpty);
             if (videoPlayerSelectPanel != null) videoPlayerSelectPanel.SetActive(!isEmpty);
         }
 
@@ -354,7 +356,7 @@ namespace JLChnToZ.VRC.VVMW {
         public void _OnLanguageChanged() {
             _OnUIUpdate();
             _OnSyncOffsetChange();
-            if (Utilities.IsValid(handler) && handler.HasQueueList) playListEntries[0].TextContent = languageManager.GetLocale("QueueList");
+            if (Utilities.IsValid(handler) && handler.HasQueueList && playListEntries != null) playListEntries[0].TextContent = languageManager.GetLocale("QueueList");
             UpdatePlayerText();
         }
 
@@ -379,21 +381,35 @@ namespace JLChnToZ.VRC.VVMW {
             switch (core.State) {
                 case 0: // Idle
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
-                    if (statusText == null) break;
-                    statusText.text = languageManager.GetLocale("VVMW_Name");
+                    if (statusText != null) {
+                        if (timeContainer != null) {
+                            timeContainer.SetActive(false);
+                            statusText.enabled = true;
+                        }
+                        statusText.text = languageManager.GetLocale("VVMW_Name");
+                    }
                     if (durationText != null) durationText.text = languageManager.GetLocale("TimeIdleFormat");
                     if (timeText != null) timeText.text = languageManager.GetLocale("TimeIdleFormat");
                     break;
                 case 1: // Loading
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
-                    if (statusText == null) break;
-                    statusText.text = languageManager.GetLocale("Loading");
+                    if (statusText != null) {
+                        if (timeContainer != null) {
+                            timeContainer.SetActive(false);
+                            statusText.enabled = true;
+                        }
+                        statusText.text = languageManager.GetLocale("Loading");
+                    }
                     if (durationText != null) durationText.text = languageManager.GetLocale("TimeIdleFormat");
                     if (timeText != null) timeText.text = languageManager.GetLocale("TimeIdleFormat");
                     break;
                 case 2: // Error
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
                     if (statusText == null) break;
+                    if (timeContainer != null) {
+                        statusText.enabled = true;
+                        timeContainer.SetActive(false);
+                    }
                     var errorCode = core.LastError;
                     switch (errorCode) {
                         case VideoError.InvalidURL: statusText.text = languageManager.GetLocale("InvalidURL"); break;
@@ -407,8 +423,13 @@ namespace JLChnToZ.VRC.VVMW {
                     break;
                 case 3: // Ready
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
-                    if (statusText != null)
+                    if (statusText != null) {
+                        if (timeContainer != null) {
+                            timeContainer.SetActive(false);
+                            statusText.enabled = true;
+                        }
                         statusText.text = languageManager.GetLocale("Ready");
+                    }
                     if (progressSlider != null) {
                         progressSlider.SetValueWithoutNotify(1);
                         progressSlider.interactable = false;
@@ -417,12 +438,20 @@ namespace JLChnToZ.VRC.VVMW {
                     break;
                 case 4: // Playing
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(false);
+                    if (timeContainer != null && statusText != null) {
+                        timeContainer.SetActive(true);
+                        statusText.enabled = false;
+                    }
                     canPause = unlocked;
                     canStop = unlocked;
                     canSeek = true;
                     break;
                 case 5: // Paused
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(false);
+                    if (timeContainer != null && statusText != null) {
+                        timeContainer.SetActive(true);
+                        statusText.enabled = false;
+                    }
                     canPlay = unlocked;
                     canStop = unlocked;
                     canSeek = true;
@@ -504,7 +533,9 @@ namespace JLChnToZ.VRC.VVMW {
                 offset = 0;
                 pendingCount = queuedUrls.Length;
             }
-            if (playNextButton != null) playNextButton.gameObject.SetActive(playingIndex < pendingCount - 1);
+            bool hasPending = playingIndex < pendingCount - 1;
+            if (playNextButton != null) playNextButton.gameObject.SetActive(hasPending);
+            if (currentPlayListButton != null) currentPlayListButton.gameObject.SetActive(hasPending);
             if (enqueueCountText != null)
                 enqueueCountText.text = string.Format(enqueueCountFormat, pendingCount - playingIndex - 1);
             if (selectedPlayListText != null)
@@ -605,6 +636,10 @@ namespace JLChnToZ.VRC.VVMW {
         void UpdateProgressOnce() {
             var duration = core.Duration;
             if (duration <= 0 || float.IsInfinity(duration)) {
+                if (timeContainer != null && statusText != null) {
+                    timeContainer.SetActive(false);
+                    statusText.enabled = true;
+                }
                 if (timeText != null)
                     timeText.text = languageManager.GetLocale("TimeIdleFormat");
                 if (durationText != null)
@@ -616,6 +651,10 @@ namespace JLChnToZ.VRC.VVMW {
                     progressSlider.interactable = false;
                 }
             } else {
+                if (timeContainer != null && statusText != null) {
+                    timeContainer.SetActive(true);
+                    statusText.enabled = false;
+                }
                 var time = TimeSpan.FromSeconds(core.Time);
                 var durationTS = TimeSpan.FromSeconds(duration);
                 if (durationText != null)
