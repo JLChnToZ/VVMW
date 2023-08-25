@@ -14,6 +14,7 @@ namespace JLChnToZ.VRC.VVMW.I18N {
 
         void Start() {
             manager._AddListener(this);
+            entryTemplate.SetActive(false);
             SendCustomEventDelayedFrames(nameof(_DetectLanguageInit), 0);
         }
 
