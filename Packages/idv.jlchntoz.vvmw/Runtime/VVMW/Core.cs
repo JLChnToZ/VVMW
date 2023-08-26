@@ -54,7 +54,7 @@ namespace JLChnToZ.VRC.VVMW {
         [UdonSynced] byte state;
         [SerializeField, UdonSynced, FieldChangeCallback(nameof(Loop))]
         bool loop;
-        [Locatable("AudioLink.AudioLink", "VRCAudioLink.AudioLink")]
+        [Locatable("AudioLink.AudioLink, AudioLink", "VRCAudioLink.AudioLink, AudioLink")]
         [SerializeField] UdonSharpBehaviour audioLink;
         VideoPlayerHandler activeHandler;
         int retryCount = 0;

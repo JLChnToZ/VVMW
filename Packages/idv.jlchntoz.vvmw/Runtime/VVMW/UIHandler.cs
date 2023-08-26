@@ -170,6 +170,7 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 videoPlayerSelectButtonTemplate.SetActive(false);
             }
+            if (queueEntryTemplate != null) queueEntryTemplate.SetActive(false);
             bool isSynced = core.IsSynced;
             if (shiftBack100msButton != null) shiftBack100msButton.gameObject.SetActive(isSynced);
             if (shiftBack50msButton != null) shiftBack50msButton.gameObject.SetActive(isSynced);
