@@ -240,8 +240,17 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     else if (value is Material) {}
                     else if (value is RawImage) {}
                     else targetProperty.objectReferenceValue = null;
-                    if (GUILayout.Button("Remove", GUILayout.ExpandWidth(false)))
-                        targetProperty.objectReferenceValue = null;
+                    if (GUILayout.Button("Remove", GUILayout.ExpandWidth(false))) {
+                        Utils.DeleteElement(screenTargetsProperty, i);
+                        Utils.DeleteElement(screenTargetModesProperty, i);
+                        Utils.DeleteElement(screenTargetIndecesProperty, i);
+                        Utils.DeleteElement(screenTargetPropertyNamesProperty, i);
+                        Utils.DeleteElement(avProPropertyNamesProperty, i);
+                        Utils.DeleteElement(screenTargetDefaultTexturesProperty, i);
+                        screenTargetVisibilityState.RemoveAt(i);
+                        i--;
+                        length--;
+                    }
                 }
                 EditorGUIUtility.labelWidth += 16;
                 if (screenTargetVisibilityState[i])

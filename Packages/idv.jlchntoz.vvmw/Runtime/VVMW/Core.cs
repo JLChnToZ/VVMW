@@ -465,6 +465,7 @@ namespace JLChnToZ.VRC.VVMW {
             var videoTexture = VideoTexture;
             var isAvPro = IsAVPro;
             for (int i = 0, length = screenTargets.Length; i < length; i++) {
+                if (screenTargets[i] == null) continue;
                 Texture texture = null;
                 if (videoTexture != null)
                     texture = videoTexture;
