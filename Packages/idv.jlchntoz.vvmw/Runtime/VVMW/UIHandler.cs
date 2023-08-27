@@ -81,6 +81,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Button playListTogglePanelButton;
         [SerializeField] GameObject queueEntryTemplate;
         [SerializeField] Transform queueEntryContainer;
+        ScrollRect queueListRoot;
         [SerializeField] Text selectedPlayListText;
         [BindEvent(nameof(Button.onClick), nameof(_OnCurrentPlayListSelectClick))]
         [SerializeField] Button currentPlayListButton;
@@ -143,7 +144,7 @@ namespace JLChnToZ.VRC.VVMW {
             } else if (playListPanelRoot != null) playListPanelRoot.SetActive(true);
             if (playListTogglePanel != null) playListTogglePanel.SetActive(false);
             if (queueEntryContainer != null) {
-                var queueListRoot = queueEntryContainer.GetComponentInParent<ScrollRect>();
+                queueListRoot = queueEntryContainer.GetComponentInParent<ScrollRect>();
                 var queueListRootGameObject = queueListRoot != null ? queueListRoot.gameObject : queueEntryContainer.gameObject;
                 queueListRootGameObject.SetActive(hasHandler);
             }
@@ -506,6 +507,7 @@ namespace JLChnToZ.VRC.VVMW {
                     shuffleOffButton.interactable = true;
                 }
                 if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(isShuffle);
+                UpdatePlayList();
             } else {
                 bool isRepeatOne = core.Loop;
                 if (repeatOffButton != null) repeatOffButton.gameObject.SetActive(!isRepeatOne);
@@ -517,10 +519,9 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(false);
             }
-            if (hasHandler) UpdatePlayList();
         }
 
-        void UpdatePlayList() {
+        bool UpdatePlayList() {
             int playListIndex = handler.PlayListIndex;
             int playingIndex = handler.CurrentPlayingIndex;
             int pendingCount, offset;
@@ -546,36 +547,38 @@ namespace JLChnToZ.VRC.VVMW {
             bool shouldRefreshQueue = selectedPlayListIndex <= 0 || lastSelectedPlayListIndex != selectedPlayListIndex || lastPlayingIndex != playingIndex;
             lastSelectedPlayListIndex = selectedPlayListIndex;
             lastPlayingIndex = playingIndex;
-            if (shouldRefreshQueue && queueEntryTemplate != null && queueEntryContainer.gameObject.activeInHierarchy) {
-                if (selectedPlayListIndex != playListIndex) {
-                    if (selectedPlayListIndex > 0) {
-                        offset = urlOffsets[selectedPlayListIndex - 1];
-                        pendingCount = (selectedPlayListIndex < urlOffsets.Length ? urlOffsets[selectedPlayListIndex] : playListUrls.Length) - offset;
-                    } else {
-                        offset = 0;
-                        pendingCount = queuedUrls.Length;
-                    }
-                    playingIndex = -1;
+            if (!shouldRefreshQueue || queueEntryTemplate == null || !queueEntryContainer.gameObject.activeInHierarchy)
+                return false;
+            if (selectedPlayListIndex != playListIndex) {
+                if (selectedPlayListIndex > 0) {
+                    offset = urlOffsets[selectedPlayListIndex - 1];
+                    pendingCount = (selectedPlayListIndex < urlOffsets.Length ? urlOffsets[selectedPlayListIndex] : playListUrls.Length) - offset;
+                } else {
+                    offset = 0;
+                    pendingCount = queuedUrls.Length;
                 }
-                EnsurePlaylistCapacity(pendingCount);
-                if (queueEntries != null)
-                    for (int i = 0, count = Mathf.Max(lastDisplayCount, pendingCount); i < count; i++) {
-                        var entry = queueEntries[i];
-                        if (i < pendingCount) {
-                            entry.gameObject.SetActive(true);
-                            if (selectedPlayListIndex > 0) {
-                                entry.TextContent = entryTitles[i + offset];
-                                entry.HasDelete = false;
-                            } else {
-                                entry.TextContent = queuedUrls[i].Get();
-                                entry.HasDelete = true;
-                            }
-                            entry.Selected = i == playingIndex;
-                        } else
-                            entry.gameObject.SetActive(false);
-                    }
-                lastDisplayCount = pendingCount;
+                playingIndex = -1;
             }
+            EnsurePlaylistCapacity(pendingCount);
+            if (queueEntries != null)
+                for (int i = 0, count = Mathf.Max(lastDisplayCount, pendingCount); i < count; i++) {
+                    var entry = queueEntries[i];
+                    if (i < pendingCount) {
+                        entry.gameObject.SetActive(true);
+                        if (selectedPlayListIndex > 0) {
+                            entry.TextContent = entryTitles[i + offset];
+                            entry.HasDelete = false;
+                        } else {
+                            entry.TextContent = queuedUrls[i].Get();
+                            entry.HasDelete = true;
+                        }
+                        entry.Selected = i == playingIndex;
+                    } else
+                        entry.gameObject.SetActive(false);
+                }
+            lastDisplayCount = pendingCount;
+            ScrollPlayListToCurrent();
+            return true;
         }
 
         void EnsurePlaylistCapacity(int requestedSize) {
@@ -609,7 +612,7 @@ namespace JLChnToZ.VRC.VVMW {
                 var entry = playListEntries[i];
                 if (entry != null) entry.Selected = i == selectedPlayListIndex;
             }
-            _OnUIUpdate();
+            if (!UpdatePlayList()) ScrollPlayListToCurrent();
         }
 
         public void _OnCurrentPlayListSelectClick() {
@@ -669,6 +672,39 @@ namespace JLChnToZ.VRC.VVMW {
                     progressSlider.interactable = true;
                 }
             }
+        }
+
+        void ScrollPlayListToCurrent() {
+            if (queueListRoot == null) return;
+            var viewport = queueListRoot.viewport;
+            var position = viewport.position;
+            if (handler.PlayListIndex == selectedPlayListIndex) {
+                int playListEntriesLength = playListEntries.Length; 
+                int playingIndex = handler.CurrentPlayingIndex;
+                if (playingIndex >= 0 && playingIndex < playListEntriesLength) {
+                    var currentEntry = playListEntries[playingIndex];
+                    if (currentEntry != null) {
+                        var rectTransform = currentEntry.GetComponent<RectTransform>();
+                        position = rectTransform.TransformPoint(rectTransform.rect.center);
+                    }
+                }
+            }
+            var content = queueListRoot.content;
+            position = content.InverseTransformPoint(position);
+            var contentSize = content.rect.size;
+            var contentSizeOffset = contentSize;
+            contentSizeOffset.Scale(content.pivot);
+            position += (Vector3)contentSizeOffset;
+            var viewportSize = viewport.rect.size;
+            var contentScale = content.localScale;
+            contentSize.Scale(contentScale);
+            viewportSize.Scale(contentScale);
+            var normalizedPosition = queueListRoot.normalizedPosition;
+            if (queueListRoot.horizontal && contentSize.x > viewportSize.x)
+                normalizedPosition.x = Mathf.Clamp01((position.x - viewportSize.x * 0.5F) / (contentSize.x - viewportSize.x));
+            if (queueListRoot.vertical && contentSize.y > viewportSize.y)
+                normalizedPosition.y = Mathf.Clamp01((position.y - viewportSize.y * 0.5F) / (contentSize.y - viewportSize.y));
+            queueListRoot.normalizedPosition = normalizedPosition;
         }
 
         public void _ShiftBack100ms() {
