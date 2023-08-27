@@ -67,6 +67,10 @@ namespace JLChnToZ.VRC.VVMW {
 
         public int CurrentPlayingIndex => localPlayListIndex > 0 ? localPlayingIndex - playListUrlOffsets[localPlayListIndex - 1] : -1;
 
+        public int PendingCount => localPlayListIndex > 0 ?
+            localPlayListOrder != null ? localPlayListOrder.Length : 0 :
+            localQueuedUrls != null ? localQueuedUrls.Length : 0;
+
         public bool RepeatOne {
             get => (localFlags & REPEAT_ONE) == REPEAT_ONE;
             set {
@@ -78,6 +82,7 @@ namespace JLChnToZ.VRC.VVMW {
                 core.Loop = value;
                 if (newFlags != localFlags) {
                     localFlags = newFlags;
+                    if (localPlayListIndex > 0) RefreshPlayListQueue(-1);
                     RequestSync();
                 }
                 UpdateState();
@@ -95,6 +100,7 @@ namespace JLChnToZ.VRC.VVMW {
                     newFlags &= ~REPEAT_ALL & 0xFF;
                 if (newFlags != localFlags) {
                     localFlags = newFlags;
+                    if (localPlayListIndex > 0) RefreshPlayListQueue(-1);
                     RequestSync();
                 }
                 UpdateState();
@@ -111,6 +117,7 @@ namespace JLChnToZ.VRC.VVMW {
                     newFlags &= ~SHUFFLE & 0xFF;
                 if (newFlags != localFlags) {
                     localFlags = newFlags;
+                    if (localPlayListIndex > 0) RefreshPlayListQueue(-1);
                     RequestSync();
                 }
                 UpdateState();
@@ -122,6 +129,7 @@ namespace JLChnToZ.VRC.VVMW {
             newFlags &= ~(REPEAT_ONE | REPEAT_ALL) & 0xFF;
             if (newFlags != localFlags) {
                 localFlags = newFlags;
+                if (localPlayListIndex > 0) RefreshPlayListQueue(-1);
                 RequestSync();
             }
             UpdateState();
@@ -130,14 +138,18 @@ namespace JLChnToZ.VRC.VVMW {
         void Start() {
             synced = core.IsSynced;
             core._AddListener(this);
-            if (localPlayListIndex > 0 && (!synced || Networking.IsOwner(gameObject))) {
-                var playIndex = localPlayListIndex;
-                localPlayListIndex = 0;
-                core.Loop = RepeatOne;
-                if (defaultLoop) RepeatAll = true;
-                if (defaultShuffle) Shuffle = true;
-                _PlayAt(playIndex, -1, false);
-            }
+            if (core.Loop) RepeatOne = true;
+            if (localPlayListIndex > 0 && (!synced || Networking.IsOwner(gameObject)))
+                SendCustomEventDelayedFrames(nameof(_AutoPlay), 0);
+        }
+
+        public void _AutoPlay() {
+            var playIndex = localPlayListIndex;
+            localPlayListIndex = 0;
+            core.Loop = RepeatOne;
+            if (defaultLoop) RepeatAll = true;
+            if (defaultShuffle) Shuffle = true;
+            _PlayAt(playIndex, -1, false);
         }
         
         protected void UpdateState() => SendEvent("_OnUIUpdate");
@@ -298,14 +310,14 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _PlayAt(int playListIndex, int entryIndex, bool deleteOnly) {
-            bool didRefreshQueue = false;
             if (playListIndex != localPlayListIndex) {
+                localQueuedUrls = null;
+                localQueuedPlayerIndex = null;
+                localPlayListOrder = null;
                 localPlayListIndex = playListIndex;
-                RefreshPlayListQueue();
-                didRefreshQueue = true;
             }
             if (localPlayListIndex > 0)
-                PlayPlayList(entryIndex, didRefreshQueue);
+                PlayPlayList(entryIndex);
             else
                 PlayQueueList(entryIndex, deleteOnly);
         }
@@ -317,20 +329,51 @@ namespace JLChnToZ.VRC.VVMW {
             UpdateState();
         }
 
-        void RefreshPlayListQueue() {
-            localQueuedUrls = null;
-            localQueuedPlayerIndex = null;
-            if (localPlayListIndex > 0 && localPlayListIndex <= playListUrlOffsets.Length) {
-                int currentOffset = playListUrlOffsets[localPlayListIndex - 1];
-                int nextOffset = localPlayListIndex == playListUrlOffsets.Length ? playListUrls.Length : playListUrlOffsets[localPlayListIndex];
-                localPlayListOrder = new ushort[nextOffset - currentOffset];
-                for (int i = 0; i < localPlayListOrder.Length; i++)
-                    localPlayListOrder[i] = (ushort)(currentOffset + i);
-            } else 
+        void RefreshPlayListQueue(int startIndex) {
+            if (localPlayListIndex <= 0 || localPlayListIndex > playListUrlOffsets.Length) {
                 localPlayListOrder = new ushort[0];
+                return;
+            }
+            int currentOffset = playListUrlOffsets[localPlayListIndex - 1];
+            int nextOffset = localPlayListIndex == playListUrlOffsets.Length ? playListUrls.Length : playListUrlOffsets[localPlayListIndex];
+            int length = nextOffset - currentOffset;
+            if (length == 0) {
+                localPlayListOrder = new ushort[0];
+                return;
+            }
+            bool isRepeat = RepeatAll, isShuffle = Shuffle, skipped = false;
+            if (startIndex < 0) {
+                startIndex = localPlayingIndex - currentOffset + 1;
+                skipped = true;
+            }
+            if (startIndex >= length) {
+                if (!isRepeat && !isShuffle) {
+                    localPlayListOrder = new ushort[0];
+                    return;
+                }
+                startIndex %= length;
+            }
+            int remainCount = length;
+            if (!isRepeat) {
+                if (!isShuffle) remainCount -= startIndex;
+                else if (skipped) remainCount--;
+            }
+            localPlayListOrder = new ushort[remainCount];
+            for (int i = 0; i < remainCount; i++)
+                localPlayListOrder[i] = (ushort)(currentOffset + (i + startIndex) % length);
+            if (isShuffle) {
+                int startFrom = skipped ? 0 : 1;
+                for (int i = startFrom + 1; i < remainCount; i++) {
+                    int j = UnityEngine.Random.Range(startFrom, remainCount);
+                    var tmp = localPlayListOrder[i];
+                    localPlayListOrder[i] = localPlayListOrder[j];
+                    localPlayListOrder[j] = tmp;
+                }
+            }
         }
 
-        void PlayPlayList(int index, bool doNotRefreshQueue) {
+        void PlayPlayList(int index) {
+            if (index >= 0) RefreshPlayListQueue(index);
             if (localPlayListOrder == null) {
                 localPlayListIndex = 0;
                 RequestSync();
@@ -338,23 +381,22 @@ namespace JLChnToZ.VRC.VVMW {
                 return;
             }
             int newLength = localPlayListOrder.Length;
-            if (index >= newLength || newLength <= 0) {
+            if (newLength <= 0) {
                 localPlayListIndex = 0;
                 RequestSync();
                 UpdateState();
                 return;
             }
-            if (index < 0) index = Shuffle ? UnityEngine.Random.Range(0, newLength) : 0;
-            else if (!doNotRefreshQueue) RefreshPlayListQueue();
-            bool isRepeatAll = RepeatAll;
-            if (!isRepeatAll) newLength--;
-            localPlayingIndex = localPlayListOrder[index];
-            var newOrderList = newLength == localPlayListOrder.Length ? localPlayListOrder : new ushort[newLength];
-            if (index > 0 && localPlayListOrder != newOrderList)
-                Array.Copy(localPlayListOrder, 0, newOrderList, 0, index);
-            Array.Copy(localPlayListOrder, index + 1, newOrderList, index, Mathf.Min(localPlayListOrder.Length - 1, newLength) - index);
-            if (isRepeatAll) newOrderList[newLength - 1] = localPlayingIndex;
-            localPlayListOrder = newOrderList;
+            localPlayingIndex = localPlayListOrder[0];
+            newLength--;
+            if (RepeatAll) {
+                Array.Copy(localPlayListOrder, 1, localPlayListOrder, 0, newLength);
+                localPlayListOrder[newLength] = localPlayingIndex;
+            } else {
+                var newOrderList = new ushort[newLength];
+                Array.Copy(localPlayListOrder, 1, newOrderList, 0, newLength);
+                localPlayListOrder = newOrderList;
+            }
             core.PlayUrlMP(playListUrls[localPlayingIndex], playListUrlsQuest[localPlayingIndex], playListPlayerIndex[localPlayingIndex]);
             RequestSync();
             UpdateState();

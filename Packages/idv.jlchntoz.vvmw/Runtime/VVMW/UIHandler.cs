@@ -524,22 +524,23 @@ namespace JLChnToZ.VRC.VVMW {
         bool UpdatePlayList() {
             int playListIndex = handler.PlayListIndex;
             int playingIndex = handler.CurrentPlayingIndex;
-            int pendingCount, offset;
+            int displayCount, offset;
+            int pendingCount = handler.PendingCount;
             VRCUrl[] queuedUrls = handler.QueueUrls, playListUrls = handler.PlayListUrls;
             string[] entryTitles = handler.PlayListEntryTitles;
             int[] urlOffsets = handler.PlayListUrlOffsets;
             if (playListIndex > 0) {
                 offset = urlOffsets[playListIndex - 1];
-                pendingCount = (playListIndex < urlOffsets.Length ? urlOffsets[playListIndex] : playListUrls.Length) - offset;
+                displayCount = (playListIndex < urlOffsets.Length ? urlOffsets[playListIndex] : playListUrls.Length) - offset;
             } else {
                 offset = 0;
-                pendingCount = queuedUrls.Length;
+                displayCount = queuedUrls.Length;
             }
-            bool hasPending = playingIndex < pendingCount - 1;
+            bool hasPending = pendingCount > 0;
             if (playNextButton != null) playNextButton.gameObject.SetActive(hasPending);
             if (currentPlayListButton != null) currentPlayListButton.gameObject.SetActive(hasPending);
             if (enqueueCountText != null)
-                enqueueCountText.text = string.Format(enqueueCountFormat, pendingCount - playingIndex - 1);
+                enqueueCountText.text = string.Format(enqueueCountFormat, pendingCount);
             if (selectedPlayListText != null)
                 selectedPlayListText.text = selectedPlayListIndex > 0 ?
                     handler.PlayListTitles[selectedPlayListIndex - 1] :
@@ -552,18 +553,18 @@ namespace JLChnToZ.VRC.VVMW {
             if (selectedPlayListIndex != playListIndex) {
                 if (selectedPlayListIndex > 0) {
                     offset = urlOffsets[selectedPlayListIndex - 1];
-                    pendingCount = (selectedPlayListIndex < urlOffsets.Length ? urlOffsets[selectedPlayListIndex] : playListUrls.Length) - offset;
+                    displayCount = (selectedPlayListIndex < urlOffsets.Length ? urlOffsets[selectedPlayListIndex] : playListUrls.Length) - offset;
                 } else {
                     offset = 0;
-                    pendingCount = queuedUrls.Length;
+                    displayCount = queuedUrls.Length;
                 }
                 playingIndex = -1;
             }
-            EnsurePlaylistCapacity(pendingCount);
+            EnsurePlaylistCapacity(displayCount);
             if (queueEntries != null)
-                for (int i = 0, count = Mathf.Max(lastDisplayCount, pendingCount); i < count; i++) {
+                for (int i = 0, count = Mathf.Max(lastDisplayCount, displayCount); i < count; i++) {
                     var entry = queueEntries[i];
-                    if (i < pendingCount) {
+                    if (i < displayCount) {
                         entry.gameObject.SetActive(true);
                         if (selectedPlayListIndex > 0) {
                             entry.TextContent = entryTitles[i + offset];
@@ -576,7 +577,7 @@ namespace JLChnToZ.VRC.VVMW {
                     } else
                         entry.gameObject.SetActive(false);
                 }
-            lastDisplayCount = pendingCount;
+            lastDisplayCount = displayCount;
             ScrollPlayListToCurrent();
             return true;
         }
