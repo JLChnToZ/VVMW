@@ -679,10 +679,10 @@ namespace JLChnToZ.VRC.VVMW {
             var viewport = queueListRoot.viewport;
             var position = viewport.position;
             if (handler.PlayListIndex == selectedPlayListIndex) {
-                int playListEntriesLength = playListEntries.Length; 
+                int playListEntriesLength = queueEntries.Length; 
                 int playingIndex = handler.CurrentPlayingIndex;
                 if (playingIndex >= 0 && playingIndex < playListEntriesLength) {
-                    var currentEntry = playListEntries[playingIndex];
+                    var currentEntry = queueEntries[playingIndex];
                     if (currentEntry != null) {
                         var rectTransform = currentEntry.GetComponent<RectTransform>();
                         position = rectTransform.TransformPoint(rectTransform.rect.center);
