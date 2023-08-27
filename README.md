@@ -19,14 +19,22 @@ Welcome! VizVid is a general-purpose video player wrapper for use in VRChat. It 
 - Basic [LTCGI](https://ltcgi.dev/) integration, provided CustomRenderTexture for use.
 - Simple API for [your own udons] integration.
 
+## Demo
+Want to see in action? No problem! I'm currently installed this player in following worlds (this list will update):
+
+- **[Vistanz Home (Potato Edition)](https://vrchat.com/home/world/wrld_b00bff3a-62bf-4698-a718-cd96c0774b14)**:
+  This is a cross-platform chill world, you may try it with Quest/Android client.
+- **[Block Booked Theatre](https://vrchat.com/home/world/wrld_9a0b033e-12df-4d7f-9a5f-9a11c03e31f5)**:
+  This world integrates the player with Audio Link and LTCGI, also with surround sound setup.
+
 ## Documentation
 Please refer to [another readme](./Packages/idv.jlchntoz.vvmw/README.md) for details.
 
 ## Installation
-This player component is still in heavy work in progress (especially for UI), so it is not recommend to use in any public world yet. But if you still want to try out, you may use following methods:
+This player is currently in beta, so welcome to try it out and give feedbacks. You may use following methods:
 
 - Via GitHub Releases: [Click here](https://github.com/JLChnToZ/VVMW/releases/latest).
-- Via Booth: Coming soon, will be available once everything is ready.
+- Via Booth: Coming soon!
 - Via VCC:
   1. Ensure you have installed VRChat Creator Companion, if not, [download here](https://vrchat.com/download/vcc).
   2. Go to [my package listings landing page](https://xtlcdn.github.io/vpm/), click "Add to VCC" button under the banner and follow instructions.
