@@ -26,6 +26,8 @@ Want to see in action? No problem! I'm currently installed this player in follow
   This is a cross-platform chill world, you may try it with Quest/Android client.
 - **[Block Booked Theatre](https://vrchat.com/home/world/wrld_9a0b033e-12df-4d7f-9a5f-9a11c03e31f5)**:
   This world integrates the player with Audio Link and LTCGI, also with surround sound setup.
+- **[Vistanz's Small AudioLink Lab](https://vrchat.com/home/world/wrld_52ad8c09-0e78-4b08-b3b1-0c4d7d04f5eb)**:
+  This world uses playlist feature.
 
 ## Documentation
 Please refer to [another readme](./Packages/idv.jlchntoz.vvmw/README.md) for details.
