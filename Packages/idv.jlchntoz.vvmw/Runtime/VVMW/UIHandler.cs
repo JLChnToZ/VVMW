@@ -678,7 +678,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (queueListRoot == null) return;
             var viewport = queueListRoot.viewport;
             var position = viewport.position;
-            if (handler.PlayListIndex == selectedPlayListIndex) {
+            if (handler.PlayListIndex == selectedPlayListIndex && queueEntries != null) {
                 int playListEntriesLength = queueEntries.Length; 
                 int playingIndex = handler.CurrentPlayingIndex;
                 if (playingIndex >= 0 && playingIndex < playListEntriesLength) {
