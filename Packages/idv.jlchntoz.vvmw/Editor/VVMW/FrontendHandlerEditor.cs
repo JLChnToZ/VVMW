@@ -86,7 +86,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             } else if (playLists.Count > 0)
                 EditorGUILayout.HelpBox("You may select a play list to edit here.", MessageType.Info);
             using (new EditorGUILayout.HorizontalScope()) {
-                if (GUILayout.Button("Reload")) DeserializePlayList();
+                if (GUILayout.Button("Reload", GUILayout.ExpandWidth(false))) DeserializePlayList();
                 if (GUILayout.Button("Save")) SerializePlayList();
             }
             EditorGUILayout.Space();

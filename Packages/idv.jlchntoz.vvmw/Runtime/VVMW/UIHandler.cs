@@ -81,6 +81,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Button playListTogglePanelButton;
         [SerializeField] GameObject queueEntryTemplate;
         [SerializeField] Transform queueEntryContainer;
+        [SerializeField] GameObject playNextIndicator;
         ScrollRect queueListRoot;
         [SerializeField] Text selectedPlayListText;
         [BindEvent(nameof(Button.onClick), nameof(_OnCurrentPlayListSelectClick))]
@@ -172,6 +173,7 @@ namespace JLChnToZ.VRC.VVMW {
                 videoPlayerSelectButtonTemplate.SetActive(false);
             }
             if (queueEntryTemplate != null) queueEntryTemplate.SetActive(false);
+            if (playNextIndicator != null) playNextIndicator.SetActive(false);
             bool isSynced = core.IsSynced;
             if (shiftBack100msButton != null) shiftBack100msButton.gameObject.SetActive(isSynced);
             if (shiftBack50msButton != null) shiftBack50msButton.gameObject.SetActive(isSynced);
@@ -508,6 +510,8 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(isShuffle);
                 UpdatePlayList();
+                if (playNextIndicator != null)
+                    playNextIndicator.SetActive(!isShuffle && handler.PlayListIndex == 0 && handler.PendingCount > 0);
             } else {
                 bool isRepeatOne = core.Loop;
                 if (repeatOffButton != null) repeatOffButton.gameObject.SetActive(!isRepeatOne);
@@ -605,6 +609,8 @@ namespace JLChnToZ.VRC.VVMW {
             }
             queueEntryTemplate.SetActive(false);
             queueEntries = newEntries;
+            if (oldLength == 0 && playNextIndicator != null)
+                playNextIndicator.transform.SetParent(queueEntries[0].transform, false);
         }
 
         public void _OnPlayListSelectClick() {
@@ -679,15 +685,19 @@ namespace JLChnToZ.VRC.VVMW {
             if (queueListRoot == null) return;
             var viewport = queueListRoot.viewport;
             var position = viewport.position;
-            if (handler.PlayListIndex == selectedPlayListIndex && queueEntries != null) {
+            if (queueEntries != null) {
                 int playListEntriesLength = queueEntries.Length; 
-                int playingIndex = handler.CurrentPlayingIndex;
-                if (playingIndex >= 0 && playingIndex < playListEntriesLength) {
-                    var currentEntry = queueEntries[playingIndex];
-                    if (currentEntry != null) {
-                        var rectTransform = currentEntry.GetComponent<RectTransform>();
-                        position = rectTransform.TransformPoint(rectTransform.rect.center);
-                    }
+                ListEntry currentEntry = null;
+                if (handler.PlayListIndex == selectedPlayListIndex) {
+                    int playingIndex = handler.CurrentPlayingIndex;
+                    if (playingIndex >= 0 && playingIndex < playListEntriesLength)
+                        currentEntry = queueEntries[playingIndex];
+                }
+                if (currentEntry == null && playListEntriesLength > 0)
+                    currentEntry = queueEntries[0];
+                if (currentEntry != null) {
+                    var rectTransform = currentEntry.GetComponent<RectTransform>();
+                    position = rectTransform.TransformPoint(rectTransform.rect.center);
                 }
             }
             var content = queueListRoot.content;
