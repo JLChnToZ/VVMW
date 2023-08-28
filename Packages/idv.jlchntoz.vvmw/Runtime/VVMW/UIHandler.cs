@@ -188,6 +188,9 @@ namespace JLChnToZ.VRC.VVMW {
             _OnVolumeChange();
             _OnSyncOffsetChange();
             UpdatePlayerText();
+        }
+
+        void OnEnable() {
             if (playbackControlsAnimator != null) playbackControlsAnimator.SetTrigger("Init");
         }
 
@@ -582,7 +585,7 @@ namespace JLChnToZ.VRC.VVMW {
                         entry.gameObject.SetActive(false);
                 }
             lastDisplayCount = displayCount;
-            ScrollPlayListToCurrent();
+            SendCustomEventDelayedFrames(nameof(_ScrollPlayListToCurrent), 0);
             return true;
         }
 
@@ -619,7 +622,7 @@ namespace JLChnToZ.VRC.VVMW {
                 var entry = playListEntries[i];
                 if (entry != null) entry.Selected = i == selectedPlayListIndex;
             }
-            if (!UpdatePlayList()) ScrollPlayListToCurrent();
+            if (!UpdatePlayList()) SendCustomEventDelayedFrames(nameof(_ScrollPlayListToCurrent), 0);
         }
 
         public void _OnCurrentPlayListSelectClick() {
@@ -681,7 +684,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        void ScrollPlayListToCurrent() {
+        public void _ScrollPlayListToCurrent() {
             if (queueListRoot == null) return;
             var viewport = queueListRoot.viewport;
             var position = viewport.position;
