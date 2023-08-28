@@ -41,7 +41,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Text hintsDesktop;
         Animator desktopModeAnim;
         bool vrMode;
-        bool disableHandControls;
+        [SerializeField] bool disableHandControls;
         VRCPlayerApi localPlayer;
         [System.NonSerialized] public bool isLeftHanded;
         float offset = 0.05F;
@@ -76,6 +76,13 @@ namespace JLChnToZ.VRC.VVMW {
                 _OnLanguageChange();
             }
             vrModeCanvasTransform = vrModeCanvas.transform;
+            if (disableHandControls) {
+                leftHandToggle.SetIsOnWithoutNotify(false);
+                rightHandToggle.SetIsOnWithoutNotify(false);
+            } else {
+                leftHandToggle.SetIsOnWithoutNotify(!isLeftHanded);
+                rightHandToggle.SetIsOnWithoutNotify(isLeftHanded);
+            }
         }
 
         void Update() {
