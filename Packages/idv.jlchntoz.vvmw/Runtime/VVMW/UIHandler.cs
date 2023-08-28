@@ -511,7 +511,7 @@ namespace JLChnToZ.VRC.VVMW {
                 if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(isShuffle);
                 UpdatePlayList();
                 if (playNextIndicator != null)
-                    playNextIndicator.SetActive(!isShuffle && handler.PlayListIndex == 0 && handler.PendingCount > 0);
+                    playNextIndicator.SetActive(!isShuffle && selectedPlayListIndex == 0 && handler.PlayListIndex == 0 && handler.PendingCount > 0);
             } else {
                 bool isRepeatOne = core.Loop;
                 if (repeatOffButton != null) repeatOffButton.gameObject.SetActive(!isRepeatOne);
