@@ -402,6 +402,7 @@ namespace JLChnToZ.VRC.VVMW {
                 return;
             }
             switch (state) {
+                case IDLE:
                 case LOADING:
                     if (Networking.IsOwner(gameObject))
                         activeHandler.Play();
@@ -543,7 +544,6 @@ namespace JLChnToZ.VRC.VVMW {
                     pcUrl = altUrl;
                     questUrl = localUrl;
                 } else
-                #else
                 #endif
                 {
                     pcUrl = localUrl;
