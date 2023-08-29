@@ -278,6 +278,11 @@ namespace JLChnToZ.VRC.VVMW {
                     pcUrl = defaultUrl;
                     questUrl = defaultQuestUrl;
                 } else return;
+                #if UNITY_ANDROID
+                url = questUrl;
+                if (!IsUrlValid(url))
+                #endif
+                    url = pcUrl;
                 playerType = (byte)autoPlayPlayerType;
             }
             #if UNITY_ANDROID
