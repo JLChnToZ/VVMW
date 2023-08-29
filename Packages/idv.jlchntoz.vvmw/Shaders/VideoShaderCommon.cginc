@@ -25,7 +25,9 @@ float4 getVideoTexture(sampler2D videoTex, float2 uv, float4 texelSize, bool avP
     }
     if (any(uv < 0 || uv > 1)) return 0;
     uv = uv * stereoExtend + lerp(stereoShift.xy, stereoShift.zw, unity_StereoEyeIndex);
+    #if UNITY_UV_STARTS_AT_TOP
     if (avPro) uv.y = 1 - uv.y;
+    #endif
     float4 c = tex2Dlod(videoTex, float4(uv, 0, 0));
     if (avPro) c.rgb = pow(c.rgb, 2.2);
     return c;
