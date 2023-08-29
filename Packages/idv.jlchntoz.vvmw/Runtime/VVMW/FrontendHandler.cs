@@ -138,9 +138,11 @@ namespace JLChnToZ.VRC.VVMW {
         void Start() {
             synced = core.IsSynced;
             core._AddListener(this);
-            if (core.Loop) RepeatOne = true;
-            if (localPlayListIndex > 0 && (!synced || Networking.IsOwner(gameObject)))
-                SendCustomEventDelayedFrames(nameof(_AutoPlay), 0);
+            if (!synced || Networking.IsOwner(gameObject)) {
+                if (core.Loop) RepeatOne = true;
+                if (localPlayListIndex > 0)
+                    SendCustomEventDelayedFrames(nameof(_AutoPlay), 0);
+            }
         }
 
         public void _AutoPlay() {
