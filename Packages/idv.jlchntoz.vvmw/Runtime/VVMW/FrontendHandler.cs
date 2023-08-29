@@ -182,7 +182,12 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _Skip() {
             if (locked) return;
-            core.Stop();
+            if (core.ActivePlayer == 0) { // Stop() will not work if there is no active player (nothing is playing)
+                if (!Networking.IsOwner(gameObject))
+                    Networking.SetOwner(Networking.LocalPlayer, gameObject);
+                SendCustomEventDelayedFrames(nameof(_PlayNext), 0);
+            } else
+                core.Stop();
             SendEvent("_OnSkip");
         }
 
@@ -206,7 +211,11 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomEventDelayedFrames(nameof(_PlayNext), 0);
         }
 
-        public void _OnVideoError() => UpdateState();
+        public void _OnVideoError() {
+            UpdateState();
+            // If already gave up, try next one
+            if (!core.IsLoading) SendCustomEventDelayedFrames(nameof(_PlayNext), 0);
+        }
 
         public void _OnVideoBeginLoad() => UpdateState();
 
