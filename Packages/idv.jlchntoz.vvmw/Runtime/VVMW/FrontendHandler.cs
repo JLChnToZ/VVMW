@@ -139,19 +139,25 @@ namespace JLChnToZ.VRC.VVMW {
             synced = core.IsSynced;
             core._AddListener(this);
             if (!synced || Networking.IsOwner(gameObject)) {
-                if (core.Loop) RepeatOne = true;
-                if (localPlayListIndex > 0)
+                if (core.Loop) localFlags |= REPEAT_ONE;
+                if (localPlayListIndex > 0 && localPlayListIndex <= playListUrlOffsets.Length)
                     SendCustomEventDelayedFrames(nameof(_AutoPlay), 0);
+                else {
+                    localPlayListIndex = 0;
+                    RequestSync();
+                    UpdateState();
+                }
             }
         }
 
         public void _AutoPlay() {
-            var playIndex = localPlayListIndex;
-            localPlayListIndex = 0;
             core.Loop = RepeatOne;
-            if (defaultLoop) RepeatAll = true;
-            if (defaultShuffle) Shuffle = true;
-            _PlayAt(playIndex, -1, false);
+            if (defaultLoop) localFlags |= REPEAT_ALL;
+            if (defaultShuffle) localFlags |= SHUFFLE;
+            int length = (localPlayListIndex == playListUrlOffsets.Length ?
+                playListUrls.Length : playListUrlOffsets[localPlayListIndex]
+            ) - playListUrlOffsets[localPlayListIndex - 1];
+            PlayPlayList(defaultShuffle && length > 0 ? UnityEngine.Random.Range(0, length) : 0);
         }
         
         protected void UpdateState() => SendEvent("_OnUIUpdate");
