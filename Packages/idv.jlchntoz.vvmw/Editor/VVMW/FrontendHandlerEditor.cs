@@ -90,7 +90,25 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (GUILayout.Button("Save")) SerializePlayList();
             }
             EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(defaultLoopProperty);
+            var loopMode = LoopMode.None;
+            bool hasLoopOne = false;
+            var core = coreProperty.objectReferenceValue as Core;
+            if (core != null) {
+                hasLoopOne = core.Loop;
+                if (hasLoopOne) loopMode = LoopMode.SingleLoop;
+            }
+            if (defaultLoopProperty.boolValue) loopMode = LoopMode.RepeatAll;
+            using (var changeCheck = new EditorGUI.ChangeCheckScope()) {
+                loopMode = (LoopMode)EditorGUILayout.EnumPopup("Default Repeat Mode", loopMode);
+                if (changeCheck.changed || (hasLoopOne && loopMode == LoopMode.RepeatAll)) {
+                    if (core != null)
+                        using (var so = new SerializedObject(core)) {
+                            so.FindProperty("loop").boolValue = loopMode == LoopMode.SingleLoop;
+                            so.ApplyModifiedProperties();
+                        }
+                    defaultLoopProperty.boolValue = loopMode == LoopMode.RepeatAll;
+                }
+            }
             EditorGUILayout.PropertyField(defaultShuffleProperty);
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(lockedProperty);
@@ -313,6 +331,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             public string url;
             public string urlForQuest;
             public int playerIndex;
+        }
+
+        enum LoopMode {
+            None,
+            SingleLoop,
+            RepeatAll,
         }
     }
 }
