@@ -15,7 +15,6 @@ namespace JLChnToZ.VRC.VVMW {
         Vector3 offsetDirection = new Vector3(0, 1, -1);
         [Header("References")]
         [SerializeField, Locatable] Core core;
-        [SerializeField] LanguageManager languageManager;
         [Header("References (For use with non-VizVid players)")]
         [SerializeField] AudioSource[] audioSources;
         [SerializeField] GameObject[] resyncTargets;
@@ -24,6 +23,8 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] KeyCode reloadKey = KeyCode.F9;
         [SerializeField] KeyCode volumeUpKey = KeyCode.F11;
         [SerializeField] KeyCode volumeDownKey = KeyCode.F10;
+        [Tooltip("Disable hand controls in VR mode at start")]
+        [SerializeField] bool disableHandControls;
         [Header("UI References")]
         [SerializeField] GameObject desktopModeCanvas;
         [SerializeField] GameObject vrModeCanvas;
@@ -38,10 +39,9 @@ namespace JLChnToZ.VRC.VVMW {
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnVolumeSliderChanged))]
         [SerializeField] Slider volumeSliderVR;
         [SerializeField] RectTransform volumeSliderDesktop;
-        [SerializeField] Text hintsDesktop;
+        [SerializeField] Text desktopHintsReloadButtonKey, desktopHintsVolumeUpKey, desktopHintsVolumeDownKey;
         Animator desktopModeAnim;
         bool vrMode;
-        [SerializeField] bool disableHandControls;
         VRCPlayerApi localPlayer;
         [System.NonSerialized] public bool isLeftHanded;
         float offset = 0.05F;
@@ -71,10 +71,6 @@ namespace JLChnToZ.VRC.VVMW {
             if (Utilities.IsValid(core)) core._AddListener(this);
             _OnVolumeChange();
             offsetSliderVR.SetValueWithoutNotify(Mathf.Log(offset, 1.5F));
-            if (languageManager != null) {
-                languageManager._AddListener(this);
-                _OnLanguageChange();
-            }
             vrModeCanvasTransform = vrModeCanvas.transform;
             if (disableHandControls) {
                 leftHandToggle.SetIsOnWithoutNotify(false);
@@ -83,6 +79,12 @@ namespace JLChnToZ.VRC.VVMW {
                 leftHandToggle.SetIsOnWithoutNotify(!isLeftHanded);
                 rightHandToggle.SetIsOnWithoutNotify(isLeftHanded);
             }
+            if (desktopHintsReloadButtonKey != null)
+                desktopHintsReloadButtonKey.text = reloadKey.ToString();
+            if (desktopHintsVolumeUpKey != null)
+                desktopHintsVolumeUpKey.text = volumeUpKey.ToString();
+            if (desktopHintsVolumeDownKey != null)
+                desktopHintsVolumeDownKey.text = volumeDownKey.ToString();
         }
 
         void Update() {
@@ -155,10 +157,6 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _OnOffsetChange() {
             offset = Mathf.Pow(1.5F, offsetSliderVR.value);
-        }
-
-        public void _OnLanguageChange() {
-            hintsDesktop.text = string.Format(languageManager.GetLocale("DesktopOverlay"), reloadKey, volumeUpKey, volumeDownKey);
         }
     }
 }
