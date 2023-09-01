@@ -78,7 +78,8 @@ namespace JLChnToZ.VRC.VVMW {
         public byte ActivePlayer {
             get => localActivePlayer;
             private set {
-                if (value == localActivePlayer) return;
+                if (value == localActivePlayer && activeHandler == (value == 0 ? null : playerHandlers[value - 1]))
+                    return;
                 localActivePlayer = value;
                 var lastActiveHandler = activeHandler;
                 bool wasPlaying = lastActiveHandler != null && lastActiveHandler.IsPlaying;
@@ -574,6 +575,11 @@ namespace JLChnToZ.VRC.VVMW {
                 altUrl = questUrl;
             }
             if (state != IDLE && localUrl != url && (!IsUrlValid(localUrl) || !IsUrlValid(url) || localUrl.Get() != url.Get())) {
+                if (activeHandler == null) {
+                    Debug.LogWarning($"[VVMW] Owner serialization incomplete, will queue a sync request.");
+                    SendCustomEventDelayedSeconds(nameof(_RequestOwnerSync), 1);
+                    return;
+                }
                 loadingUrl = null;
                 retryCount = 0;
                 lastError = VideoError.Unknown;
@@ -678,6 +684,8 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         bool IsUrlValid(VRCUrl url) => Utilities.IsValid(url) && !url.Equals(VRCUrl.Empty);
+
+        public void _RequestOwnerSync() => SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(OwnerSync));
 
         public void OwnerSync() {
             if (!Networking.IsOwner(gameObject) || !synced) return;
