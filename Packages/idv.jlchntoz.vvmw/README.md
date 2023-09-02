@@ -200,6 +200,19 @@ This is default UI, it provides all basic interface of the player to let user in
 
 ## Third Party Support
 
+### Udon Auth
+VizVid built-in supports integration with Udon Auth, the later one is a paid asset available on my [Booth](https://xtl.booth.pm/items/3826907), which is an OTP solution for locking out certain gimmicks in your world, typically staff-only locks for event venues.
+
+![ ](.tutorial/udonauth-1.png)
+![ ](.tutorial/udonauth-2.png)
+
+1. Assume you have set up Udon Auth in your scene, select the lock panel, click + button at custom callbacks field.
+2. Find the "Player List Queue Handler" inside the player, drag it to custom callbacks field.
+3. Select "Player List Queue Handler"
+4. Enable "Lock" option.
+
+In the other hand, you can program your own locks instead of using my paid asset, just send the `_OnUnlock` custom event to the Udon attached on Player List Queue Handler, and it will become unlocked.
+
 ### Audio Link
 This player provides basic integration to Audio Link, basic setup please refer to the "Audio Link" option above.  
 ![_](.tutorial/add-audiolink.png)
