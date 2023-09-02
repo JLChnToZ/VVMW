@@ -93,6 +93,22 @@ This is a component that spawns a mini controller on every user's wrist (VR mode
 ![ ](.tutorial/add-overlay-1.png)
 ![ ](.tutorial/add-overlay-2.png)
 
+### How to Add a Resync Button?
+This component is an alternative to the wrist / overlay UI screen resync button control, to let users resyncs your live stream in an event venue. There are 2 variants: `Re-Sync Button` and `Global Sync Button`, the difference is one is local only and another one is a global trigger.
+
+To setup this control, you may follow following steps:
+
+![ ](.tutorial/add-resync-1.png)
+![ ](.tutorial/add-resync-2.png)
+
+1. Go to `Packages > VizVid > Prefabs` folder, drag the Re-Sync Button or Global Sync Button prefab to your scene.
+2. Find the Reload Button inside.
+3. In inspector, click the "Find" button beside the core field.
+
+### How to Change color?
+Yes, you can change the UI color in nearly one-click. Every UI components comes with VizVid has attached a component called `Color Config`, what you have to do is change the color you like in this component, and click the `Apply` or `Apply to All` button below. The `Apply` button only applies the color to current selected UI, and `Apply to All` will copy the settings to other VizVid UIs and apply to them as well.
+
+![ ](.tutorial/change-color.png)
 
 ## Details in the Bundle
 In the prefab, it should look like this in hierarchy:
