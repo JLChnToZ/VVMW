@@ -40,15 +40,15 @@ You may use following methods:
 - Via GitHub Releases: [Click here](https://github.com/JLChnToZ/VVMW/releases/latest).
 
 ## Credits
-Vistanz ([@JLChnToZ](https://x.com/JLChnToZ)) - Programming
-山の豚 ([@yama_buta](https://x.com/yama_buta)) - Art
+- **Vistanz** ([@JLChnToZ](https://x.com/JLChnToZ)) - Programming
+- **山の豚** ([@yama_buta](https://x.com/yama_buta)) - Art
 
 ## Special Thanks
-LR163 / Cross - Early Stage Functionality & (Live Streaming) Latency Test
-HsiaoTzuOWO - UI & Implementation Test
-Yan-K - UI / UX Consultant
-六森 - Advertisement Materials & Demo World
-水鳥waterbird - Naming
+- **LR163** / **Cross** - Early Stage Functionality & (Live Streaming) Latency Test
+- **HsiaoTzuOWO** - UI & Implementation Test
+- **Yan**-K - UI / UX Consultant
+- **六森** - Advertisement Materials & Demo World
+- **水鳥waterbird** - Naming
 
 ## License
 [MIT](./Packages/idv.jlchntoz.vvmw/LICENSE)
