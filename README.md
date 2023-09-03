@@ -39,6 +39,9 @@ You may use following methods:
 - Via Booth: [Click here](https://xtl.booth.pm/items/5056077).
 - Via GitHub Releases: [Click here](https://github.com/JLChnToZ/VVMW/releases/latest).
 
+## Issues
+For any issues, please contact me on [Discord server](https://discord.gg/fkDueQMbj8) or [file an issue on GitHub](https://github.com/JLChnToZ/VVMW/issues/new) if you believe there is a bug.
+
 ## Credits
 - **Vistanz** ([@JLChnToZ](https://x.com/JLChnToZ)) - Programming
 - **山の豚** ([@yama_buta](https://x.com/yama_buta)) - Art
