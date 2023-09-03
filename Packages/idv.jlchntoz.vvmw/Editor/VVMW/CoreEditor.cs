@@ -9,7 +9,7 @@ using VRC.SDK3.Video.Components.AVPro;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(Core))]
-    public class CoreEditor : Editor {
+    public class CoreEditor : VVMWEditorBase {
         static GUIContent tempContent;
         static readonly string[] materialModeOptions = new [] { "Property Block", "Shared Material", "Cloned Materal" };
         SerializedProperty playerHandlersProperty;
@@ -36,7 +36,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         string[] playerNames;
         List<bool> screenTargetVisibilityState;
 
-        void OnEnable() {
+        protected override void OnEnable() {
+            base.OnEnable();
             playerHandlersProperty = serializedObject.FindProperty("playerHandlers");
             playerHandlersList = new ReorderableListUtils(playerHandlersProperty);
             playerHandlersList.list.drawHeaderCallback = DrawPlayerHandlersListHeader;
@@ -68,6 +69,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         public override void OnInspectorGUI() {
+            base.OnInspectorGUI();
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
             serializedObject.Update();
             EditorGUILayout.PropertyField(defaultUrlProperty);

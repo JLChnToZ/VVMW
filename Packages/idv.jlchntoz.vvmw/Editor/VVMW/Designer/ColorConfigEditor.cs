@@ -1,15 +1,15 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
+using JLChnToZ.VRC.VVMW.Editors;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
     [CustomEditor(typeof(ColorConfig))]
-    public class ColorConfigEditor : Editor {
+    public class ColorConfigEditor : VVMWEditorBase {
         SerializedProperty colorsProperty;
         bool addRemoveFoldout;
 
-        void OnEnable() {
+        protected override void OnEnable() {
+            base.OnEnable();
             colorsProperty = serializedObject.FindProperty("colors");
         }
 

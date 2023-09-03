@@ -7,11 +7,12 @@ using UdonSharpEditor;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(VideoPlayerHandler))]
-    public class VideoPlayerHandlerEditor : Editor {
+    public class VideoPlayerHandlerEditor : VVMWEditorBase {
 
         SerializedProperty texturePropertyNameProperty, useSharedMaterialProperty, isAvProProperty, playerNameProperty, primaryAudioSourceProperty;
 
-        void OnEnable() {
+        protected override void OnEnable() {
+            base.OnEnable();
             texturePropertyNameProperty = serializedObject.FindProperty("texturePropertyName");
             useSharedMaterialProperty = serializedObject.FindProperty("useSharedMaterial");
             playerNameProperty = serializedObject.FindProperty("playerName");
@@ -20,6 +21,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         public override void OnInspectorGUI() {
+            base.OnInspectorGUI();
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(this.target)) return;
             if (PrefabUtility.IsPartOfPrefabAsset(this.target)) {
                 EditorGUILayout.HelpBox("Please use the prefab instance in scene to edit.", MessageType.Info);

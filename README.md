@@ -1,4 +1,7 @@
 # VizVid
+
+![Banner](Packages/idv.jlchntoz.vvmw/.tutorial/cover.png)
+
 Welcome! VizVid is a general-purpose video player wrapper for use in VRChat. It aims to cover many use cases, from watch-together video/live stream player in lounges, to large event venue for music performances, or even booths for exhibitions or showcases. Due to its target customers, it has a flexible architecture, just like a factory made electronic but with a easy to open back lid, make it easier to let users mess them around for their needs.
 
 ## Features
@@ -20,14 +23,7 @@ Welcome! VizVid is a general-purpose video player wrapper for use in VRChat. It 
 - Simple API for [your own udons] integration.
 
 ## Demo
-Want to see in action? No problem! I'm currently installed this player in following worlds (this list will update):
-
-- **[Vistanz Home (Potato Edition)](https://vrchat.com/home/world/wrld_b00bff3a-62bf-4698-a718-cd96c0774b14)**:
-  This is a cross-platform chill world, you may try it with Quest/Android client.
-- **[Block Booked Theatre](https://vrchat.com/home/world/wrld_9a0b033e-12df-4d7f-9a5f-9a11c03e31f5)**:
-  This world integrates the player with Audio Link and LTCGI, also with surround sound setup.
-- **[Vistanz's Small AudioLink Lab](https://vrchat.com/home/world/wrld_52ad8c09-0e78-4b08-b3b1-0c4d7d04f5eb)**:
-  This world uses playlist feature.
+Please visit the [official demo world](https://vrchat.com/home/world/wrld_7239d09c-7b25-43a5-8ccd-502d986b016a)!
 
 ## Documentation
 Please refer to [another readme](./Packages/idv.jlchntoz.vvmw/README.md) for details.

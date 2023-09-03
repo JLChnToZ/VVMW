@@ -1,5 +1,31 @@
 # VizVid Documentation
+
+![Banner](.tutorial/cover.png)
+
 Welcome! VizVid is a general-purpose video player wrapper for use in VRChat. It aims to cover many use cases, from watch-together video/live stream player in lounges, to large event venue for music performances, or even booths for exhibitions or showcases. Due to its target customers, it has a flexible architecture, just like a factory made electronic but with a easy to open back lid, make it easier to let users mess them around for their needs.
+
+## Table of Contents
+* [How to install?](#how-to-install)
+	* [How to Add Extra Screen?](#how-to-add-extra-screen)
+	* [How to Add Extra Audio Source?](#how-to-add-extra-audio-source)
+	* [How to Add Extra Controllers?](#how-to-add-extra-controllers)
+	* [How to Add a New Play List?](#how-to-add-a-new-play-list)
+	* [How to Add a Pickupable Screen?](#how-to-add-a-pickupable-screen)
+	* [How to Add an Overlay Control?](#how-to-add-an-overlay-control)
+	* [How to Add a Resync Button?](#how-to-add-a-resync-button)
+	* [How to Change color?](#how-to-change-color)
+* [Details in the Bundle](#details-in-the-bundle)
+	* [VVMW (Game Object)](#vvmw-game-object)
+	* [Builtin Module / AVPro Module](#builtin-module-av-pro-module)
+	* [Play List Queue Handler](#play-list-queue-handler)
+	* [Locale](#locale)
+	* [Default Screen / Screen](#default-screen-screen)
+	* [Default Audio Source](#default-audio-source)
+	* [Default UI / Screen with Overlay](#default-ui-screen-with-overlay)
+* [Third Party Support](#third-party-support)
+	* [Udon Auth](#udon-auth)
+	* [Audio Link](#audio-link)
+	* [LTCGI](#ltcgi)
 
 ## How to install?
 In the package, we have provide 2 pre-configurated prefabs: On-Screen Controls and Separated Controls:  

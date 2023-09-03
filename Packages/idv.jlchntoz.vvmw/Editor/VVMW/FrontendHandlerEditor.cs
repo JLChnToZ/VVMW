@@ -6,7 +6,7 @@ using UdonSharpEditor;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(FrontendHandler))]
-    public class FrontendHandlerEditor : Editor {
+    public class FrontendHandlerEditor : VVMWEditorBase {
         SerializedProperty coreProperty;
         SerializedProperty lockedProperty;
         SerializedProperty defaultLoopProperty;
@@ -29,7 +29,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         string[] playerHandlerNames;
         GUIContent tempContent;
 
-        void OnEnable() {
+        protected override void OnEnable() {
+            base.OnEnable();
             if (tempContent == null) tempContent = new GUIContent();
             coreProperty = serializedObject.FindProperty("core");
             lockedProperty = serializedObject.FindProperty("locked");
@@ -58,6 +59,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         public override void OnInspectorGUI() {
+            base.OnInspectorGUI();
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
             serializedObject.Update();
             EditorGUILayout.PropertyField(coreProperty);

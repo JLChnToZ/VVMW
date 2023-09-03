@@ -12,20 +12,23 @@ using UdonSharp;
 using UdonSharpEditor;
 
 using static UnityEngine.Object;
+using JLChnToZ.VRC.VVMW.Editors;
 
 namespace JLChnToZ.VRC.VVMW.I18N.Editors {
     [CustomEditor(typeof(LanguageManager))]
-    public class LanguageManagerEditor : Editor {
+    public class LanguageManagerEditor : VVMWEditorBase {
         static GUIContent textContent;
         SerializedProperty languagePackProperty;
         bool showContent;
 
-        void OnEnable() {
+        protected override void OnEnable() {
+            base.OnEnable();
             if (textContent == null) textContent = new GUIContent();
             languagePackProperty = serializedObject.FindProperty("languagePack");
         }
         
         public override void OnInspectorGUI() {
+            base.OnInspectorGUI();
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
             serializedObject.Update();
             var languagePack = languagePackProperty.objectReferenceValue as TextAsset;
