@@ -37,7 +37,6 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.Callbacks;
 
-using VRC.Udon;
 using VRC.Udon.Editor;
 using UdonSharp;
 using UdonSharpEditor;
