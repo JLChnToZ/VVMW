@@ -29,15 +29,15 @@ Please visit the [official demo world](https://vrchat.com/home/world/wrld_7239d0
 Please refer to [another readme](./Packages/idv.jlchntoz.vvmw/README.md) for details.
 
 ## Installation
-This player is currently in beta, so welcome to try it out and give feedbacks. You may use following methods:
+You may use following methods:
 
-- Via GitHub Releases: [Click here](https://github.com/JLChnToZ/VVMW/releases/latest).
-- Via Booth: Coming soon!
-- Via VCC:
+- Via VCC (Recommend):
   1. Ensure you have installed VRChat Creator Companion, if not, [download here](https://vrchat.com/download/vcc).
   2. Go to [my package listings landing page](https://xtlcdn.github.io/vpm/), click "Add to VCC" button under the banner and follow instructions.
   3. You can then go to "Manage Project" of your own world project, click on the "+" button to add the player component.
   4. Enjoy!
+- Via Booth: [Click here](https://xtl.booth.pm/items/5056077).
+- Via GitHub Releases: [Click here](https://github.com/JLChnToZ/VVMW/releases/latest).
 
 ## License
 [MIT](./Packages/idv.jlchntoz.vvmw/LICENSE)
