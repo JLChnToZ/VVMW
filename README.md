@@ -39,6 +39,10 @@ You may use following methods:
 - Via Booth: [Click here](https://xtl.booth.pm/items/5056077).
 - Via GitHub Releases: [Click here](https://github.com/JLChnToZ/VVMW/releases/latest).
 
+## Credits
+Vistanz ([@JLChnToZ](https://x.com/JLChnToZ)) - Programming
+山の豚 ([@yama_buta](https://x.com/yama_buta)) - Art
+
 ## Special Thanks
 LR163 / Cross - Early Stage Functionality & (Live Streaming) Latency Test
 HsiaoTzuOWO - UI & Implementation Test
