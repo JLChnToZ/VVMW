@@ -39,5 +39,12 @@ You may use following methods:
 - Via Booth: [Click here](https://xtl.booth.pm/items/5056077).
 - Via GitHub Releases: [Click here](https://github.com/JLChnToZ/VVMW/releases/latest).
 
+## Special Thanks
+LR163 / Cross - Early Stage Functionality & (Live Streaming) Latency Test
+HsiaoTzuOWO - UI & Implementation Test
+Yan-K - UI / UX Consultant
+六森 - Advertisement Materials & Demo World
+水鳥waterbird - Naming
+
 ## License
 [MIT](./Packages/idv.jlchntoz.vvmw/LICENSE)
