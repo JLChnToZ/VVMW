@@ -9,7 +9,7 @@ Welcome! VizVid is a general-purpose video player wrapper for use in VRChat. It 
 	* [How to Add Extra Screen?](#how-to-add-extra-screen)
 	* [How to Add Extra Audio Source?](#how-to-add-extra-audio-source)
 	* [How to Add Extra Controllers?](#how-to-add-extra-controllers)
-	* [How to Add a New Play List?](#how-to-add-a-new-play-list)
+	* [How to Add/Import/Export a Play List?](#how-to-addimportexport-a-play-list)
 	* [How to Add a Pickupable Screen?](#how-to-add-a-pickupable-screen)
 	* [How to Add an Overlay Control?](#how-to-add-an-overlay-control)
 	* [How to Add a Resync Button?](#how-to-add-a-resync-button)
@@ -86,18 +86,25 @@ To add them, follow these steps:
 ![ ](.tutorial/add-controls-2.png)
 ![ ](.tutorial/add-controls-3.png)
 
-### How to Add a New Play List?
-Play lists are pre-defined lists that the player will plays. All play lists associated to a video player instance are defined and controlled in a "Play List Queue Handler" game object, unlike how some other video player designs, whatever amount of controllers you added for a player, you are still interacting with the same list of the queued videos. Here is how you can create play lists:
+### How to Add/Import/Export a Play List?
+Play lists are pre-defined lists that the player will plays. All play lists associated to a video player instance are defined and controlled in a "Play List Queue Handler" game object, unlike how some other video player designs, whatever amount of controllers you added for a player, you are still interacting with the same list of the queued videos. Here is how you can manipulate play lists:
 1. Select "Play List Queue Handler" game object in hierarchy.
-2. Click on "+" button at the corner of play lists field.
-3. Name your play list.
-4. Click on the "+" button at the corner of the field named with your playlist to add links.
-5. Click save after you have added links to it.
+2. Click "Edit Play Lists..." button.
+3. In the new popup window, you can:
+    a. Create/remove a play list
+    b. Import play list from other video players and YouTube
+    c. Import/Export play list to/from JSON file
+4. After editing, remember to click the "save" button on the top of the window.
 
-For documentation on each fields, please refer to [Play List Queue Handler](#play-list-queue-handler) section.
+Current supported play lists / video players to be imported directly:
+- VizVid (Yes, you can pour the play lists from other instances within the world as well)
+- Yama Player
+- KineL Video Player
+- iwaSync 3
+- JT Playlist
+- ProTV by ArchiTech
 
-![ ](.tutorial/add-playlist-1.png)
-![ ](.tutorial/add-playlist-2.png)
+To import above listed play lists, drag the game object containing their play lists to this play list editor. Beware it is sightly different when you drop it between the left panel and the right: If you dropped on the left, new play lists will be added; and if you dropped on the right, it will append to current selected play list if applicable.
 
 ### How to Add a Pickupable Screen?
 This component was [originally created by Yama Buta](https://yamabuta.booth.pm/items/4189997), which is a local-only pickupable screen with scaling feature, and it is rewrited to use with VizVid.
@@ -192,16 +199,22 @@ This is an optional component that manages the queue of the playback. You can pr
 - **Core**: Reference to the VVMW main component. If it is empty, you can click the "Find" button to resolve it.
 - **Enable Queue List**: If enabled, while user want to play a video and it is playing other video, the video url will be queued.
   Recommend as this is more polite to everyone.
-- **Play Lists**: The list of pre-defined play lists. You can add/remove/reorder them here.
-  The radio button on the left indicates if the play list plays automatically when user joins.
-- **&lt;Your Play List Name&gt;**: When you selects a play list, you can edit the play list here.
-    - **Title**: The title to be displayed.
-    - **URL (PC)**: The url to the video, can be YouTube, Twitch, SoundCloud, RTSP, RTMP links.
-    - **URL (Quest)**: The url to be loaded on Quest/Android clients, useful when RTSP/RTMP links won't work and need an alternative to those clients.
-    - **&lt;Builtin / AVPro Player&gt;**: The player module to play this link.
-      If it is a live stream or soundcloud, it is required to use AVPro player module.
-- **Reload**: Discard any changes to the playlist and reload to inspector.
-- **Save**: Save changes to the component. **REQUIRED TO CLICK AFTER EDIT OR YOUR CHANGES WILL BE LOST!**
+- **Edit Play Lists...**: Edit the play lists defined in this component.  
+  The options below are in the play list editor window now:
+    - **Reload**: Discard any changes to the playlist and reload to inspector.
+    - **Save**: Save changes to the component. **REQUIRED TO CLICK AFTER EDIT OR YOUR CHANGES WILL BE LOST!**
+    - **Export All**: Export all play lists to a JSON file.
+    - **Export Selected**: Export selected play list to a JSON file.
+    - **Import from JSON**: Import previously saved JSON file back to play lists. You will be prompted to append or replace after selecting a JSON file.
+    - **Play Lists**: The list of pre-defined play lists. You can add/remove/reorder/rename them here.
+    - **&lt;Your Play List Name&gt;**: When you selects a play list, you can edit the play list here.
+        - **Title**: The title to be displayed.
+        - **URL (PC)**: The url to the video, can be YouTube, Twitch, SoundCloud, RTSP, RTMP links.
+        - **URL (Quest)**: The url to be loaded on Quest/Android clients, useful when RTSP/RTMP links won't work and need an alternative to those clients.
+        - **&lt;Builtin / AVPro Player&gt;**: The player module to play this link.
+        If it is a live stream or soundcloud, it is required to use AVPro player module.
+        - **Load Play List from YouTube**: You can enter the play list URL from YouTube to append it to current selected play list. It requires a selected play list to operate with.
+- **Autoplay Play list**: The play list you want to be played while user joined your world.
 - **Default Loop**: Is default the player loops (can be toggled via UI).
   The difference to loop option in VVMW (Core) is this option will loop over whole play list / user queue list.
 - **Default Shuffle**: Is default the player plays randomly instead of the queued order (can be toggled via UI).
