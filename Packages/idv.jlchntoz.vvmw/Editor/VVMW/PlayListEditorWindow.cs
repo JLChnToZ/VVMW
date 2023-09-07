@@ -242,6 +242,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 return;
             }
             UpdatePlayerHandlerInfos();
+            playLists.Clear();
             AppendPlaylist(frontendHandler);
             isDirty = false;
             if (playListView != null) {
@@ -258,7 +259,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 var playListUrlsQuestProperty = serializedObject.FindProperty("playListUrlsQuest");
                 var playListEntryTitlesProperty = serializedObject.FindProperty("playListEntryTitles");
                 var playListPlayerIndexProperty = serializedObject.FindProperty("playListPlayerIndex");
-                playLists.Clear();
                 var playListCount = playListTitlesProperty.arraySize;
                 for (int i = 0; i < playListCount; i++) {
                     var urlOffset = playListUrlOffsetsProperty.GetArrayElementAtIndex(i).intValue;
