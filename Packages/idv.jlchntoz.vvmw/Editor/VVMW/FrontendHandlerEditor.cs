@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
 using UdonSharpEditor;
+using System;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(FrontendHandler))]
@@ -33,6 +34,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             targetsProperty = serializedObject.FindProperty("targets");
             targetsPropertyList = new ReorderableListUtils(targetsProperty);
             playListNames = null;
+            PlayListEditorWindow.OnFrontendUpdated += OnFrontEndUpdated;
+        }
+
+        protected virtual void OnDisable() {
+            PlayListEditorWindow.OnFrontendUpdated -= OnFrontEndUpdated;
         }
 
         public override void OnInspectorGUI() {
@@ -42,12 +48,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(coreProperty);
             if (coreProperty.objectReferenceValue == null) EditorGUILayout.HelpBox("Core is not assigned.", MessageType.Error);
             EditorGUILayout.PropertyField(enableQueueListProperty);
-            if (playListNames == null || playListNames.Length != playListTitlesProperty.arraySize + 1) {
-                playListNames = new string[playListTitlesProperty.arraySize + 1];
-                playListNames[0] = "<Queue List>";
-                for (int i = 0; i < playListNames.Length - 1; i++)
-                    playListNames[i + 1] = playListTitlesProperty.GetArrayElementAtIndex(i).stringValue;
-            }
+            if (playListNames == null || playListNames.Length != playListTitlesProperty.arraySize + 1)
+                UpdatePlayListNames();
             if (GUILayout.Button("Edit Play Lists..."))
                 PlayListEditorWindow.StartEditPlayList(target as FrontendHandler);
             var rect = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight);
@@ -106,6 +108,19 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         void OnDestroy() {
             if (coreSerializedObject != null) coreSerializedObject.Dispose();
+        }
+
+        void OnFrontEndUpdated(FrontendHandler handler) {
+            if (handler != target) return;
+            UpdatePlayListNames();
+        }
+
+        void UpdatePlayListNames() {
+            if (playListNames == null || playListNames.Length != playListTitlesProperty.arraySize + 1)
+                playListNames = new string[playListTitlesProperty.arraySize + 1];
+            playListNames[0] = "<Queue List>";
+            for (int i = 0; i < playListNames.Length - 1; i++)
+                playListNames[i + 1] = playListTitlesProperty.GetArrayElementAtIndex(i).stringValue;
         }
 
         struct PlayList {

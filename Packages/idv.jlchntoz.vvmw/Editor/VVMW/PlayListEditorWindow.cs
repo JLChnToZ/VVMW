@@ -15,14 +15,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static GUIContent tempContent;
         FrontendHandler frontendHandler;
         Core loadedCore;
+        string[] playerHandlerNames;
+        int firstUnityPlayerIndex = -1, firstAvProPlayerIndex = -1;
         readonly List<PlayList> playLists = new List<PlayList>();
         ReorderableList playListView;
         ReorderableList playListEntryView;
         PlayList selectedPlayList;
-        string[] playerHandlerNames;
         bool isDirty;
         Vector2 playListViewScrollPosition, playListEntryViewScrollPosition;
         string ytPlaylistUrl;
+        public static event Action<FrontendHandler> OnFrontendUpdated;
 
         public FrontendHandler FrontendHandler {
             get => frontendHandler;
@@ -66,47 +68,20 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             var evt = Event.current;
             using (new EditorGUILayout.HorizontalScope()) {
-                using (new EditorGUILayout.VerticalScope(GUILayout.Width(Mathf.Min(350, position.width / 2))))
-                using (var scroll = new EditorGUILayout.ScrollViewScope(playListViewScrollPosition, GUI.skin.box)) {
-                    if (frontendHandler == null) {
-                        EditorGUILayout.HelpBox("Please select a FrontendHandler first.", MessageType.Info);
-                    } else if (playListView != null) {
-                        var rect = GUILayoutUtility.GetRect(0, playListView.GetHeight(), GUILayout.ExpandWidth(true));
-                        playListView.DoList(rect);
-                        switch (evt.type) {
-                            case EventType.DragUpdated:
-                            case EventType.DragPerform:
-                                if (rect.Contains(evt.mousePosition)) {
-                                    DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
-                                    if (evt.type == EventType.DragPerform) {
-                                        HandlePlayListObjectDrop(true);
-                                        evt.Use();
-                                    }
-                                }
-                                break;
-                        }
+                Rect playListRect, playListEntryRect;
+                using (var vert = new EditorGUILayout.VerticalScope(GUILayout.MaxWidth(Mathf.Min(400, position.width / 2)))) {
+                    playListRect = vert.rect;
+                    using (var scroll = new EditorGUILayout.ScrollViewScope(playListViewScrollPosition, GUI.skin.box)) {
+                        if (frontendHandler == null) EditorGUILayout.HelpBox("Please select a Frontend Handler first.", MessageType.Info);
+                        else playListView?.DoLayoutList();
+                        GUILayout.FlexibleSpace();
+                        playListViewScrollPosition = scroll.scrollPosition;
                     }
-                    GUILayout.FlexibleSpace();
-                    playListViewScrollPosition = scroll.scrollPosition;
                 }
-                using (new EditorGUILayout.VerticalScope()) {
+                using (var vert = new EditorGUILayout.VerticalScope()) {
+                    playListEntryRect = vert.rect;
                     using (var scroll = new EditorGUILayout.ScrollViewScope(playListEntryViewScrollPosition, GUI.skin.box)) {
-                        if (frontendHandler != null && playListEntryView != null) {
-                            var rect = GUILayoutUtility.GetRect(0, playListEntryView.GetHeight(), GUILayout.ExpandWidth(true));
-                            playListEntryView.DoList(rect);
-                            switch (evt.type) {
-                                case EventType.DragUpdated:
-                                case EventType.DragPerform:
-                                    if (rect.Contains(evt.mousePosition)) {
-                                        DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
-                                        if (evt.type == EventType.DragPerform) {
-                                            HandlePlayListObjectDrop(false);
-                                            evt.Use();
-                                        }
-                                    }
-                                    break;
-                            }
-                        }
+                        if (frontendHandler != null) playListEntryView?.DoLayoutList();
                         GUILayout.FlexibleSpace();
                         playListEntryViewScrollPosition = scroll.scrollPosition;
                     }
@@ -119,6 +94,24 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             }
                         }
                     }
+                }
+                switch (evt.type) {
+                    case EventType.DragUpdated:
+                    case EventType.DragPerform:
+                        if (playListRect.Contains(evt.mousePosition)) {
+                            DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+                            if (evt.type == EventType.DragPerform) {
+                                HandlePlayListObjectDrop(true);
+                                evt.Use();
+                            }
+                        } else if (playListEntryRect.Contains(evt.mousePosition)) {
+                            DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+                            if (evt.type == EventType.DragPerform) {
+                                HandlePlayListObjectDrop(false);
+                                evt.Use();
+                            }
+                        }
+                        break;
                 }
             }
             EditorGUILayout.HelpBox("Hint: You can drag the play list game objects from other video players to here to import them.", MessageType.Info);
@@ -231,12 +224,22 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         void DeserializePlayList() {
             if (frontendHandler == null) {
                 playerHandlerNames = null;
+                firstUnityPlayerIndex = -1;
+                firstAvProPlayerIndex = -1;
                 loadedCore = null;
                 playLists.Clear();
                 isDirty = false;
                 return;
             }
-            UpdatePlayerHandlerNames();
+            UpdatePlayerHandlerInfos();
+            AppendPlaylist(frontendHandler);
+            if (playListView != null) {
+                playListView.index = -1;
+                PlayListSelected(playListView);
+            }
+        }
+
+        void AppendPlaylist(UnityObject frontendHandler) {
             using (var serializedObject = new SerializedObject(frontendHandler)) {
                 var playListTitlesProperty = serializedObject.FindProperty("playListTitles");
                 var playListUrlOffsetsProperty = serializedObject.FindProperty("playListUrlOffsets");
@@ -262,10 +265,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         });
                     playLists.Add(playList);
                 }
-            }
-            if (playListView != null) {
-                playListView.index = -1;
-                PlayListSelected(playListView);
             }
         }
 
@@ -304,6 +303,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 serializedObject.ApplyModifiedProperties();
             }
             isDirty = false;
+            OnFrontendUpdated?.Invoke(frontendHandler);
         }
 
         void AddPlayList(ReorderableList list) {
@@ -350,9 +350,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             isDirty = true;
         }
 
-        void UpdatePlayerHandlerNames() {
+        void UpdatePlayerHandlerInfos() {
             if (loadedCore == frontendHandler.core) return;
             loadedCore = frontendHandler.core;
+            firstUnityPlayerIndex = -1;
+            firstAvProPlayerIndex = -1;
             using (var coreSerializedObject = new SerializedObject(frontendHandler.core)) {
                 var playerHandlersProperty = coreSerializedObject.FindProperty("playerHandlers");
                 var handlersCount = playerHandlersProperty.arraySize;
@@ -360,16 +362,27 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     playerHandlerNames = new string[handlersCount];
                 for (int i = 0; i < handlersCount; i++) {
                     var handler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as VideoPlayerHandler;
-                    if (handler == null) playerHandlerNames[i] = $"Player {i + 1}";
-                    else playerHandlerNames[i] = string.IsNullOrEmpty(handler.playerName) ? handler.name : handler.playerName;
+                    if (handler == null) {
+                        playerHandlerNames[i] = $"Player {i + 1}";
+                        continue;
+                    }
+                    playerHandlerNames[i] = string.IsNullOrEmpty(handler.playerName) ? handler.name : handler.playerName;
+                    if (handler.isAvPro) {
+                        if (firstAvProPlayerIndex < 0) firstAvProPlayerIndex = i;
+                    } else {
+                        if (firstUnityPlayerIndex < 0) firstUnityPlayerIndex = i;
+                    }
                 }
             }
+            if (firstUnityPlayerIndex < 0) firstUnityPlayerIndex = 0;
+            if (firstAvProPlayerIndex < 0) firstAvProPlayerIndex = 0;
         }
 
 #region Play List Importers
 
         void HandlePlayListObjectDrop(bool creaeNewPlayList = false) {
             DragAndDrop.AcceptDrag();
+            UpdatePlayerHandlerInfos();
             var queue = new Queue<UnityObject>(DragAndDrop.objectReferences);
             while (queue.Count > 0) {
                 var obj = queue.Dequeue();
@@ -381,6 +394,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (obj is MonoBehaviour mb) {
                     var type = obj.GetType();
                     switch (type.Name) {
+                        case "FrontendHandler":
+                            switch (type.Namespace) {
+                                case "JLChnToZ.VRC.VVMW":
+                                    AppendPlaylist(obj);
+                                    break;
+                            }
+                            break;
                         case "PlayList":
                             switch (type.Namespace) {
                                 case "Yamadev.YamaStream.Script":
@@ -416,6 +436,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             switch (type.Namespace) {
                                 case "ArchiTech":
                                     ImportPlayListFromProTV(mb, creaeNewPlayList);
+                                    break;
+                            }
+                            break;
+                        case "JTPlaylist":
+                            switch (type.Namespace) {
+                                case "JTPlaylist.Udon":
+                                    ImportPlayListFromJT(mb, creaeNewPlayList);
                                     break;
                             }
                             break;
@@ -471,7 +498,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         title = title,
                         url = url,
                         urlForQuest = string.Empty,
-                        playerIndex = trackMode == 1 ? 0 : 1,
+                        playerIndex = trackMode == 1 ? firstAvProPlayerIndex : firstUnityPlayerIndex,
                     });
                 }
             } catch (Exception ex) {
@@ -510,7 +537,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         title = title,
                         url = url,
                         urlForQuest = string.Empty,
-                        playerIndex = trackMode == 1 ? 0 : 1,
+                        playerIndex = trackMode == 1 ? firstAvProPlayerIndex : firstUnityPlayerIndex,
                     });
                 }
             } catch (Exception ex) {
@@ -529,7 +556,29 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         title = title,
                         url = url,
                         urlForQuest = string.Empty,
-                        playerIndex = trackMode == 1 ? 0 : 1,
+                        playerIndex = trackMode == 1 ? firstAvProPlayerIndex : firstUnityPlayerIndex,
+                    });
+                }
+            } catch (Exception ex) {
+                Debug.LogException(ex);
+            }
+        }
+
+        void ImportPlayListFromJT(dynamic jtPlaylist, bool newPlayList = false) {
+            var playList = GetOrCreatePlayList("Imported Play List", newPlayList);
+            try {
+                string[] titles = jtPlaylist.titles;
+                VRCUrl[] urls = jtPlaylist.urls;
+                bool[] isLives = jtPlaylist.isLive;
+                for (int i = 0; i < urls.Length; i++) {
+                    var url = urls[i];
+                    var title = titles[i];
+                    var isLive = isLives[i];
+                    playList.entries.Add(new PlayListEntry {
+                        title = title,
+                        url = url?.Get() ?? string.Empty,
+                        urlForQuest = string.Empty,
+                        playerIndex = isLive ? firstAvProPlayerIndex : firstUnityPlayerIndex,
                     });
                 }
             } catch (Exception ex) {
