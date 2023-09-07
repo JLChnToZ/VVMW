@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
+using Cysharp.Threading.Tasks;
 using VRC.SDKBase;
+using System.IO;
+using VVMW.ThirdParties.LitJson;
 
 using UnityObject = UnityEngine.Object;
-using Cysharp.Threading.Tasks;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
 
@@ -17,10 +19,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         Core loadedCore;
         string[] playerHandlerNames;
         int firstUnityPlayerIndex = -1, firstAvProPlayerIndex = -1;
-        readonly List<PlayList> playLists = new List<PlayList>();
+        [SerializeField] List<PlayList> playLists = new List<PlayList>();
         ReorderableList playListView;
         ReorderableList playListEntryView;
-        PlayList selectedPlayList;
+        [NonSerialized] PlayList selectedPlayList;
         bool isDirty;
         Vector2 playListViewScrollPosition, playListEntryViewScrollPosition;
         string ytPlaylistUrl;
@@ -59,12 +61,20 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         void OnGUI() {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar)) {
                 FrontendHandler = EditorGUILayout.ObjectField(FrontendHandler, typeof(FrontendHandler), true) as FrontendHandler;
-                GUILayout.FlexibleSpace();
                 if (GUILayout.Button("Reload", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)) &&
                     EditorUtility.DisplayDialog("Reload", "Are you sure you want to reload the play list?", "Yes", "No"))
                     DeserializePlayList();
                 if (GUILayout.Button("Save", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
                     SerializePlayList();
+                GUILayout.FlexibleSpace();
+                using (new EditorGUI.DisabledGroupScope(playLists.Count == 0))
+                    if (GUILayout.Button("Export All", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                        ExportPlayListToJson(true);
+                using (new EditorGUI.DisabledGroupScope(selectedPlayList.entries == null))
+                    if (GUILayout.Button("Export Selected", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                        ExportPlayListToJson(false);
+                if (GUILayout.Button("Import from JSON", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                    ImportPlayListFromJson();
             }
             var evt = Event.current;
             using (new EditorGUILayout.HorizontalScope()) {
@@ -233,6 +243,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             UpdatePlayerHandlerInfos();
             AppendPlaylist(frontendHandler);
+            isDirty = false;
             if (playListView != null) {
                 playListView.index = -1;
                 PlayListSelected(playListView);
@@ -266,6 +277,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     playLists.Add(playList);
                 }
             }
+            isDirty = true;
         }
 
         void SerializePlayList() {
@@ -379,7 +391,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
 #region Play List Importers
-
         void HandlePlayListObjectDrop(bool creaeNewPlayList = false) {
             DragAndDrop.AcceptDrag();
             UpdatePlayerHandlerInfos();
@@ -393,65 +404,36 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
                 if (obj is MonoBehaviour mb) {
                     var type = obj.GetType();
-                    switch (type.Name) {
-                        case "FrontendHandler":
-                            switch (type.Namespace) {
-                                case "JLChnToZ.VRC.VVMW":
-                                    AppendPlaylist(obj);
-                                    break;
-                            }
+                    switch ($"{type.Namespace}.{type.Name}") {
+                        case "JLChnToZ.VRC.VVMW.FrontendHandler":
+                            AppendPlaylist(obj);
                             break;
-                        case "PlayList":
-                            switch (type.Namespace) {
-                                case "Yamadev.YamaStream.Script":
-                                    ImportPlayListFromYamaPlayer(mb, creaeNewPlayList);
-                                    break;
-                            }
+                        case "Yamadev.YamaStream.Script.PlayList":
+                            ImportPlayListFromYamaPlayer(mb, creaeNewPlayList);
                             break;
-                        case "KinelPlaylistGroupManagerScript":
-                            switch (type.Namespace) {
-                                case "Kinel.VideoPlayer.Scripts":
-                                    ImportPlayListGroupFromKienL(mb, creaeNewPlayList);
-                                    break;
-                            }
+                        case "Kinel.VideoPlayer.Scripts.KinelPlaylistGroupManagerScript":
+                            ImportPlayListGroupFromKienL(mb, creaeNewPlayList);
                             break;
-                        case "KinelPlaylistScript":
-                            switch (type.Namespace) {
-                                case "Kinel.VideoPlayer.Scripts":
-                                    ImportPlayListFromKienL(mb, creaeNewPlayList);
-                                    break;
-                            }
+                        case "Kinel.VideoPlayer.Scripts.KinelPlaylistScript":
+                            ImportPlayListFromKienL(mb, creaeNewPlayList);
                             break;
-                        case "Playlist":
-                            switch (type.Namespace) {
-                                case "ArchiTech":
-                                    ImportPlayListFromProTV(mb, creaeNewPlayList);
-                                    break;
-                                case "HoshinoLabs.IwaSync3":
-                                    ImportPlayListFromIwaSync3(mb, creaeNewPlayList);
-                                    break;
-                            }
+                        case "HoshinoLabs.IwaSync3.Playlist":
+                            ImportPlayListFromIwaSync3(mb, creaeNewPlayList);
                             break;
-                        case "PlaylistData":
-                            switch (type.Namespace) {
-                                case "ArchiTech":
-                                    ImportPlayListFromProTV(mb, creaeNewPlayList);
-                                    break;
-                            }
+                        case "ArchiTech.Playlist":
+                        case "ArchiTech.PlaylistData":
+                            ImportPlayListFromProTV(mb, creaeNewPlayList);
                             break;
-                        case "JTPlaylist":
-                            switch (type.Namespace) {
-                                case "JTPlaylist.Udon":
-                                    ImportPlayListFromJT(mb, creaeNewPlayList);
-                                    break;
-                            }
+                        case "JTPlaylist.Udon.JTPlaylist":
+                            ImportPlayListFromJT(mb, creaeNewPlayList);
                             break;
                     }
                 }
             }
         }
+
         PlayList GetOrCreatePlayList(string name, bool forceCreate = false) {
-            if (playLists.Count > 0 && !forceCreate)
+            if (!forceCreate && playLists.Count > 0)
                 return playListView.index >= 0 && playListView.index < playLists.Count ?
                     playLists[playListView.index] :
                     playLists[0];
@@ -460,8 +442,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 entries = new List<PlayListEntry>(),
             };
             playLists.Add(playList);
-            playListView.index = 0;
+            playListView.index = playLists.Count - 1;
             PlayListSelected(playListView);
+            isDirty = true;
             return playList;
         }
 
@@ -481,6 +464,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         urlForQuest = alt.Get() ?? string.Empty,
                         playerIndex = 0,
                     });
+                    isDirty = true;
                 }
             } catch (Exception ex) {
                 Debug.LogException(ex);
@@ -500,6 +484,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         urlForQuest = string.Empty,
                         playerIndex = trackMode == 1 ? firstAvProPlayerIndex : firstUnityPlayerIndex,
                     });
+                    isDirty = true;
                 }
             } catch (Exception ex) {
                 Debug.LogException(ex);
@@ -539,6 +524,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         urlForQuest = string.Empty,
                         playerIndex = trackMode == 1 ? firstAvProPlayerIndex : firstUnityPlayerIndex,
                     });
+                    isDirty = true;
                 }
             } catch (Exception ex) {
                 Debug.LogException(ex);
@@ -558,6 +544,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         urlForQuest = string.Empty,
                         playerIndex = trackMode == 1 ? firstAvProPlayerIndex : firstUnityPlayerIndex,
                     });
+                    isDirty = true;
                 }
             } catch (Exception ex) {
                 Debug.LogException(ex);
@@ -580,9 +567,123 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         urlForQuest = string.Empty,
                         playerIndex = isLive ? firstAvProPlayerIndex : firstUnityPlayerIndex,
                     });
+                    isDirty = true;
                 }
             } catch (Exception ex) {
                 Debug.LogException(ex);
+            }
+        }
+#endregion
+
+#region Play List Exporters
+        void ExportPlayListToJson(bool saveAll) {
+            var path = EditorUtility.SaveFilePanel("Save Play List", Application.dataPath, "playList.json", "json");
+            if (string.IsNullOrEmpty(path)) return;
+            var jsonWriter = new JsonWriter {
+                PrettyPrint = true,
+                IndentValue = 2
+            };
+            if (saveAll) {
+                jsonWriter.WriteArrayStart();
+                foreach (var playList in playLists)
+                    WriteEntries(jsonWriter, playList);
+                jsonWriter.WriteArrayEnd();
+            } else {
+                WriteEntries(jsonWriter, selectedPlayList);
+            }
+            File.WriteAllText(path, jsonWriter.ToString());
+        }
+
+        void WriteEntries(JsonWriter jsonWriter, PlayList playList) {
+            jsonWriter.WriteObjectStart();
+            jsonWriter.WritePropertyName("title");
+            jsonWriter.Write(playList.title);
+            jsonWriter.WritePropertyName("entries");
+            jsonWriter.WriteArrayStart();
+            foreach (var entry in playList.entries)
+                WriteEntry(jsonWriter, entry);
+            jsonWriter.WriteArrayEnd();
+            jsonWriter.WriteObjectEnd();
+        }
+
+        void WriteEntry(JsonWriter jsonWriter, PlayListEntry entry) {
+            jsonWriter.WriteObjectStart();
+            jsonWriter.WritePropertyName("title");
+            jsonWriter.Write(entry.title);
+            jsonWriter.WritePropertyName("url");
+            jsonWriter.Write(entry.url);
+            jsonWriter.WritePropertyName("urlForQuest");
+            jsonWriter.Write(entry.urlForQuest);
+            jsonWriter.WritePropertyName("playerIndex");
+            jsonWriter.Write(entry.playerIndex);
+            jsonWriter.WriteObjectEnd();
+        }
+
+        void ImportPlayListFromJson() {
+            var path = EditorUtility.OpenFilePanel("Load Play List", Application.dataPath, "json");
+            if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
+            var jsonData = JsonMapper.ToObject(File.ReadAllText(path));
+            switch (jsonData.GetJsonType()) {
+                case JsonType.Array:
+                    if (playLists.Count > 0 && !EditorUtility.DisplayDialog(
+                        "Load Play List",
+                        "Where do you want to load all play lists to?",
+                        "Keep Current (Append)",
+                        "Replace All"
+                    )) {
+                        playLists.Clear();
+                        isDirty = true;
+                    }
+                    LoadPlayLists(jsonData);
+                    break;
+                case JsonType.Object:
+                    if (selectedPlayList.entries != null)
+                        switch (EditorUtility.DisplayDialogComplex(
+                            "Load Play List",
+                            "Where do you want to load this play list to?",
+                            "Keep Current (Append)",
+                            "Replace Current",
+                            "New Play List"
+                        )) {
+                            case 1: selectedPlayList.entries.Clear(); isDirty = true; break;
+                            case 2: selectedPlayList = GetOrCreatePlayList(jsonData["title"].ToString(), true); break;
+                        }
+                    else
+                        selectedPlayList = GetOrCreatePlayList(jsonData["title"].ToString(), true);
+                    LoadEntries(jsonData["entries"]);
+                    break;
+            }
+        }
+
+        void LoadPlayLists(JsonData playListLists) {
+            if (playListLists == null || playListLists.GetJsonType() != JsonType.Array) return;
+            foreach (JsonData playList in playListLists)
+                try {
+                    GetOrCreatePlayList(playList["title"].ToString(), true);
+                    LoadEntries(playList["entries"]);
+                } catch (Exception ex) {
+                    Debug.LogException(ex);
+                }
+        }
+
+        void LoadEntries(JsonData entries) {
+            if (entries == null || entries.GetJsonType() != JsonType.Array) return;
+            foreach (JsonData entry in entries) {
+                try {
+                    var title = entry["title"].ToString();
+                    var url = entry["url"].ToString();
+                    var urlForQuest = entry["urlForQuest"].ToString();
+                    var playerIndex = (int)entry["playerIndex"];
+                    selectedPlayList.entries.Add(new PlayListEntry {
+                        title = title,
+                        url = url,
+                        urlForQuest = urlForQuest,
+                        playerIndex = playerIndex,
+                    });
+                    isDirty = true;
+                } catch (Exception ex) {
+                    Debug.LogException(ex);
+                }
             }
         }
 #endregion
