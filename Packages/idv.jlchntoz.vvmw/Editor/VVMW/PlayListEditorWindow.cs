@@ -32,8 +32,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             get => frontendHandler;
             set {
                 if (frontendHandler == value) return;
-                if (isDirty && EditorUtility.DisplayDialog("Unsaved Changes", "There are unsaved changes, do you want to save them?", "Yes", "No"))
-                    SerializePlayList();
+                SaveIfRequired();
                 frontendHandler = value;
                 DeserializePlayList();
             }
@@ -57,6 +56,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 showDefaultBackground = false,
             };
         }
+
+        void OnDisable() => SaveIfRequired();
 
         void OnGUI() {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar)) {
@@ -324,6 +325,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             isDirty = false;
             OnFrontendUpdated?.Invoke(frontendHandler);
+        }
+
+        void SaveIfRequired() {
+            if (isDirty && EditorUtility.DisplayDialog("Unsaved Changes", "There are unsaved changes, do you want to save them?", "Yes", "No"))
+                SerializePlayList();
         }
 
         void AddPlayList(ReorderableList list) {
