@@ -1,11 +1,11 @@
 ﻿using System.IO;
 using System.Diagnostics;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEditor;
 using Cysharp.Threading.Tasks;
-using UnityEngine.Networking;
 using VVMW.ThirdParties.LitJson;
-using System.Collections.Generic;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     public static class YtdlpResolver {
@@ -49,37 +49,75 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (File.Exists(path)) File.Delete(path);
             } else {
                 File.Move(path, ytdlpPath);
+                #if !UNITY_EDITOR_WIN
+                var process = Process.Start(new ProcessStartInfo("chmod", $"+x {ytdlpPath}") {
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                });
+                await process.WaitForExitAsync();
+                #endif
             }
             EditorUtility.ClearProgressBar();
         }
 
         public static async UniTask<List<YtdlpPlayListEntry>> GetPlayLists(string url) {
-            var results = new List<YtdlpPlayListEntry>();
             await DownLoadYtDlpIfNotExists();
-            if (!HasYtDlp()) return results;
+            if (!HasYtDlp()) return new List<YtdlpPlayListEntry>();
+            List<YtdlpPlayListEntry> results = null;
             try {
                 EditorUtility.DisplayProgressBar("Getting Playlists", "Getting Playlists", 0);
-                var startInfo = new ProcessStartInfo(ytdlpPath, $"--flat-playlist --no-write-playlist-metafiles --skip-download --no-exec -ijo - {url}") {
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
-                var process = Process.Start(startInfo);
-                var output = await process.StandardError.ReadToEndAsync();
-                foreach (var line in output.Split('\n')) {
-                    if (!line.StartsWith("{")) continue;
-                    try {
-                        var json = JsonMapper.ToObject(line);
-                        results.Add(new YtdlpPlayListEntry {
-                            title = json["title"].ToString(),
-                            url = json["url"].ToString()
-                        });
-                    } catch { }
+                results = await Fetch(url);
+            } finally {
+                EditorUtility.ClearProgressBar();
+            }
+            return results;
+        }
+
+        public static async UniTask FetchTitles(YtdlpPlayListEntry[] entries) {
+            await DownLoadYtDlpIfNotExists();
+            if (!HasYtDlp()) return;
+            try {
+                EditorUtility.DisplayProgressBar("Getting Titles", "Getting Titles", 0);
+                for (int i = 0; i < entries.Length; i++) {
+                    var entry = entries[i];
+                    if (!string.IsNullOrEmpty(entry.title) ||
+                        string.IsNullOrEmpty(entry.url)) continue;
+                    var results = await Fetch(entry.url);
+                    if (results.Count > 0) {
+                        entry.title = results[0].title;
+                        entry.url = results[0].url;
+                    }
+                    entries[i] = entry;
+                    EditorUtility.DisplayProgressBar("Getting Titles", $"Getting Titles ({i + 1}/{entries.Length})", (float)(i + 1) / entries.Length);
                 }
             } finally {
                 EditorUtility.ClearProgressBar();
             }
+        }
+
+        static async UniTask<List<YtdlpPlayListEntry>> Fetch(string url) {
+            var results = new List<YtdlpPlayListEntry>();
+            var startInfo = new ProcessStartInfo(ytdlpPath, $"--flat-playlist --no-write-playlist-metafiles --no-exec -sijo - {url}") {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            };
+            var process = Process.Start(startInfo);
+            var stderr = process.StandardError;
+            while (!stderr.EndOfStream)
+                try {
+                    var line = await stderr.ReadLineAsync();
+                    if (!line.StartsWith("{")) continue;
+                    var json = JsonMapper.ToObject(line);
+                    results.Add(new YtdlpPlayListEntry {
+                        title = json["title"].ToString(),
+                        url = json.ContainsKey("url") ? json["url"].ToString() : url
+                    });
+                } catch { }
+            await UniTask.SwitchToMainThread();
             return results;
         }
     }

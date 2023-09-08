@@ -52,7 +52,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 onSelectCallback = PlayListSelected,
                 onAddCallback = AddPlayList,
                 onRemoveCallback = RemovePlayList,
-                onReorderCallbackWithDetails = ReorderPlayList,
+                onReorderCallback = ReorderPlayList,
                 elementHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing,
                 showDefaultBackground = false,
             };
@@ -64,8 +64,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (GUILayout.Button("Reload", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)) &&
                     EditorUtility.DisplayDialog("Reload", "Are you sure you want to reload the play list?", "Yes", "No"))
                     DeserializePlayList();
-                if (GUILayout.Button("Save", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
-                    SerializePlayList();
+                using (new EditorGUI.DisabledGroupScope(!isDirty))
+                    if (GUILayout.Button("Save", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                        SerializePlayList();
                 GUILayout.FlexibleSpace();
                 using (new EditorGUI.DisabledGroupScope(playLists.Count == 0))
                     if (GUILayout.Button("Export All", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
@@ -102,6 +103,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                                 FetchPlayList(ytPlaylistUrl).Forget();
                                 ytPlaylistUrl = string.Empty;
                             }
+                            using (new EditorGUI.DisabledGroupScope(selectedPlayList.entries == null || selectedPlayList.entries.Count == 0))
+                                if (GUILayout.Button("Fetch Titles", GUILayout.ExpandWidth(false)))
+                                    FetchTitles().Forget();
                         }
                     }
                 }
@@ -127,16 +131,19 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.HelpBox("Hint: You can drag the play list game objects from other video players to here to import them.", MessageType.Info);
         }
 
-        void DrawPlayListHeader(Rect rect) => EditorGUI.LabelField(rect, "Play Lists");
+        void DrawPlayListHeader(Rect rect) => EditorGUI.LabelField(rect, "Play Lists", EditorStyles.boldLabel);
 
         void DrawPlayList(Rect rect, int index, bool isActive, bool isFocused) {
             var playList = playLists[index];
             if (playListView.index == index) selectedPlayList = playList;
             using (var changed = new EditorGUI.ChangeCheckScope()) {
+                rect.y += 1;
+                rect.height = EditorGUIUtility.singleLineHeight;
                 var newTitle = EditorGUI.TextField(rect, playList.title);
                 if (changed.changed) {
                     playList.title = newTitle;
                     playLists[index] = playList;
+                    isDirty = true;
                 }
             }
         }
@@ -154,18 +161,19 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 drawElementCallback = DrawPlayListEntry,
                 onAddCallback = AddPlayListEntry,
                 onRemoveCallback = RemovePlayListEntry,
-                onReorderCallbackWithDetails = ReorderPlayListEntry,
+                onReorderCallback = ReorderPlayListEntry,
                 elementHeight = (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 3,
                 showDefaultBackground = false,
             };
         }
 
-        void DrawPlayListEntryHeader(Rect rect) => EditorGUI.LabelField(rect, selectedPlayList.title);
+        void DrawPlayListEntryHeader(Rect rect) => EditorGUI.LabelField(rect, selectedPlayList.title, EditorStyles.boldLabel);
 
         void DrawPlayListEntry(Rect rect, int index, bool isActive, bool isFocused) {
             var labelSize = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = 80;
             var entry = selectedPlayList.entries[index];
+            rect.y += 1;
             var titleRect = rect;
             titleRect.height = EditorGUIUtility.singleLineHeight;
             float playerRectWidth = titleRect.width;
@@ -335,11 +343,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             PlayListSelected(list);
         }
 
-        void ReorderPlayList(ReorderableList list, int oldIndex, int newIndex) {
-            var temp = playLists[oldIndex];
-            playLists.RemoveAt(oldIndex);
-            playLists.Insert(newIndex, temp);
-            list.index = newIndex;
+        void ReorderPlayList(ReorderableList list) {
             PlayListSelected(list);
             isDirty = true;
         }
@@ -354,11 +358,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             isDirty = true;
         }
 
-        void ReorderPlayListEntry(ReorderableList list, int oldIndex, int newIndex) {
-            var temp = selectedPlayList.entries[oldIndex];
-            selectedPlayList.entries.RemoveAt(oldIndex);
-            selectedPlayList.entries.Insert(newIndex, temp);
-            list.index = newIndex;
+        void ReorderPlayListEntry(ReorderableList list) {
             isDirty = true;
         }
 
@@ -698,6 +698,24 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     urlForQuest = string.Empty,
                     playerIndex = 0,
                 });
+            isDirty = true;
+        }
+
+        async UniTask FetchTitles() {
+            if (selectedPlayList.entries == null || selectedPlayList.entries.Count == 0) return;
+            var entries = new YtdlpPlayListEntry[selectedPlayList.entries.Count];
+            for (int i = 0; i < entries.Length; i++)
+                entries[i] = new YtdlpPlayListEntry {
+                    title = selectedPlayList.entries[i].title,
+                    url = selectedPlayList.entries[i].url,
+                };
+            await YtdlpResolver.FetchTitles(entries);
+            for (int i = 0; i < entries.Length; i++) {
+                var entry = selectedPlayList.entries[i];
+                entry.title = entries[i].title;
+                selectedPlayList.entries[i] = entry;
+            }
+            isDirty = true;
         }
 
         [Serializable]
