@@ -214,6 +214,7 @@ This is an optional component that manages the queue of the playback. You can pr
         - **&lt;Builtin / AVPro Player&gt;**: The player module to play this link.
         If it is a live stream or soundcloud, it is required to use AVPro player module.
         - **Load Play List from YouTube**: You can enter the play list URL from YouTube to append it to current selected play list. It requires a selected play list to operate with.
+        - **Fetch Titles**: Fetch titles automatically if not filled. Currently only supports YouTube.
 - **Autoplay Play list**: The play list you want to be played while user joined your world.
 - **Default Loop**: Is default the player loops (can be toggled via UI).
   The difference to loop option in VVMW (Core) is this option will loop over whole play list / user queue list.
