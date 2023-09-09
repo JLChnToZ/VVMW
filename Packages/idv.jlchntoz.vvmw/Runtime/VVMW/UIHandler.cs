@@ -107,7 +107,7 @@ namespace JLChnToZ.VRC.VVMW {
         [NonSerialized] public byte loadWithIndex;
         int lastSelectedPlayListIndex, lastPlayingIndex;
         int lastDisplayCount;
-        bool hasUpdate, wasUnlocked;
+        bool hasUpdate, wasUnlocked, playListUpdateRequired;
         string enqueueCountFormat;
         byte selectedPlayer = 1;
         int interactTriggerId;
@@ -528,6 +528,11 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        public void _DeferUpdatePlayList() {
+            if (playListUpdateRequired && !UpdatePlayList() && playListUpdateRequired)
+                SendCustomEventDelayedFrames(nameof(_DeferUpdatePlayList), 0);
+        }
+
         bool UpdatePlayList() {
             int playListIndex = handler.PlayListIndex;
             int playingIndex = handler.CurrentPlayingIndex;
@@ -552,11 +557,19 @@ namespace JLChnToZ.VRC.VVMW {
                 selectedPlayListText.text = selectedPlayListIndex > 0 ?
                     handler.PlayListTitles[selectedPlayListIndex - 1] :
                     languageManager.GetLocale("QueueList");
-            bool shouldRefreshQueue = selectedPlayListIndex <= 0 || lastSelectedPlayListIndex != selectedPlayListIndex || lastPlayingIndex != playingIndex;
+            bool shouldRefreshQueue = playListUpdateRequired || selectedPlayListIndex <= 0 || lastSelectedPlayListIndex != selectedPlayListIndex || lastPlayingIndex != playingIndex;
             lastSelectedPlayListIndex = selectedPlayListIndex;
             lastPlayingIndex = playingIndex;
-            if (!shouldRefreshQueue || queueEntryTemplate == null || !queueEntryContainer.gameObject.activeInHierarchy)
+            if (!shouldRefreshQueue || queueEntryTemplate == null)
                 return false;
+            if (!queueEntryContainer.gameObject.activeInHierarchy) {
+                if (!playListUpdateRequired) {
+                    playListUpdateRequired = true;
+                    SendCustomEventDelayedFrames(nameof(_DeferUpdatePlayList), 0);
+                }
+                return false;
+            }
+            playListUpdateRequired = false;
             if (selectedPlayListIndex != playListIndex) {
                 if (selectedPlayListIndex > 0) {
                     offset = urlOffsets[selectedPlayListIndex - 1];
