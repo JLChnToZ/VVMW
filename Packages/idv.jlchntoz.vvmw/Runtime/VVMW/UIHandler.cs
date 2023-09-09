@@ -75,6 +75,7 @@ namespace JLChnToZ.VRC.VVMW {
         [Header("Queue List / Play List")]
         [SerializeField] GameObject playListPanelRoot;
         [SerializeField] GameObject playListTemplate;
+        [BindEvent(typeof(ScrollRect), "..*/#" + nameof(ScrollRect.onValueChanged), nameof(_OnPlayListScroll))]
         [SerializeField] Transform playListContainer;
         [SerializeField] GameObject playListTogglePanel;
         [BindEvent(nameof(Button.onClick), nameof(_PlayListTogglePanel))]
@@ -111,8 +112,11 @@ namespace JLChnToZ.VRC.VVMW {
         string enqueueCountFormat;
         byte selectedPlayer = 1;
         int interactTriggerId;
+        DateTime joinTime, playListLastInteractTime;
+        TimeSpan interactCoolDown = TimeSpan.FromSeconds(5);
 
         void Start() {
+            joinTime = DateTime.UtcNow;
             var hasHandler = Utilities.IsValid(handler);
             if (hasHandler) core = handler.core;
             if (enqueueCountText != null) {
@@ -323,9 +327,15 @@ namespace JLChnToZ.VRC.VVMW {
         public void _InputConfirmClick() {
             var url = urlInput.GetUrl();
             if (Utilities.IsValid(url) && !string.IsNullOrEmpty(url.Get())) {
-                if (Utilities.IsValid(handler))
+                playListLastInteractTime = joinTime;
+                if (Utilities.IsValid(handler)) {
                     handler.PlayUrl(url, selectedPlayer);
-                else
+                    var playListIndex = handler.PlayListIndex;
+                    if (selectedPlayListIndex != playListIndex) {
+                        selectedPlayListIndex = playListIndex;
+                        PlayListChanged();
+                    }
+                } else
                     core.PlayUrl(url, selectedPlayer);
                 _InputCancelClick();
             }
@@ -353,9 +363,11 @@ namespace JLChnToZ.VRC.VVMW {
                 playListPanelRoot.SetActive(true);
                 if (Utilities.IsValid(handler)) {
                     selectedPlayListIndex = handler.PlayListIndex;
-                    _OnPlayListSelectClick();
+                    playListLastInteractTime = joinTime;
+                    PlayListChanged();
                 }
             } else {
+                playListLastInteractTime = DateTime.UtcNow;
                 playListPanelRoot.SetActive(false);
             }
         }
@@ -549,6 +561,9 @@ namespace JLChnToZ.VRC.VVMW {
                 displayCount = queuedUrls.Length;
             }
             bool hasPending = pendingCount > 0;
+            bool isEntryContainerInactive = !queueEntryContainer.gameObject.activeInHierarchy;
+            if (isEntryContainerInactive || (DateTime.UtcNow - playListLastInteractTime) >= interactCoolDown)
+                selectedPlayListIndex = playListIndex;
             if (playNextButton != null) playNextButton.gameObject.SetActive(hasPending);
             if (currentPlayListButton != null) currentPlayListButton.gameObject.SetActive(hasPending);
             if (enqueueCountText != null)
@@ -562,7 +577,7 @@ namespace JLChnToZ.VRC.VVMW {
             lastPlayingIndex = playingIndex;
             if (!shouldRefreshQueue || queueEntryTemplate == null)
                 return false;
-            if (!queueEntryContainer.gameObject.activeInHierarchy) {
+            if (isEntryContainerInactive) {
                 if (!playListUpdateRequired) {
                     playListUpdateRequired = true;
                     SendCustomEventDelayedFrames(nameof(_DeferUpdatePlayList), 0);
@@ -630,12 +645,25 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnPlayListSelectClick() {
-            if (playListTogglePanel != null) playListTogglePanel.SetActive(false);
+            if (playListTogglePanel != null) {
+                playListTogglePanel.SetActive(false);
+                playListLastInteractTime = joinTime;
+            } else {
+                playListLastInteractTime = DateTime.UtcNow;
+            }
+            PlayListChanged();
+        }
+
+        void PlayListChanged() {
             for (int i = 0; i < playListEntries.Length; i++) {
                 var entry = playListEntries[i];
                 if (entry != null) entry.Selected = i == selectedPlayListIndex;
             }
             if (!UpdatePlayList()) SendCustomEventDelayedFrames(nameof(_ScrollPlayListToCurrent), 0);
+        }
+
+        public void _OnPlayListScroll() {
+            playListLastInteractTime = DateTime.UtcNow;
         }
 
         public void _OnCurrentPlayListSelectClick() {
@@ -644,10 +672,12 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnQueueEntryClick() {
+            playListLastInteractTime = DateTime.UtcNow;
             handler._PlayAt(selectedPlayListIndex, queueEntryIndex, false);
         }
 
         public void _OnQueueEntryDelete() {
+            playListLastInteractTime = DateTime.UtcNow;
             handler._PlayAt(selectedPlayListIndex, queueEntryIndex, true);
         }
 

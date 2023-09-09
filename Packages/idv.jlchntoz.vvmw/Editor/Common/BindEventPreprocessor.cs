@@ -98,10 +98,102 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (targetObj == null) return;
             var srcType = targetObj.GetType();
             foreach (var attribute in member.GetCustomAttributes<BindEventAttribute>(true))
-                BindSingleEvent(targetObj, srcType, attribute, call, index);
+                BindSingleEvent(targetObj, attribute.SourceType ?? srcType, attribute, call, index);
         }
 
-        static bool TryGetValue(object source, Type srcType, string fieldName, out object result) {
+        static bool TryGetValue(UnityObject source, Type srcType, string fieldName, out object result) {
+            int hashIndex = fieldName.IndexOf('#');
+            if (hashIndex >= 0) {
+                var pathElements = fieldName.Substring(0, hashIndex).Split('/');
+                fieldName = fieldName.Substring(hashIndex + 1);
+                if (source is Transform transform) {}
+                else if (source is GameObject gameObject)
+                    transform = gameObject.transform;
+                else if (source is Component component)
+                    transform = component.transform;
+                else {
+                    result = null;
+                    return false;
+                }
+                source = null;
+                var pending = new Stack<(int, Transform)>();
+                var children = new Stack<Transform>();
+                var flattenChildren = new Stack<Transform>();
+                pending.Push((0, transform));
+                while (pending.Count > 0) {
+                    var (depth, current) = pending.Pop();
+                    if (depth >= pathElements.Length) {
+                        if (srcType == typeof(GameObject)) {
+                            source = current.gameObject;
+                            break;
+                        } else if (srcType.IsAssignableFrom(current.GetType())) {
+                            source = current;
+                            break;
+                        } else if (current.TryGetComponent(srcType, out var component)) {
+                            source = component;
+                            break;
+                        }
+                        continue;
+                    }
+                    var pathPart = pathElements[depth];
+                    switch (pathPart) {
+                        case "": {
+                            var next = depth == 0 ? current.root : current;
+                            if (next != null) pending.Push((depth + 1, next));
+                            break;
+                        }
+                        case ".": {
+                            pending.Push((depth + 1, current));
+                            break;
+                        }
+                        case "..": {
+                            var parent = current.parent;
+                            if (parent != null) pending.Push((depth + 1, parent));
+                            break;
+                        }
+                        case "..*": {
+                            for (var parent = current; parent != null; parent = parent.parent)
+                                flattenChildren.Push(parent);
+                            while (flattenChildren.Count > 0)
+                                pending.Push((depth + 1, flattenChildren.Pop()));
+                            break;
+                        }
+                        case "*": {
+                            for (int i = current.childCount - 1; i >= 0; i--)
+                                pending.Push((depth + 1, current.GetChild(i)));
+                            break;
+                        }
+                        case "**": {
+                            children.Push(current);
+                            while (children.Count > 0) {
+                                var child = children.Pop();
+                                flattenChildren.Push(child);
+                                for (int i = 0, count = child.childCount; i < count; i++)
+                                    children.Push(child.GetChild(i));
+                            }
+                            while (flattenChildren.Count > 0)
+                                pending.Push((depth + 1, flattenChildren.Pop()));
+                            break;
+                        }
+                        default: {
+                            var child = current.Find(pathPart);
+                            if (child != null) pending.Push((depth + 1, child));
+                            break;
+                        }
+                    }
+                }
+            } else if (!srcType.IsAssignableFrom(source.GetType())) {
+                if (source is GameObject gameObject)
+                    source = gameObject.GetComponent(srcType);
+                else if (source is Component component)
+                    source = component.GetComponent(srcType);
+                else
+                    source = null;
+            }
+            if (source == null) {
+                result = null;
+                return false;
+            }
             var otherProp = srcType.GetProperty(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
             if (otherProp != null) {
                 result = otherProp.GetValue(source);
@@ -162,21 +254,21 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 Debug.LogError($"{messagePrefix} Source is empty.", currentScript);
                 return;
             }
+            int hashIndex = srcName.IndexOf('#');
+            bool srcIsAPath = hashIndex >= 0;
+            if (srcIsAPath) srcName = srcName.Substring(hashIndex + 1);
             var destName = attribute.Destination;
             if (string.IsNullOrEmpty(destName)) {
                 Debug.LogError($"{messagePrefix} Destination is empty.", currentScript);
                 return;
             }
-            Type srcType;
-            if (field != null) {
-                srcType = field.FieldType;
-                if (attribute.SourceType != null) Debug.LogWarning($"{messagePrefix} SourceType is ignored because the attribute is on a field.", currentScript);
-            } else {
-                srcType = attribute.SourceType;
-                if (srcType == null) {
+            var srcType = attribute.SourceType;
+            if (srcType == null) {
+                if (field != null)
+                    srcType = field.FieldType;
+                else
                     Debug.LogError($"{messagePrefix} SourceType is empty.", currentScript);
-                    return;
-                }
+                return;
             }
             if (srcType.IsArray) srcType = srcType.GetElementType();
             var srcProperty = srcType.GetProperty(srcName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
