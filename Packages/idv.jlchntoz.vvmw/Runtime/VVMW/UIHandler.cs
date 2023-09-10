@@ -81,6 +81,7 @@ namespace JLChnToZ.VRC.VVMW {
         [BindEvent(nameof(Button.onClick), nameof(_PlayListTogglePanel))]
         [SerializeField] Button playListTogglePanelButton;
         [SerializeField] GameObject queueEntryTemplate;
+        [BindEvent(typeof(ScrollRect), "..*/#" + nameof(ScrollRect.onValueChanged), nameof(_OnPlayListScroll))]
         [SerializeField] Transform queueEntryContainer;
         [SerializeField] GameObject playNextIndicator;
         ScrollRect queueListRoot;
@@ -645,12 +646,8 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnPlayListSelectClick() {
-            if (playListTogglePanel != null) {
-                playListTogglePanel.SetActive(false);
-                playListLastInteractTime = joinTime;
-            } else {
-                playListLastInteractTime = DateTime.UtcNow;
-            }
+            if (playListTogglePanel != null) playListTogglePanel.SetActive(false);
+            playListLastInteractTime = DateTime.UtcNow;
             PlayListChanged();
         }
 
