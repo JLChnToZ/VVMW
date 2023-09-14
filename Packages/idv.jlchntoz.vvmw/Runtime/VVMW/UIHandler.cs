@@ -112,7 +112,7 @@ namespace JLChnToZ.VRC.VVMW {
         int SelectedPlayListIndex {
             get {
                 if (playListScrollView == null) return 0;
-                int selectedIndex = playListScrollView.lastClickedIndex;
+                int selectedIndex = playListScrollView.SelectedIndex;
                 if (handler != null && !handler.HasQueueList) selectedIndex++;
                 return selectedIndex;
             }
@@ -511,7 +511,7 @@ namespace JLChnToZ.VRC.VVMW {
                 if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(isShuffle);
                 UpdatePlayList();
                 if (playNextIndicator != null)
-                    playNextIndicator.SetActive(!isShuffle && (playListScrollView == null || playListScrollView.SelectedIndex == 0) && handler.PlayListIndex == 0 && handler.PendingCount > 0);
+                    playNextIndicator.SetActive(!isShuffle && SelectedPlayListIndex == 0 && handler.PlayListIndex == 0 && handler.PendingCount > 0);
             } else {
                 bool isRepeatOne = core.Loop;
                 if (repeatOffButton != null) repeatOffButton.gameObject.SetActive(!isRepeatOne);
@@ -550,8 +550,7 @@ namespace JLChnToZ.VRC.VVMW {
             int selectedPlayListIndex = SelectedPlayListIndex;
             bool isNotCoolingDown = (DateTime.UtcNow - playListLastInteractTime) >= interactCoolDown;
             if (isEntryContainerInactive || isNotCoolingDown)
-                selectedPlayListIndex = playListIndex;
-            SelectedPlayListIndex = selectedPlayListIndex;
+                SelectedPlayListIndex = selectedPlayListIndex = playListIndex;
             if (playNextButton != null) playNextButton.gameObject.SetActive(hasPending);
             if (currentPlayListButton != null) currentPlayListButton.gameObject.SetActive(hasPending);
             if (enqueueCountText != null)

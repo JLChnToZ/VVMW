@@ -25,7 +25,7 @@ namespace JLChnToZ.VRC.VVMW {
         bool canDelete = true;
         [FieldChangeCallback(nameof(CanInteract))]
         bool canInteract = true;
-        public bool autoSelect;
+        public bool autoSelect = true;
         int offset, count;
         RectTransform viewportRect, contentRect, templateRect;
         string entryClickEventName = "_OnEntryClick";
@@ -186,7 +186,7 @@ namespace JLChnToZ.VRC.VVMW {
         public void ScrollTo(int index) {
             var normalizedPosition = scrollRect.normalizedPosition;
             var entriesCount = entries.Length;
-            normalizedPosition.y = Mathf.Clamp01((index - entriesCount / 2F) / (count + entriesCount));
+            normalizedPosition.y = count > 0 ? Mathf.Clamp01((index - entriesCount / 2F) / count) : 0;
             scrollRect.normalizedPosition = normalizedPosition;
         }
 
