@@ -29,6 +29,7 @@ namespace JLChnToZ.VRC.VVMW {
         ushort[] localPlayListOrder;
         VRCUrl[] localQueuedUrls;
         byte[] localQueuedPlayerIndex;
+        string[] localQueuedTitles;
         byte localFlags;
         [SerializeField] int localPlayListIndex;
         ushort localPlayingIndex;
@@ -44,6 +45,13 @@ namespace JLChnToZ.VRC.VVMW {
             get {
                 if (localQueuedPlayerIndex == null) localQueuedPlayerIndex = new byte[0];
                 return localQueuedPlayerIndex;
+            }
+        }
+
+        public string[] QueueTitles {
+            get {
+                if (localQueuedTitles == null) localQueuedTitles = new string[0];
+                return localQueuedTitles;
             }
         }
 
@@ -279,6 +287,14 @@ namespace JLChnToZ.VRC.VVMW {
                     newPlayerIndexQueue[localQueuedPlayerIndex.Length] = index;
                     localQueuedPlayerIndex = newPlayerIndexQueue;
                 }
+                if (localQueuedTitles == null || localQueuedTitles.Length == 0) {
+                    localQueuedTitles = new string[] { url.Get() };
+                } else {
+                    var newTitles = new string[localQueuedTitles.Length + 1];
+                    Array.Copy(localQueuedTitles, newTitles, localQueuedTitles.Length);
+                    newTitles[localQueuedTitles.Length] = url.Get();
+                    localQueuedTitles = newTitles;
+                }
                 RequestSync();
                 UpdateState();
                 return;
@@ -309,6 +325,12 @@ namespace JLChnToZ.VRC.VVMW {
         public void _OnUnlock() {
             if (!locked) return;
             locked = false;
+            UpdateState();
+        }
+
+        public void _Lock() {
+            if (locked) return;
+            locked = true;
             UpdateState();
         }
 
@@ -395,16 +417,22 @@ namespace JLChnToZ.VRC.VVMW {
             var playerIndex = localQueuedPlayerIndex[index];
             var newQueue = newLength == localQueuedUrls.Length ? localQueuedUrls : new VRCUrl[newLength];
             var newPlayerIndexQueue = newLength == localQueuedUrls.Length ? localQueuedPlayerIndex : new byte[newLength];
+            var newTitles = newLength == localQueuedUrls.Length ? localQueuedTitles : new string[newLength];
             if (index > 0) {
                 if (localQueuedUrls != newQueue)
                     Array.Copy(localQueuedUrls, 0, newQueue, 0, index);
                 if (localQueuedPlayerIndex != newPlayerIndexQueue)
                     Array.Copy(localQueuedPlayerIndex, 0, newPlayerIndexQueue, 0, index);
+                if (localQueuedTitles != newTitles)
+                    Array.Copy(localQueuedTitles, 0, newTitles, 0, index);
             }
-            Array.Copy(localQueuedUrls, index + 1, newQueue, index, Mathf.Min(localQueuedUrls.Length - 1, newLength) - index);
-            Array.Copy(localQueuedPlayerIndex, index + 1, newPlayerIndexQueue, index, Mathf.Min(localQueuedUrls.Length - 1, newLength) - index);
+            int copyCount = Mathf.Min(localQueuedUrls.Length - 1, newLength) - index;
+            Array.Copy(localQueuedUrls, index + 1, newQueue, index, copyCount);
+            Array.Copy(localQueuedPlayerIndex, index + 1, newPlayerIndexQueue, index, copyCount);
+            Array.Copy(localQueuedTitles, index + 1, newTitles, index, copyCount);
             localQueuedUrls = newQueue;
             localQueuedPlayerIndex = newPlayerIndexQueue;
+            localQueuedTitles = newTitles;
             RequestSync();
             if (!deleteOnly) core.PlayUrl(url, playerIndex);
             UpdateState();
