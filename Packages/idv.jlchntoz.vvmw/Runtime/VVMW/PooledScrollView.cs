@@ -28,6 +28,7 @@ namespace JLChnToZ.VRC.VVMW {
         public bool autoSelect = true;
         int offset, count;
         RectTransform viewportRect, contentRect, templateRect;
+        float entriesPerViewport;
         string entryClickEventName = "_OnEntryClick";
         string entryDeleteEventName = "_OnEntryDelete";
         string scrollEventName = "_OnScroll";
@@ -119,7 +120,8 @@ namespace JLChnToZ.VRC.VVMW {
                 templateRect = template.GetComponent<RectTransform>();
                 var templateHeight = templateRect.rect.height;
                 var viewportHeight = viewportRect.rect.height;
-                var entryCount = Mathf.CeilToInt(viewportHeight / templateHeight) + 1;
+                entriesPerViewport = viewportHeight / templateHeight;
+                var entryCount = Mathf.CeilToInt(entriesPerViewport) + 1;
                 entries = new ListEntry[entryCount];
                 for (var i = 0; i < entryCount; i++) {
                     var instance = Instantiate(template);
@@ -167,7 +169,6 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void SetEntries(string[] entries, int offset, int count) {
-            Debug.Log($"SetEntries: {offset} - {count}", this);
             entryNames = entries;
             this.offset = offset;
             this.count = count;
@@ -185,8 +186,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void ScrollTo(int index) {
             var normalizedPosition = scrollRect.normalizedPosition;
-            var entriesCount = entries.Length;
-            normalizedPosition.y = count > 0 ? Mathf.Clamp01((index - entriesCount / 2F) / count) : 0;
+            normalizedPosition.y = count > 0 ? Mathf.Clamp01(index / (count - entriesPerViewport)) : 0;
             scrollRect.normalizedPosition = normalizedPosition;
         }
 
