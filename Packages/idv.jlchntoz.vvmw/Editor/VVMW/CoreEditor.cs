@@ -283,7 +283,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             int selectedIndex = indexProperty.intValue + 1;
                             selectedIndex = EditorGUILayout.Popup("Material", selectedIndex, indexNames) - 1;
                             indexProperty.intValue = selectedIndex;
-                            selectedShader = selectedIndex > 0 && selectedIndex <= materials.Length ? materials[selectedIndex - 1].shader : null;
+                            selectedShader = selectedIndex >= 0 && selectedIndex <= materials.Length ? materials[selectedIndex].shader : null;
                             showMaterialOptions = true;
                         } else if (targetProperty.objectReferenceValue is RawImage) {
                             mode = 4;
@@ -318,8 +318,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                                                 if (material == null) continue;
                                                 shaderSet.Add(material.shader);
                                             }
-                                            foreach (var shader in shaderSet)
+                                            foreach (var shader in shaderSet) {
+                                                if (menu.GetItemCount() > 0) menu.AddSeparator("");
                                                 AppendShaderPropertiesToMenu(menu, shader, nameProperty);
+                                            }
                                         }
                                         menu.DropDown(buttonRect);
                                     }
