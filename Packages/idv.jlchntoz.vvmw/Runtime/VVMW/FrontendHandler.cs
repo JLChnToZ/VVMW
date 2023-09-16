@@ -12,6 +12,7 @@ namespace JLChnToZ.VRC.VVMW {
         [Tooltip("If enabled, while user want to play a video and it is playing other video, the video will be queued. Recommend as this is more polite to everyone.")]
         [SerializeField] bool enableQueueList = true;
         [Tooltip("Locks the player frontend by default, this option must be used with other scripts to control the player.")]
+        [FieldChangeCallback(nameof(Locked))]
         [SerializeField] bool locked = false;
         [SerializeField] bool defaultLoop, defaultShuffle;
         [SerializeField] string[] playListTitles;
@@ -55,7 +56,13 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public bool Locked => locked;
+        public bool Locked {
+            get => locked;
+            private set {
+                if (value) _Lock();
+                else _OnUnlock();
+            }
+        }
 
         public bool HasQueueList => enableQueueList;
 
