@@ -185,6 +185,7 @@ namespace JLChnToZ.VRC.VVMW {
         public void ScrollToSelected() => ScrollTo(selectedIndex);
 
         public void ScrollTo(int index) {
+            if (!hasInit) return;
             var normalizedPosition = scrollRect.normalizedPosition;
             normalizedPosition.y = count > entriesPerViewport ? Mathf.Clamp01(index / (count - entriesPerViewport)) : 0;
             scrollRect.normalizedPosition = normalizedPosition;

@@ -2,6 +2,7 @@
 using UdonSharp;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Serialization;
 using VRC.SDKBase;
 using VRC.SDK3.Components;
 using VRC.SDK3.Components.Video;
@@ -51,7 +52,8 @@ namespace JLChnToZ.VRC.VVMW {
         [BindEvent(nameof(Button.onClick), nameof(_RepeatAll))]
         [SerializeField] Button repeatOneButton;
         [BindEvent(nameof(Button.onClick), nameof(_RepeatOff))]
-        [SerializeField] Button RepeatAllButton;
+        [FormerlySerializedAs("RepeatAllButton")]
+        [SerializeField] Button repeatAllButton;
         [BindEvent(nameof(Button.onClick), nameof(_ShuffleOn))]
         [SerializeField] Button shuffleOffButton;
         [BindEvent(nameof(Button.onClick), nameof(_ShuffleOff))]
@@ -79,7 +81,6 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Button playListTogglePanelButton;
         [SerializeField] PooledScrollView queueListScrollView;
         [SerializeField] GameObject playNextIndicator;
-        // ScrollRect queueListRoot;
         [SerializeField] Text selectedPlayListText;
         [BindEvent(nameof(Button.onClick), nameof(_OnCurrentPlayListSelectClick))]
         [SerializeField] Button currentPlayListButton;
@@ -102,7 +103,7 @@ namespace JLChnToZ.VRC.VVMW {
         [NonSerialized] public byte loadWithIndex;
         int lastSelectedPlayListIndex, lastPlayingIndex;
         int lastDisplayCount;
-        bool hasUpdate, wasUnlocked, playListUpdateRequired;
+        bool hasUpdate, wasUnlocked, hasUnlockInit, playListUpdateRequired;
         string enqueueCountFormat;
         byte selectedPlayer = 1;
         int interactTriggerId;
@@ -149,10 +150,9 @@ namespace JLChnToZ.VRC.VVMW {
                 playListScrollView.EntryNames = playListNames;
                 playListScrollView._AddListener(this);
                 SelectedPlayListIndex = handler.PlayListIndex;
-                if (playListTogglePanelButton != null) {
-                    playListTogglePanelButton.interactable = hasPlayList;
+                if (playListTogglePanelButton != null)
                     playListScrollView.gameObject.SetActive(false);
-                } else
+                else
                     playListScrollView.gameObject.SetActive(hasPlayList);
             }
             if (queueListScrollView != null) {
@@ -484,18 +484,27 @@ namespace JLChnToZ.VRC.VVMW {
                         hasUpdate = true;
                         _UpdateProgress();
                     }
-                    progressSlider.interactable = true;
+                    progressSlider.interactable = unlocked;
                 } else {
                     progressSlider.SetValueWithoutNotify(1);
                     progressSlider.interactable = false;
                 }
             }
-            if (wasUnlocked != unlocked) {
+            if (wasUnlocked != unlocked || !hasUnlockInit) {
+                hasUnlockInit = true;
                 wasUnlocked = unlocked;
                 if (queueListScrollView != null) queueListScrollView.CanInteract = unlocked;
                 if (playListScrollView != null) playListScrollView.CanInteract = unlocked;
-                urlInput.interactable = unlocked;
-                if (!unlocked) urlInput.SetUrl(VRCUrl.Empty);
+                if (repeatOffButton != null) repeatOffButton.interactable = unlocked;
+                if (repeatOneButton != null) repeatOneButton.interactable = unlocked;
+                if (repeatAllButton != null) repeatAllButton.interactable = unlocked;
+                if (shuffleOnButton != null) shuffleOnButton.interactable = unlocked;
+                if (playNextButton != null) playNextButton.interactable = unlocked;
+                if (playListTogglePanelButton != null) playListTogglePanelButton.interactable = unlocked && playListNames != null && playListNames.Length > 1;
+                if (urlInput != null) {
+                    urlInput.interactable = unlocked;
+                    if (!unlocked) urlInput.SetUrl(VRCUrl.Empty);
+                }
             }
             if (hasHandler) {
                 bool isRepeatOne = handler.RepeatOne;
@@ -503,10 +512,10 @@ namespace JLChnToZ.VRC.VVMW {
                 bool isShuffle = handler.Shuffle;
                 if (repeatOffButton != null) repeatOffButton.gameObject.SetActive(!isRepeatOne && !isRepeatAll);
                 if (repeatOneButton != null) repeatOneButton.gameObject.SetActive(isRepeatOne);
-                if (RepeatAllButton != null) RepeatAllButton.gameObject.SetActive(isRepeatAll);
+                if (repeatAllButton != null) repeatAllButton.gameObject.SetActive(isRepeatAll);
                 if (shuffleOffButton != null) {
                     shuffleOffButton.gameObject.SetActive(!isShuffle);
-                    shuffleOffButton.interactable = true;
+                    shuffleOffButton.interactable = unlocked;
                 }
                 if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(isShuffle);
                 UpdatePlayList();
@@ -516,7 +525,7 @@ namespace JLChnToZ.VRC.VVMW {
                 bool isRepeatOne = core.Loop;
                 if (repeatOffButton != null) repeatOffButton.gameObject.SetActive(!isRepeatOne);
                 if (repeatOneButton != null) repeatOneButton.gameObject.SetActive(isRepeatOne);
-                if (RepeatAllButton != null) RepeatAllButton.gameObject.SetActive(false);
+                if (repeatAllButton != null) repeatAllButton.gameObject.SetActive(false);
                 if (shuffleOffButton != null) {
                     shuffleOffButton.gameObject.SetActive(true);
                     shuffleOffButton.interactable = false;
