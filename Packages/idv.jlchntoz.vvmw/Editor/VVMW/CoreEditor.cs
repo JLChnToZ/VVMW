@@ -12,6 +12,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
     public class CoreEditor : VVMWEditorBase {
         static GUIContent tempContent;
         static readonly string[] materialModeOptions = new [] { "Property Block", "Shared Material", "Cloned Materal" };
+        static GUIContent dropDownIcon;
         SerializedProperty playerHandlersProperty;
         SerializedProperty audioSourcesProperty;
         SerializedProperty defaultUrlProperty;
@@ -38,6 +39,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         protected override void OnEnable() {
             base.OnEnable();
+            if (dropDownIcon == null) dropDownIcon = EditorGUIUtility.IconContent("icon dropdown");
             playerHandlersProperty = serializedObject.FindProperty("playerHandlers");
             playerHandlersList = new ReorderableListUtils(playerHandlersProperty);
             playerHandlersList.list.drawHeaderCallback = DrawPlayerHandlersListHeader;
@@ -260,14 +262,17 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         int mode = modeProperty.intValue & 0x7;
                         bool useST = (modeProperty.intValue & 0x8) != 0;
                         bool showMaterialOptions = false;
-                        if (targetProperty.objectReferenceValue is Material) {
+                        Shader selectedShader = null;
+                        Material[] materials = null;
+                        if (targetProperty.objectReferenceValue is Material m) {
                             mode = 0;
                             showMaterialOptions = true;
+                            selectedShader = m.shader;
                         } else if (targetProperty.objectReferenceValue is Renderer renderer) {
                             var indexProperty = screenTargetIndecesProperty.GetArrayElementAtIndex(i);
                             if (mode != 1 && mode != 2 && mode != 3) mode = 1;
                             mode = EditorGUILayout.Popup("Mode", mode - 1, materialModeOptions) + 1;
-                            var materials = renderer.sharedMaterials;
+                            materials = renderer.sharedMaterials;
                             string[] indexNames = new string[materials.Length + 1];
                             indexNames[0] = "All";
                             for (int j = 0; j < materials.Length; j++)
@@ -275,7 +280,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                                     indexNames[j + 1] = $"({j}) {materials[j].name} ({materials[j].shader.name.Replace("/", ".")})";
                                 else
                                     indexNames[j + 1] = $"({j}) null";
-                            indexProperty.intValue = EditorGUILayout.Popup("Material", indexProperty.intValue + 1, indexNames) - 1;
+                            int selectedIndex = indexProperty.intValue + 1;
+                            selectedIndex = EditorGUILayout.Popup("Material", selectedIndex, indexNames) - 1;
+                            indexProperty.intValue = selectedIndex;
+                            selectedShader = selectedIndex > 0 && selectedIndex <= materials.Length ? materials[selectedIndex - 1].shader : null;
                             showMaterialOptions = true;
                         } else if (targetProperty.objectReferenceValue is RawImage) {
                             mode = 4;
@@ -294,7 +302,29 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         if (showMaterialOptions) {
                             var nameProperty = screenTargetPropertyNamesProperty.GetArrayElementAtIndex(i);
                             var avProProperty = avProPropertyNamesProperty.GetArrayElementAtIndex(i);
-                            EditorGUILayout.PropertyField(nameProperty, GetTempContent("Video Texture Property Name", "The name of the property in material to set the video texture."));
+                            using (new EditorGUILayout.HorizontalScope()) {
+                                EditorGUILayout.PropertyField(nameProperty, GetTempContent("Video Texture Property Name", "The name of the property in material to set the video texture."));
+                                var size = EditorStyles.miniButton.CalcSize(dropDownIcon);
+                                var buttonRect = EditorGUILayout.GetControlRect(false, size.y, EditorStyles.miniButton, GUILayout.Width(size.x));
+                                using (new EditorGUI.DisabledScope(selectedShader == null && (materials == null || materials.Length == 0))) {
+                                    if (GUI.Button(buttonRect, dropDownIcon, EditorStyles.miniButton)) {
+                                        var menu = new GenericMenu();
+                                        if (selectedShader != null)
+                                            AppendShaderPropertiesToMenu(menu, selectedShader, nameProperty);
+                                        else {
+                                            var shaderSet = new HashSet<Shader>();
+                                            for (int j = 0; j < materials.Length; j++) {
+                                                var material = materials[j];
+                                                if (material == null) continue;
+                                                shaderSet.Add(material.shader);
+                                            }
+                                            foreach (var shader in shaderSet)
+                                                AppendShaderPropertiesToMenu(menu, shader, nameProperty);
+                                        }
+                                        menu.DropDown(buttonRect);
+                                    }
+                                }
+                            }
                             using (var changed = new EditorGUI.ChangeCheckScope()) {
                                 useST = EditorGUILayout.Toggle(GetTempContent("Use Scale Offset", "Will use scale offset (_Texture_ST) to adjust the texture if it is flipped upside-down."), useST);
                                 if (!useST) EditorGUILayout.PropertyField(avProProperty, GetTempContent("AVPro Flag Property Name", "If it is using AVPro player, this property value will set to 1, otherwise 0."));
@@ -344,6 +374,24 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
             }
             EditorGUILayout.Space();
+        }
+
+        static void SetValue(object entry) {
+            (SerializedProperty prop, string value) = ((SerializedProperty, string))entry;
+            prop.stringValue = value;
+            prop.serializedObject.ApplyModifiedProperties();
+        }
+
+        static void AppendShaderPropertiesToMenu(GenericMenu menu, Shader shader, SerializedProperty property) {
+            int count = ShaderUtil.GetPropertyCount(shader);
+            for (int j = 0; j < count; j++) {
+                if (ShaderUtil.GetPropertyType(shader, j) != ShaderUtil.ShaderPropertyType.TexEnv) continue;
+                var propertyName = ShaderUtil.GetPropertyName(shader, j);
+                menu.AddItem(
+                    new GUIContent($"{ShaderUtil.GetPropertyDescription(shader, j)} ({propertyName})"),
+                    property.stringValue == propertyName, SetValue, (property, propertyName)
+                );
+            }
         }
 
         static string FindMainTexturePropertyName(Material material) {
