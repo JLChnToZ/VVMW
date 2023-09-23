@@ -20,7 +20,7 @@ to start a new GitHub project based on this template.
 ## 🚇 Migrating Assets Package
 Full details at [Converting Assets to a VPM Package](https://vcc.docs.vrchat.com/guides/convert-unitypackage)
 
-## Working on Your Package
+## ✏️ Working on Your Package
 
 * Delete the "Packages/com.vrchat.demo-template" directory or reuse it for your own package.
   * If you reuse the package, don't forget to rename it!
@@ -31,13 +31,13 @@ Full details at [Converting Assets to a VPM Package](https://vcc.docs.vrchat.com
 * When you're ready, commit and push your changes.
 * Once you've set up the automation as described below, you can easily publish new versions.
 
-## Setting up the Automation
+## 🤖 Setting up the Automation
 
-You'll need to make a change in [release.yml](.github/workflows/release.yml):
-* Change the `packageName` property on line 10 to include the name of your package, like `packageName: "com.vrchat.demo-template"`
+Create a repository variable with the name and value described below.
+For details on how to create repository variables, see [Creating Configuration Variables for a Repository](https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-a-repository).
+Make sure you are creating a **repository variable**, and not a **repository secret**.
 
-You'll also need to make a change to [build-listing.yml](.github/workflows/build-listing.yml):
-* Change `CurrentPackageName` in line 4 from `com.vrchat.demo-template` to your own package name.
+* `PACKAGE_NAME`: the name of your package, like `com.vrchat.demo-template`.
 
 Finally, go to the "Settings" page for your repo, then choose "Pages", and look for the heading "Build and deployment". Change the "Source" dropdown from "Deploy from a branch" to "GitHub Actions".
 
@@ -57,11 +57,11 @@ You can make a release by running the [Build Release](.github/workflows/release.
 
 Whenever you make a change to a release - manually publishing it, or manually creating, editing or deleting a release, the [Build Repo Listing](.github/workflows/build-listing.yml) action will make a new index of all the releases available, and publish them as a website hosted fore free on [GitHub Pages](https://pages.github.com/). This listing can be used by the VPM to keep your package up to date, and the generated index page can serve as a simple landing page with info for your package. The URL for your package will be in the format `https://username.github.io/repo-name`.
 
-## 🏠 Customizing the Landing Page
+## 🏠 Customizing the Landing Page (Optional)
 
 The action which rebuilds the listing also publishes a landing page. The source for this page is in `Website/index.html`. The automation system uses [Scriban](https://github.com/scriban/scriban) to fill in the objects like `{{ this }}` with information from the latest release's manifest, so it will stay up-to-date with the name, id and description that you provide there. You are welcome to modify this page however you want - just use the existing `{{ template.objects }}` to fill in that info wherever you like. The entire contents of your "Website" folder are published to your GitHub Page each time.
 
-## Technical Stuff
+## 💻 Technical Stuff
 
 You are welcome to make your own changes to the automation process to make it fit your needs, and you can create Pull Requests if you have some changes you think we should adopt. Here's some more info on the included automation:
 
