@@ -66,6 +66,7 @@ namespace JLChnToZ.VRC.VVMW {
         string[] playerNames;
         bool trustUpdated, isTrusted;
         MaterialPropertyBlock screenTargetPropertyBlock;
+        AudioSource assignedAudioSource;
 
         public string[] PlayerNames {
             get {
@@ -326,7 +327,7 @@ namespace JLChnToZ.VRC.VVMW {
             isLocalReloading = false;
             SendEvent("_OnVideoBeginLoad");
             #if AUDIOLINK_V1
-            if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaPlaying(MediaPlaying.Loading);
+            SetAudioLinkPlayBackState(MediaPlaying.Loading);
             #endif
             activeHandler.LoadUrl(url, false);
             if (RequestSync()) state = LOADING;
@@ -337,7 +338,7 @@ namespace JLChnToZ.VRC.VVMW {
             lastError = videoError;
             SendCustomEventDelayedFrames(nameof(_DeferSendErrorEvent), 0);
             #if AUDIOLINK_V1
-            if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaPlaying(MediaPlaying.Error);
+            SetAudioLinkPlayBackState(MediaPlaying.Error);
             #endif
             if (retryCount < totalRetryCount) {
                 retryCount++;
@@ -453,14 +454,13 @@ namespace JLChnToZ.VRC.VVMW {
 
         public override void OnVideoPlay() {
             SendEvent("OnVideoPlay");
-            var primaryAudioSource = activeHandler.PrimaryAudioSource;
+            assignedAudioSource = activeHandler.PrimaryAudioSource;
             if (audioLink != null) {
-                if (primaryAudioSource != null)
-                    audioLink.SetProgramVariable("audioSource", primaryAudioSource);
+                if (assignedAudioSource != null)
+                    audioLink.SetProgramVariable("audioSource", assignedAudioSource);
                 #if AUDIOLINK_V1
-                ((AudioLink.AudioLink)audioLink).SetMediaPlaying(
-                    float.IsInfinity(activeHandler.Duration) ? MediaPlaying.Streaming : MediaPlaying.Playing
-                );
+                float duration = activeHandler.Duration;
+                SetAudioLinkPlayBackState(duration <= 0 || float.IsInfinity(duration) ? MediaPlaying.Streaming : MediaPlaying.Playing);
                 #endif
             }
             if (!synced || !Networking.IsOwner(gameObject) || isLocalReloading) return;
@@ -471,7 +471,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override void OnVideoPause() {
             SendEvent("OnVideoPause");
             #if AUDIOLINK_V1
-            if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaPlaying(MediaPlaying.Paused);
+            SetAudioLinkPlayBackState(MediaPlaying.Paused);
             #endif
             if (!synced || !Networking.IsOwner(gameObject) || isLocalReloading) return;
             state = PAUSED;
@@ -751,7 +751,14 @@ namespace JLChnToZ.VRC.VVMW {
         bool IsAudioLinked() {
             if (audioLink == null) return false;
             var settedAudioSource = ((AudioLink.AudioLink)audioLink).audioSource;
-            return settedAudioSource == null || (activeHandler != null && settedAudioSource == activeHandler.PrimaryAudioSource);
+            return settedAudioSource == null || settedAudioSource == assignedAudioSource;
+        }
+
+        void SetAudioLinkPlayBackState(MediaPlaying state) {
+            if (IsAudioLinked()) {
+                ((AudioLink.AudioLink)audioLink).autoSetMediaState = false;
+                ((AudioLink.AudioLink)audioLink).SetMediaPlaying(state);
+            }
         }
 
         public void _SyncAudioLink() {
