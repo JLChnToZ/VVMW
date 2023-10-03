@@ -5,6 +5,9 @@ using UnityEngine.UI;
 using VRC.SDKBase;
 using VRC.SDK3.Components.Video;
 using VRC.Udon.Common.Interfaces;
+#if AUDIOLINK_V1
+using AudioLink;
+#endif
 
 namespace JLChnToZ.VRC.VVMW {
 
@@ -58,7 +61,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] UdonSharpBehaviour audioLink;
         VideoPlayerHandler activeHandler;
         int retryCount = 0;
-        bool isLoading, isLocalReloading, isResyncTime, isError;
+        bool isLoading, isLocalReloading, isResyncTime, isError, isSyncAudioLink;
         VideoError lastError = VideoError.Unknown;
         string[] playerNames;
         bool trustUpdated, isTrusted;
@@ -117,6 +120,22 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        #if AUDIOLINK_V1
+        public AudioLink.AudioLink AudioLink
+        #else
+        public UdonSharpBehaviour AudioLink
+        #endif
+        {
+            get {
+                #if AUDIOLINK_V1
+                if (!IsAudioLinked()) return null;
+                return (AudioLink.AudioLink)audioLink;
+                #else
+                return audioLink;
+                #endif
+            }
+        }
+
         void UpdateVolume() {
             var volume = defaultMuted ? 0 : defaultVolume * defaultVolume; // Volume is not linear
             if (audioSources != null)
@@ -126,6 +145,9 @@ namespace JLChnToZ.VRC.VVMW {
                     audioSource.volume = volume;
                 }
             SendEvent("_OnVolumeChange");
+            #if AUDIOLINK_V1
+            if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaVolume(volume);
+            #endif
         }
 
         public bool Loop {
@@ -136,6 +158,7 @@ namespace JLChnToZ.VRC.VVMW {
                 if (activeHandler != null) activeHandler.Loop = value;
                 if (synced && wasLoop != value && Networking.IsOwner(gameObject))
                     RequestSerialization();
+                if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaLoop(value ? MediaLoop.LoopOne : MediaLoop.None);
             }
         }
 
@@ -302,6 +325,9 @@ namespace JLChnToZ.VRC.VVMW {
             isLoading = true;
             isLocalReloading = false;
             SendEvent("_OnVideoBeginLoad");
+            #if AUDIOLINK_V1
+            if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaPlaying(MediaPlaying.Loading);
+            #endif
             activeHandler.LoadUrl(url, false);
             if (RequestSync()) state = LOADING;
         }
@@ -310,6 +336,9 @@ namespace JLChnToZ.VRC.VVMW {
             isError = true;
             lastError = videoError;
             SendCustomEventDelayedFrames(nameof(_DeferSendErrorEvent), 0);
+            #if AUDIOLINK_V1
+            if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaPlaying(MediaPlaying.Error);
+            #endif
             if (retryCount < totalRetryCount) {
                 retryCount++;
                 loadingUrl = localUrl;
@@ -425,8 +454,15 @@ namespace JLChnToZ.VRC.VVMW {
         public override void OnVideoPlay() {
             SendEvent("OnVideoPlay");
             var primaryAudioSource = activeHandler.PrimaryAudioSource;
-            if (audioLink != null && primaryAudioSource != null)
-                audioLink.SetProgramVariable("audioSource", primaryAudioSource);
+            if (audioLink != null) {
+                if (primaryAudioSource != null)
+                    audioLink.SetProgramVariable("audioSource", primaryAudioSource);
+                #if AUDIOLINK_V1
+                ((AudioLink.AudioLink)audioLink).SetMediaPlaying(
+                    float.IsInfinity(activeHandler.Duration) ? MediaPlaying.Streaming : MediaPlaying.Playing
+                );
+                #endif
+            }
             if (!synced || !Networking.IsOwner(gameObject) || isLocalReloading) return;
             state = PLAYING;
             StartSyncTime();
@@ -434,6 +470,9 @@ namespace JLChnToZ.VRC.VVMW {
 
         public override void OnVideoPause() {
             SendEvent("OnVideoPause");
+            #if AUDIOLINK_V1
+            if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaPlaying(MediaPlaying.Paused);
+            #endif
             if (!synced || !Networking.IsOwner(gameObject) || isLocalReloading) return;
             state = PAUSED;
             StartSyncTime();
@@ -447,6 +486,9 @@ namespace JLChnToZ.VRC.VVMW {
             localUrl = synced ? null : defaultUrl;
             trustUpdated = false;
             SendEvent("_onVideoEnd");
+            #if AUDIOLINK_V1
+            if (audioLink != null) ((AudioLink.AudioLink)audioLink).SetMediaPlaying(MediaPlaying.Stopped);
+            #endif
             _OnTextureChanged();
             if (!synced || !Networking.IsOwner(gameObject)) return;
             state = IDLE;
@@ -617,6 +659,12 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void StartSyncTime() {
+            #if AUDIOLINK_V1
+            if (!isSyncAudioLink) {
+                isSyncAudioLink = true;
+                _SyncAudioLink();
+            }
+            #endif
             if (!synced) return;
             SyncTime();
             if (!isResyncTime) {
@@ -698,5 +746,28 @@ namespace JLChnToZ.VRC.VVMW {
             RequestSerialization();
             return true;
         }
+
+        #if AUDIOLINK_V1
+        bool IsAudioLinked() {
+            if (audioLink == null) return false;
+            var settedAudioSource = ((AudioLink.AudioLink)audioLink).audioSource;
+            return settedAudioSource == null || (activeHandler != null && settedAudioSource == activeHandler.PrimaryAudioSource);
+        }
+
+        public void _SyncAudioLink() {
+            if (!gameObject.activeInHierarchy || !enabled || isLoading || isLocalReloading || activeHandler == null || !activeHandler.IsReady || !IsAudioLinked()) {
+                isSyncAudioLink = false;
+                return;
+            }
+            var duration = activeHandler.Duration;
+            if (duration <= 0 || float.IsInfinity(duration)) {
+                ((AudioLink.AudioLink)audioLink).SetMediaTime(0);
+                isSyncAudioLink = false;
+                return;
+            }
+            ((AudioLink.AudioLink)audioLink).SetMediaTime(activeHandler.Time / duration);
+            SendCustomEventDelayedFrames(nameof(_SyncAudioLink), 0);
+        }
+        #endif
     }
 }

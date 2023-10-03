@@ -2,6 +2,9 @@
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
+#if AUDIOLINK_V1
+using AudioLink;
+#endif
 
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
@@ -175,8 +178,25 @@ namespace JLChnToZ.VRC.VVMW {
             PlayPlayList(defaultShuffle && length > 0 ? UnityEngine.Random.Range(0, length) : 0);
         }
         
-        protected void UpdateState() => SendEvent("_OnUIUpdate");
-
+        protected void UpdateState() {
+            SendEvent("_OnUIUpdate");
+            #if AUDIOLINK_V1
+            var audioLink = core.AudioLink;
+            if (audioLink != null) {
+                if ((localFlags & REPEAT_ALL) != 0) {
+                    if ((localFlags & SHUFFLE) != 0)
+                        audioLink.SetMediaLoop(MediaLoop.RandomLoop);
+                    else
+                        audioLink.SetMediaLoop(MediaLoop.Loop);
+                } else if ((localFlags & REPEAT_ONE) != 0)
+                    audioLink.SetMediaLoop(MediaLoop.LoopOne);
+                else if ((localFlags & SHUFFLE) != 0)
+                    audioLink.SetMediaLoop(MediaLoop.Random);
+                else
+                    audioLink.SetMediaLoop(MediaLoop.None);
+            }
+            #endif
+        }
         public void _Play() {
             if (locked) return;
             core.Play();
