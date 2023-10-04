@@ -159,7 +159,9 @@ namespace JLChnToZ.VRC.VVMW {
                 if (activeHandler != null) activeHandler.Loop = value;
                 if (synced && wasLoop != value && Networking.IsOwner(gameObject))
                     RequestSerialization();
+                #if AUDIOLINK_V1
                 if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaLoop(value ? MediaLoop.LoopOne : MediaLoop.None);
+                #endif
             }
         }
 
