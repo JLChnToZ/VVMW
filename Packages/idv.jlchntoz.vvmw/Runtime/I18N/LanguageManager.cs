@@ -2,6 +2,7 @@
 using UdonSharp;
 using UnityEngine;
 using VRC.SDK3.Data;
+using VRC.SDKBase;
 
 namespace JLChnToZ.VRC.VVMW.I18N {
 
@@ -28,24 +29,46 @@ namespace JLChnToZ.VRC.VVMW.I18N {
 
         void Start() {
             if (VRCJson.TryDeserializeFromJson(languagePack.text, out DataToken rawLanguages) && rawLanguages.TokenType == TokenType.DataDictionary) {
+                var uiLanguage = VRCPlayerApi.GetCurrentLanguage();
                 languages = rawLanguages.DataDictionary;
                 languageKeys = new string[languages.Count];
                 languageNames = new string[languages.Count];
                 var keys = languages.GetKeys();
                 var localTimeZone = TimeZoneInfo.Local.Id;
+                int hasMatchingLanguage = 0;
                 for (int i = 0, count = keys.Count; i < count; i++) {
                     var currentLanguageKey = keys[i].String;
                     languageKeys[i] = currentLanguageKey;
                     if (languages.TryGetValue(currentLanguageKey, TokenType.DataDictionary, out DataToken language)) {
-                        if (language.DataDictionary.TryGetValue("_timezone", out DataToken timezoneToken))
-                            switch (timezoneToken.TokenType) {
+                        if (hasMatchingLanguage < 2 && language.DataDictionary.TryGetValue("_vrclang", out DataToken langToken)) {
+                            switch (langToken.TokenType) {
                                 case TokenType.String:
-                                    if (timezoneToken.String == localTimeZone)
+                                    if (langToken.String == uiLanguage) {
                                         languageKey = currentLanguageKey;
+                                        hasMatchingLanguage = 2;
+                                    }
                                     break;
                                 case TokenType.DataList:
-                                    if (timezoneToken.DataList.Contains(localTimeZone))
+                                    if (langToken.DataList.Contains(uiLanguage)) {
                                         languageKey = currentLanguageKey;
+                                        hasMatchingLanguage = 2;
+                                    }
+                                    break;
+                            }
+                        }
+                        if (hasMatchingLanguage < 1 && language.DataDictionary.TryGetValue("_timezone", out DataToken timezoneToken))
+                            switch (timezoneToken.TokenType) {
+                                case TokenType.String:
+                                    if (timezoneToken.String == localTimeZone) {
+                                        languageKey = currentLanguageKey;
+                                        hasMatchingLanguage = 1;
+                                    }
+                                    break;
+                                case TokenType.DataList:
+                                    if (timezoneToken.DataList.Contains(localTimeZone)) {
+                                        languageKey = currentLanguageKey;
+                                        hasMatchingLanguage = 1;
+                                    }
                                     break;
                             }
                         if (language.DataDictionary.TryGetValue("_name", TokenType.String, out DataToken nameToken)) {
