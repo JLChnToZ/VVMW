@@ -25,6 +25,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty defaultMutedProperty;
         SerializedProperty loopProperty;
         SerializedProperty audioLinkProperty;
+        SerializedProperty yttlManagerProperty;
         SerializedProperty targetsProperty;
         SerializedProperty defaultTextureProperty;
         SerializedProperty screenTargetsProperty;
@@ -56,6 +57,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             defaultMutedProperty = serializedObject.FindProperty("defaultMuted");
             loopProperty = serializedObject.FindProperty("loop");
             audioLinkProperty = serializedObject.FindProperty("audioLink");
+            yttlManagerProperty = serializedObject.FindProperty("yttl");
             screenTargetsProperty = serializedObject.FindProperty("screenTargets");
             screenTargetModesProperty = serializedObject.FindProperty("screenTargetModes");
             screenTargetIndecesProperty = serializedObject.FindProperty("screenTargetIndeces");
@@ -126,6 +128,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(defaultMutedProperty);
             EditorGUILayout.PropertyField(syncedProperty);
             EditorGUILayout.PropertyField(audioLinkProperty);
+            EditorGUILayout.PropertyField(yttlManagerProperty);
             targetsList.list.DoLayoutList();
             serializedObject.ApplyModifiedProperties();
         }

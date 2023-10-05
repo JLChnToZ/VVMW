@@ -654,8 +654,12 @@ namespace JLChnToZ.VRC.VVMW {
                     timeText.text = languageManager.GetLocale("TimeIdleFormat");
                 if (durationText != null)
                     durationText.text = languageManager.GetLocale("TimeIdleFormat");
-                if (statusText != null)
-                    statusText.text = languageManager.GetLocale("Streaming");
+                if (statusText != null) {
+                    if (!string.IsNullOrEmpty(core.title))
+                        statusText.text = string.Format(languageManager.GetLocale("StreamingWithTitle"), core.title, core.author, core.description, core.viewCount);
+                    else
+                        statusText.text = languageManager.GetLocale("Streaming");
+                }
                 if (progressSlider != null) {
                     progressSlider.SetValueWithoutNotify(1);
                     progressSlider.interactable = false;
@@ -671,8 +675,14 @@ namespace JLChnToZ.VRC.VVMW {
                     durationText.text = string.Format(languageManager.GetLocale("TimeFormat"), durationTS);
                 if (timeText != null)
                     timeText.text = string.Format(languageManager.GetLocale("TimeFormat"), time);
-                if (statusText != null)
-                    statusText.text = string.Format(languageManager.GetLocale(core.IsPaused ? "Paused" : "Playing"), time, durationTS);
+                if (statusText != null) {
+                    if (core.IsPaused)
+                        statusText.text = string.Format(languageManager.GetLocale("Paused"), time, durationTS);
+                    else if (!string.IsNullOrEmpty(core.title))
+                        statusText.text = string.Format(languageManager.GetLocale("PlayingWithTitle"), time, durationTS, core.title, core.author, core.description, core.viewCount);
+                    else
+                        statusText.text = string.Format(languageManager.GetLocale("Playing"), time, durationTS);
+                }
                 if (progressSlider != null) {
                     progressSlider.SetValueWithoutNotify(core.Progress);
                     progressSlider.interactable = true;

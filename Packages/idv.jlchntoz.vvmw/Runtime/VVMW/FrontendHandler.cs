@@ -430,6 +430,7 @@ namespace JLChnToZ.VRC.VVMW {
                 localPlayListOrder = newOrderList;
             }
             core.PlayUrlMP(playListUrls[localPlayingIndex], playListUrlsQuest[localPlayingIndex], playListPlayerIndex[localPlayingIndex]);
+            core.SetTitle(playListEntryTitles[localPlayingIndex], playListTitles[localPlayListIndex - 1]);
             RequestSync();
             UpdateState();
         }
@@ -471,5 +472,7 @@ namespace JLChnToZ.VRC.VVMW {
             RequestSerialization();
             return true;
         }
+
+        public void _OnTitleData() => UpdateState();
     }
 }

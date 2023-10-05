@@ -5,6 +5,8 @@ using UnityEngine.UI;
 using VRC.SDKBase;
 using VRC.SDK3.Components.Video;
 using VRC.Udon.Common.Interfaces;
+using VVMW.ThirdParties.Yttl;
+
 #if AUDIOLINK_V1
 using AudioLink;
 #endif
@@ -59,6 +61,8 @@ namespace JLChnToZ.VRC.VVMW {
         bool loop;
         [Locatable("AudioLink.AudioLink, AudioLink", "VRCAudioLink.AudioLink, AudioLink")]
         [SerializeField] UdonSharpBehaviour audioLink;
+        [Tooltip("YTTL (Video title viewer) integration")]
+        [SerializeField, Locatable] YttlManager yttl;
         VideoPlayerHandler activeHandler;
         int retryCount = 0;
         bool isLoading, isLocalReloading, isResyncTime, isError, isSyncAudioLink;
@@ -67,6 +71,17 @@ namespace JLChnToZ.VRC.VVMW {
         bool trustUpdated, isTrusted;
         MaterialPropertyBlock screenTargetPropertyBlock;
         AudioSource assignedAudioSource;
+
+        // Yttl Receivers
+        [NonSerialized] public VRCUrl url;
+        [NonSerialized, FieldChangeCallback(nameof(Author))]
+        public string author = "";
+        [NonSerialized, FieldChangeCallback(nameof(Title))]
+        public string title = "";
+        [NonSerialized, FieldChangeCallback(nameof(ViewCount))]
+        public string viewCount = "";
+        [NonSerialized, FieldChangeCallback(nameof(Description))]
+        public string description = "";
 
         public string[] PlayerNames {
             get {
@@ -242,6 +257,38 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        string Title {
+            get => title;
+            set {
+                if (url == null || !url.Equals(localUrl)) return;
+                title = value;
+            }
+        }
+
+        string Author {
+            get => author;
+            set {
+                if (url == null || !url.Equals(localUrl)) return;
+                author = value;
+            }
+        }
+
+        string ViewCount {
+            get => viewCount;
+            set {
+                if (url == null || !url.Equals(localUrl)) return;
+                viewCount = value;
+            }
+        }
+
+        string Description {
+            get => description;
+            set {
+                if (url == null || !url.Equals(localUrl)) return;
+                description = value;
+            }
+        }
+
         bool ValidateTrusted() {
             if (!Utilities.IsValid(localUrl)) return false;
             var url = localUrl.Get();
@@ -333,6 +380,15 @@ namespace JLChnToZ.VRC.VVMW {
             #endif
             activeHandler.LoadUrl(url, false);
             if (RequestSync()) state = LOADING;
+            if (yttl != null) {
+                if (!url.Equals(this.url)) {
+                    author = "";
+                    title = "";
+                    viewCount = "";
+                    description = "";
+                }
+                yttl.LoadData(url, this);
+            }
         }
 
         public override void OnVideoError(VideoError videoError) {
@@ -778,5 +834,16 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomEventDelayedFrames(nameof(_SyncAudioLink), 0);
         }
         #endif
+
+        public void Yttl_OnDataLoaded() => SendEvent("_OnTitleData");
+
+        public void SetTitle(string title, string author) {
+            url = VRCUrl.Empty;
+            this.title = title;
+            this.author = author;
+            description = "";
+            viewCount = "";
+            SendEvent("_OnTitleData");
+        }
     }
 }
