@@ -414,6 +414,7 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                     if (durationText != null) durationText.text = languageManager.GetLocale("TimeIdleFormat");
                     if (timeText != null) timeText.text = languageManager.GetLocale("TimeIdleFormat");
+                    canStop = unlocked;
                     break;
                 case 2: // Error
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
@@ -432,6 +433,7 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                     if (durationText != null) durationText.text = "";
                     if (timeText != null) timeText.text = "";
+                    canStop = unlocked;
                     break;
                 case 3: // Ready
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(true);

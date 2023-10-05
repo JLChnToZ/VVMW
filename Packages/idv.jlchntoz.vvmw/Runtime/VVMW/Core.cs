@@ -470,8 +470,17 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void Stop() {
-            if (activeHandler == null) return;
-            activeHandler.Stop();
+            var handler = activeHandler;
+            if (handler == null) return;
+            handler.Stop();
+            if (!handler.IsReady) { // Cancel loading if it is still loading
+                ActivePlayer = 0;
+                loadingUrl = null;
+                lastError = VideoError.Unknown;
+                isLoading = false;
+                isLocalReloading = false;
+                isError = false;
+            }
             RequestSync();
         }
 

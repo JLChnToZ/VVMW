@@ -211,19 +211,24 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _Stop() {
             if (locked) return;
+            if (core.ActivePlayer == 0 || core.State < 3) // Manually trigger UI update
+                SendCustomEventDelayedFrames(nameof(_TriggerUIUpdate), 0);
             core.Stop();
             localQueuedUrls = new VRCUrl[0];
             localQueuedPlayerIndex = new byte[0];
             localPlayListOrder = new ushort[0];
+            localQueuedTitles = new string[0];
             localPlayingIndex = 0;
             localPlayListIndex = 0;
             RequestSync();
             SendEvent("_OnStop");
         }
 
+        public void _TriggerUIUpdate() => SendEvent("_OnUIUpdate");
+
         public void _Skip() {
             if (locked) return;
-            if (core.ActivePlayer == 0) { // Stop() will not work if there is no active player (nothing is playing)
+            if (core.ActivePlayer == 0 || core.State < 3) { // Stop() will not work if there is no active player (nothing is playing)
                 if (!Networking.IsOwner(gameObject))
                     Networking.SetOwner(Networking.LocalPlayer, gameObject);
                 SendCustomEventDelayedFrames(nameof(_PlayNext), 0);
