@@ -26,6 +26,7 @@ Welcome! VizVid is a general-purpose video player wrapper for use in VRChat. It 
 	* [Udon Auth](#udon-auth)
 	* [Audio Link](#audio-link)
 	* [LTCGI](#ltcgi)
+	* [YTTL](#yttl)
 
 ## How to install?
 In the package, we have provide 2 pre-configurated prefabs: On-Screen Controls and Separated Controls:  
