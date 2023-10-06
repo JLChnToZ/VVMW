@@ -274,3 +274,8 @@ You have 2 ways to do this:
 ### LTCGI
 This player provides basic integration to [LTCGI](https://ltcgi.dev/). To use with LTCGI, use the provided "VideoCRT" CustomRenderTexture in Materials folder as video texture input inside LTCGI controller, then assigns this CustomRenderTexture to "Add Video Screen Target" option in the VVMW core, other then that just follow LTCGI documentation ([this](https://ltcgi.dev/Getting%20Started/Setup/Controller) and [this](https://ltcgi.dev/Getting%20Started/Setup/LTCGI_Screen)).  
 ![_](.tutorial/add-ltcgi.png)
+
+### YTTL
+[YTTL (Video title viewer)](https://65536.booth.pm/items/4588619) is an addon for providing ability to display titles from several known sources (e.g. YouTube, Twitch, SoundCloud) in video players, it was created by ureishi and it is licensed with CC0. However, installing it on video players that are not originally supported, including VizVid, can be a bit tricky if you're not familiar with the technical side of things. To make it easier, we've included a modified version of YTTL, but you'll still need to follow a few steps to enable it:
+1. Go to `Packages > VizVid > Prefabs > Third-Parties > YTTL` to find the "YTTL Manager" prefab. Have a reminder that each world would only need 1 YTTL Manager, no matter how many video players/UIs you have.
+2. Select VVMW game object, in inspector, click the "Find" button beside the yttl field.
