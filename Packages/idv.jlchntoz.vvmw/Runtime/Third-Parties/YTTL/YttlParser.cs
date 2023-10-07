@@ -1,7 +1,7 @@
 /*
  * YTTL - Video title viewer by ureishi
  * https://65536.booth.pm/items/4588619
- * License: CC0 -  https://creativecommons.org/publicdomain/zero/1.0/deed.ja
+ * License: CC0 - https://creativecommons.org/publicdomain/zero/1.0/deed
  */
 using UdonSharp;
 using UnityEngine;

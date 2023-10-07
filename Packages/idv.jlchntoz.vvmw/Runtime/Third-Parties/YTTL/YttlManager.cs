@@ -1,7 +1,7 @@
 /*
  * YTTL - Video title viewer by ureishi
  * https://65536.booth.pm/items/4588619
- * License: CC0 -  https://creativecommons.org/publicdomain/zero/1.0/deed.ja
+ * License: CC0 - https://creativecommons.org/publicdomain/zero/1.0/deed
  * Modified by Vistanz
  */
 using UdonSharp;
@@ -29,8 +29,7 @@ namespace VVMW.ThirdParties.Yttl {
             }
 
             if (cache == null) cache = new DataDictionary();
-
-            if (cache.TryGetValue(urlStr, TokenType.DataDictionary, out var cacheToken)) {
+            else if (cache.TryGetValue(urlStr, TokenType.DataDictionary, out var cacheToken)) {
                 Debug.Log("[YTTL] Found cache");
                 GetAllData(cacheToken.DataDictionary, out var author, out var title, out var viewCount, out var description);
                 listener.SetProgramVariable(nameof(url), url);
@@ -42,9 +41,16 @@ namespace VVMW.ThirdParties.Yttl {
                 return;
             }
 
-            if (listeners == null) listeners = new DataDictionary();
+            bool isRequesting;
+            DataToken token;
 
-            bool isRequesting = listeners.TryGetValue(urlStr, TokenType.DataList, out var token);
+            if (listeners == null) {
+                listeners = new DataDictionary();
+                isRequesting = false;
+                token = default;
+            } else
+                isRequesting = listeners.TryGetValue(urlStr, TokenType.DataList, out token);
+
             if (!isRequesting) {
                 token = new DataList();
                 listeners[urlStr] = token;
@@ -117,9 +123,8 @@ namespace VVMW.ThirdParties.Yttl {
 
             if (resultDict.TryGetValue("viewCount", TokenType.String, out var viewCountToken)) {
                 viewCount = viewCountToken.String;
-                if (int.TryParse(viewCount, out var partInt)) {
+                if (int.TryParse(viewCount, out var partInt))
                     viewCount = $"{partInt:#,0}";
-                }
                 Debug.Log($"[YTTL] {nameof(viewCount)}: {viewCount}");
             }
 
