@@ -278,5 +278,5 @@ This player provides basic integration to [LTCGI](https://ltcgi.dev/). To use wi
 
 ### YTTL
 [YTTL (Video title viewer)](https://65536.booth.pm/items/4588619) is an addon for providing ability to display titles from several known sources (e.g. YouTube, Twitch, SoundCloud) in video players, it was created by ureishi and it is licensed with CC0. However, installing it on video players that are not originally supported, including VizVid, can be a bit tricky if you're not familiar with the technical side of things. To make it easier, we've included a modified version of YTTL, but you'll still need to follow a few steps to enable it:
-1. Go to `Packages > VizVid > Prefabs > Third-Parties > YTTL` to find the "YTTL Manager" prefab. Have a reminder that each world would only need 1 YTTL Manager, no matter how many video players/UIs you have.
+1. Go to `Packages > VizVid > Prefabs > Third-Parties > YTTL` to find the "YTTL Manager" prefab and put it to your world scene. Have a reminder that each world shold only required to have 1 YTTL Manager, no matter how many video players/UIs you have.
 2. Select VVMW game object, in inspector, click the "Find" button beside the yttl field.
