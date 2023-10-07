@@ -421,14 +421,18 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             ImportPlayListGroupFromKienL(mb, creaeNewPlayList);
                             break;
                         case "Kinel.VideoPlayer.Scripts.KinelPlaylistScript":
-                            ImportPlayListFromKienL(mb, creaeNewPlayList);
+                            ImportPlayListFromKinel(mb, creaeNewPlayList);
                             break;
                         case "HoshinoLabs.IwaSync3.Playlist":
                             ImportPlayListFromIwaSync3(mb, creaeNewPlayList);
                             break;
                         case "ArchiTech.Playlist":
                         case "ArchiTech.PlaylistData":
-                            ImportPlayListFromProTV(mb, creaeNewPlayList);
+                            ImportPlayListFromProTV(mb, 2, creaeNewPlayList);
+                            break;
+                        case "ArchiTech.ProTV.Playlist":
+                        case "ArchiTech.ProTV.PlaylistData":
+                            ImportPlayListFromProTV(mb, 3, creaeNewPlayList);
                             break;
                         case "JTPlaylist.Udon.JTPlaylist":
                             ImportPlayListFromJT(mb, creaeNewPlayList);
@@ -454,11 +458,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             return playList;
         }
 
-        void ImportPlayListFromProTV(dynamic proTVPlayList, bool newPlayList = false) {
+        void ImportPlayListFromProTV(dynamic proTVPlayList, int version, bool newPlayList = false) {
             var playList = GetOrCreatePlayList("Imported Play List", newPlayList);
             try {
-                VRCUrl[] urls = proTVPlayList.urls;
-                VRCUrl[] alts = proTVPlayList.alts;
+                VRCUrl[] urls = version >= 3 ? proTVPlayList.mainUrls : proTVPlayList.urls;
+                VRCUrl[] alts = version >= 3 ? proTVPlayList.alternateUrls : proTVPlayList.alts;
                 string[] titles = proTVPlayList.titles;
                 for (int i = 0; i < urls.Length; i++) {
                     var url = urls[i];
@@ -507,7 +511,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     var playList = GetOrCreatePlayList(playListName, true);
                     try {
                         var kinelPlaylistScript = playListCanvas.GetComponentInParent(Type.GetType("KinelPlaylistScript, Assembly-CSharp"));
-                        ImportPlayListFromKienL(kinelPlaylistScript, newPlayList, playListName);
+                        ImportPlayListFromKinel(kinelPlaylistScript, newPlayList, playListName);
                     } catch (Exception ex) {
                         Debug.LogException(ex);
                     }
@@ -517,7 +521,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
         }
 
-        void ImportPlayListFromKienL(dynamic kinelPlayList, bool newPlayList = false, string playListName = null) {
+        void ImportPlayListFromKinel(dynamic kinelPlayList, bool newPlayList = false, string playListName = null) {
             var playList = GetOrCreatePlayList(null ?? "Imported Play List", newPlayList);
             try {
                 foreach (var videoData in kinelPlayList.videoDatas) {
