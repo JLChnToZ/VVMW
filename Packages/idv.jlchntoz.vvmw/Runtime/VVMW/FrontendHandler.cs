@@ -285,6 +285,11 @@ namespace JLChnToZ.VRC.VVMW {
             localQueuedUrls = queuedUrls;
             localQueuedPlayerIndex = queuedPlayerIndex;
             localPlayListOrder = playListOrder;
+            if (localQueuedTitles == null || localQueuedTitles.Length != queuedUrls.Length) {
+                localQueuedTitles = new string[queuedUrls.Length];
+                for (int i = 0; i < localQueuedTitles.Length; i++)
+                    localQueuedTitles[i] = queuedUrls[i].Get();
+            }
             localFlags = flags;
             localPlayListIndex = playListIndex;
             localPlayingIndex = playingIndex;
@@ -299,6 +304,7 @@ namespace JLChnToZ.VRC.VVMW {
                 localPlayListIndex = 0;
                 localQueuedUrls = null;
                 localQueuedPlayerIndex = null;
+                localQueuedTitles = null;
                 core.Stop();
                 shouldRequestSync = true;
             }
