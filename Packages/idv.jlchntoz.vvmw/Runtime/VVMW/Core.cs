@@ -697,6 +697,13 @@ namespace JLChnToZ.VRC.VVMW {
                 trustUpdated = false;
                 SendEvent("_OnVideoBeginLoad");
                 activeHandler.LoadUrl(url, false);
+                if (yttl != null) {
+                    author = "";
+                    title = "";
+                    viewCount = "";
+                    description = "";
+                    yttl.LoadData(url, this);
+                }
             }
             localUrl = url;
             if (activeHandler != null && activeHandler.IsReady) {

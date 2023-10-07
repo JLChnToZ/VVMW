@@ -291,6 +291,8 @@ namespace JLChnToZ.VRC.VVMW {
                     localQueuedTitles[i] = queuedUrls[i].Get();
             }
             localFlags = flags;
+            if (playListIndex > 0 && (localPlayListIndex != playListIndex || localPlayingIndex != playingIndex))
+                core.SetTitle(playListEntryTitles[localPlayingIndex], playListTitles[playListIndex - 1]);
             localPlayListIndex = playListIndex;
             localPlayingIndex = playingIndex;
             core.Loop = RepeatOne;
