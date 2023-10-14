@@ -657,8 +657,8 @@ namespace JLChnToZ.VRC.VVMW {
                 if (durationText != null)
                     durationText.text = languageManager.GetLocale("TimeIdleFormat");
                 if (statusText != null) {
-                    if (!string.IsNullOrEmpty(core.title))
-                        statusText.text = string.Format(languageManager.GetLocale("StreamingWithTitle"), core.title, core.author, core.description, core.viewCount);
+                    if (!string.IsNullOrEmpty(core.title) || !string.IsNullOrEmpty(core.author))
+                        statusText.text = string.Format(languageManager.GetLocale("StreamingWithTitle"), core.title, core.author);
                     else
                         statusText.text = languageManager.GetLocale("Streaming");
                 }
@@ -680,8 +680,8 @@ namespace JLChnToZ.VRC.VVMW {
                 if (statusText != null) {
                     if (core.IsPaused)
                         statusText.text = string.Format(languageManager.GetLocale("Paused"), time, durationTS);
-                    else if (!string.IsNullOrEmpty(core.title))
-                        statusText.text = string.Format(languageManager.GetLocale("PlayingWithTitle"), time, durationTS, core.title, core.author, core.description, core.viewCount);
+                    else if (!string.IsNullOrEmpty(core.title) || !string.IsNullOrEmpty(core.author))
+                        statusText.text = string.Format(languageManager.GetLocale("PlayingWithTitle"), time, durationTS, core.title, core.author);
                     else
                         statusText.text = string.Format(languageManager.GetLocale("Playing"), time, durationTS);
                 }

@@ -165,7 +165,8 @@ namespace JLChnToZ.VRC.VVMW {
                     RequestSync();
                     UpdateState();
                 }
-            }
+            } else
+                localPlayListIndex = 0; // Wait for deserialization
         }
 
         public void _AutoPlay() {
@@ -292,7 +293,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             localFlags = flags;
             if (playListIndex > 0 && (localPlayListIndex != playListIndex || localPlayingIndex != playingIndex))
-                core.SetTitle(playListEntryTitles[localPlayingIndex], playListTitles[playListIndex - 1]);
+                core.SetTitle(playListEntryTitles[playingIndex], playListTitles[playListIndex - 1]);
             localPlayListIndex = playListIndex;
             localPlayingIndex = playingIndex;
             core.Loop = RepeatOne;
