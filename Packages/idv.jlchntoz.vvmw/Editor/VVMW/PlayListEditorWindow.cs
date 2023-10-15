@@ -701,7 +701,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         async UniTask FetchPlayList(string url) {
             var ytPlaylist = await YtdlpResolver.GetPlayLists(url);
             var playList = GetOrCreatePlayList("Imported Play List");
-            foreach (var entry in ytPlaylist)
+            foreach (var entry in ytPlaylist.Where(e => e.title != "[Deleted video]" && e.title != "[Private video]"))
                 playList.entries.Add(new PlayListEntry {
                     title = entry.title,
                     url = entry.url,
