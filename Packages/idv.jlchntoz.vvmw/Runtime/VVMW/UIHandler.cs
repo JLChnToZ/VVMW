@@ -30,6 +30,7 @@ namespace JLChnToZ.VRC.VVMW {
         [BindEvent(nameof(Button.onClick), nameof(_InputConfirmClick))]
         [SerializeField] Button urlInputConfirmButton;
         [SerializeField] Text selectdPlayerText;
+        [SerializeField] Text queueModeText;
         [SerializeField] GameObject otherObjectUnderUrlInput;
 
         [Header("Playback Controls")]
@@ -523,6 +524,11 @@ namespace JLChnToZ.VRC.VVMW {
                 UpdatePlayList();
                 if (playNextIndicator != null)
                     playNextIndicator.SetActive(!isShuffle && SelectedPlayListIndex == 0 && handler.PlayListIndex == 0 && handler.PendingCount > 0);
+                if (queueModeText != null)
+                    queueModeText.text = languageManager.GetLocale(
+                        handler.PlayListIndex == 0 && handler.HasQueueList && (core.IsReady || core.IsLoading || handler.QueueUrls.Length > 0) ?
+                        "QueueModeNext" : "QueueModeInstant"
+                    );
             } else {
                 bool isRepeatOne = core.Loop;
                 if (repeatOffButton != null) repeatOffButton.gameObject.SetActive(!isRepeatOne);
@@ -533,6 +539,7 @@ namespace JLChnToZ.VRC.VVMW {
                     shuffleOffButton.interactable = false;
                 }
                 if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(false);
+                if (queueModeText != null) queueModeText.text = languageManager.GetLocale("QueueModeInstant");
             }
         }
 
