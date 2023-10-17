@@ -18,8 +18,9 @@ Welcome! VizVid is a general-purpose video player wrapper for use in VRChat. It 
 - Custom shader with various display modes built-in (Stretch, Contain, Cover, Stereographic Video Source), can be configurated on material options
 - Localization system with auto language detection (English, Traditional Chinese, Japanese & Korean)
 - Locked UI with [Udon Auth](https://xtl.booth.pm/items/3826907).
-- Basic [Audio Link](https://github.com/llealloo/vrc-udon-audio-link) support, which will auto switch audio source when playing.
+- Basic [Audio Link](https://github.com/llealloo/vrc-udon-audio-link) support, which will auto switch audio source when playing, also reports player state (playback progress, volume, loop, shuffle, etc.) on newer version (1.0.0+).
 - Basic [LTCGI](https://ltcgi.dev/) integration, provided CustomRenderTexture for use.
+- Bundled a modified version of [YTTL](https://65536.booth.pm/items/4588619) to display video title from known sources.
 - Simple API for [your own udons] integration.
 
 ## Demo
