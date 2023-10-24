@@ -28,7 +28,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] GameObject desktopModeCanvas;
         [SerializeField] GameObject vrModeCanvas;
         Transform vrModeCanvasTransform;
-        [SerializeField] GameObject vrModeOptionsCanvas;
+        [SerializeField] GameObject vrModeOptionsCanvas, desktopModeOptionsCanvas;
         [BindEvent(nameof(Button.onClick), nameof(_OnReload))]
         [SerializeField] Button reloadButton;
         [BindEvent(nameof(Toggle.onValueChanged), nameof(_OnHandToggle))]
@@ -66,6 +66,7 @@ namespace JLChnToZ.VRC.VVMW {
             vrModeCanvas.SetActive(vrMode);
             vrModeOptionsCanvas.SetActive(vrMode);
             desktopModeCanvas.SetActive(!vrMode);
+            desktopModeOptionsCanvas.SetActive(!vrMode);
             desktopModeAnim = desktopModeCanvas.GetComponentInChildren<Animator>();
             if (Utilities.IsValid(core)) core._AddListener(this);
             _OnVolumeChange();
