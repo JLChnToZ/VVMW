@@ -43,7 +43,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         public override void OnInspectorGUI() {
             base.OnInspectorGUI();
-            if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
+            if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, false, false)) return;
             serializedObject.Update();
             EditorGUILayout.PropertyField(coreProperty);
             if (coreProperty.objectReferenceValue == null) EditorGUILayout.HelpBox("Core is not assigned.", MessageType.Error);

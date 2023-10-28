@@ -14,7 +14,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         public override void OnInspectorGUI() {
             base.OnInspectorGUI();
-            if (isUdonSharp && UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
+            if (isUdonSharp && UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, false, false)) return;
             DrawDefaultInspector();
         }
     }
@@ -30,7 +30,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         public override void OnInspectorGUI() {
             base.OnInspectorGUI();
-            if (isUdonSharp && UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
+            if (isUdonSharp && UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, false, false)) return;
             DrawDefaultInspector();
         }
     }

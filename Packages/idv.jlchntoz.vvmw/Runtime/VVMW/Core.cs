@@ -17,11 +17,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     public class Core : UdonSharpEventSender {
         const byte IDLE = 0, LOADING = 1, PLAYING = 2, PAUSED = 3;
-        // Non-exclusive list of trusted domains from VRChat documentation
-        string[] trustedUrlDomains = new [] {
-            "soundcloud.com", "facebook.com", "nicovideo.jp", "twitch.tv", "vimeo.com",
-            "youku.com", "youtube.com", "youtu.be", "mixcloud.com", "vrcdn.live", "vrcdn.video",
-        };
+        [HideInInspector, SerializeField] string[] trustedUrlDomains = new string[0]; // This list will be fetched on build, via VRChat SDK
         Vector4 normalST = new Vector4(1, 1, 0, 0), flippedST = new Vector4(1, -1, 0, 1);
         Rect normalRect = new Rect(0, 0, 1, 1), flippedRect = new Rect(0, 1, 1, -1);
         [SerializeField] VideoPlayerHandler[] playerHandlers;
@@ -331,6 +327,8 @@ namespace JLChnToZ.VRC.VVMW {
             screenTargetPropertyBlock = new MaterialPropertyBlock();
             Volume = defaultVolume;
             if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedFrames(nameof(_PlayDefaultUrl), 0);
+            // Print trusted URLs for debug
+            foreach (var domain in trustedUrlDomains) Debug.Log(domain);
         }
 
         public void _PlayDefaultUrl() {

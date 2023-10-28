@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 using UnityEditor;
 using UdonSharpEditor;
+using VRC.Core;
 using VRC.SDK3.Video.Components;
 using VRC.SDK3.Video.Components.AVPro;
 
@@ -13,6 +15,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static GUIContent tempContent;
         static readonly string[] materialModeOptions = new [] { "Property Block", "Shared Material", "Cloned Materal" };
         static GUIContent dropDownIcon;
+        SerializedProperty trustedUrlDomainsProperty;
         SerializedProperty playerHandlersProperty;
         SerializedProperty audioSourcesProperty;
         SerializedProperty defaultUrlProperty;
@@ -37,10 +40,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         ReorderableListUtils playerHandlersList, audioSourcesList, targetsList;
         string[] playerNames;
         List<bool> screenTargetVisibilityState;
+        bool showTrustUrlList;
 
         protected override void OnEnable() {
             base.OnEnable();
             if (dropDownIcon == null) dropDownIcon = EditorGUIUtility.IconContent("icon dropdown");
+            trustedUrlDomainsProperty = serializedObject.FindProperty("trustedUrlDomains");
             playerHandlersProperty = serializedObject.FindProperty("playerHandlers");
             playerHandlersList = new ReorderableListUtils(playerHandlersProperty);
             playerHandlersList.list.drawHeaderCallback = DrawPlayerHandlersListHeader;
@@ -70,11 +75,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             screenTargetVisibilityState = new List<bool>();
             for (int i = 0, count = screenTargetsProperty.arraySize; i < count; i++)
                 screenTargetVisibilityState.Add(false);
+            UpdateTrustedUrlList(target as Core);
         }
 
         public override void OnInspectorGUI() {
             base.OnInspectorGUI();
-            if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
+            if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, false, false)) return;
             serializedObject.Update();
             EditorGUILayout.PropertyField(defaultUrlProperty);
             if (!string.IsNullOrEmpty(defaultUrlProperty.FindPropertyRelative("url").stringValue)) {
@@ -129,6 +135,19 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(syncedProperty);
             EditorGUILayout.PropertyField(audioLinkProperty);
             EditorGUILayout.PropertyField(yttlManagerProperty);
+            using (new EditorGUILayout.HorizontalScope()) {
+                showTrustUrlList = EditorGUILayout.Foldout(showTrustUrlList, GetTempContent(
+                    "Trusted URL List",
+                    "The list of trusted URL domains from VRChat. This list is for display proper error message when the video URL is not trusted."
+                ), true);
+                if (GUILayout.Button("Update from VRChat", GUILayout.ExpandWidth(false)))
+                    UpdateTrustedUrlList(target as Core);
+            }
+            if (showTrustUrlList)
+                using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+                    for (int i = 0, count = trustedUrlDomainsProperty.arraySize; i < count; i++)
+                        EditorGUILayout.LabelField(trustedUrlDomainsProperty.GetArrayElementAtIndex(i).stringValue, EditorStyles.miniLabel);
+            EditorGUILayout.Space();
             targetsList.list.DoLayoutList();
             serializedObject.ApplyModifiedProperties();
         }
@@ -435,6 +454,47 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             int size = property.arraySize;
             property.arraySize++;
             property.GetArrayElementAtIndex(size).intValue = value;
+        }
+
+        [MenuItem("Tools/VVMW/Update Trusted Url List")]
+        static void UpdateTrustedUrlList() {
+            var urlList = GetTrustUrlList();
+            if (urlList == null) return;
+            foreach (var core in SceneManager.GetActiveScene().IterateAllComponents<Core>())
+                AssignTrustedUrlList(urlList, core);
+        }
+
+        static void UpdateTrustedUrlList(Core core) {
+            var urlList = GetTrustUrlList();
+            if (urlList == null) return;
+            AssignTrustedUrlList(urlList, core);
+        }
+
+        static List<string> GetTrustUrlList() {
+            var vrcsdkConfig = ConfigManager.RemoteConfig;
+            if (!vrcsdkConfig.IsInitialized()) {
+                Debug.LogWarning("[VVMW] VRCSDK config is not initialized.");
+                return null;
+            }
+            if (!vrcsdkConfig.HasKey("urlList")) {
+                Debug.LogWarning("[VVMW] Failed to fetch trusted url list.");
+                return null;
+            }
+            return vrcsdkConfig.GetList("urlList"); // Domain list with wildcard optionally
+        }
+
+        static void AssignTrustedUrlList(List<string> urlList , Core core) {
+            using (var so = new SerializedObject(core)) {
+                var trustedUrlDomainsProperty = so.FindProperty("trustedUrlDomains");
+                trustedUrlDomainsProperty.arraySize = urlList.Count;
+                for (int i = 0; i < urlList.Count; i++) {
+                    var url = urlList[i];
+                    if (url.StartsWith("*.")) url = url.Substring(2);
+                    trustedUrlDomainsProperty.GetArrayElementAtIndex(i).stringValue = url;
+                }
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+            UdonSharpEditorUtility.CopyProxyToUdon(core);
         }
     }
 }

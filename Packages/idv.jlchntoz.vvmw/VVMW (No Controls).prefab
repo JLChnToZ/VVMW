@@ -60,6 +60,7 @@ MonoBehaviour:
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: -7058936528202053670}
   targets: []
+  trustedUrlDomains: []
   playerHandlers:
   - {fileID: 3390069487340633333}
   - {fileID: 8750286140246044709}
@@ -84,6 +85,7 @@ MonoBehaviour:
   screenTargetDefaultTextures: []
   loop: 0
   audioLink: {fileID: 0}
+  yttl: {fileID: 0}
 --- !u!114 &-7058936528202053670
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -597,6 +599,12 @@ PrefabInstance:
       propertyPath: serializationData.SerializedFormat
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 6236179273397461379, guid: 545c2b36f7803b44eba81cc0cc8acf4c,
+        type: 3}
+      propertyPath: programSource
+      value: 
+      objectReference: {fileID: 11400000, guid: 441ee78a9f45d3e41bbc303833999b48,
+        type: 2}
     - target: {fileID: 6236179273397461379, guid: 545c2b36f7803b44eba81cc0cc8acf4c,
         type: 3}
       propertyPath: serializedProgramAsset

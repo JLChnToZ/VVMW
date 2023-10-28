@@ -22,7 +22,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         public override void OnInspectorGUI() {
             base.OnInspectorGUI();
-            if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(this.target)) return;
+            if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(this.target, false, false)) return;
             if (PrefabUtility.IsPartOfPrefabAsset(this.target)) {
                 EditorGUILayout.HelpBox("Please use the prefab instance in scene to edit.", MessageType.Info);
                 DrawDefaultInspector();
