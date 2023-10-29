@@ -415,6 +415,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         case "JLChnToZ.VRC.VVMW.FrontendHandler":
                             AppendPlaylist(obj);
                             break;
+                        case "UdonSharp.Video.USharpVideoPlayer":
+                            ImportPlayListFromUSharpVideo(mb, creaeNewPlayList);
+                            break;
                         case "Yamadev.YamaStream.Script.PlayList":
                             ImportPlayListFromYamaPlayer(mb, creaeNewPlayList);
                             break;
@@ -457,6 +460,26 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             PlayListSelected(playListView);
             isDirty = true;
             return playList;
+        }
+
+        void ImportPlayListFromUSharpVideo(dynamic usharpVideo, bool newPlayList = false) {
+            var playList = GetOrCreatePlayList("Imported Play List", newPlayList);
+            try {
+                VRCUrl[] urls = usharpVideo.playlist;
+                bool defaultStremMode = usharpVideo.defaultStreamMode;
+                var playerIndex = defaultStremMode ? firstAvProPlayerIndex : firstUnityPlayerIndex;
+                foreach (var url in urls) {
+                    playList.entries.Add(new PlayListEntry {
+                        title = string.Empty,
+                        url = url?.Get() ?? string.Empty,
+                        urlForQuest = string.Empty,
+                        playerIndex = playerIndex,
+                    });
+                    isDirty = true;
+                }
+            } catch (Exception ex) {
+                Debug.LogException(ex);
+            }
         }
 
         void ImportPlayListFromProTV(dynamic proTVPlayList, int version, bool newPlayList = false) {
@@ -523,7 +546,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void ImportPlayListFromKinel(dynamic kinelPlayList, bool newPlayList = false, string playListName = null) {
-            var playList = GetOrCreatePlayList(null ?? "Imported Play List", newPlayList);
+            var playList = GetOrCreatePlayList(playListName ?? "Imported Play List", newPlayList);
             try {
                 foreach (var videoData in kinelPlayList.videoDatas) {
                     var trackMode = (int)videoData.mode;
