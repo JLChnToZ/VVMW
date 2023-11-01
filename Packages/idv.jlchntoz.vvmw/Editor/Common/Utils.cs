@@ -21,9 +21,6 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public static T FindClosestComponentInHierarchy<T>(Transform startFrom, GameObject[] roots = null) where T : Component =>
-            FindClosestComponentInHierarchy(startFrom, typeof(T), roots) as T;
-
         public static Component FindClosestComponentInHierarchy(Transform startFrom, Type type, GameObject[] roots = null) {
             for (Transform transform = startFrom, lastTransform = null; transform != null; transform = transform.parent) {
                 if (transform.TryGetComponent(type, out var result)) return result;

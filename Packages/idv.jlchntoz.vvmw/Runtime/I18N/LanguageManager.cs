@@ -8,7 +8,8 @@ namespace JLChnToZ.VRC.VVMW.I18N {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     public class LanguageManager : UdonSharpEventSender {
-        [SerializeField] TextAsset languagePack;
+        [SerializeField] TextAsset[] languageJsonFiles;
+        [SerializeField, Multiline] string languageJson;
         DataDictionary languages, currentLanguage;
 
         [FieldChangeCallback(nameof(LanguageKey))]
@@ -28,7 +29,7 @@ namespace JLChnToZ.VRC.VVMW.I18N {
         }
 
         void Start() {
-            if (VRCJson.TryDeserializeFromJson(languagePack.text, out DataToken rawLanguages) && rawLanguages.TokenType == TokenType.DataDictionary) {
+            if (VRCJson.TryDeserializeFromJson(languageJson, out DataToken rawLanguages) && rawLanguages.TokenType == TokenType.DataDictionary) {
                 var uiLanguage = VRCPlayerApi.GetCurrentLanguage();
                 languages = rawLanguages.DataDictionary;
                 languageKeys = new string[languages.Count];
@@ -79,7 +80,8 @@ namespace JLChnToZ.VRC.VVMW.I18N {
                     languageNames[i] = currentLanguageKey;
                 }
                 ChangeLanguage();
-            }
+            } else
+                Debug.LogError("Failed to parse language json.");
         }
 
         public string GetLocale(string key) {

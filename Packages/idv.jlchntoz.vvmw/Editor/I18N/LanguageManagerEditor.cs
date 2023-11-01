@@ -1,58 +1,40 @@
-using System;
-using System.Reflection;
+using System.Text;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using VRC.Udon;
-using UdonSharp;
 using UdonSharpEditor;
+using JLChnToZ.VRC.VVMW.Editors;
+using VVMW.ThirdParties.LitJson;
 
 using static UnityEngine.Object;
-using JLChnToZ.VRC.VVMW.Editors;
 
 namespace JLChnToZ.VRC.VVMW.I18N.Editors {
     [CustomEditor(typeof(LanguageManager))]
     public class LanguageManagerEditor : VVMWEditorBase {
         static GUIContent textContent;
-        SerializedProperty languagePackProperty;
-        bool showContent;
+        SerializedProperty languageJsonFiles;
+        SerializedProperty languageJson;
 
         protected override void OnEnable() {
             base.OnEnable();
             if (textContent == null) textContent = new GUIContent();
-            languagePackProperty = serializedObject.FindProperty("languagePack");
+            languageJsonFiles = serializedObject.FindProperty("languageJsonFiles");
+            languageJson = serializedObject.FindProperty("languageJson");
         }
         
         public override void OnInspectorGUI() {
             base.OnInspectorGUI();
-            if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
+            if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, drawScript: false)) return;
             serializedObject.Update();
-            var languagePack = languagePackProperty.objectReferenceValue as TextAsset;
-            using (new EditorGUILayout.HorizontalScope()) {
-                using (new EditorGUI.DisabledScope(Application.isPlaying))
-                    EditorGUILayout.PropertyField(languagePackProperty);
-                using (new EditorGUI.DisabledScope(languagePack == null))
-                    if (GUILayout.Button("Edit File", EditorStyles.miniButton, GUILayout.ExpandWidth(false)))
-                        AssetDatabase.OpenAsset(languagePack);
-            }
+            EditorGUILayout.PropertyField(languageJsonFiles, true);
+            EditorGUILayout.PropertyField(languageJson);
             serializedObject.ApplyModifiedProperties();
-            if (languagePack == null) {
-                EditorGUILayout.HelpBox("No language pack is assigned.", MessageType.Error);
-                showContent = false;
-            } else {
-                showContent = EditorGUILayout.Foldout(showContent, "Content (For preview only)");
-                if (showContent) {
-                    var languagePackData = languagePack.text;
-                    textContent.text = languagePackData;
-                    var textAreaStyle = EditorStyles.textArea;
-                    var height = textAreaStyle.CalcHeight(textContent, EditorGUIUtility.currentViewWidth);
-                    EditorGUILayout.SelectableLabel(languagePackData, textAreaStyle, GUILayout.Height(height));
-                }
-            }
             EditorGUILayout.Space();
             EditorGUILayout.HelpBox("Do not add or reference other components or children in this game object, as it will be manupulated on build and may cause unexpected behaviour.", MessageType.Info);
         }
@@ -60,38 +42,163 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
 
     // Resolve and group all language managers into one game object while building
     public class LanguageManagerUnifier : IProcessSceneWithReport {
-        static Action<UdonSharpBehaviour> RunBehaviourSetup;
-        Dictionary<TextAsset, LanguageManager> unifiedLanguageManagers = new Dictionary<TextAsset, LanguageManager>();
-        Dictionary<TextAsset, UdonBehaviour> unifiedLanguageManagerUdons = new Dictionary<TextAsset, UdonBehaviour>();
-        GameObject unifiedLanguageManagerContainer;
+        LanguageManager unifiedLanguageManager;
+        UdonBehaviour unifiedLanguageManagerUdon;
+        HashSet<LanguageManager> languageManagers = new HashSet<LanguageManager>();
+        Dictionary<UdonBehaviour, LanguageManager> backingUdonBehaviours = new Dictionary<UdonBehaviour, LanguageManager>();
+        List<string> jsonTexts = new List<string>();
 
         public int callbackOrder => 0;
 
         public void OnProcessScene(Scene scene, BuildReport report) {
             var roots = scene.GetRootGameObjects();
-            var languagePackMap = new Dictionary<LanguageManager, TextAsset>();
-            var backingUdonBehaviours = new Dictionary<UdonBehaviour, LanguageManager>();
-            unifiedLanguageManagers.Clear();
-            unifiedLanguageManagerUdons.Clear();
-            unifiedLanguageManagerContainer = null;
-            // Gather all language managers on scene
-            foreach (var languageManager in roots.SelectMany(x => x.GetComponentsInChildren<LanguageManager>(true)))
-                using (var so = new SerializedObject(languageManager)) {
-                    var languagePack = so.FindProperty("languagePack");
-                    if (languagePack.objectReferenceValue is TextAsset textAsset) {
-                        languagePackMap[languageManager] = textAsset;
-                        // Make the first language manager the unified language manager
-                        if (unifiedLanguageManagerContainer == null) {
-                            unifiedLanguageManagerContainer = languageManager.gameObject;
-                            unifiedLanguageManagers[textAsset] = languageManager;
-                        }
-                    }
-                    backingUdonBehaviours[UdonSharpEditorUtility.GetBackingUdonBehaviour(languageManager)] = languageManager;
+            unifiedLanguageManager = null;
+            languageManagers.Clear();
+            jsonTexts.Clear();
+            GatherAllLanguages(roots);
+            CombineJsons();
+            RemapLanguageManager(roots);
+            RemoveLanguageManagers();
+        }
+
+        void GatherAllLanguages(GameObject[] roots) {
+            foreach (var languageManager in roots.SelectMany(x => x.GetComponentsInChildren<LanguageManager>(true))) {
+                if (unifiedLanguageManager == null && languageManager.tag != "EditorOnly") {
+                    unifiedLanguageManager = languageManager;
+                    unifiedLanguageManagerUdon = UdonSharpEditorUtility.GetBackingUdonBehaviour(languageManager);
                 }
-            if (languagePackMap.Count == 0) return; // No language manager found
-            // Find and remap references to language managers
+                languageManagers.Add(languageManager);
+                using (var so = new SerializedObject(languageManager)) {
+                    var languagePack = so.FindProperty("languageJsonFiles");
+                    for (int i = 0, count = languagePack.arraySize; i < count; i++) {
+                        var textAsset = languagePack.GetArrayElementAtIndex(i).objectReferenceValue as TextAsset;
+                        if (textAsset != null) jsonTexts.Add(textAsset.text);
+                    }
+                    var additionalJson = so.FindProperty("languageJson");
+                    if (!string.IsNullOrEmpty(additionalJson.stringValue))
+                        jsonTexts.Add(additionalJson.stringValue);
+                }
+            }
+        }
+
+        void CombineJsons() {
+            var langMap = new Dictionary<string, LanguageEntry>();
+            var defaultLanguageMapping = new Dictionary<string, string>();
+            var keyStack = new List<object>();
+            var allLanguageKeys = new HashSet<string>();
+            foreach (var json in jsonTexts) {
+                var reader = new JsonReader(json);
+                keyStack.Clear();
+                LanguageEntry currentEntry = null;
+                while (reader.Read())
+                    switch (reader.Token) {
+                        case JsonToken.ObjectStart:
+                            switch (keyStack.Count) {
+                                case 1:
+                                    if (keyStack[0] is string key && !langMap.TryGetValue(key, out currentEntry))
+                                        langMap[key] = currentEntry = new LanguageEntry();
+                                    break;
+                            }
+                            keyStack.Add(null);
+                            break;
+                        case JsonToken.ArrayStart:
+                            keyStack.Add(0);
+                            break;
+                        case JsonToken.ObjectEnd:
+                        case JsonToken.ArrayEnd:
+                            keyStack.RemoveAt(keyStack.Count - 1);
+                            break;
+                        case JsonToken.PropertyName:
+                            keyStack[keyStack.Count - 1] = reader.Value;
+                            break;
+                        case JsonToken.String:
+                            switch (keyStack.Count) {
+                                case 2: {
+                                    if (currentEntry != null && keyStack[1] is string key) {
+                                        var strValue = (string)reader.Value;
+                                        switch (key) {
+                                            case "_name":
+                                                currentEntry.name = strValue;
+                                                break;
+                                            case "_vrcname":
+                                                currentEntry.vrcName = strValue;
+                                                break;
+                                            case "_timezone":
+                                                currentEntry.timezones.Add(strValue);
+                                                break;
+                                            default:
+                                                currentEntry.languages[key] = strValue;
+                                                allLanguageKeys.Add(key);
+                                                if (!defaultLanguageMapping.ContainsKey(key))
+                                                    defaultLanguageMapping[key] = strValue;
+                                                break;
+                                        }
+                                    }
+                                    break;
+                                }
+                                case 3: {
+                                    if (currentEntry != null && keyStack[1] is string key && key == "_timezone" && keyStack[2] is int)
+                                        currentEntry.timezones.Add(reader.Value.ToString());
+                                    break;
+                                }
+                            }
+                            goto default;
+                        default:
+                            if (keyStack.Count > 0 && keyStack[keyStack.Count - 1] is int index)
+                                keyStack[keyStack.Count - 1] = index + 1;
+                            break;
+                    }
+            }
+            var sb = new StringBuilder();
+            var jsonWriter = new JsonWriter(sb);
+            jsonWriter.WriteObjectStart();
+            foreach (var kv in langMap) {
+                jsonWriter.WritePropertyName(kv.Key);
+                jsonWriter.WriteObjectStart();
+                var lang = kv.Value;
+                if (!string.IsNullOrEmpty(lang.name)) {
+                    jsonWriter.WritePropertyName("_name");
+                    jsonWriter.Write(lang.name);
+                }
+                if (!string.IsNullOrEmpty(lang.vrcName)) {
+                    jsonWriter.WritePropertyName("_vrcname");
+                    jsonWriter.Write(lang.vrcName);
+                }
+                if (lang.timezones.Count > 0) {
+                    jsonWriter.WritePropertyName("_timezone");
+                    if (lang.timezones.Count == 1)
+                        jsonWriter.Write(lang.timezones[0]);
+                    else {
+                        jsonWriter.WriteArrayStart();
+                        foreach (var timezone in lang.timezones) jsonWriter.Write(timezone);
+                        jsonWriter.WriteArrayEnd();
+                    }
+                }
+                foreach (var langEntry in lang.languages) {
+                    jsonWriter.WritePropertyName(langEntry.Key);
+                    jsonWriter.Write(langEntry.Value);
+                }
+                foreach (var defaultLang in defaultLanguageMapping)
+                    if (!lang.languages.ContainsKey(defaultLang.Key)) {
+                        jsonWriter.WritePropertyName(defaultLang.Key);
+                        jsonWriter.Write(defaultLang.Value);
+                    }
+                jsonWriter.WriteObjectEnd();
+            }
+            jsonWriter.WriteObjectEnd();
+            using (var so = new SerializedObject(unifiedLanguageManager)) {
+                var jsonRefs = so.FindProperty("languageJsonFiles");
+                jsonRefs.ClearArray();
+                var languageJson = so.FindProperty("languageJson");
+                languageJson.stringValue = sb.ToString();
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+            UdonSharpEditorUtility.CopyProxyToUdon(unifiedLanguageManager);
+            jsonTexts.Clear();
+        }
+
+        void RemapLanguageManager(GameObject[] roots) {
             foreach (var ub in roots.SelectMany(x => x.GetComponentsInChildren<UdonBehaviour>(true))) {
-                if (backingUdonBehaviours.ContainsKey(ub)) continue;
                 if (UdonSharpEditorUtility.IsUdonSharpBehaviour(ub)) {
                     var usharpBehaviour = UdonSharpEditorUtility.GetProxyBehaviour(ub);
                     bool hasModified = false;
@@ -100,14 +207,8 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                         while (iterator.NextVisible(true)) {
                             if (iterator.propertyType != SerializedPropertyType.ObjectReference) continue;
                             if (iterator.objectReferenceValue is UdonBehaviour udon) {
-                                if (!backingUdonBehaviours.TryGetValue(udon, out var languageManager))
-                                    continue;
-                                if (!languagePackMap.TryGetValue(languageManager, out var languagePack))
-                                    continue;
-                                GetUnifiedLanguageManager(languagePack, out var _, out udon);
-                                if (iterator.objectReferenceValue == udon)
-                                    continue;
-                                iterator.objectReferenceValue = udon;
+                                if (udon == unifiedLanguageManagerUdon) continue;
+                                iterator.objectReferenceValue = unifiedLanguageManagerUdon;
                                 hasModified = true;
                             } else {
                                 if (iterator.objectReferenceValue is LanguageManager languageManager && languageManager != null) {
@@ -115,22 +216,13 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                                 } else if (iterator.objectReferenceValue == null) {
                                     // If the reference is null, we first firgure out what is the field type of the property.
                                     var field = usharpBehaviour.GetType().GetField(iterator.name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-                                    if (field == null || !typeof(LanguageManager).IsAssignableFrom(field.FieldType))
-                                        continue;
-                                    // If we ensure the field type is LanguageManager, we try to find the closest LanguageManager in the hierarchy.
-                                    languageManager = Utils.FindClosestComponentInHierarchy<LanguageManager>(ub.transform, roots);
-                                    if (languageManager == null) {
-                                        Debug.LogError($"Cannot find LanguageManager for field {field.Name} in {usharpBehaviour.name}. This should not be happened.", usharpBehaviour);
-                                        continue;
-                                    }
+                                    if (field == null || !typeof(LanguageManager).IsAssignableFrom(field.FieldType)) continue;
+                                    languageManager = field.GetValue(usharpBehaviour) as LanguageManager;
                                 } else
                                     continue; // Anything else, skip
-                                if (!languagePackMap.TryGetValue(languageManager, out var languagePack))
+                                if (unifiedLanguageManager == languageManager)
                                     continue;
-                                GetUnifiedLanguageManager(languagePack, out languageManager, out var _);
-                                if (iterator.objectReferenceValue == languageManager)
-                                    continue;
-                                iterator.objectReferenceValue = languageManager;
+                                iterator.objectReferenceValue = unifiedLanguageManager;
                                 hasModified = true;
                             }
                         }
@@ -151,59 +243,29 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                         if (!(variable is UdonBehaviour udon)) continue;
                         if (!backingUdonBehaviours.TryGetValue(udon, out var languageManager))
                             continue;
-                        if (!languagePackMap.TryGetValue(languageManager, out var languagePack))
+                        if (languageManager == unifiedLanguageManager)
                             continue;
-                        GetUnifiedLanguageManager(languagePack, out var unifiedLanguageManager, out var _);
                         ub.SetProgramVariable(symbolName, unifiedLanguageManager);
                     }
                 }
             }
-            // Clean up original (and duplicated) language managers (and their backing Udon behaviours)
-            var unifiedLanguageManagerSet = new HashSet<LanguageManager>(unifiedLanguageManagers.Values);
-            foreach (var languageManager in languagePackMap.Keys) {
-                if (unifiedLanguageManagerSet.Contains(languageManager)) continue;
-                var udon = UdonSharpEditorUtility.GetBackingUdonBehaviour(languageManager);
-                if (udon != null) DestroyImmediate(udon);
-                DestroyImmediate(languageManager);
-            }
-            // Move unified language manager to the top of the scene
-            if (unifiedLanguageManagerContainer != null) {
-                var transform = unifiedLanguageManagerContainer.transform;
-                if (transform.childCount > 0) {
-                    var parent = transform.parent;
-                    foreach (Transform child in transform) child.SetParent(parent, true);
-                }
-                transform.parent = null;
-                transform.SetAsFirstSibling();
-            }
         }
 
-        // Get or create unified language manager
-        void GetUnifiedLanguageManager(TextAsset languagePack, out LanguageManager languageManager, out UdonBehaviour udon) {
-            if (unifiedLanguageManagers.TryGetValue(languagePack, out languageManager)) {
-                if (unifiedLanguageManagerUdons.TryGetValue(languagePack, out udon)) return;
-                unifiedLanguageManagerUdons[languagePack] = udon = UdonSharpEditorUtility.GetBackingUdonBehaviour(languageManager);
-                return;
+        void RemoveLanguageManagers() {
+            foreach (var languageManager in languageManagers) {
+                if (languageManager == unifiedLanguageManager) continue;
+                var udon = UdonSharpEditorUtility.GetBackingUdonBehaviour(languageManager);
+                DestroyImmediate(languageManager);
+                if (udon != null) DestroyImmediate(udon);
             }
-            languageManager = unifiedLanguageManagerContainer.AddComponent<LanguageManager>();
-            using (var so = new SerializedObject(languageManager)) {
-                so.FindProperty("languagePack").objectReferenceValue = languagePack;
-                so.ApplyModifiedPropertiesWithoutUndo();
-            }
-            // UdonSharpEditorUtility.RunBehaviourSetup is internal, so we have to use reflection to call it
-            if (RunBehaviourSetup == null) {
-                var method = typeof(UdonSharpEditorUtility).GetMethod(
-                    "RunBehaviourSetup",
-                    BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic,
-                    null,
-                    new Type[] { typeof(UdonSharpBehaviour) },
-                    null
-                );
-                RunBehaviourSetup = (Action<UdonSharpBehaviour>)Delegate.CreateDelegate(typeof(Action<UdonSharpBehaviour>), method);
-            }
-            RunBehaviourSetup(languageManager);
-            unifiedLanguageManagers[languagePack] = languageManager;
-            unifiedLanguageManagerUdons[languagePack] = udon = UdonSharpEditorUtility.CreateBehaviourForProxy(languageManager);
+            languageManagers.Clear();
+        }
+
+        class LanguageEntry {
+            public string name;
+            public string vrcName;
+            public readonly List<string> timezones = new List<string>();
+            public readonly Dictionary<string, string> languages = new Dictionary<string, string>();
         }
     }
 }
