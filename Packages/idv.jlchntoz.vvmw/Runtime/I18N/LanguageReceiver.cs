@@ -7,7 +7,7 @@ namespace JLChnToZ.VRC.VVMW.I18N {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     public class LanguageReceiver : UdonSharpBehaviour {
-        [SerializeField] LanguageManager manager;
+        [SerializeField, HideInInspector] LanguageManager manager;
         [SerializeField] string key;
         object[] args;
         Text text;

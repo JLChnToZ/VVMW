@@ -16,7 +16,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
         [SerializeField] Transform scalingTarget;
         [BindEvent(nameof(Button.onClick), nameof(_LockButtonToggle))]
         [SerializeField] Button lockButton;
-        [SerializeField] LanguageManager languageManager;
+        [SerializeField, HideInInspector] LanguageManager languageManager;
         VRC_Pickup pickup;
         [Header("Settings")]
         [SerializeField] float scaleSpeed = 1F;

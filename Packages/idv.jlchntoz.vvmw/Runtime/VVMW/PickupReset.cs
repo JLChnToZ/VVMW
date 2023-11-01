@@ -8,7 +8,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
     [DisallowMultipleComponent]
     public class PickupReset : UdonSharpBehaviour {
         [SerializeField] PickupPanel pickupPanel;
-        [SerializeField] LanguageManager languageManager;
+        [SerializeField, HideInInspector] LanguageManager languageManager;
         [SerializeField] string interactKey = "Reset";
 
         void Start() {

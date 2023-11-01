@@ -15,7 +15,7 @@ namespace JLChnToZ.VRC.VVMW {
         [Header("Main Reference")]
         [SerializeField, Locatable] Core core;
         [Locatable] public FrontendHandler handler;
-        [SerializeField] LanguageManager languageManager;
+        [SerializeField, HideInInspector] LanguageManager languageManager;
 
         [Header("URL Input")]
         [BindEvent(nameof(VRCUrlInputField.onValueChanged), nameof(_OnURLChanged))]

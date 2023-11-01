@@ -7,7 +7,7 @@ namespace JLChnToZ.VRC.VVMW.I18N {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     public class LanguageSetter : UdonSharpBehaviour {
-        [SerializeField] LanguageManager manager;
+        [SerializeField, HideInInspector] LanguageManager manager;
         [SerializeField] GameObject entryTemplate;
         Toggle[] spawnedEntries;
         bool hasInit = false;
