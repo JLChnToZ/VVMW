@@ -16,7 +16,6 @@ namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     [DisallowMultipleComponent]
     public class Core : UdonSharpEventSender {
-        const byte IDLE = 0, LOADING = 1, PLAYING = 2, PAUSED = 3;
         [HideInInspector, SerializeField] string[] trustedUrlDomains = new string[0]; // This list will be fetched on build, via VRChat SDK
         Vector4 normalST = new Vector4(1, 1, 0, 0), flippedST = new Vector4(1, -1, 0, 1);
         Rect normalRect = new Rect(0, 0, 1, 1), flippedRect = new Rect(0, 1, 1, -1);
@@ -52,13 +51,20 @@ namespace JLChnToZ.VRC.VVMW {
         [UdonSynced] byte activePlayer;
         byte localActivePlayer, lastActivePlayer;
         // 0: Idle, 1: Loading, 2: Playing, 3: Paused
-        [UdonSynced] byte state;
+        [UdonSynced] PlaybackState state;
         [SerializeField, UdonSynced, FieldChangeCallback(nameof(Loop))]
         bool loop;
-        [Locatable("AudioLink.AudioLink, AudioLink", "VRCAudioLink.AudioLink, AudioLink")]
+        [Locatable(
+            "AudioLink.AudioLink, AudioLink", "VRCAudioLink.AudioLink, AudioLink",
+            InstaniatePrefabPath = "Packages/com.llealloo.audiolink/Runtime/AudioLink.prefab",
+            InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.First
+        )]
         [SerializeField] UdonSharpBehaviour audioLink;
         [Tooltip("YTTL (Video title viewer) integration")]
-        [SerializeField, Locatable] YttlManager yttl;
+        [SerializeField, Locatable(
+            InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/Prefabs/Third-Parties/YTTL/YTTL Manager.prefab",
+            InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.First
+        )] YttlManager yttl;
         VideoPlayerHandler activeHandler;
         int retryCount = 0;
         bool isLoading, isLocalReloading, isResyncTime, isError, isSyncAudioLink;
@@ -377,7 +383,7 @@ namespace JLChnToZ.VRC.VVMW {
             SetAudioLinkPlayBackState(MediaPlaying.Loading);
             #endif
             activeHandler.LoadUrl(url, false);
-            if (RequestSync()) state = LOADING;
+            if (RequestSync()) state = PlaybackState.Loading;
             if (yttl != null) {
                 if (!url.Equals(this.url)) {
                     author = "";
@@ -416,7 +422,7 @@ namespace JLChnToZ.VRC.VVMW {
         public void _ReloadUrl() {
             isError = false;
             if (!IsUrlValid(loadingUrl) ||
-                (synced && state == IDLE) ||
+                (synced && state == PlaybackState.Idle) ||
                 !loadingUrl.Equals(localUrl)) {
                 return;
             }
@@ -498,15 +504,15 @@ namespace JLChnToZ.VRC.VVMW {
                 return;
             }
             switch (state) {
-                case IDLE:
-                case LOADING:
+                case PlaybackState.Idle:
+                case PlaybackState.Loading:
                     if (Networking.IsOwner(gameObject))
                         activeHandler.Play();
                     else if (synced) // Try to ad-hoc sync
                         SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(OwnerSync));
                     break;
-                case PLAYING: activeHandler.Play(); break;
-                case PAUSED: activeHandler.Pause(); break;
+                case PlaybackState.Playing: activeHandler.Play(); break;
+                case PlaybackState.Paused: activeHandler.Pause(); break;
                 default: return;
             }
             if (videoTime > 0) activeHandler.Time = videoTime;
@@ -529,7 +535,7 @@ namespace JLChnToZ.VRC.VVMW {
                 #endif
             }
             if (!synced || !Networking.IsOwner(gameObject) || isLocalReloading) return;
-            state = PLAYING;
+            state = PlaybackState.Playing;
             StartSyncTime();
         }
 
@@ -539,7 +545,7 @@ namespace JLChnToZ.VRC.VVMW {
             SetAudioLinkPlayBackState(MediaPlaying.Paused);
             #endif
             if (!synced || !Networking.IsOwner(gameObject) || isLocalReloading) return;
-            state = PAUSED;
+            state = PlaybackState.Paused;
             StartSyncTime();
         }
 
@@ -556,7 +562,7 @@ namespace JLChnToZ.VRC.VVMW {
             #endif
             _OnTextureChanged();
             if (!synced || !Networking.IsOwner(gameObject)) return;
-            state = IDLE;
+            state = PlaybackState.Idle;
             RequestSerialization();
         }
 
@@ -564,7 +570,7 @@ namespace JLChnToZ.VRC.VVMW {
             SendEvent("_onVideoLoop");
             activeHandler.Time = 0;
             if (!synced || !Networking.IsOwner(gameObject)) return;
-            state = PLAYING;
+            state = PlaybackState.Playing;
             RequestSerialization();
         }
 
@@ -641,7 +647,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (!synced || isLocalReloading) return;
             if (activeHandler == null) {
                 activePlayer = 0;
-                state = IDLE;
+                state = PlaybackState.Idle;
                 time = 0;
                 pcUrl = null;
                 questUrl = null;
@@ -658,10 +664,10 @@ namespace JLChnToZ.VRC.VVMW {
                     questUrl = altUrl;
                 }
                 if (activeHandler.IsReady) {
-                    state = activeHandler.IsPlaying ? PLAYING : PAUSED;
+                    state = activeHandler.IsPlaying ? PlaybackState.Playing : PlaybackState.Paused;
                     time = CalcSyncTime();
                 } else {
-                    state = IsUrlValid(localUrl) ? LOADING : IDLE;
+                    state = IsUrlValid(localUrl) ? PlaybackState.Loading : PlaybackState.Idle;
                     time = 0;
                 }
             }
@@ -681,7 +687,7 @@ namespace JLChnToZ.VRC.VVMW {
                 url = pcUrl;
                 altUrl = questUrl;
             }
-            if (state != IDLE && localUrl != url && (!IsUrlValid(localUrl) || !IsUrlValid(url) || localUrl.Get() != url.Get())) {
+            if (state != PlaybackState.Idle && localUrl != url && (!IsUrlValid(localUrl) || !IsUrlValid(url) || localUrl.Get() != url.Get())) {
                 if (activeHandler == null) {
                     Debug.LogWarning($"[VVMW] Owner serialization incomplete, will queue a sync request.");
                     SendCustomEventDelayedSeconds(nameof(_RequestOwnerSync), 1);
@@ -706,14 +712,14 @@ namespace JLChnToZ.VRC.VVMW {
             localUrl = url;
             if (activeHandler != null && activeHandler.IsReady) {
                 switch (state) {
-                    case IDLE:
+                    case PlaybackState.Idle:
                         if (activeHandler.IsPlaying) activeHandler.Stop();
                         break;
-                    case PAUSED:
-                    case LOADING:
+                    case PlaybackState.Paused:
+                    case PlaybackState.Loading:
                         if (!activeHandler.IsPaused) activeHandler.Pause();
                         break;
-                    case PLAYING:
+                    case PlaybackState.Playing:
                         if (activeHandler.IsPaused || !activeHandler.IsPlaying) {
                             activeHandler.Play();
                             var duration = activeHandler.Duration;
@@ -775,8 +781,8 @@ namespace JLChnToZ.VRC.VVMW {
             if (duration <= 0 || float.IsInfinity(duration)) return 0;
             float videoTime;
             switch (state) {
-                case PLAYING: videoTime = (float)(Networking.GetNetworkDateTime().Ticks - time) / TimeSpan.TicksPerSecond + syncOffset; break;
-                case PAUSED: videoTime = (float)time / TimeSpan.TicksPerSecond; break;
+                case PlaybackState.Playing: videoTime = (float)(Networking.GetNetworkDateTime().Ticks - time) / TimeSpan.TicksPerSecond + syncOffset; break;
+                case PlaybackState.Paused: videoTime = (float)time / TimeSpan.TicksPerSecond; break;
                 default: return 0;
             }
             if (loop) videoTime = Mathf.Repeat(videoTime, duration);
@@ -859,5 +865,12 @@ namespace JLChnToZ.VRC.VVMW {
             viewCount = "";
             SendEvent("_OnTitleData");
         }
+    }
+
+    public enum PlaybackState : byte {
+        Idle = 0,
+        Loading = 1,
+        Playing = 2,
+        Paused = 3,
     }
 }

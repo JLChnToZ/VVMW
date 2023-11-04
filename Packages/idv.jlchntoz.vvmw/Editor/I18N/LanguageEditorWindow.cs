@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
+using System;
 
 namespace JLChnToZ.VRC.VVMW.I18N.Editors {
     public class LanguageEditorWindow : EditorWindow {
@@ -19,6 +20,9 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
         GUIContent textContent;
         string addLanguageTempString = "", addLanguageKeyTempString = "", addLanguageTempValueString = "", addTimeZoneTempString = "";
         GUIStyle wrapTextAreaStyle, wrapBoldTextAreaStyle;
+        GUIContent plusIconContent, minusIconContent;
+        float viewWidth;
+        [NonSerialized] bool hasInit;
 
         public static LanguageEditorWindow Open(LanguageManager languageManager) {
             if (languageManager == null) return null;
@@ -30,24 +34,24 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
             return window;
         }
 
-        void Awake() {
+        void OnEnable() {
+            if (hasInit) return;
+            hasInit = true;
             textContent = new GUIContent();
-            langListSelect = new ReorderableList(langList, typeof(string), false, false, false, true) {
-                showDefaultBackground = false,
+            langListSelect = new ReorderableList(langList, typeof(string), false, false, false, false) {
                 drawElementCallback = DrawLangList,
                 onSelectCallback = OnLangSelect,
-                onCanRemoveCallback = CanRemoveLang,
-                onRemoveCallback = OnRemoveLang,
+                showDefaultBackground = false,
                 elementHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing,
                 headerHeight = 0,
+                footerHeight = 0,
             };
-            langKeySelect = new ReorderableList(allKeysList, typeof((string, string)), false, false, false, true) {
-                showDefaultBackground = false,
+            langKeySelect = new ReorderableList(allKeysList, typeof((string, string)), false, false, false, false) {
                 drawElementCallback = DrawLangKeys,
-                onCanRemoveCallback = CanRemoveKey,
-                onRemoveCallback = OnRemoveKey,
                 elementHeightCallback = MeasureLangListElementHeight,
+                showDefaultBackground = false,
                 headerHeight = 0,
+                footerHeight = 0,
             };
             wrapTextAreaStyle = new GUIStyle(EditorStyles.textArea) {
                 wordWrap = true,
@@ -55,6 +59,8 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
             wrapBoldTextAreaStyle = new GUIStyle(wrapTextAreaStyle) {
                 fontStyle = FontStyle.Bold,
             };
+            plusIconContent = EditorGUIUtility.IconContent("Toolbar Plus", "Add");
+            minusIconContent = EditorGUIUtility.IconContent("Toolbar Minus", "Remove");
         }
 
         void OnDisable() {
@@ -70,6 +76,10 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
             allKeys.Clear();
             allTimeZones.Clear();
             defaultTimeZones.Clear();
+            langKeySelect.index = -1;
+            langListSelect.index = -1;
+            selectedEntry = null;
+            selectedDefaultEntry = null;
             if (LanguageManager == null) return;
             using (var so = new SerializedObject(LanguageManager)) {
                 Load(so.FindProperty("languageJsonFiles"));
@@ -151,7 +161,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                         using (new EditorGUILayout.HorizontalScope()) {
                             addLanguageTempString = EditorGUILayout.TextField("Add Language", addLanguageTempString);
                             using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(addLanguageTempString)))
-                                if (GUILayout.Button("Add", GUILayout.ExpandWidth(false))) {
+                                if (GUILayout.Button(plusIconContent, EditorStyles.miniLabel, GUILayout.ExpandWidth(false))) {
                                     if (currentLanguageMap.ContainsKey(addLanguageTempString))
                                         EditorUtility.DisplayDialog("Error", "Language already exists.", "OK");
                                     else {
@@ -182,6 +192,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                             }
                             DrawTimeZones();
                             EditorGUILayout.Space();
+                            viewWidth = vert.rect.width;
                             langKeySelect.DoLayoutList();
                             GUILayout.FlexibleSpace();
                         }
@@ -189,7 +200,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                             addLanguageKeyTempString = EditorGUILayout.TextField(addLanguageKeyTempString, GUILayout.Width(EditorGUIUtility.labelWidth));
                             addLanguageTempValueString = EditorGUILayout.TextArea(addLanguageTempValueString, wrapTextAreaStyle);
                             using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(addLanguageKeyTempString)))
-                                if (GUILayout.Button("Add", GUILayout.ExpandWidth(false))) {
+                                if (GUILayout.Button(plusIconContent, EditorStyles.miniLabel, GUILayout.ExpandWidth(false))) {
                                     if (selectedEntry != null && selectedEntry.languages.ContainsKey(addLanguageKeyTempString))
                                         EditorUtility.DisplayDialog("Error", "Key already exists.", "OK");
                                     else {
@@ -217,7 +228,24 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
 
         void DrawLangList(Rect rect, int index, bool isActive, bool isFocused) {
             var value = langList[index];
-            EditorGUI.LabelField(rect, value, currentLanguageMap.ContainsKey(value) ? EditorStyles.boldLabel : EditorStyles.label);
+            bool canRemove = currentLanguageMap.ContainsKey(value);
+            var valueRect = rect;
+            valueRect.height -= EditorGUIUtility.standardVerticalSpacing;
+            Vector2 removeButonSize = default;
+            if (canRemove) {
+                removeButonSize = EditorStyles.miniLabel.CalcSize(minusIconContent);
+                valueRect.width -= removeButonSize.x;
+            }
+            EditorGUI.LabelField(valueRect, value, currentLanguageMap.ContainsKey(value) ? EditorStyles.boldLabel : EditorStyles.label);
+            if (canRemove) {
+                var removeButtonRect = rect;
+                removeButtonRect.xMin = valueRect.xMax;
+                removeButtonRect.size = removeButonSize;
+                if (GUI.Button(removeButtonRect, minusIconContent, EditorStyles.miniLabel)) {
+                    currentLanguageMap.Remove(value);
+                    OnLangSelect();
+                }
+            }
         }
 
         void OnLangSelect(ReorderableList list) {
@@ -243,17 +271,6 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
             langListSelect.index = index;
         }
 
-        bool CanRemoveLang(ReorderableList list) =>
-            list.index >= 0 &&
-            list.index < langList.Count &&
-            currentLanguageMap.ContainsKey(langList[list.index]);
-
-        void OnRemoveLang(ReorderableList list) {
-            var key = langList[list.index];
-            if (currentLanguageMap.ContainsKey(key)) currentLanguageMap.Remove(key);
-            OnLangSelect();
-        }
-
         void DrawTimeZones() {
             using (new EditorGUILayout.HorizontalScope()) {
                 EditorGUILayout.LabelField("Time Zones", GUILayout.Width(EditorGUIUtility.labelWidth));
@@ -261,7 +278,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                     using (new EditorGUI.DisabledScope(defaultTimeZones.Contains(tz))) {
                         textContent.text = tz;
                         EditorGUILayout.LabelField(textContent, GUILayout.Width(EditorStyles.label.CalcSize(textContent).x));
-                        if (GUILayout.Button("-", GUILayout.ExpandWidth(false))) {
+                        if (GUILayout.Button(minusIconContent, EditorStyles.miniLabel, GUILayout.ExpandWidth(false))) {
                             allTimeZones.Remove(tz);
                             if (selectedEntry != null) selectedEntry.timezones.Remove(tz);
                             break;
@@ -269,7 +286,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                     }
                 GUILayout.FlexibleSpace();
                 addTimeZoneTempString = EditorGUILayout.TextField(addTimeZoneTempString, GUILayout.ExpandWidth(false));
-                if (GUILayout.Button("+", GUILayout.ExpandWidth(false))) {
+                if (GUILayout.Button(plusIconContent, EditorStyles.miniLabel, GUILayout.ExpandWidth(false))) {
                     if (!allTimeZones.Add(addTimeZoneTempString))
                         EditorUtility.DisplayDialog("Error", "Time Zone already exists.", "OK");
                     else {
@@ -304,6 +321,12 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
             var valueRect = rect;
             valueRect.xMin = keyRect.xMax;
             valueRect.height -= EditorGUIUtility.standardVerticalSpacing;
+            bool canRemove = selectedEntry != null && selectedEntry.languages.ContainsKey(key);
+            Vector2 removeButonSize = default;
+            if (canRemove) {
+                removeButonSize = EditorStyles.miniLabel.CalcSize(minusIconContent);
+                valueRect.width -= removeButonSize.x;
+            }
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 value = EditorGUI.TextArea(valueRect, value, isModified ? wrapBoldTextAreaStyle : wrapTextAreaStyle);
                 if (changed.changed) {
@@ -314,22 +337,21 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                     OnLangSelect();
                 }
             }
+            if (canRemove) {
+                var removeButtonRect = rect;
+                removeButtonRect.xMin = valueRect.xMax;
+                removeButtonRect.size = removeButonSize;
+                if (GUI.Button(removeButtonRect, minusIconContent, EditorStyles.miniLabel)) OnRemoveKey(key);
+            }
         }
 
         float MeasureLangListElementHeight(int index) {
             var key = allKeysList[index];
             textContent.text = GetValue(key, out bool isModified);
-            return (isModified ? wrapBoldTextAreaStyle : wrapTextAreaStyle).CalcHeight(textContent, EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth) + EditorGUIUtility.standardVerticalSpacing;
+            return (isModified ? wrapBoldTextAreaStyle : wrapTextAreaStyle).CalcHeight(textContent, viewWidth - EditorGUIUtility.labelWidth) + EditorGUIUtility.standardVerticalSpacing;
         }
 
-        bool CanRemoveKey(ReorderableList list) =>
-            list.index >= 0 &&
-            list.index < allKeysList.Count &&
-            selectedEntry != null &&
-            selectedEntry.languages.ContainsKey(allKeysList[list.index]);
-
-        void OnRemoveKey(ReorderableList list) {
-            var key = allKeysList[list.index];
+        void OnRemoveKey(string key) {
             if (selectedEntry != null && selectedEntry.languages.Remove(key)) {
                 bool isRemains = false;
                 foreach (var lang in defaultLanguageMap.Values)

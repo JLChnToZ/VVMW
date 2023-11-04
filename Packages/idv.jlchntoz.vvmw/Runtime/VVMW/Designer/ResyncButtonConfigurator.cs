@@ -5,7 +5,10 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     [EditorOnly]
     [RequireComponent(typeof(Button))]
     public class ResyncButtonConfigurator : MonoBehaviour {
-        [Locatable] public Core core;
+        [Locatable(
+            InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
+            InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.NextSibling
+        )] public Core core;
         public bool globalSync;
     }
 }

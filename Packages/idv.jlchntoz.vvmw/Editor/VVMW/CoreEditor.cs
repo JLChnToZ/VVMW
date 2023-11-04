@@ -47,11 +47,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (dropDownIcon == null) dropDownIcon = EditorGUIUtility.IconContent("icon dropdown");
             trustedUrlDomainsProperty = serializedObject.FindProperty("trustedUrlDomains");
             playerHandlersProperty = serializedObject.FindProperty("playerHandlers");
-            playerHandlersList = new ReorderableListUtils(playerHandlersProperty);
-            playerHandlersList.list.drawHeaderCallback = DrawPlayerHandlersListHeader;
+            playerHandlersList = new ReorderableListUtils(playerHandlersProperty) {
+                DrawHeaderCallback = DrawPlayerHandlersListHeader,
+            };
             audioSourcesProperty = serializedObject.FindProperty("audioSources");
-            audioSourcesList = new ReorderableListUtils(audioSourcesProperty);
-            audioSourcesList.list.drawHeaderCallback = DrawAudioSourcesListHeader;
+            audioSourcesList = new ReorderableListUtils(audioSourcesProperty) {
+                DrawHeaderCallback = DrawAudioSourcesListHeader,
+            };
             defaultUrlProperty = serializedObject.FindProperty("defaultUrl");
             defaultQuestUrlProperty = serializedObject.FindProperty("defaultQuestUrl");
             autoPlayPlayerTypeProperty = serializedObject.FindProperty("autoPlayPlayerType");
@@ -110,13 +112,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(totalRetryCountProperty);
             EditorGUILayout.PropertyField(retryDelayProperty);
             EditorGUILayout.Space();
-            playerHandlersList.list.DoLayoutList();
+            playerHandlersList.Draw();
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(defaultTextureProperty);
             if (defaultTextureProperty.objectReferenceValue == null)
                 EditorGUILayout.HelpBox("It is required to set a default texture to display when no video is playing.", MessageType.Error);
             DrawScreenList();
-            audioSourcesList.list.DoLayoutList();
+            audioSourcesList.Draw();
             var newAudioSource = EditorGUILayout.ObjectField("Add Audio Source", null, typeof(AudioSource), true) as AudioSource;
             if (newAudioSource != null) {
                 bool hasExisting = false;
@@ -148,11 +150,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     for (int i = 0, count = trustedUrlDomainsProperty.arraySize; i < count; i++)
                         EditorGUILayout.LabelField(trustedUrlDomainsProperty.GetArrayElementAtIndex(i).stringValue, EditorStyles.miniLabel);
             EditorGUILayout.Space();
-            targetsList.list.DoLayoutList();
+            targetsList.Draw();
             serializedObject.ApplyModifiedProperties();
         }
 
-        void DrawPlayerHandlersListHeader(Rect rect) {
+        void DrawPlayerHandlersListHeader(ref Rect rect) {
             GetTempContent("Auto Find");
             var miniButtonStyle = EditorStyles.miniButton;
             var size = miniButtonStyle.CalcSize(tempContent);
@@ -164,10 +166,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 for (int i = 0; i < handlers.Length; i++)
                     playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue = handlers[i];
             }
-            playerHandlersList.DrawHeader(rect);
         }
 
-        void DrawAudioSourcesListHeader(Rect rect) {
+        void DrawAudioSourcesListHeader(ref Rect rect) {
             GetTempContent("Setup Speakers");
             var miniButtonStyle = EditorStyles.miniButton;
             var size = miniButtonStyle.CalcSize(tempContent);
@@ -229,7 +230,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 Undo.SetCurrentGroupName("Setup Speakers");
                 Undo.CollapseUndoOperations(undoGroup);
             }
-            audioSourcesList.DrawHeader(rect);
         }
 
         void DrawScreenList() {

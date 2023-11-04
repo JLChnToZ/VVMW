@@ -13,8 +13,14 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     public class UIHandler : UdonSharpBehaviour {
         [Header("Main Reference")]
-        [SerializeField, Locatable] Core core;
-        [Locatable] public FrontendHandler handler;
+        [SerializeField, Locatable(
+            InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
+            InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
+        )] Core core;
+        [Locatable(
+            InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
+            InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
+        )] public FrontendHandler handler;
         [SerializeField, HideInInspector] LanguageManager languageManager;
 
         [Header("URL Input")]

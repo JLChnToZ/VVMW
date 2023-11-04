@@ -13,7 +13,10 @@ namespace JLChnToZ.VRC.VVMW {
         Quaternion rightHandRotation = Quaternion.Euler(90, -45, 180);
         Vector3 offsetDirection = new Vector3(0, 1, -1);
         [Header("References")]
-        [SerializeField, Locatable] Core core;
+        [SerializeField, Locatable(
+            InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
+            InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
+        )] Core core;
         [Header("References (For use with non-VizVid players)")]
         [SerializeField] AudioSource[] audioSources;
         [SerializeField] GameObject[] resyncTargets;

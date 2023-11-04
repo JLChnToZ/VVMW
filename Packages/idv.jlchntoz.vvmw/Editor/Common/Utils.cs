@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -48,5 +49,11 @@ namespace JLChnToZ.VRC.VVMW {
             property.DeleteArrayElementAtIndex(index);
             if (size == property.arraySize) property.DeleteArrayElementAtIndex(index);
         }
+
+        public static TDelegate ToDelegate<TDelegate>(this MethodInfo method, object target = null) where TDelegate : Delegate =>
+            (TDelegate)(method.IsStatic ?
+                Delegate.CreateDelegate(typeof(TDelegate), method, false) :
+                Delegate.CreateDelegate(typeof(TDelegate), target, method, false)
+            );
     }
 }

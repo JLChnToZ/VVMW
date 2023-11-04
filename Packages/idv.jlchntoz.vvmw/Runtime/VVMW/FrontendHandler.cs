@@ -181,6 +181,10 @@ namespace JLChnToZ.VRC.VVMW {
         
         protected void UpdateState() {
             SendEvent("_OnUIUpdate");
+            UpdateAudioLink();
+        }
+
+        void UpdateAudioLink() {
             #if AUDIOLINK_V1
             var audioLink = core.AudioLink;
             if (audioLink != null) {
@@ -198,6 +202,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             #endif
         }
+
         public void _Play() {
             if (locked) return;
             core.Play();
@@ -278,7 +283,11 @@ namespace JLChnToZ.VRC.VVMW {
             flags = localFlags;
             playListIndex = (ushort)localPlayListIndex;
             playingIndex = localPlayingIndex;
-            core.Loop = RepeatOne;
+            bool shouldLoop = RepeatOne;
+            if (core.Loop != shouldLoop) {
+                core.Loop = shouldLoop;
+                UpdateAudioLink();
+            }
         }
 
         public override void OnDeserialization() {

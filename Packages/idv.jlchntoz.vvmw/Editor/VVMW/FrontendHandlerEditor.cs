@@ -102,7 +102,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     Application.OpenURL("https://xtl.booth.pm/items/3826907");
             }
             EditorGUILayout.Space();
-            targetsPropertyList.list.DoLayoutList();
+            targetsPropertyList.Draw();
             serializedObject.ApplyModifiedProperties();
         }
 

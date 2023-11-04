@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using UdonSharpEditor;
 using JLChnToZ.VRC.VVMW.Editors;
-using UnityEditorInternal;
+using System;
 
 namespace JLChnToZ.VRC.VVMW.I18N.Editors {
     [CustomEditor(typeof(LanguageManager))]
@@ -13,6 +13,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
         ReorderableListUtils languageJsonFilesList;
         GUIStyle wrappedTextAreaStyle;
         bool showJson = false;
+        [NonSerialized] bool hasInit;
 
         protected override void OnEnable() {
             base.OnEnable();
@@ -24,18 +25,21 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
             languageJsonFiles = serializedObject.FindProperty("languageJsonFiles");
             languageJson = serializedObject.FindProperty("languageJson");
             languageJsonFilesList = new ReorderableListUtils(languageJsonFiles);
+            hasInit = true;
         }
         
         public override void OnInspectorGUI() {
+            if (!hasInit) OnEnable();
             base.OnInspectorGUI();
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, drawScript: false)) return;
-            using (new EditorGUI.DisabledScope(openedWindow != null))
-                if (GUILayout.Button("Open Language Editor"))
-                    openedWindow = LanguageEditorWindow.Open(target as LanguageManager);
+            if (GUILayout.Button("Open Language Editor")) {
+                if (openedWindow != null) openedWindow.Focus();
+                else openedWindow = LanguageEditorWindow.Open(target as LanguageManager);
+            }
             EditorGUILayout.Space();
             serializedObject.Update();
             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                languageJsonFilesList.list.DoLayoutList();
+                languageJsonFilesList.Draw();
                 if (changed.changed && openedWindow != null) openedWindow.RefreshJsonLists();
             }
             if (openedWindow == null || openedWindow.LanguageManager != target) openedWindow = null;
