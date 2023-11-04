@@ -203,7 +203,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                     bool hasModified = false;
                     using (var so = new SerializedObject(usharpBehaviour)) {
                         var iterator = so.GetIterator();
-                        while (iterator.NextVisible(true)) {
+                        while (iterator.Next(true)) {
                             if (iterator.propertyType != SerializedPropertyType.ObjectReference) continue;
                             if (iterator.objectReferenceValue is UdonBehaviour udon) {
                                 if (udon == unifiedLanguageManagerUdon) continue;
