@@ -16,6 +16,7 @@ namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     [DisallowMultipleComponent]
     public class Core : UdonSharpEventSender {
+        const byte IDLE = 0, LOADING = 1, PLAYING = 2, PAUSED = 3;
         [HideInInspector, SerializeField] string[] trustedUrlDomains = new string[0]; // This list will be fetched on build, via VRChat SDK
         Vector4 normalST = new Vector4(1, 1, 0, 0), flippedST = new Vector4(1, -1, 0, 1);
         Rect normalRect = new Rect(0, 0, 1, 1), flippedRect = new Rect(0, 1, 1, -1);
@@ -163,6 +164,10 @@ namespace JLChnToZ.VRC.VVMW {
                     audioSource.volume = volume;
                 }
             SendEvent("_OnVolumeChange");
+            UpdateAudioLinkVolume(volume);
+        }
+
+        void UpdateAudioLinkVolume(float volume) {
             #if AUDIOLINK_V1
             if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaVolume(volume);
             #endif
@@ -383,7 +388,7 @@ namespace JLChnToZ.VRC.VVMW {
             SetAudioLinkPlayBackState(MediaPlaying.Loading);
             #endif
             activeHandler.LoadUrl(url, false);
-            if (RequestSync()) state = (byte)PlaybackState.Loading;
+            if (RequestSync()) state = LOADING;
             if (yttl != null) {
                 if (!url.Equals(this.url)) {
                     author = "";
@@ -422,7 +427,7 @@ namespace JLChnToZ.VRC.VVMW {
         public void _ReloadUrl() {
             isError = false;
             if (!IsUrlValid(loadingUrl) ||
-                (synced && state == (byte)PlaybackState.Idle) ||
+                (synced && state == IDLE) ||
                 !loadingUrl.Equals(localUrl)) {
                 return;
             }
@@ -503,16 +508,17 @@ namespace JLChnToZ.VRC.VVMW {
                 activeHandler.Play();
                 return;
             }
-            switch ((PlaybackState)state) {
-                case PlaybackState.Idle:
-                case PlaybackState.Loading:
+            int intState = state;
+            switch (intState) {
+                case IDLE:
+                case LOADING:
                     if (Networking.IsOwner(gameObject))
                         activeHandler.Play();
                     else if (synced) // Try to ad-hoc sync
                         SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(OwnerSync));
                     break;
-                case PlaybackState.Playing: activeHandler.Play(); break;
-                case PlaybackState.Paused: activeHandler.Pause(); break;
+                case PLAYING: activeHandler.Play(); break;
+                case PAUSED: activeHandler.Pause(); break;
                 default: return;
             }
             if (videoTime > 0) activeHandler.Time = videoTime;
@@ -532,10 +538,11 @@ namespace JLChnToZ.VRC.VVMW {
                 #if AUDIOLINK_V1
                 float duration = activeHandler.Duration;
                 SetAudioLinkPlayBackState(duration <= 0 || float.IsInfinity(duration) ? MediaPlaying.Streaming : MediaPlaying.Playing);
+                UpdateAudioLinkVolume(Volume);
                 #endif
             }
             if (!synced || !Networking.IsOwner(gameObject) || isLocalReloading) return;
-            state = (byte)PlaybackState.Playing;
+            state = PLAYING;
             StartSyncTime();
         }
 
@@ -545,7 +552,7 @@ namespace JLChnToZ.VRC.VVMW {
             SetAudioLinkPlayBackState(MediaPlaying.Paused);
             #endif
             if (!synced || !Networking.IsOwner(gameObject) || isLocalReloading) return;
-            state = (byte)PlaybackState.Paused;
+            state = PAUSED;
             StartSyncTime();
         }
 
@@ -562,7 +569,7 @@ namespace JLChnToZ.VRC.VVMW {
             #endif
             _OnTextureChanged();
             if (!synced || !Networking.IsOwner(gameObject)) return;
-            state = (byte)PlaybackState.Idle;
+            state = IDLE;
             RequestSerialization();
         }
 
@@ -570,7 +577,7 @@ namespace JLChnToZ.VRC.VVMW {
             SendEvent("_onVideoLoop");
             activeHandler.Time = 0;
             if (!synced || !Networking.IsOwner(gameObject)) return;
-            state = (byte)PlaybackState.Playing;
+            state = PLAYING;
             RequestSerialization();
         }
 
@@ -647,7 +654,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (!synced || isLocalReloading) return;
             if (activeHandler == null) {
                 activePlayer = 0;
-                state = (byte)PlaybackState.Idle;
+                state = IDLE;
                 time = 0;
                 pcUrl = null;
                 questUrl = null;
@@ -664,10 +671,10 @@ namespace JLChnToZ.VRC.VVMW {
                     questUrl = altUrl;
                 }
                 if (activeHandler.IsReady) {
-                    state = (byte)(activeHandler.IsPlaying ? PlaybackState.Playing : PlaybackState.Paused);
+                    state = activeHandler.IsPlaying ? PLAYING : PAUSED;
                     time = CalcSyncTime();
                 } else {
-                    state = (byte)(IsUrlValid(localUrl) ? PlaybackState.Loading : PlaybackState.Idle);
+                    state = IsUrlValid(localUrl) ? LOADING : IDLE;
                     time = 0;
                 }
             }
@@ -687,7 +694,7 @@ namespace JLChnToZ.VRC.VVMW {
                 url = pcUrl;
                 altUrl = questUrl;
             }
-            if (state != (byte)PlaybackState.Idle && localUrl != url && (!IsUrlValid(localUrl) || !IsUrlValid(url) || localUrl.Get() != url.Get())) {
+            if (state != IDLE && localUrl != url && (!IsUrlValid(localUrl) || !IsUrlValid(url) || localUrl.Get() != url.Get())) {
                 if (activeHandler == null) {
                     Debug.LogWarning($"[VVMW] Owner serialization incomplete, will queue a sync request.");
                     SendCustomEventDelayedSeconds(nameof(_RequestOwnerSync), 1);
@@ -711,15 +718,16 @@ namespace JLChnToZ.VRC.VVMW {
             }
             localUrl = url;
             if (activeHandler != null && activeHandler.IsReady) {
-                switch ((PlaybackState)state) {
-                    case PlaybackState.Idle:
+                int intState = state;
+                switch (intState) {
+                    case IDLE:
                         if (activeHandler.IsPlaying) activeHandler.Stop();
                         break;
-                    case PlaybackState.Paused:
-                    case PlaybackState.Loading:
+                    case PAUSED:
+                    case LOADING:
                         if (!activeHandler.IsPaused) activeHandler.Pause();
                         break;
-                    case PlaybackState.Playing:
+                    case PLAYING:
                         if (activeHandler.IsPaused || !activeHandler.IsPlaying) {
                             activeHandler.Play();
                             var duration = activeHandler.Duration;
@@ -780,9 +788,10 @@ namespace JLChnToZ.VRC.VVMW {
             var duration = activeHandler.Duration;
             if (duration <= 0 || float.IsInfinity(duration)) return 0;
             float videoTime;
-            switch ((PlaybackState)state) {
-                case PlaybackState.Playing: videoTime = (float)(Networking.GetNetworkDateTime().Ticks - time) / TimeSpan.TicksPerSecond + syncOffset; break;
-                case PlaybackState.Paused: videoTime = (float)time / TimeSpan.TicksPerSecond; break;
+            int intState = state;
+            switch (intState) {
+                case PLAYING: videoTime = (float)(Networking.GetNetworkDateTime().Ticks - time) / TimeSpan.TicksPerSecond + syncOffset; break;
+                case PAUSED: videoTime = (float)time / TimeSpan.TicksPerSecond; break;
                 default: return 0;
             }
             if (loop) videoTime = Mathf.Repeat(videoTime, duration);
@@ -865,12 +874,5 @@ namespace JLChnToZ.VRC.VVMW {
             viewCount = "";
             SendEvent("_OnTitleData");
         }
-    }
-
-    public enum PlaybackState {
-        Idle = 0,
-        Loading = 1,
-        Playing = 2,
-        Paused = 3,
     }
 }
