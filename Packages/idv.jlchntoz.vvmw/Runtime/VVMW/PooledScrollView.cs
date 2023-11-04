@@ -28,6 +28,7 @@ namespace JLChnToZ.VRC.VVMW {
         public bool autoSelect = true;
         int offset, count;
         RectTransform viewportRect, contentRect, templateRect;
+        Vector2 prevAnchorPosition;
         float entriesPerViewport;
         string entryClickEventName = "_OnEntryClick";
         string entryDeleteEventName = "_OnEntryDelete";
@@ -203,9 +204,14 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnScroll() {
-            if (hasInit)
+            if (hasInit) {
+                // It jitters in some cases, so we need to filter it.
+                var newAnchorPosition = contentRect.anchoredPosition;
+                if (Vector2.Distance(prevAnchorPosition, newAnchorPosition) < 0.005F) return;
+                prevAnchorPosition = newAnchorPosition;
                 foreach (var entry in entries)
                     entry._OnParentScroll();
+            }
             SendEvent(scrollEventName);
         }
     }
