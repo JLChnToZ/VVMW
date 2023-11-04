@@ -164,12 +164,12 @@ namespace JLChnToZ.VRC.VVMW {
                     audioSource.volume = volume;
                 }
             SendEvent("_OnVolumeChange");
-            UpdateAudioLinkVolume(volume);
+            UpdateAudioLinkVolume();
         }
 
-        void UpdateAudioLinkVolume(float volume) {
+        void UpdateAudioLinkVolume() {
             #if AUDIOLINK_V1
-            if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaVolume(volume);
+            if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaVolume(defaultVolume);
             #endif
         }
 
@@ -538,7 +538,7 @@ namespace JLChnToZ.VRC.VVMW {
                 #if AUDIOLINK_V1
                 float duration = activeHandler.Duration;
                 SetAudioLinkPlayBackState(duration <= 0 || float.IsInfinity(duration) ? MediaPlaying.Streaming : MediaPlaying.Playing);
-                UpdateAudioLinkVolume(Volume);
+                UpdateAudioLinkVolume();
                 #endif
             }
             if (!synced || !Networking.IsOwner(gameObject) || isLocalReloading) return;
