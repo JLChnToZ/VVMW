@@ -3,6 +3,7 @@ using UnityEngine;
 namespace JLChnToZ.VRC.VVMW {
     [ExecuteInEditMode, EditorOnly]
     [RequireComponent(typeof(RectTransform), typeof(BoxCollider))]
+    [AddComponentMenu("VizVid/Common/VRC Canvas Utility")]
     public class VRCCanvasUtility : MonoBehaviour {
         [SerializeField] float canvasScale = 0;
         new RectTransform transform;

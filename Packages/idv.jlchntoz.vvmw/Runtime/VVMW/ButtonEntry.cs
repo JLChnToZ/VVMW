@@ -8,6 +8,7 @@ namespace JLChnToZ.VRC.VVMW {
     [RequireComponent(typeof(Button))]
     [DisallowMultipleComponent]
     [BindEvent(typeof(Button), nameof(Button.onClick), nameof(_OnClick))]
+    [AddComponentMenu("VizVid/Components/Button Entry")]
     public class ButtonEntry : UdonSharpBehaviour {
         LanguageManager manager;
         [SerializeField] Text buttonText;

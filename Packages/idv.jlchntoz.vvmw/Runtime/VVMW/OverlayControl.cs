@@ -8,6 +8,7 @@ namespace JLChnToZ.VRC.VVMW {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [DisallowMultipleComponent]
+    [AddComponentMenu("VizVid/Components/Overlay Control")]
     public class OverlayControl : UdonSharpBehaviour {
         Quaternion leftHandRotation = Quaternion.Euler(-90, -45, 0);
         Quaternion rightHandRotation = Quaternion.Euler(90, -45, 180);

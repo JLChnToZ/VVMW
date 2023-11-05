@@ -7,6 +7,7 @@ using VRC.SDKBase;
 namespace JLChnToZ.VRC.VVMW.I18N {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
+    [AddComponentMenu("VizVid/Locales/Language Manager")]
     public class LanguageManager : UdonSharpEventSender {
         [SerializeField] TextAsset[] languageJsonFiles;
         [SerializeField, Multiline] string languageJson;

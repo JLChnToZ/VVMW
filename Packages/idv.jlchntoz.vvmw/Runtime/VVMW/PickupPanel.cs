@@ -11,6 +11,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     [RequireComponent(typeof(VRC_Pickup))]
     [DisallowMultipleComponent]
+    [AddComponentMenu("VizVid/Components/Pickup Panel")]
     public class PickupPanel : UdonSharpBehaviour {
         [Header("References")]
         [SerializeField] Transform scalingTarget;

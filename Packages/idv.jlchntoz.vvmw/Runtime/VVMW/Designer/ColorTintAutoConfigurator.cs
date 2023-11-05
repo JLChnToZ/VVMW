@@ -6,6 +6,7 @@ using UnityEditor;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
     [RequireComponent(typeof(Selectable))]
+    [AddComponentMenu("VizVid/Color Configurator/Color Tint")]
     public class ColorTintAutoConfigurator : AbstractAutoConfigurator {
         [SerializeField] int normalColorIndex = -1;
         [SerializeField] int highlightedColorIndex = -1;

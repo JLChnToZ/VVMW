@@ -12,6 +12,7 @@ using VRC.Udon.Common.Interfaces;
 
 namespace VVMW.ThirdParties.Yttl {
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
+    [AddComponentMenu("VizVid/Third-Parties/YTTL/YTTL Parser")]
     public class YttlParser : UdonSharpBehaviour {
         private VRCUrl defineFileUrl = new VRCUrl("https://nextnex.com/?url=https://raw.githubusercontent.com/ureishi/yttl-data/v2/yttl.txt");
 

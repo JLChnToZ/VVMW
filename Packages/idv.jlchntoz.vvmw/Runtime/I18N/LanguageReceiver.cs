@@ -6,6 +6,7 @@ using TMPro;
 namespace JLChnToZ.VRC.VVMW.I18N {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
+    [AddComponentMenu("VizVid/Locales/Language Receiver")]
     public class LanguageReceiver : UdonSharpBehaviour {
         [SerializeField, HideInInspector] LanguageManager manager;
         [SerializeField] string key;

@@ -11,6 +11,7 @@ using JLChnToZ.VRC.VVMW.I18N;
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [DisallowMultipleComponent]
+    [AddComponentMenu("VizVid/UI Handler")]
     public class UIHandler : UdonSharpBehaviour {
         [Header("Main Reference")]
         [SerializeField, Locatable(

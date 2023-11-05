@@ -6,6 +6,7 @@ using UnityEditor;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
     [RequireComponent(typeof(Graphic))]
+    [AddComponentMenu("VizVid/Color Configurator/UI Graphics")]
     public class GraphicAutoConfigurator : AbstractAutoConfigurator {
         [SerializeField] int colorIndex = 0;
 

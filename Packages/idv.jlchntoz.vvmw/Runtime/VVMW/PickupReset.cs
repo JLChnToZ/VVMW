@@ -6,6 +6,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     [RequireComponent(typeof(Collider))]
     [DisallowMultipleComponent]
+    [AddComponentMenu("VizVid/Components/Pickup Reset")]
     public class PickupReset : UdonSharpBehaviour {
         [SerializeField] PickupPanel pickupPanel;
         [SerializeField, HideInInspector] LanguageManager languageManager;

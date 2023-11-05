@@ -7,6 +7,7 @@ namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     [RequireComponent(typeof(RectTransform))]
     [DisallowMultipleComponent]
+    [AddComponentMenu("VizVid/Components/List Entry")]
     public class ListEntry : UdonSharpBehaviour {
         [SerializeField] Text content;
         [BindEvent(nameof(Button.onClick), nameof(_OnClick))]

@@ -4,6 +4,7 @@ using UnityEditor;
 #endif
 
 namespace JLChnToZ.VRC.VVMW.Designer {
+    [AddComponentMenu("VizVid/Color Configurator/List Entry")]
     public class ListEntryColorAutoConfigurator : AbstractAutoConfigurator {
         [SerializeField] int normalColorIndex = -1;
         [SerializeField] int selectedColorIndex = -1;

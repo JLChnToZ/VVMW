@@ -14,6 +14,7 @@ using VRC.Udon.Common.Interfaces;
 
 namespace VVMW.ThirdParties.Yttl {
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
+    [AddComponentMenu("VizVid/Third-Parties/YTTL/YTTL Manager")]
     public class YttlManager : UdonSharpBehaviour {
         [SerializeField] YttlParser parser;
         DataList labels;

@@ -6,6 +6,7 @@ using UnityEngine.UI;
 namespace JLChnToZ.VRC.VVMW.I18N {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
+    [AddComponentMenu("VizVid/Locales/Language Setter")]
     public class LanguageSetter : UdonSharpBehaviour {
         [SerializeField, HideInInspector] LanguageManager manager;
         [SerializeField] GameObject entryTemplate;
