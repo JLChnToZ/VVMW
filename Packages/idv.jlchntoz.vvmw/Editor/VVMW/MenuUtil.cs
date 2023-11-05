@@ -22,12 +22,13 @@ namespace JLChnToZ.VRC.VVMW {
                 Debug.LogError($"Cannot find prefab at {path}");
                 return null;
             }
-            var go = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            var instanceName = GameObjectUtility.GetUniqueNameForSibling(parent, prefab.name);
+            var go = PrefabUtility.InstantiatePrefab(prefab, parent) as GameObject;
             if (go == null) {
                 Debug.LogError($"Cannot instantiate prefab at {path}");
                 return null;
             }
-            if (parent != null) go.transform.SetParent(parent, false);
+            go.name = instanceName;
             foreach (var component in go.GetComponentsInChildren<MonoBehaviour>(true)) {
                 if (component is Core) {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(Core), "audioLink"), false, true);
