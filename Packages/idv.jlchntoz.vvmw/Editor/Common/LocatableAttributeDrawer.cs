@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 
@@ -25,7 +26,7 @@ namespace JLChnToZ.VRC.VVMW {
                     EditorGUI.PropertyField(propertyRect, property, label);
                     using (new EditorGUI.DisabledGroupScope(so.isEditingMultipleObjects))
                         if (GUI.Button(buttonRect, findButtonContent, buttonStyle)) {
-                            var result = Find(targetComponent);
+                            var result = Locate(targetComponent, fieldInfo.FieldType, attribute as LocatableAttribute, true);
                             if (result != null) {
                                 EditorGUIUtility.PingObject(result);
                                 property.objectReferenceValue = result;
@@ -35,42 +36,60 @@ namespace JLChnToZ.VRC.VVMW {
                     EditorGUI.PropertyField(position, property, label);
         }
 
-        UnityObject Find(Component startFrom) {
-            if (startFrom == null) return null;
-            var attribute = this.attribute as LocatableAttribute;
-            if (attribute == null) return Utils.FindClosestComponentInHierarchy(startFrom.transform, fieldInfo.FieldType);
+        public static UnityObject Locate(Component target, FieldInfo fieldInfo, bool createPrefab = true, bool resolve = false) {
+            var result = Locate(target, fieldInfo.FieldType, fieldInfo.GetCustomAttribute<LocatableAttribute>(), createPrefab);
+            if (resolve && result != null && fieldInfo.GetValue(target) as UnityObject == null) {
+                fieldInfo.SetValue(target, result);
+                if (PrefabUtility.IsPartOfPrefabInstance(target))
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(target);
+                else
+                    EditorUtility.SetDirty(target);
+            }
+            return result;
+        }
+
+        static UnityObject Locate(Component target, Type fieldType, LocatableAttribute attribute, bool createPrefab) {
+            if (target == null) return null;
+            if (attribute == null) return Utils.FindClosestComponentInHierarchy(target.transform, fieldType);
             if (attribute.TypeNames == null || attribute.TypeNames.Length == 0) {
-                var result = Utils.FindClosestComponentInHierarchy(startFrom.transform, fieldInfo.FieldType);
+                var result = Utils.FindClosestComponentInHierarchy(target.transform, fieldType);
                 if (result != null) return result;
             } else foreach (var typeName in attribute.TypeNames) {
                 var type = Type.GetType(typeName, false);
-                if (type != null) {
-                    var result = Utils.FindClosestComponentInHierarchy(startFrom.transform, type);
-                    if (result != null) return result;
-                }
+                if (type == null) continue;
+                var result = Utils.FindClosestComponentInHierarchy(target.transform, type);
+                if (result != null) return result;
             }
+            if (!createPrefab) return null;
+            string prefabPath = null;
             if (!string.IsNullOrEmpty(attribute.InstaniatePrefabGuid)) {
-                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(attribute.InstaniatePrefabGuid));
-                if (prefab == null) {
+                prefabPath = AssetDatabase.GUIDToAssetPath(attribute.InstaniatePrefabGuid);
+                if (string.IsNullOrEmpty(prefabPath)) {
                     Debug.LogWarning($"Cannot find prefab with GUID {attribute.InstaniatePrefabGuid}");
                     return null;
                 }
-                var result = InstaniatePrefab(prefab, startFrom, attribute.InstaniatePrefabPosition, attribute.TypeNames);
-                if (result != null) return result;
-            } else if (!string.IsNullOrEmpty(attribute.InstaniatePrefabPath)) {
-                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(attribute.InstaniatePrefabPath);
+            } else if (!string.IsNullOrEmpty(attribute.InstaniatePrefabPath))
+                prefabPath = attribute.InstaniatePrefabPath;
+            if (!string.IsNullOrEmpty(prefabPath)) {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
                 if (prefab == null) {
-                    Debug.LogWarning($"Cannot find prefab at path {attribute.InstaniatePrefabPath}");
+                    Debug.LogWarning($"Cannot find prefab at path {prefabPath}");
                     return null;
                 }
-                var result = InstaniatePrefab(prefab, startFrom, attribute.InstaniatePrefabPosition, attribute.TypeNames);
+                var result = InstaniatePrefab(prefab, target, attribute.InstaniatePrefabPosition, fieldType, attribute.TypeNames);
                 if (result != null) return result;
             }
             Debug.LogWarning($"Cannot find any component of type {string.Join(", ", attribute.TypeNames)}");
             return null;
         }
 
-        Component InstaniatePrefab(GameObject prefab, Component current, InstaniatePrefabHierachyPosition spawnPosition, string[] searchTypeNames) {
+        static Component InstaniatePrefab(
+            GameObject prefab,
+            Component current,
+            InstaniatePrefabHierachyPosition spawnPosition,
+            Type fieldType,
+            string[] searchTypeNames
+        ) {
             var result = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
             if (result == null) return null;
             Undo.RegisterCreatedObjectUndo(result, $"Instaniate {prefab.name}");
@@ -93,16 +112,15 @@ namespace JLChnToZ.VRC.VVMW {
                 transform.SetSiblingIndex(currentSiblingIndex);
             else if (spawnPosition.HasFlag(InstaniatePrefabHierachyPosition.After))
                 transform.SetSiblingIndex(currentSiblingIndex + 1);
-            var targetComponent = result.GetComponentInChildren(fieldInfo.FieldType);
-            if (targetComponent == null && searchTypeNames != null)
-                foreach (var typeName in searchTypeNames) {
-                    var type = Type.GetType(typeName, false);
-                    if (type != null) {
-                        targetComponent = result.GetComponentInChildren(type);
-                        if (targetComponent != null) break;
-                    }
-                }
-            return targetComponent;
+            if (searchTypeNames == null || searchTypeNames.Length == 0)
+                return result.GetComponentInChildren(fieldType);
+            foreach (var typeName in searchTypeNames) {
+                var type = Type.GetType(typeName, false);
+                if (type == null) continue;
+                var targetComponent = result.GetComponentInChildren(type);
+                if (targetComponent != null) return targetComponent;
+            }
+            return null;
         }
     }
 }

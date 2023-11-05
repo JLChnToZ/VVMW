@@ -370,34 +370,77 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 var newTarget = EditorGUILayout.ObjectField(GetTempContent("Add Video Screen Target", "Drag renderers, materials, custom render textures, UI raw images here to receive video texture."), null, typeof(Object), true);
                 if (changed.changed && newTarget != null) {
-                    if (newTarget is CustomRenderTexture crt)
-                        newTarget = crt.material;
-                    if (newTarget is Material material) {
-                        AppendElement(screenTargetsProperty, material);
-                        AppendElement(screenTargetModesProperty, 0);
-                        var mainTexturePropertyName = FindMainTexturePropertyName(material);
-                        AppendElement(screenTargetPropertyNamesProperty, mainTexturePropertyName);
-                        AppendElement(screenTargetDefaultTexturesProperty, material.GetTexture(mainTexturePropertyName));
-                    } else if (newTarget is Renderer renderer || (newTarget is GameObject rendererGO && rendererGO.TryGetComponent(out renderer))) {
-                        AppendElement(screenTargetsProperty, renderer);
-                        AppendElement(screenTargetModesProperty, 1);
-                        material = renderer.sharedMaterial;
-                        var mainTexturePropertyName = FindMainTexturePropertyName(material);
-                        AppendElement(screenTargetPropertyNamesProperty, mainTexturePropertyName);
-                        AppendElement(screenTargetDefaultTexturesProperty, material != null ? material.GetTexture(mainTexturePropertyName) : null);
-                    } else if (newTarget is RawImage rawImage || (newTarget is GameObject rawImageGO && rawImageGO.TryGetComponent(out rawImage))) {
-                        AppendElement(screenTargetsProperty, rawImage);
-                        AppendElement(screenTargetModesProperty, 4);
-                        AppendElement(screenTargetPropertyNamesProperty, "");
-                        AppendElement(screenTargetDefaultTexturesProperty, rawImage.texture);
-                    } else goto skip;
-                    AppendElement(screenTargetIndecesProperty, -1);
-                    AppendElement(avProPropertyNamesProperty, "_IsAVProVideo");
-                    screenTargetVisibilityState.Add(true);
-                    skip:;
+                    if (AppendScreen(
+                        newTarget,
+                        screenTargetsProperty,
+                        screenTargetModesProperty,
+                        screenTargetIndecesProperty,
+                        screenTargetPropertyNamesProperty,
+                        screenTargetDefaultTexturesProperty,
+                        avProPropertyNamesProperty
+                    )) screenTargetVisibilityState.Add(true);
                 }
             }
             EditorGUILayout.Space();
+        }
+
+        public static bool AddTarget(Core core, Object newTarget, bool recordUndo = true, bool copyToUdon = false) {
+            using (var so = new SerializedObject(core)) {
+                if (newTarget is AudioSource) {
+                    var audioSourcesProperty = so.FindProperty("audioSources");
+                    var index = audioSourcesProperty.arraySize++;
+                    audioSourcesProperty.GetArrayElementAtIndex(index).objectReferenceValue = newTarget;
+                } else if (!AppendScreen(
+                    newTarget,
+                    so.FindProperty("screenTargets"),
+                    so.FindProperty("screenTargetModes"),
+                    so.FindProperty("screenTargetIndeces"),
+                    so.FindProperty("screenTargetPropertyNames"),
+                    so.FindProperty("screenTargetDefaultTextures"),
+                    so.FindProperty("avProPropertyNames")
+                )) return false;
+                if (recordUndo)
+                    so.ApplyModifiedProperties();
+                else
+                    so.ApplyModifiedPropertiesWithoutUndo();
+            }
+            if (copyToUdon) UdonSharpEditorUtility.CopyProxyToUdon(core);
+            return true;
+        }
+
+        static bool AppendScreen(
+            Object newTarget,
+            SerializedProperty screenTargetsProperty,
+            SerializedProperty screenTargetModesProperty,
+            SerializedProperty screenTargetIndecesProperty,
+            SerializedProperty screenTargetPropertyNamesProperty,
+            SerializedProperty screenTargetDefaultTexturesProperty,
+            SerializedProperty avProPropertyNamesProperty
+        ) {
+            if (newTarget is CustomRenderTexture crt)
+                newTarget = crt.material;
+            if (newTarget is Material material) {
+                AppendElement(screenTargetsProperty, material);
+                AppendElement(screenTargetModesProperty, 0);
+                var mainTexturePropertyName = FindMainTexturePropertyName(material);
+                AppendElement(screenTargetPropertyNamesProperty, mainTexturePropertyName);
+                AppendElement(screenTargetDefaultTexturesProperty, material.GetTexture(mainTexturePropertyName));
+            } else if (newTarget is Renderer renderer || (newTarget is GameObject rendererGO && rendererGO.TryGetComponent(out renderer))) {
+                AppendElement(screenTargetsProperty, renderer);
+                AppendElement(screenTargetModesProperty, 1);
+                material = renderer.sharedMaterial;
+                var mainTexturePropertyName = FindMainTexturePropertyName(material);
+                AppendElement(screenTargetPropertyNamesProperty, mainTexturePropertyName);
+                AppendElement(screenTargetDefaultTexturesProperty, material != null ? material.GetTexture(mainTexturePropertyName) : null);
+            } else if (newTarget is RawImage rawImage || (newTarget is GameObject rawImageGO && rawImageGO.TryGetComponent(out rawImage))) {
+                AppendElement(screenTargetsProperty, rawImage);
+                AppendElement(screenTargetModesProperty, 4);
+                AppendElement(screenTargetPropertyNamesProperty, "");
+                AppendElement(screenTargetDefaultTexturesProperty, rawImage.texture);
+            } else return false;
+            AppendElement(screenTargetIndecesProperty, -1);
+            AppendElement(avProPropertyNamesProperty, "_IsAVProVideo");
+            return true;
         }
 
         static void SetValue(object entry) {
