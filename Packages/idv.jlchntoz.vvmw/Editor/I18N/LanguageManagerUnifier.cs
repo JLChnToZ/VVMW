@@ -22,7 +22,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
         Dictionary<UdonBehaviour, LanguageManager> backingUdonBehaviours = new Dictionary<UdonBehaviour, LanguageManager>();
         List<string> jsonTexts = new List<string>();
 
-        public int callbackOrder => 0;
+        public int callbackOrder => -1;
 
         public static Dictionary<string, LanguageEntry> ParseFromJson(
             string json,

@@ -44,64 +44,24 @@ using UdonSharpEditor;
 using UnityObject = UnityEngine.Object;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
-    internal sealed class BindEventPreprocessor : IProcessSceneWithReport {
-        static readonly Regex regexCompositeFormat = new Regex(@"\{(\d+)[,:]?[^\}]*\}", RegexOptions.Compiled);
-        static readonly Dictionary<Type, MonoScript> scriptMap = new Dictionary<Type, MonoScript>();
-        static readonly Dictionary<string, string> typeNameMapping = new Dictionary<string, string>();
+    internal abstract class BindEventPreprocessorBase : IProcessSceneWithReport {
+        protected static readonly Dictionary<Type, MonoScript> scriptMap = new Dictionary<Type, MonoScript>();
         readonly Dictionary<Type, FieldInfo[]> filteredFields = new Dictionary<Type, FieldInfo[]>();
-        static bool hasTypeNameMappingInit;
 
-        public int callbackOrder => 0;
+        public virtual int callbackOrder => 0;
 
-        public void OnProcessScene(Scene scene, BuildReport report) {
-            foreach (var usharp in scene.IterateAllComponents<UdonSharpBehaviour>()) {
-                var type = usharp.GetType();
-                var udon = UdonSharpEditorUtility.GetBackingUdonBehaviour(usharp);
-                if (udon == null) {
-                    Debug.LogError($"[BindEventPreprocessor] `{usharp.name}` is not correctly configured.", usharp);
-                    continue;
-                }
-                UnityAction<string> call = udon.SendCustomEvent;
-                ProcessEntry(type, udon, call);
-                var fieldInfos = GetFields(type);
-                foreach (var field in fieldInfos) {
-                    var targetObj = field.GetValue(usharp);
-                    if (targetObj is Array array)
-                        for (int i = 0, length = array.GetLength(0); i < length; i++)
-                            ProcessEntry(array.GetValue(i) as UnityObject, field, call, i);
-                    else if (targetObj is UnityObject unityObject)
-                        ProcessEntry(unityObject, field, call, 0);
-                }
-            }
-        }
+        public abstract void OnProcessScene(Scene scene, BuildReport report);
 
-        FieldInfo[] GetFields(Type type) {
+        protected FieldInfo[] GetFields<T>(Type type) where T : Attribute {
             if (!filteredFields.TryGetValue(type, out var fieldInfos)) {
                 fieldInfos = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                    .Where(field => field.IsDefined(typeof(BindEventAttribute), true)).ToArray();
+                    .Where(field => field.IsDefined(typeof(T), true)).ToArray();
                 filteredFields[type] = fieldInfos;
             }
             return fieldInfos;
         }
 
-        static void ProcessEntry(Type type, Component component, UnityAction<string> call) {
-            foreach (var attribute in type.GetCustomAttributes<BindEventAttribute>(true)) {
-                var srcType = attribute.SourceType;
-                if (srcType == null) continue;
-                var targetObjs = component.GetComponents(srcType);
-                for (int i = 0; i < targetObjs.Length; i++)
-                    BindSingleEvent(targetObjs[i], srcType, attribute, call, i);
-            }
-        }
-
-        static void ProcessEntry(UnityObject targetObj, MemberInfo member, UnityAction<string> call, int index) {
-            if (targetObj == null) return;
-            var srcType = targetObj.GetType();
-            foreach (var attribute in member.GetCustomAttributes<BindEventAttribute>(true))
-                BindSingleEvent(targetObj, attribute.SourceType ?? srcType, attribute, call, index);
-        }
-
-        static UnityObject ResolvePath(string path, Type srcType, UnityObject source) {
+        protected static UnityObject ResolvePath(string path, Type srcType, UnityObject source) {
             var pathElements = path.Split('/');
             if (source is Transform transform) {}
             else if (source is Component component)
@@ -176,7 +136,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             return source;
         }
 
-        static bool TryGetValue(UnityObject source, Type srcType, string fieldName, out object result) {
+        protected static bool TryGetValue(UnityObject source, Type srcType, string fieldName, out object result) {
             if (source == null) {
                 result = null;
                 return false;
@@ -193,6 +153,59 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             result = null;
             return false;
+        }
+
+        protected static void GatherMonoScripts() {
+            scriptMap.Clear();
+            foreach (var script in AssetDatabase.FindAssets("t:MonoScript").Select(AssetDatabase.GUIDToAssetPath).Select(AssetDatabase.LoadAssetAtPath<MonoScript>)) {
+                var type = script.GetClass();
+                if (type != null) scriptMap[type] = script;
+            }
+        }
+    }
+
+    internal sealed class BindEventPreprocessor : BindEventPreprocessorBase {
+        static readonly Regex regexCompositeFormat = new Regex(@"\{(\d+)[,:]?[^\}]*\}", RegexOptions.Compiled);
+        static readonly Dictionary<string, string> typeNameMapping = new Dictionary<string, string>();
+        static bool hasTypeNameMappingInit;
+
+        public override void OnProcessScene(Scene scene, BuildReport report) {
+            foreach (var usharp in scene.IterateAllComponents<UdonSharpBehaviour>()) {
+                var type = usharp.GetType();
+                var udon = UdonSharpEditorUtility.GetBackingUdonBehaviour(usharp);
+                if (udon == null) {
+                    Debug.LogError($"[BindEventPreprocessor] `{usharp.name}` is not correctly configured.", usharp);
+                    continue;
+                }
+                UnityAction<string> call = udon.SendCustomEvent;
+                ProcessEntry(type, udon, call);
+                var fieldInfos = GetFields<BindEventAttribute>(type);
+                foreach (var field in fieldInfos) {
+                    var targetObj = field.GetValue(usharp);
+                    if (targetObj is Array array)
+                        for (int i = 0, length = array.GetLength(0); i < length; i++)
+                            ProcessEntry(array.GetValue(i) as UnityObject, field, call, i);
+                    else if (targetObj is UnityObject unityObject)
+                        ProcessEntry(unityObject, field, call, 0);
+                }
+            }
+        }
+
+        static void ProcessEntry(Type type, Component component, UnityAction<string> call) {
+            foreach (var attribute in type.GetCustomAttributes<BindEventAttribute>(true)) {
+                var srcType = attribute.SourceType;
+                if (srcType == null) continue;
+                var targetObjs = component.GetComponents(srcType);
+                for (int i = 0; i < targetObjs.Length; i++)
+                    BindSingleEvent(targetObjs[i], srcType, attribute, call, i);
+            }
+        }
+
+        static void ProcessEntry(UnityObject targetObj, MemberInfo member, UnityAction<string> call, int index) {
+            if (targetObj == null) return;
+            var srcType = targetObj.GetType();
+            foreach (var attribute in member.GetCustomAttributes<BindEventAttribute>(true))
+                BindSingleEvent(targetObj, attribute.SourceType ?? srcType, attribute, call, index);
         }
 
         static void BindSingleEvent(UnityObject targetObj, Type srcType, BindEventAttribute attribute, UnityAction<string> call, int index) {
@@ -231,14 +244,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 foreach (var attribute in type.GetCustomAttributes<BindEventAttribute>(true)) ValidateType(type, attribute);
                 foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                 foreach (var attribute in field.GetCustomAttributes<BindEventAttribute>(true)) ValidateType(type, attribute, field);
-            }
-        }
-
-        static void GatherMonoScripts() {
-            scriptMap.Clear();
-            foreach (var script in AssetDatabase.FindAssets("t:MonoScript").Select(AssetDatabase.GUIDToAssetPath).Select(AssetDatabase.LoadAssetAtPath<MonoScript>)) {
-                var type = script.GetClass();
-                if (type != null) scriptMap[type] = script;
             }
         }
 

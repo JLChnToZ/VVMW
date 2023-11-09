@@ -9,12 +9,11 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
     [AddComponentMenu("VizVid/Components/Pickup Reset")]
     public class PickupReset : UdonSharpBehaviour {
         [SerializeField] PickupPanel pickupPanel;
-        [SerializeField, HideInInspector] LanguageManager languageManager;
+        [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager languageManager;
         [SerializeField] string interactKey = "Reset";
 
         void Start() {
             if (languageManager != null) {
-                languageManager._AddListener(this);
                 _OnLanguageChanged();
             }
         }

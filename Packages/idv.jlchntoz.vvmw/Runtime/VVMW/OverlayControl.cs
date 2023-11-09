@@ -17,7 +17,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
-        )] Core core;
+        ), BindUdonSharpEvent] Core core;
         [Header("References (For use with non-VizVid players)")]
         [SerializeField] AudioSource[] audioSources;
         [SerializeField] GameObject[] resyncTargets;
@@ -72,7 +72,6 @@ namespace JLChnToZ.VRC.VVMW {
             desktopModeCanvas.SetActive(!vrMode);
             desktopModeOptionsCanvas.SetActive(!vrMode);
             desktopModeAnim = desktopModeCanvas.GetComponentInChildren<Animator>();
-            if (Utilities.IsValid(core)) core._AddListener(this);
             _OnVolumeChange();
             offsetSliderVR.SetValueWithoutNotify(Mathf.Log(offset, 1.5F));
             vrModeCanvasTransform = vrModeCanvas.transform;

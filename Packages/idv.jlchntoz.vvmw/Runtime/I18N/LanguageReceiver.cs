@@ -8,7 +8,7 @@ namespace JLChnToZ.VRC.VVMW.I18N {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [AddComponentMenu("VizVid/Locales/Language Receiver")]
     public class LanguageReceiver : UdonSharpBehaviour {
-        [SerializeField, HideInInspector] LanguageManager manager;
+        [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager manager;
         [SerializeField] string key;
         object[] args;
         Text text;
@@ -30,7 +30,6 @@ namespace JLChnToZ.VRC.VVMW.I18N {
                 if (text != null) key = text.text;
                 else if (textMeshPro != null) key = textMeshPro.text;
             }
-            manager._AddListener(this);
             _OnLanguageChanged();
         }
 

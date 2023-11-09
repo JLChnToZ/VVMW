@@ -8,13 +8,12 @@ namespace JLChnToZ.VRC.VVMW.I18N {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [AddComponentMenu("VizVid/Locales/Language Setter")]
     public class LanguageSetter : UdonSharpBehaviour {
-        [SerializeField, HideInInspector] LanguageManager manager;
+        [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager manager;
         [SerializeField] GameObject entryTemplate;
         Toggle[] spawnedEntries;
         bool hasInit = false;
 
         void Start() {
-            manager._AddListener(this);
             entryTemplate.SetActive(false);
             SendCustomEventDelayedFrames(nameof(_DetectLanguageInit), 0);
         }

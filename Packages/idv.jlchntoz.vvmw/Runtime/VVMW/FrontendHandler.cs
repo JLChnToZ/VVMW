@@ -12,7 +12,7 @@ namespace JLChnToZ.VRC.VVMW {
     [AddComponentMenu("VizVid/Frontend Handler")]
     public class FrontendHandler : UdonSharpEventSender {
         protected const byte NONE = 0, REPEAT_ONE = 0x1, REPEAT_ALL = 0x2, SHUFFLE = 0x4;
-        [SerializeField, Locatable] public Core core;
+        [SerializeField, Locatable, BindUdonSharpEvent] public Core core;
         [Tooltip("If enabled, while user want to play a video and it is playing other video, the video will be queued. Recommend as this is more polite to everyone.")]
         [SerializeField] bool enableQueueList = true;
         [Tooltip("Locks the player frontend by default, this option must be used with other scripts to control the player.")]
@@ -156,7 +156,6 @@ namespace JLChnToZ.VRC.VVMW {
 
         void Start() {
             synced = core.IsSynced;
-            core._AddListener(this);
             if (!synced || Networking.IsOwner(gameObject)) {
                 if (core.Loop) localFlags |= REPEAT_ONE;
                 if (localPlayListIndex > 0 && localPlayListIndex <= playListUrlOffsets.Length)

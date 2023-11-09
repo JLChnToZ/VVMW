@@ -17,11 +17,11 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
-        )] Core core;
+        ), BindUdonSharpEvent] Core core;
         [Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
-        )] public FrontendHandler handler;
+        ), BindUdonSharpEvent] public FrontendHandler handler;
         [SerializeField, HideInInspector] LanguageManager languageManager;
 
         [Header("URL Input")]
@@ -84,10 +84,10 @@ namespace JLChnToZ.VRC.VVMW {
 
         [Header("Queue List / Play List")]
         [SerializeField] GameObject playListPanelRoot;
-        [SerializeField] PooledScrollView playListScrollView;
+        [SerializeField, BindUdonSharpEvent] PooledScrollView playListScrollView;
         [BindEvent(nameof(Button.onClick), nameof(_PlayListTogglePanel))]
         [SerializeField] Button playListTogglePanelButton;
-        [SerializeField] PooledScrollView queueListScrollView;
+        [SerializeField, BindUdonSharpEvent] PooledScrollView queueListScrollView;
         [SerializeField] GameObject playNextIndicator;
         [SerializeField] Text selectedPlayListText;
         [BindEvent(nameof(Button.onClick), nameof(_OnCurrentPlayListSelectClick))]
@@ -156,8 +156,7 @@ namespace JLChnToZ.VRC.VVMW {
                 playListScrollView.EventPrefix = "_OnPlayList";
                 playListScrollView.CanDelete = false;
                 playListScrollView.EntryNames = playListNames;
-                playListScrollView._AddListener(this);
-                SelectedPlayListIndex = handler.PlayListIndex;
+                SelectedPlayListIndex = hasHandler ? handler.PlayListIndex : 0;
                 if (playListTogglePanelButton != null)
                     playListScrollView.gameObject.SetActive(false);
                 else
@@ -165,7 +164,6 @@ namespace JLChnToZ.VRC.VVMW {
             }
             if (queueListScrollView != null) {
                 queueListScrollView.EventPrefix = "_OnQueueList";
-                queueListScrollView._AddListener(this);
                 queueListScrollView.gameObject.SetActive(hasHandler);
             }
             if (videoPlayerSelectButtonTemplate != null) {
@@ -199,8 +197,6 @@ namespace JLChnToZ.VRC.VVMW {
             if (shiftForward100msButton != null) shiftForward100msButton.gameObject.SetActive(isSynced);
             if (shiftResetButton != null) shiftResetButton.gameObject.SetActive(isSynced);
             if (shiftOffsetText != null) shiftOffsetText.gameObject.SetActive(isSynced);
-            if (hasHandler) handler._AddListener(this);
-            else core._AddListener(this);
             languageManager._AddListener(this);
             _OnUIUpdate();
             _OnVolumeChange();

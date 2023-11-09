@@ -17,7 +17,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
         [SerializeField] Transform scalingTarget;
         [BindEvent(nameof(Button.onClick), nameof(_LockButtonToggle))]
         [SerializeField] Button lockButton;
-        [SerializeField, HideInInspector] LanguageManager languageManager;
+        [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager languageManager;
         VRC_Pickup pickup;
         [Header("Settings")]
         [SerializeField] float scaleSpeed = 1F;
@@ -56,10 +56,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
             instructionRenderer.sharedMaterial = isVR ? vrInstructionMaterial : pcInstructionMaterial;
             instructionRenderer.enabled = false;
             UpdateLockedState();
-            if (languageManager != null) {
-                languageManager._AddListener(this);
-                _OnLanguageChanged();
-            }
+            if (languageManager != null) _OnLanguageChanged();
         }
 
         void Update() {
@@ -100,7 +97,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
         }
 
         public void _OnLanguageChanged() {
-            pickup.InteractionText = languageManager.GetLocale("PickupScreen");
+            if (pickup != null) pickup.InteractionText = languageManager.GetLocale("PickupScreen");
         }
     }
 }
