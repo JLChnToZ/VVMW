@@ -324,34 +324,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         if (showMaterialOptions) {
                             var nameProperty = screenTargetPropertyNamesProperty.GetArrayElementAtIndex(i);
                             var avProProperty = avProPropertyNamesProperty.GetArrayElementAtIndex(i);
-                            using (new EditorGUILayout.HorizontalScope()) {
-                                EditorGUILayout.PropertyField(nameProperty, GetTempContent("Video Texture Property Name", "The name of the property in material to set the video texture."));
-                                var size = EditorStyles.miniButton.CalcSize(dropDownIcon);
-                                var buttonRect = EditorGUILayout.GetControlRect(false, size.y, EditorStyles.miniButton, GUILayout.Width(size.x));
-                                using (new EditorGUI.DisabledScope(selectedShader == null && (materials == null || materials.Length == 0))) {
-                                    if (GUI.Button(buttonRect, dropDownIcon, EditorStyles.miniButton)) {
-                                        var menu = new GenericMenu();
-                                        if (selectedShader != null)
-                                            AppendShaderPropertiesToMenu(menu, selectedShader, nameProperty);
-                                        else {
-                                            var shaderSet = new HashSet<Shader>();
-                                            for (int j = 0; j < materials.Length; j++) {
-                                                var material = materials[j];
-                                                if (material == null) continue;
-                                                shaderSet.Add(material.shader);
-                                            }
-                                            foreach (var shader in shaderSet) {
-                                                if (menu.GetItemCount() > 0) menu.AddSeparator("");
-                                                AppendShaderPropertiesToMenu(menu, shader, nameProperty);
-                                            }
-                                        }
-                                        menu.DropDown(buttonRect);
-                                    }
-                                }
-                            }
+                            DrawShaderPropertiesField(
+                                nameProperty, GetTempContent("Video Texture Property Name", "The name of the property in material to set the video texture."),
+                                selectedShader, materials, ShaderUtil.ShaderPropertyType.TexEnv
+                            );
                             using (var changed = new EditorGUI.ChangeCheckScope()) {
                                 useST = EditorGUILayout.Toggle(GetTempContent("Use Scale Offset", "Will use scale offset (_Texture_ST) to adjust the texture if it is flipped upside-down."), useST);
-                                if (!useST) EditorGUILayout.PropertyField(avProProperty, GetTempContent("AVPro Flag Property Name", "If it is using AVPro player, this property value will set to 1, otherwise 0."));
+                                if (!useST) DrawShaderPropertiesField(
+                                    avProProperty, GetTempContent("AVPro Flag Property Name", "If it is using AVPro player, this property value will set to 1, otherwise 0."),
+                                    selectedShader, materials, ShaderUtil.ShaderPropertyType.Float
+                                );
                             }
                         }
                         var textureProperty = screenTargetDefaultTexturesProperty.GetArrayElementAtIndex(i);
@@ -382,6 +364,34 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
             }
             EditorGUILayout.Space();
+        }
+
+        static void DrawShaderPropertiesField(SerializedProperty property, GUIContent label, Shader selectedShader, Material[] materials, ShaderUtil.ShaderPropertyType type) {
+            using (new EditorGUILayout.HorizontalScope()) {
+                EditorGUILayout.PropertyField(property, label);
+                var size = EditorStyles.miniButton.CalcSize(dropDownIcon);
+                var buttonRect = EditorGUILayout.GetControlRect(false, size.y, EditorStyles.miniButton, GUILayout.Width(size.x));
+                using (new EditorGUI.DisabledScope(selectedShader == null && (materials == null || materials.Length == 0))) {
+                    if (GUI.Button(buttonRect, dropDownIcon, EditorStyles.miniButton)) {
+                        var menu = new GenericMenu();
+                        if (selectedShader != null)
+                            AppendShaderPropertiesToMenu(menu, selectedShader, property, type);
+                        else {
+                            var shaderSet = new HashSet<Shader>();
+                            for (int j = 0; j < materials.Length; j++) {
+                                var material = materials[j];
+                                if (material == null) continue;
+                                shaderSet.Add(material.shader);
+                            }
+                            foreach (var shader in shaderSet) {
+                                if (menu.GetItemCount() > 0) menu.AddSeparator("");
+                                AppendShaderPropertiesToMenu(menu, shader, property, type);
+                            }
+                        }
+                        menu.DropDown(buttonRect);
+                    }
+                }
+            }
         }
 
         public static bool AddTarget(Core core, Object newTarget, bool recordUndo = true, bool copyToUdon = false) {
@@ -449,10 +459,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             prop.serializedObject.ApplyModifiedProperties();
         }
 
-        static void AppendShaderPropertiesToMenu(GenericMenu menu, Shader shader, SerializedProperty property) {
+        static void AppendShaderPropertiesToMenu(GenericMenu menu, Shader shader, SerializedProperty property, ShaderUtil.ShaderPropertyType type) {
             int count = ShaderUtil.GetPropertyCount(shader);
             for (int j = 0; j < count; j++) {
-                if (ShaderUtil.GetPropertyType(shader, j) != ShaderUtil.ShaderPropertyType.TexEnv) continue;
+                if (ShaderUtil.GetPropertyType(shader, j) != type) continue;
                 var propertyName = ShaderUtil.GetPropertyName(shader, j);
                 menu.AddItem(
                     new GUIContent($"{ShaderUtil.GetPropertyDescription(shader, j)} ({propertyName})"),
