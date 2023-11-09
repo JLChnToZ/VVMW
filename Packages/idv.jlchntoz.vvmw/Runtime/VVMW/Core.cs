@@ -339,8 +339,6 @@ namespace JLChnToZ.VRC.VVMW {
             screenTargetPropertyBlock = new MaterialPropertyBlock();
             Volume = defaultVolume;
             if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedFrames(nameof(_PlayDefaultUrl), 0);
-            // Print trusted URLs for debug
-            foreach (var domain in trustedUrlDomains) Debug.Log(domain);
         }
 
         public void _PlayDefaultUrl() {
