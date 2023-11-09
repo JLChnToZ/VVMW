@@ -11,6 +11,7 @@ using UdonSharp;
 using UdonSharpEditor;
 
 using UnityObject = UnityEngine.Object;
+using VRC.Udon;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     internal sealed class BindUdonSharpEventPreprocessor : BindEventPreprocessorBase {
@@ -58,8 +59,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void AddEntry(UnityObject targetObj, UdonSharpBehaviour dest) {
+            if (targetObj == null) return;
             if (targetObj is GameObject go) targetObj = go.GetComponent<UdonSharpEventSender>();
-            if (!(targetObj is UdonSharpEventSender sender) || sender == null) return;
+            else if (targetObj is UdonBehaviour ub) targetObj = UdonSharpEditorUtility.GetProxyBehaviour(ub);
+            if (!(targetObj is UdonSharpEventSender sender)) return;
             if (!eventSenders.TryGetValue(sender, out var list))
                 eventSenders[sender] = list = new List<UdonSharpBehaviour>();
             list.Add(dest);
