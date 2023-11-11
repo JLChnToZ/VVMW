@@ -649,7 +649,11 @@ namespace JLChnToZ.VRC.VVMW {
                 material.SetTexture(screenTargetPropertyIds[i], texture);
             if (avProPropertyIds[i] != 0) {
                 if ((screenTargetModes[i] & 0x8) != 0)
+                #if UNITY_STANDALONE_WIN
                     material.SetVector(avProPropertyIds[i], isAvPro ? flippedST : normalST);
+                #else
+                    {} // Do nothing
+                #endif
                 else
                     material.SetInt(avProPropertyIds[i], isAvPro ? 1 : 0);
             }
