@@ -55,6 +55,9 @@ You can add more audio sources (speakers) to make something like multi-channel s
 To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Audio Source`.
 ![ ](.tutorial/add-controls-simple.png)
 
+Then, click the "Setup Speakers" button on the player component inspector.
+![ ](.tutorial/add-audio-simple.png)
+
 ### How to Add Extra Controllers?
 VizVid is aim to be flexible, so do the controllers. We have provide 3 variants to fit in different cases, and these controllers can be linked to one single core. Before we started, let me introduce these 3 variants:
 - On-screen: Don't require extra spaces to put the controls, suitable for chilling worlds.  
