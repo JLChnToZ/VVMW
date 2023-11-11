@@ -4,6 +4,8 @@
 
 Welcome! VizVid is a general-purpose video player wrapper for use in VRChat. It aims to cover many use cases, from watch-together video/live stream player in lounges, to large event venue for music performances, or even booths for exhibitions or showcases. Due to its target customers, it has a flexible architecture, just like a factory made electronic but with a easy to open back lid, make it easier to let users mess them around for their needs.
 
+This documentation is for V1.0.12 or later, some guidelines are different to older versions.
+
 ## Table of Contents
 * [How to install?](#how-to-install)
 	* [How to Add Extra Screen?](#how-to-add-extra-screen)
@@ -29,10 +31,10 @@ Welcome! VizVid is a general-purpose video player wrapper for use in VRChat. It 
 	* [YTTL](#yttl)
 
 ## How to install?
-In the package, we have provide 2 pre-configurated prefabs: On-Screen Controls and Separated Controls:  
-![ ](.tutorial/basic-install-1.png)
+You may just right-click anywhere in hierarchy, and select `VizVid > Video Player`.
+![ ](.tutorial/add-player-simple.png)
 
-These can just drag to your world screen and start using it.  
+Here is a glance of the difference between the variants:
 ![ ](.tutorial/basic-install-type-1.png)
 ![ ](.tutorial/basic-install-type-2.png)
 
@@ -40,29 +42,18 @@ Alternatively, the playlist attached on separated controls can be moved or disab
 ![ ](.tutorial/basic-install-type-2-no-playlist.png)
 
 ### How to Add Extra Screen?
-To add an extra screen, it is very stright forward.
-1. Go to `Packages > VizVid > Prefabs` folder, drag the Default Screen to your scene.
-2. Click on the video player you previously put on the scene in hierarchy.
-3. Drag the newly added screen game object from the hierarchy to "Add Video Screen Target" field in inspector.
+You may just right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Screen`.
+![ ](.tutorial/add-controls-simple.png)
+
 - Extra: If your screen has special configuration such as using a custom shader, you may need to change the values in the inspector. If you are adopting shaders that designed to work with [iwaSync3](https://hoshinolabs.booth.pm/items/2666275), you could leave it as-is, VizVid defaults to a configuration which compatible with those shaders.
 
-![ ](.tutorial/add-screen-1.png)
-![ ](.tutorial/add-screen-2.png)
 ![ ](.tutorial/add-screen-3.png)
 
 ### How to Add Extra Audio Source?
 You can add more audio sources (speakers) to make something like multi-channel surrounded audio, but these extra audio sources only works with AVPro player but not Built-in Unity video players.
-1. Go to `Packages > VizVid > Prefabs` folder
-2. Drag the Default Aduio Source to your scene.
-3. Click on the video player you previously put on the scene in hierarchy.
-4. Drag the newly added audio source game object from the hierarchy to "Add Audio Source" field in inspector.
-5. Click "Setup Speakers" button
-6. You may want to change the configuration, select the audio source object, and...
-7. adjust the value you want.
 
-![ ](.tutorial/add-audio-1.png)
-![ ](.tutorial/add-audio-2.png)
-![ ](.tutorial/add-audio-3.png)
+To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Audio Source`.
+![ ](.tutorial/add-controls-simple.png)
 
 ### How to Add Extra Controllers?
 VizVid is aim to be flexible, so do the controllers. We have provide 3 variants to fit in different cases, and these controllers can be linked to one single core. Before we started, let me introduce these 3 variants:
@@ -76,16 +67,12 @@ VizVid is aim to be flexible, so do the controllers. We have provide 3 variants 
   The prefab name is `Default UI (Narrow)`.
   ![ ](.tutorial/controls-narrow.png)
 
-To add them, follow these steps:
-1. Go to `Packages > VizVid > Prefabs` folder, drag the controller prefabs to your scene.
-2. Click on the prefab instance you added to the scene in hierarchy.
-3. Click the "Find" button on the handler field. If you have more than 1 video player core, you may need to manually drag it to that field (It is `Play List Queue Handler` game object instide the prefab bundles).
-4. The following steps are only for the overlay one. Select the video player object.
-5. Drag the newly added screen game object from the hierarchy to "Add Video Screen Target" field in inspector. (Just like adding a new screen)
+To add them, right-click on the player object in hierarchy, and select one of these depends which type of controls you want to add:
+- `VizVid > Additional Controls > On Screen With Controls with Overlay`
+- `VizVid > Additional Controls > Separated Controls`
+- `VizVid > Additional Controls > Separated Controls (Narrow)`
 
-![ ](.tutorial/add-controls-1.png)
-![ ](.tutorial/add-controls-2.png)
-![ ](.tutorial/add-controls-3.png)
+![ ](.tutorial/add-controls-simple.png)
 
 ### How to Add/Import/Export a Play List?
 Play lists are pre-defined lists that the player will plays. All play lists associated to a video player instance are defined and controlled in a "Play List Queue Handler" game object, unlike how some other video player designs, whatever amount of controllers you added for a player, you are still interacting with the same list of the queued videos. Here is how you can manipulate play lists:
@@ -99,6 +86,7 @@ Play lists are pre-defined lists that the player will plays. All play lists asso
 
 Current supported play lists / video players to be imported directly:
 - VizVid (Yes, you can pour the play lists from other instances within the world as well)
+- USharp Video
 - Yama Player
 - KineL Video Player
 - iwaSync 3
@@ -109,35 +97,23 @@ To import above listed play lists, drag the game object containing their play li
 
 ### How to Add a Pickupable Screen?
 This component was [originally created by Yama Buta](https://yamabuta.booth.pm/items/4189997), which is a local-only pickupable screen with scaling feature, and it is rewrited to use with VizVid.
-1. Go to `Packages > VizVid > Prefabs` folder, drag the Pickup Screen to your scene.
-2. Select the video player object.
-3. Find the "Screen" object under "Pickup_ScalingPanel" > "ScreenScaling" in hierarchy, drag to "Add Video Screen Target" field in inspector.
 
-![ ](.tutorial/add-pickup-screen-1.png)
-![ ](.tutorial/add-pickup-screen-2.png)
+To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Pickupable Screen`.
+![ ](.tutorial/add-controls-simple.png)
 
 ### How to Add an Overlay Control?
 This is a component that spawns a mini controller on every user's wrist (VR mode) or a overlay UI on screen (PC mode). User can adjust the players volume and reload current video using laser pointer (VR) or keyboard input (PC).
 
 ![ ](.tutorial/overlay-sample.png)
 
-1. Go to `Packages > VizVid > Prefabs` folder, drag the Overlay Control prefab to your scene.
-2. In inspector, click the "Find" button beside the core field.
-
-![ ](.tutorial/add-overlay-1.png)
-![ ](.tutorial/add-overlay-2.png)
+To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Overlay Controls`.
+![ ](.tutorial/add-controls-simple.png)
 
 ### How to Add a Resync Button?
 This component is an alternative to the wrist / overlay UI screen resync button control, to let users resyncs your live stream in an event venue. There are 2 variants: `Re-Sync Button` and `Global Sync Button`, the difference is one is local only and another one is a global trigger.
 
-To setup this control, you may follow following steps:
-
-![ ](.tutorial/add-resync-1.png)
-![ ](.tutorial/add-resync-2.png)
-
-1. Go to `Packages > VizVid > Prefabs` folder, drag the Re-Sync Button or Global Sync Button prefab to your scene.
-2. Find the Reload Button inside.
-3. In inspector, click the "Find" button beside the core field.
+To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Resync Button` or `Global Resync Button`.
+![ ](.tutorial/add-controls-simple.png)
 
 ### How to Change color?
 Yes, you can change the UI color in nearly one-click. Every UI components comes with VizVid has attached a component called `Color Config`, what you have to do is change the color you like in this component, and click the `Apply` or `Apply to All` button below. The `Apply` button only applies the color to current selected UI, and `Apply to All` will copy the settings to other VizVid UIs and apply to them as well.
@@ -227,8 +203,9 @@ This is an optional component that manages the queue of the playback. You can pr
 On tutorial on how to add playlist, plese see [How to Add a New Play List?](#how-to-add-a-new-play-list) section.
 
 ### Locale
-The locale manager, it referenes to a JSON file called "langs.json". You can add/modify the texts in it.
-Do not add other components / child game objects to this game object, as it will be manupulated on build, and might cause unexpected behaviours.
+The locale manager. You can add/modify the texts in it with the language editor.
+
+Also for advanced usage, it is capable to use without the VizVid player. You may use the `Language Receiver` with any text components to make your own localized interface.
 
 ### Default Screen / Screen
 This is the default screen, you can resize and move it to anywhere you want. For details and guides, please see [How to Add Extra Screen](#how-to-add-extra-screen) section above.
@@ -278,5 +255,4 @@ This player provides basic integration to [LTCGI](https://ltcgi.dev/). To use wi
 
 ### YTTL
 [YTTL (Video title viewer)](https://65536.booth.pm/items/4588619) is an addon for providing ability to display titles from several known sources (e.g. YouTube, Twitch, SoundCloud) in video players, it was created by ureishi and it is licensed with CC0. However, installing it on video players that are not originally supported, including VizVid, can be a bit tricky if you're not familiar with the technical side of things. To make it easier, we've included a modified version of YTTL, but you'll still need to follow a few steps to enable it:
-1. Go to `Packages > VizVid > Prefabs > Third-Parties > YTTL` to find the "YTTL Manager" prefab and put it to your world scene. Have a reminder that each world shold only required to have 1 YTTL Manager, no matter how many video players/UIs you have.
-2. Select VVMW game object, in inspector, click the "Find" button beside the yttl field.
+Right-click on the player object in hierarchy, and select `VizVid > YTTL`.
