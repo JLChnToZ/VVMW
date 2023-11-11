@@ -6,6 +6,9 @@
 // Over-Under (Right above): stereoShift = float4(0, 0, 0, 0.5), stereoExtend = float2(1, 0.5)
 // Size Mode: 0 = Stratch, 1 = Contain, 2 = Cover
 
+#ifndef VIDEO_SHADER_COMMON_INCLUDED
+#define VIDEO_SHADER_COMMON_INCLUDED
+
 float4 getVideoTexture(sampler2D videoTex, float2 uv, float4 texelSize, bool avPro, int sizeMode, float aspectRatio, float4 stereoShift, float2 stereoExtend) {
     if (sizeMode) {
         float srcAspectRatio = texelSize.y * texelSize.z * stereoExtend.x / stereoExtend.y;
@@ -36,3 +39,5 @@ float4 getVideoTexture(sampler2D videoTex, float2 uv, float4 texelSize, bool avP
 float4 getVideoTexture(sampler2D videoTex, float2 uv, float4 texelSize, bool avPro, int sizeMode, float aspectRatio) {
     return getVideoTexture(videoTex, uv, texelSize, avPro, sizeMode, aspectRatio, 0, 1);
 }
+
+#endif
