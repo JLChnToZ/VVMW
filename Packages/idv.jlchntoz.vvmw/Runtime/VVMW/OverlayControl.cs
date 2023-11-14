@@ -45,7 +45,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] RectTransform volumeSliderDesktop;
         [SerializeField] Text desktopHintsReloadButtonKey, desktopHintsVolumeUpKey, desktopHintsVolumeDownKey;
         Animator desktopModeAnim;
-        bool vrMode;
+        bool vrMode, hasInit;
         VRCPlayerApi localPlayer;
         [System.NonSerialized] public bool isLeftHanded;
         float offset = 0.05F;
@@ -62,6 +62,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void Start() {
+            hasInit = true;
             localPlayer = Networking.LocalPlayer;
             if (!Utilities.IsValid(localPlayer)) {
                 enabled = false;
@@ -135,6 +136,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnVolumeChange() {
+            if (!hasInit) return;
             if (Utilities.IsValid(core)) volume = core.Volume;
             if (vrMode) {
                 volumeSliderVR.SetValueWithoutNotify(volume);
