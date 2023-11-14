@@ -10,6 +10,7 @@ namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Frontend Handler")]
+    [DefaultExecutionOrder(1)]
     public class FrontendHandler : UdonSharpEventSender {
         protected const byte NONE = 0, REPEAT_ONE = 0x1, REPEAT_ALL = 0x2, SHUFFLE = 0x4;
         [SerializeField, Locatable, BindUdonSharpEvent] public Core core;

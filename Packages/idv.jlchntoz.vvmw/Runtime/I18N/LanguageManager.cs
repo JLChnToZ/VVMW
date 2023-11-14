@@ -8,6 +8,7 @@ namespace JLChnToZ.VRC.VVMW.I18N {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [AddComponentMenu("VizVid/Locales/Language Manager")]
+    [DefaultExecutionOrder(0)]
     public class LanguageManager : UdonSharpEventSender {
         [SerializeField] TextAsset[] languageJsonFiles;
         [SerializeField, Multiline] string languageJson;

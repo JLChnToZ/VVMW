@@ -12,6 +12,7 @@ namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/UI Handler")]
+    [DefaultExecutionOrder(2)]
     public class UIHandler : UdonSharpBehaviour {
         [Header("Main Reference")]
         [SerializeField, Locatable(
@@ -22,7 +23,7 @@ namespace JLChnToZ.VRC.VVMW {
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
         ), BindUdonSharpEvent] public FrontendHandler handler;
-        [SerializeField, HideInInspector] LanguageManager languageManager;
+        [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager languageManager;
 
         [Header("URL Input")]
         [BindEvent(nameof(VRCUrlInputField.onValueChanged), nameof(_OnURLChanged))]
@@ -117,6 +118,7 @@ namespace JLChnToZ.VRC.VVMW {
         int interactTriggerId;
         DateTime joinTime, playListLastInteractTime;
         TimeSpan interactCoolDown = TimeSpan.FromSeconds(5);
+        bool hasInit;
 
         int SelectedPlayListIndex {
             get {
@@ -132,7 +134,10 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        void Start() {
+        void OnEnable() {
+            if (playbackControlsAnimator != null) playbackControlsAnimator.SetTrigger("Init");
+            if (hasInit) return;
+            hasInit = true;
             joinTime = DateTime.UtcNow;
             var hasHandler = Utilities.IsValid(handler);
             if (hasHandler) core = handler.core;
@@ -197,15 +202,10 @@ namespace JLChnToZ.VRC.VVMW {
             if (shiftForward100msButton != null) shiftForward100msButton.gameObject.SetActive(isSynced);
             if (shiftResetButton != null) shiftResetButton.gameObject.SetActive(isSynced);
             if (shiftOffsetText != null) shiftOffsetText.gameObject.SetActive(isSynced);
-            languageManager._AddListener(this);
             _OnUIUpdate();
             _OnVolumeChange();
             _OnSyncOffsetChange();
             UpdatePlayerText();
-        }
-
-        void OnEnable() {
-            if (playbackControlsAnimator != null) playbackControlsAnimator.SetTrigger("Init");
         }
 
         public void _Play() {
@@ -299,6 +299,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnVolumeChange() {
+            if (!hasInit) return;
             if (volumeSlider != null)
                 volumeSlider.SetValueWithoutNotify(core.Volume);
             if (muteButton != null && unmuteButton != null) {
@@ -367,6 +368,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnLanguageChanged() {
+            if (!hasInit) return;
             _OnUIUpdate();
             _OnSyncOffsetChange();
             if (Utilities.IsValid(handler) && handler.HasQueueList && playListNames != null) {
@@ -387,6 +389,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnUIUpdate() {
+            if (!hasInit) return;
             bool hasHandler = Utilities.IsValid(handler);
             bool unlocked = !hasHandler || !handler.Locked;
             bool canPlay = false;
@@ -718,6 +721,7 @@ namespace JLChnToZ.VRC.VVMW {
             core.SyncOffset = 0;
         }
         public void _OnSyncOffsetChange() {
+            if (!hasInit) return;
             if (shiftOffsetText != null) shiftOffsetText.text = string.Format(languageManager.GetLocale("TimeDrift"), core.SyncOffset);
         }
 

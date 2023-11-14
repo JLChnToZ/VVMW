@@ -16,6 +16,7 @@ namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Core")]
+    [DefaultExecutionOrder(0)]
     public class Core : UdonSharpEventSender {
         const byte IDLE = 0, LOADING = 1, PLAYING = 2, PAUSED = 3;
         [HideInInspector, SerializeField] string[] trustedUrlDomains = new string[0]; // This list will be fetched on build, via VRChat SDK

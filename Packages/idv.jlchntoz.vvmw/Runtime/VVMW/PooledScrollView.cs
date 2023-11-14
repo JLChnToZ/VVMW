@@ -8,6 +8,7 @@ namespace JLChnToZ.VRC.VVMW {
     [RequireComponent(typeof(ScrollRect))]
     [BindEvent(typeof(ScrollRect), nameof(ScrollRect.onValueChanged), nameof(_OnScroll))]
     [AddComponentMenu("VizVid/Components/Pooled Scroll View")]
+    [DefaultExecutionOrder(2)]
     public class PooledScrollView : UdonSharpEventSender {
         ScrollRect scrollRect;
         [FieldChangeCallback(nameof(EventPrefix))]

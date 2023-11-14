@@ -12,6 +12,7 @@ namespace JLChnToZ.VRC.VVMW {
     [RequireComponent(typeof(Renderer))]
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Components/Video Player Handler")]
+    [DefaultExecutionOrder(0)]
     public class VideoPlayerHandler : UdonSharpBehaviour {
         string[] rtspVaildProtocols = new string[] { "rtsp", "rtmp", "rtspt", "rtspu", "rtmps", "rtsps" };
         [NonSerialized] public Core core;

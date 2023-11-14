@@ -7,6 +7,7 @@ namespace JLChnToZ.VRC.VVMW.I18N {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [AddComponentMenu("VizVid/Locales/Language Receiver")]
+    [DefaultExecutionOrder(1)]
     public class LanguageReceiver : UdonSharpBehaviour {
         [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager manager;
         [SerializeField] string key;
