@@ -6,7 +6,8 @@
         "UdonSharp.Runtime",
         "UdonSharp.Editor",
         "UniTask",
-        "JLChnToZ.VVMW"
+        "JLChnToZ.VVMW",
+        "com.vrchat.core.vpm-resolver.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -17,6 +18,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.vrchat.core.vpm-resolver",
+            "expression": "",
+            "define": "VPM_RESOLVER_INCLUDED"
+        }
+    ],
     "noEngineReferences": false
 }

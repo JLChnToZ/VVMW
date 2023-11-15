@@ -13,7 +13,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/UI Handler")]
     [DefaultExecutionOrder(2)]
-    public class UIHandler : UdonSharpBehaviour {
+    public class UIHandler : VizVidBehaviour {
         [Header("Main Reference")]
         [SerializeField, Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",

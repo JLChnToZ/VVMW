@@ -10,7 +10,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Components/Overlay Control")]
     [DefaultExecutionOrder(2)]
-    public class OverlayControl : UdonSharpBehaviour {
+    public class OverlayControl : VizVidBehaviour {
         Quaternion leftHandRotation = Quaternion.Euler(-90, -45, 0);
         Quaternion rightHandRotation = Quaternion.Euler(90, -45, 180);
         Vector3 offsetDirection = new Vector3(0, 1, -1);
