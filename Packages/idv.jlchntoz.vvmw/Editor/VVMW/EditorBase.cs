@@ -113,7 +113,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static void CheckInstallation() {
             var allVersions = Resolver.GetAllVersionsOf(currentPackageInfo.name);
             if (allVersions.Count > 0 && new Version(allVersions[0]) > new Version(currentPackageInfo.version))
-                availableVersionString = versionString;
+                availableVersionString = allVersions[0];
             var manifest = VPMProjectManifest.Load(Resolver.ProjectDir);
             isInstalledManually = !manifest.locked.ContainsKey(currentPackageInfo.name) && !manifest.dependencies.ContainsKey(currentPackageInfo.name);
         }
