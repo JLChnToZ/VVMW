@@ -39,6 +39,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             var duplicateCheck = new HashSet<UdonSharpBehaviour>();
             foreach (var kv in eventSenders) {
                 var sender = kv.Key;
+                if (sender == null) {
+                    Debug.LogError("[BindUdonSharpEventPreprocessor] Event sender is null, this should not happen.", sender);
+                    continue;
+                }
                 using (var so = new SerializedObject(sender)) {
                     var prop = so.FindProperty("targets");
                     for (int i = 0, count = prop.arraySize; i < count; i++)
@@ -56,13 +60,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
                 UdonSharpEditorUtility.CopyProxyToUdon(sender);
             }
+            eventSenders.Clear();
         }
 
         void AddEntry(UnityObject targetObj, UdonSharpBehaviour dest) {
             if (targetObj == null) return;
             if (targetObj is GameObject go) targetObj = go.GetComponent<UdonSharpEventSender>();
             else if (targetObj is UdonBehaviour ub) targetObj = UdonSharpEditorUtility.GetProxyBehaviour(ub);
-            if (!(targetObj is UdonSharpEventSender sender)) return;
+            if (!(targetObj is UdonSharpEventSender sender) || sender == null) return;
             if (!eventSenders.TryGetValue(sender, out var list))
                 eventSenders[sender] = list = new List<UdonSharpBehaviour>();
             list.Add(dest);
