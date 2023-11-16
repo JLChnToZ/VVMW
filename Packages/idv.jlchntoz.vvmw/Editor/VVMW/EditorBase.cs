@@ -141,7 +141,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             foreach (var dependency in dependencies)
                 sb.AppendLine($"- {dependency}");
             if (EditorUtility.DisplayDialog("Update Package", sb.ToString(), "Update", "Cancel"))
-                UniTask.RunOnThreadPool(() => new UnityProject(Resolver.ProjectDir).UpdateVPMPackage(vrcPackage)).Forget();
+                UpdateUnchecked(vrcPackage).Forget();
+        }
+
+        static async UniTask UpdateUnchecked(IVRCPackage package) {
+            await UniTask.Delay(500);
+            Resolver.ForceRefresh();
+            new UnityProject(Resolver.ProjectDir).UpdateVPMPackage(package);
+            Resolver.ForceRefresh();
         }
         #endif 
     }
