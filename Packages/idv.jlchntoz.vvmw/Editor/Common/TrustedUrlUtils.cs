@@ -11,6 +11,7 @@ namespace JLChnToZ.VRC.VVMW {
     public static class TrustedUrlUtils {
         static readonly AsyncLazy<List<string>> getTrustedUrlsTask = UniTask.Lazy(GetTrustedUrlsLazy);
         static readonly Dictionary<string, bool> trustedDomains = new Dictionary<string, bool>();
+        static readonly Dictionary<string, string> messageCache = new Dictionary<string, string>();
         static GUIContent tempContent, warningContent;
         static List<string> trustedUrls;
         
@@ -92,31 +93,34 @@ namespace JLChnToZ.VRC.VVMW {
             DrawUrlField(url, rect, GetContent(propertyLabel, propertyTooltip));
 
         public static string DrawUrlField(string url, Rect rect, GUIContent content) {
-            string invalidMessage = null;
-            if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) {
-                if (trustedUrls == null) TrustedUrls.Forget(); // Force to fetch trusted urls.
-                else { // Check domains.
-                    var domainName = uri.Host;
-                    if (!trustedDomains.TryGetValue(domainName, out var trusted)) {
-                        trusted = false;
-                        foreach (var trustedUrl in trustedUrls)
-                            if (trustedUrl.StartsWith("*.")) {
-                                if (domainName.EndsWith(trustedUrl.Substring(2), StringComparison.OrdinalIgnoreCase)) {
+            if (!messageCache.TryGetValue(url, out var invalidMessage)) {
+                invalidMessage = "";
+                if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) {
+                    if (trustedUrls == null) TrustedUrls.Forget(); // Force to fetch trusted urls.
+                    else { // Check domains.
+                        var domainName = uri.Host;
+                        if (!trustedDomains.TryGetValue(domainName, out var trusted)) {
+                            trusted = false;
+                            foreach (var trustedUrl in trustedUrls)
+                                if (trustedUrl.StartsWith("*.")) {
+                                    if (domainName.EndsWith(trustedUrl.Substring(2), StringComparison.OrdinalIgnoreCase)) {
+                                        trusted = true;
+                                        break;
+                                    }
+                                } else if (string.Equals(trustedUrl, domainName, StringComparison.OrdinalIgnoreCase)) {
                                     trusted = true;
                                     break;
                                 }
-                            } else if (string.Equals(trustedUrl, domainName, StringComparison.OrdinalIgnoreCase)) {
-                                trusted = true;
-                                break;
-                            }
-                        trustedDomains[domainName] = trusted;
+                            trustedDomains[domainName] = trusted;
+                        }
+                        if (!trusted) invalidMessage = "This domain is not trusted by VRChat clients.\nUsers will not be able to access this URL without enabling \"Allow Untrusted URLs\".";
                     }
-                    if (!trusted) invalidMessage = "This domain is not trusted by VRChat clients.\nUsers will not be able to access this URL without enabling \"Allow Untrusted URLs\".";
-                }
-            } else if (!string.IsNullOrEmpty(url))
-                invalidMessage = "This URL is invalid.";
+                } else if (!string.IsNullOrEmpty(url))
+                    invalidMessage = "This URL is invalid.";
+                messageCache[url] = invalidMessage;
+            }
             var rect2 = rect;
-            if (invalidMessage != null) {
+            if (!string.IsNullOrEmpty(invalidMessage)) {
                 var warnContent = GetWarningContent(invalidMessage);
                 var labelStyle = EditorStyles.miniLabel;
                 var warnSize = labelStyle.CalcSize(warnContent);
@@ -124,7 +128,14 @@ namespace JLChnToZ.VRC.VVMW {
                 rect2.width -= warnSize.x;
                 GUI.Label(warnRect, warnContent, labelStyle);
             }
-            return EditorGUI.TextField(rect2, content, url);
+            using (var changed = new EditorGUI.ChangeCheckScope()) {
+                var newUrl = EditorGUI.TextField(rect2, content, url);
+                if (changed.changed) {
+                    messageCache.Remove(url);
+                    url = newUrl;
+                }
+            }
+            return url;
         }
     }
 }
