@@ -1,20 +1,6 @@
 using UnityEngine;
 using UnityEditor;
 
-#if VPM_RESOLVER_INCLUDED
-using System.Text;
-using Cysharp.Threading.Tasks;
-using VRC.PackageManagement.Core;
-using VRC.PackageManagement.Core.Types;
-using VRC.PackageManagement.Core.Types.Packages;
-using VRC.PackageManagement.Resolver;
-using SemanticVersioning;
-
-using Uri = System.Uri;
-#endif
-
-using PackageManagerPackageInfo = UnityEditor.PackageManager.PackageInfo;
-
 namespace JLChnToZ.VRC.VVMW.Editors {
     public abstract class VVMWEditorBase : Editor {
         const string bannerTextureUUID = "e8354bc2ac14e86498c0983daf484661";
@@ -22,27 +8,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         const string listingsID = "idv.jlchntoz.xtlcdn-listing";
         const string listingsURL = "https://xtlcdn.github.io/vpm/index.json";
         static Texture2D bannerTexture;
-        static PackageManagerPackageInfo currentPackageInfo;
+        static PackageSelfUpdater selfUpdater;
         static Font font;
-        static string versionString;
-        #if VPM_RESOLVER_INCLUDED
-        static string availableVersionString;
-        static bool isInstalledManually;
-        #endif
         static GUIStyle versionLabelStyle;
-        static GUIContent tempContent, infoContent;
+        static GUIContent tempContent;
 
         protected virtual void OnEnable() {
             if (tempContent == null) tempContent = new GUIContent();
-            if (string.IsNullOrEmpty(versionString)) {
-                currentPackageInfo = PackageManagerPackageInfo.FindForAssembly(GetType().Assembly);
-                if (currentPackageInfo != null) {
-                    versionString = $"v{currentPackageInfo.version}";
-                    #if VPM_RESOLVER_INCLUDED
-                    UniTask.RunOnThreadPool(CheckInstallation).Forget();
-                    #endif
-                } else
-                    versionString = "Unknown Version";
+            if (selfUpdater == null) {
+                selfUpdater = new PackageSelfUpdater(GetType().Assembly, listingsID, listingsURL);
+                selfUpdater.CheckInstallationInBackground();
             }
             if (bannerTexture == null) {
                 var assetPath = AssetDatabase.GUIDToAssetPath(bannerTextureUUID);
@@ -73,83 +48,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         fontStyle = FontStyle.Bold,
                         font = font,
                     };
-                tempContent.text = versionString;
+                tempContent.text = $"v{selfUpdater.CurrentVersion}";
                 var versionSize = versionLabelStyle.CalcSize(tempContent);
                 GUI.Label(new Rect(bannerRect.xMax - versionSize.x, bannerRect.yMin, versionSize.x, versionSize.y), tempContent, versionLabelStyle);
             }
-            #if VPM_RESOLVER_INCLUDED
-            if (isInstalledManually) {
-                EditorGUILayout.Space();
-                using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox)) {
-                    var infoContent = GetInfoContent($"Consider install {currentPackageInfo.displayName} via Creator Companion to get automatic updates.");
-                    EditorGUILayout.LabelField(infoContent, EditorStyles.wordWrappedLabel);
-                    if (GUILayout.Button("Resolve", GUILayout.ExpandWidth(false)))
-                        ResolveInstallation();
-                }
-            }
-            if (!string.IsNullOrEmpty(availableVersionString)) {
-                EditorGUILayout.Space();
-                using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox)) {
-                    var infoContent = GetInfoContent($"New Version Available! (v{availableVersionString})");
-                    EditorGUILayout.LabelField(infoContent, EditorStyles.wordWrappedLabel);
-                    if (GUILayout.Button("Update", GUILayout.ExpandWidth(false)))
-                        ConfirmAndUpdate();
-                }
-            }
-            #endif
+            selfUpdater.DrawUpdateNotifier();
             EditorGUILayout.Space();
         }
-        
-        #if VPM_RESOLVER_INCLUDED
-        static GUIContent GetInfoContent(string text) {
-            if (infoContent == null) {
-                var temp = EditorGUIUtility.IconContent("console.infoicon");
-                infoContent = new GUIContent(temp.image);
-            }
-            infoContent.text = text;
-            return infoContent;
-        }
-
-        static void CheckInstallation() {
-            var allVersions = Resolver.GetAllVersionsOf(currentPackageInfo.name);
-            if (allVersions.Count > 0 && new Version(allVersions[0]) > new Version(currentPackageInfo.version))
-                availableVersionString = allVersions[0];
-            var manifest = VPMProjectManifest.Load(Resolver.ProjectDir);
-            isInstalledManually = !manifest.locked.ContainsKey(currentPackageInfo.name) && !manifest.dependencies.ContainsKey(currentPackageInfo.name);
-        }
-
-        static void ResolveInstallation() {
-            if (!Repos.UserRepoExists(listingsID) && !Repos.AddRepo(new Uri(listingsURL)))
-                return;
-            ConfirmAndUpdate();
-        }
-
-        static void ConfirmAndUpdate() {
-            var versionString = availableVersionString;
-            if (string.IsNullOrEmpty(versionString)) {
-                var allVersions = Resolver.GetAllVersionsOf(currentPackageInfo.name);
-                if (allVersions.Count == 0) {
-                    Debug.LogError($"Unable to find any version of {currentPackageInfo.name}.");
-                    return;
-                }
-                versionString = allVersions[0];
-            }
-            var vrcPackage = Repos.GetPackageWithVersionMatch(currentPackageInfo.name, versionString);
-            var dependencies = Resolver.GetAffectedPackageList(vrcPackage);
-            var sb = new StringBuilder();
-            sb.AppendLine("The following packages will be updated:");
-            foreach (var dependency in dependencies)
-                sb.AppendLine($"- {dependency}");
-            if (EditorUtility.DisplayDialog("Update Package", sb.ToString(), "Update", "Cancel"))
-                UpdateUnchecked(vrcPackage).Forget();
-        }
-
-        static async UniTask UpdateUnchecked(IVRCPackage package) {
-            await UniTask.Delay(500);
-            Resolver.ForceRefresh();
-            new UnityProject(Resolver.ProjectDir).UpdateVPMPackage(package);
-            Resolver.ForceRefresh();
-        }
-        #endif 
     }
 }
