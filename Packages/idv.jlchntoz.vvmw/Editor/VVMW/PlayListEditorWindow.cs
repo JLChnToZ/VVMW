@@ -19,6 +19,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         FrontendHandler frontendHandler;
         Core loadedCore;
         string[] playerHandlerNames;
+        bool[] playerHandlerTypes;
         int firstUnityPlayerIndex = -1, firstAvProPlayerIndex = -1;
         [SerializeField] List<PlayList> playLists = new List<PlayList>();
         ReorderableList playListView;
@@ -211,13 +212,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                 }
             }
+            var isAvPro = playerHandlerTypes != null && entry.playerIndex >= 0 && entry.playerIndex < playerHandlerTypes.Length && playerHandlerTypes[entry.playerIndex];
             var urlRect = rect;
             urlRect.yMin = titleRect.yMax + EditorGUIUtility.standardVerticalSpacing;
             urlRect.height = EditorGUIUtility.singleLineHeight;
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 tempContent.text = "URL (PC)";
                 urlRect = EditorGUI.PrefixLabel(urlRect, tempContent);
-                var newUrl = TrustedUrlUtils.DrawUrlField(entry.url, urlRect, "");
+                var newUrl = TrustedUrlUtils.DrawUrlField(entry.url, isAvPro ? TrustedUrlTypes.AVProDesktop : TrustedUrlTypes.UnityVideo, urlRect, "");
                 if (changed.changed) {
                     entry.url = newUrl;
                     selectedPlayList.entries[index] = entry;
@@ -231,7 +233,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 tempContent.text = "URL (Quest)";
                 urlQuestRect = EditorGUI.PrefixLabel(urlQuestRect, tempContent);
                 var newUrl = string.IsNullOrEmpty(entry.urlForQuest) ? entry.url : entry.urlForQuest;
-                newUrl = TrustedUrlUtils.DrawUrlField(newUrl, urlQuestRect, "");
+                newUrl = TrustedUrlUtils.DrawUrlField(newUrl, isAvPro ? TrustedUrlTypes.AVProAndroid : TrustedUrlTypes.UnityVideo, urlQuestRect, "");
                 if (changed.changed) {
                     entry.urlForQuest = newUrl == entry.url ? string.Empty : newUrl;
                     selectedPlayList.entries[index] = entry;
@@ -379,6 +381,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 var handlersCount = playerHandlersProperty.arraySize;
                 if (playerHandlerNames == null || playerHandlerNames.Length != handlersCount)
                     playerHandlerNames = new string[handlersCount];
+                if (playerHandlerTypes == null || playerHandlerTypes.Length != handlersCount)
+                    playerHandlerTypes = new bool[handlersCount];
                 for (int i = 0; i < handlersCount; i++) {
                     var handler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as VideoPlayerHandler;
                     if (handler == null) {
@@ -387,8 +391,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                     playerHandlerNames[i] = string.IsNullOrEmpty(handler.playerName) ? handler.name : handler.playerName;
                     if (handler.isAvPro) {
+                        playerHandlerTypes[i] = true;
                         if (firstAvProPlayerIndex < 0) firstAvProPlayerIndex = i;
                     } else {
+                        playerHandlerTypes[i] = false;
                         if (firstUnityPlayerIndex < 0) firstUnityPlayerIndex = i;
                     }
                 }

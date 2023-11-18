@@ -5,7 +5,6 @@ using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEditor;
 using UdonSharpEditor;
-using VRC.Core;
 using VRC.SDK3.Video.Components;
 using VRC.SDK3.Video.Components.AVPro;
 
@@ -39,6 +38,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty avProPropertyNamesProperty;
         ReorderableListUtils playerHandlersList, audioSourcesList, targetsList;
         string[] playerNames;
+        bool[] playerTypes;
         List<bool> screenTargetVisibilityState;
         bool showTrustUrlList;
 
@@ -77,35 +77,38 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             screenTargetVisibilityState = new List<bool>();
             for (int i = 0, count = screenTargetsProperty.arraySize; i < count; i++)
                 screenTargetVisibilityState.Add(false);
-            TrustedUrlUtils.CopyTrustedUrlsToStringArray(trustedUrlDomainsProperty);
+            TrustedUrlUtils.CopyTrustedUrlsToStringArray(trustedUrlDomainsProperty, TrustedUrlTypes.AVProDesktop);
         }
 
         public override void OnInspectorGUI() {
             base.OnInspectorGUI();
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, false, false)) return;
             serializedObject.Update();
-            TrustedUrlUtils.DrawUrlField(defaultUrlProperty);
+            int autoPlayPlayerType = autoPlayPlayerTypeProperty.intValue - 1;
+            bool isAvPro = playerTypes != null && autoPlayPlayerType >= 0 && autoPlayPlayerType < playerTypes.Length && playerTypes[autoPlayPlayerType];
+            TrustedUrlUtils.DrawUrlField(defaultUrlProperty, isAvPro ? TrustedUrlTypes.AVProDesktop : TrustedUrlTypes.UnityVideo);
             if (!string.IsNullOrEmpty(defaultUrlProperty.FindPropertyRelative("url").stringValue)) {
-                TrustedUrlUtils.DrawUrlField(defaultQuestUrlProperty);
+                TrustedUrlUtils.DrawUrlField(defaultQuestUrlProperty, isAvPro ? TrustedUrlTypes.AVProAndroid : TrustedUrlTypes.UnityVideo);
                 if (playerNames == null || playerNames.Length != playerHandlersProperty.arraySize)
                     playerNames = new string[playerHandlersProperty.arraySize];
+                if (playerTypes == null || playerTypes.Length != playerHandlersProperty.arraySize)
+                    playerTypes = new bool[playerHandlersProperty.arraySize];
                 for (int i = 0; i < playerNames.Length; i++) {
                     var playerHandler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as VideoPlayerHandler;
                     if (playerHandler == null)
                         playerNames[i] = "null";
-                    else if (string.IsNullOrEmpty(playerHandler.playerName))
-                        playerNames[i] = playerHandler.name;
-                    else
-                        playerNames[i] = playerHandler.playerName;
+                    else {
+                        playerNames[i] = string.IsNullOrEmpty(playerHandler.playerName) ? playerHandler.name : playerHandler.playerName;
+                        playerTypes[i] = playerHandler.isAvPro;
+                    }
                 }
-                int selectedIndex = autoPlayPlayerTypeProperty.intValue - 1;
                 var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
                 var content = GetTempContent(autoPlayPlayerTypeProperty);
                 using (new EditorGUI.PropertyScope(rect, content, autoPlayPlayerTypeProperty))
                 using (var changed = new EditorGUI.ChangeCheckScope()) {
                     rect = EditorGUI.PrefixLabel(rect, content);
-                    selectedIndex = EditorGUI.Popup(rect, selectedIndex, playerNames);
-                    if (changed.changed) autoPlayPlayerTypeProperty.intValue = selectedIndex + 1;
+                    autoPlayPlayerType = EditorGUI.Popup(rect, autoPlayPlayerType, playerNames);
+                    if (changed.changed) autoPlayPlayerTypeProperty.intValue = autoPlayPlayerType + 1;
                 }
             }
             EditorGUILayout.PropertyField(loopProperty);
@@ -143,7 +146,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     "The list of trusted URL domains from VRChat. This list is for display proper error message when the video URL is not trusted."
                 ), true);
                 if (GUILayout.Button("Update from VRChat", GUILayout.ExpandWidth(false)))
-                    TrustedUrlUtils.CopyTrustedUrlsToStringArray(trustedUrlDomainsProperty);
+                    TrustedUrlUtils.CopyTrustedUrlsToStringArray(trustedUrlDomainsProperty, TrustedUrlTypes.AVProDesktop);
             }
             if (showTrustUrlList)
                 using (new EditorGUILayout.VerticalScope(GUI.skin.box))
@@ -513,7 +516,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static void UpdateTrustedUrlList() {
             var cores = new List<Core>(SceneManager.GetActiveScene().IterateAllComponents<Core>());
             using (var so = new SerializedObject(cores.ToArray()))
-                TrustedUrlUtils.CopyTrustedUrlsToStringArray(so.FindProperty("trustedUrlDomains"));
+                TrustedUrlUtils.CopyTrustedUrlsToStringArray(so.FindProperty("trustedUrlDomains"), TrustedUrlTypes.AVProDesktop);
         }
     }
 }

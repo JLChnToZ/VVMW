@@ -7,15 +7,44 @@ using VRC.Core;
 using UdonSharp;
 using UdonSharpEditor;
 
-namespace JLChnToZ.VRC.VVMW {
-    public static class TrustedUrlUtils {
-        static readonly AsyncLazy<List<string>> getTrustedUrlsTask = UniTask.Lazy(GetTrustedUrlsLazy);
-        static readonly Dictionary<string, bool> trustedDomains = new Dictionary<string, bool>();
-        static readonly Dictionary<string, string> messageCache = new Dictionary<string, string>();
+namespace JLChnToZ.VRC.VVMW.Editors {
+    public enum TrustedUrlTypes {
+        UnityVideo,
+        AVProDesktop,
+        AVProAndroid,
+        ImageUrl,
+        StringUrl,
+    }
+
+    public sealed class TrustedUrlUtils {
+        static readonly Dictionary<TrustedUrlTypes, TrustedUrlUtils> instances = new Dictionary<TrustedUrlTypes, TrustedUrlUtils>();
+        static readonly AsyncLazy getTrustedUrlsTask = UniTask.Lazy(GetTrustedUrlsLazy);
         static GUIContent tempContent, warningContent;
-        static List<string> trustedUrls;
-        
-        public static UniTask<List<string>> TrustedUrls => getTrustedUrlsTask.Task;
+        readonly Dictionary<string, bool> trustedDomains = new Dictionary<string, bool>();
+        readonly Dictionary<string, string> messageCache = new Dictionary<string, string>();
+        readonly HashSet<string> supportedProtocols;
+        List<string> trustedUrls;
+
+        static TrustedUrlUtils() {
+            var stringComparer = StringComparer.OrdinalIgnoreCase;
+            var supportedProtocolsCurl = new HashSet<string>(new [] {
+                "http", "https",
+            }, stringComparer);
+            // https://www.renderheads.com/content/docs/AVProVideo/articles/supportedmedia.html
+            // https://learn.microsoft.com/en-us/windows/win32/medfound/supported-protocols
+            var supportedProtocolsMF = new HashSet<string>(new [] {
+                "http", "https", "rtsp", "rtspt", "rtspu", "rtmp", "rtmps",
+            }, stringComparer);
+            // https://exoplayer.dev/supported-formats.html
+            var supportedProtocolsExo = new HashSet<string>(new [] {
+                "http", "https", "rtsp", "rtmp",
+            }, stringComparer);
+            instances[TrustedUrlTypes.UnityVideo] = new TrustedUrlUtils(supportedProtocolsCurl);
+            instances[TrustedUrlTypes.AVProDesktop] = new TrustedUrlUtils(supportedProtocolsMF);
+            instances[TrustedUrlTypes.AVProAndroid] = new TrustedUrlUtils(supportedProtocolsExo);
+            instances[TrustedUrlTypes.ImageUrl] = new TrustedUrlUtils(supportedProtocolsCurl);
+            instances[TrustedUrlTypes.StringUrl] = new TrustedUrlUtils(supportedProtocolsCurl);
+        }
 
         static GUIContent GetContent(string label, string tooltip = null) {
             if (tempContent == null) tempContent = new GUIContent();
@@ -34,32 +63,35 @@ namespace JLChnToZ.VRC.VVMW {
             return warningContent;
         }
 
-        static async UniTask<List<string>> GetTrustedUrlsLazy() {
-            if (trustedUrls == null) {
-                var vrcsdkConfig = ConfigManager.RemoteConfig;
-                if (!vrcsdkConfig.IsInitialized()) {
-                    Debug.Log("[VVMW] VRCSDK config is not initialized, initializing...");
-                    var initState = new UniTaskCompletionSource();
-                    vrcsdkConfig.Init(
-                        () => initState.TrySetResult(),
-                        () => initState.TrySetException(new Exception("Failed to initialize VRCSDK config."))
-                    );
-                    await initState.Task;
-                }
-                if (!vrcsdkConfig.HasKey("urlList")) {
-                    Debug.LogWarning("[VVMW] Failed to fetch trusted url list.");
-                    return null;
-                }
-                trustedUrls = vrcsdkConfig.GetList("urlList");
+        static async UniTask GetTrustedUrlsLazy() {
+            var vrcsdkConfig = ConfigManager.RemoteConfig;
+            if (!vrcsdkConfig.IsInitialized()) {
+                Debug.Log("[VVMW] VRCSDK config is not initialized, initializing...");
+                var initState = new UniTaskCompletionSource();
+                vrcsdkConfig.Init(
+                    () => initState.TrySetResult(),
+                    () => initState.TrySetException(new Exception("Failed to initialize VRCSDK config."))
+                );
+                await initState.Task;
             }
-            return trustedUrls;
+            if (vrcsdkConfig.HasKey("urlList")) {
+                var trustedUrls = vrcsdkConfig.GetList("urlList");
+                instances[TrustedUrlTypes.UnityVideo].trustedUrls = trustedUrls;
+                instances[TrustedUrlTypes.AVProDesktop].trustedUrls = trustedUrls;
+                instances[TrustedUrlTypes.AVProAndroid].trustedUrls = trustedUrls;
+            }
+            if (vrcsdkConfig.HasKey("imageHostUrlList"))
+                instances[TrustedUrlTypes.ImageUrl].trustedUrls = vrcsdkConfig.GetList("imageHostUrlList");
+            if (vrcsdkConfig.HasKey("stringHostUrlList"))
+                instances[TrustedUrlTypes.StringUrl].trustedUrls = vrcsdkConfig.GetList("stringHostUrlList");
         }
 
-        public static void CopyTrustedUrlsToStringArray(SerializedProperty stringArray) =>
-            CopyTrustedUrlsToStringArrayAsync(stringArray, true).Forget();
+        public static void CopyTrustedUrlsToStringArray(SerializedProperty stringArray, TrustedUrlTypes urlType) =>
+            CopyTrustedUrlsToStringArrayAsync(stringArray, urlType, true).Forget();
 
-        static async UniTask CopyTrustedUrlsToStringArrayAsync(SerializedProperty stringArray, bool applyChanges = true) {
-            var urlList = await TrustedUrls;
+        static async UniTask CopyTrustedUrlsToStringArrayAsync(SerializedProperty stringArray, TrustedUrlTypes urlType, bool applyChanges = true) {
+            await getTrustedUrlsTask.Task;
+            var urlList = instances[urlType].trustedUrls;
             stringArray.arraySize = urlList.Count;
             for (int i = 0; i < urlList.Count; i++) {
                 var url = urlList[i];
@@ -75,28 +107,57 @@ namespace JLChnToZ.VRC.VVMW {
                     UdonSharpEditorUtility.CopyProxyToUdon(usharp);
         }
 
-        public static void DrawUrlField(SerializedProperty urlProperty, params GUILayoutOption[] options) {
+        public static void DrawUrlField(SerializedProperty urlProperty, TrustedUrlTypes urlType, params GUILayoutOption[] options) {
             var contentRect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight, options);
-            DrawUrlField(urlProperty, contentRect);
+            DrawUrlField(urlProperty, urlType, contentRect);
         }
 
-        public static void DrawUrlField(SerializedProperty urlProperty, Rect rect) {
+        public static void DrawUrlField(SerializedProperty urlProperty, TrustedUrlTypes urlTypes, Rect rect) {
             var content = GetContent(urlProperty.displayName, urlProperty.tooltip);
-            if (urlProperty.propertyType == SerializedPropertyType.Generic)
+            if (urlProperty.propertyType == SerializedPropertyType.Generic) // VRCUrl
                 urlProperty = urlProperty.FindPropertyRelative("url");
             var url = urlProperty.stringValue;
             using (new EditorGUI.PropertyScope(rect, content, urlProperty))
-                urlProperty.stringValue = DrawUrlField(url, rect, content);
+                urlProperty.stringValue = DrawUrlField(url, urlTypes, rect, content);
         }
 
-        public static string DrawUrlField(string url, Rect rect, string propertyLabel = null, string propertyTooltip = null) =>
-            DrawUrlField(url, rect, GetContent(propertyLabel, propertyTooltip));
+        public static string DrawUrlField(string url, TrustedUrlTypes urlType, Rect rect, string propertyLabel = null, string propertyTooltip = null) =>
+            DrawUrlField(url, urlType, rect, GetContent(propertyLabel, propertyTooltip));
 
-        public static string DrawUrlField(string url, Rect rect, GUIContent content) {
+        public static string DrawUrlField(string url, TrustedUrlTypes urlType, Rect rect, GUIContent content) {
+            var instnace = instances[urlType];
+            var invalidMessage = instnace.GetValidateMessage(url);
+            var rect2 = rect;
+            if (!string.IsNullOrEmpty(invalidMessage)) {
+                var warnContent = GetWarningContent(invalidMessage);
+                var labelStyle = EditorStyles.miniLabel;
+                var warnSize = labelStyle.CalcSize(warnContent);
+                var warnRect = new Rect(rect2.xMax - warnSize.x, rect2.y, warnSize.x, rect2.height);
+                rect2.width -= warnSize.x;
+                GUI.Label(warnRect, warnContent, labelStyle);
+            }
+            using (var changed = new EditorGUI.ChangeCheckScope()) {
+                var newUrl = EditorGUI.TextField(rect2, content, url);
+                if (changed.changed) {
+                    instnace.messageCache.Remove(url);
+                    url = newUrl;
+                }
+            }
+            return url;
+        }
+
+        TrustedUrlUtils(HashSet<string> supportedProtocols) {
+            this.supportedProtocols = supportedProtocols;
+        }
+
+        string GetValidateMessage(string url) {
             if (!messageCache.TryGetValue(url, out var invalidMessage)) {
                 invalidMessage = "";
                 if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) {
-                    if (trustedUrls == null) TrustedUrls.Forget(); // Force to fetch trusted urls.
+                    if (!supportedProtocols.Contains(uri.Scheme))
+                        invalidMessage = $"{uri.Scheme} is not a supported protocol.";
+                    else if (trustedUrls == null)
+                        getTrustedUrlsTask.Task.Forget(); // Force to fetch trusted urls.
                     else { // Check domains.
                         var domainName = uri.Host;
                         if (!trustedDomains.TryGetValue(domainName, out var trusted)) {
@@ -119,23 +180,7 @@ namespace JLChnToZ.VRC.VVMW {
                     invalidMessage = "This URL is invalid.";
                 messageCache[url] = invalidMessage;
             }
-            var rect2 = rect;
-            if (!string.IsNullOrEmpty(invalidMessage)) {
-                var warnContent = GetWarningContent(invalidMessage);
-                var labelStyle = EditorStyles.miniLabel;
-                var warnSize = labelStyle.CalcSize(warnContent);
-                var warnRect = new Rect(rect2.xMax - warnSize.x, rect2.y, warnSize.x, rect2.height);
-                rect2.width -= warnSize.x;
-                GUI.Label(warnRect, warnContent, labelStyle);
-            }
-            using (var changed = new EditorGUI.ChangeCheckScope()) {
-                var newUrl = EditorGUI.TextField(rect2, content, url);
-                if (changed.changed) {
-                    messageCache.Remove(url);
-                    url = newUrl;
-                }
-            }
-            return url;
+            return invalidMessage;
         }
     }
 }
