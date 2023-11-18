@@ -101,7 +101,7 @@ namespace JLChnToZ.VRC.VVMW {
                         trusted = false;
                         foreach (var trustedUrl in trustedUrls)
                             if (trustedUrl.StartsWith("*.")) {
-                                if (domainName.EndsWith(trustedUrl.Substring(2))) {
+                                if (domainName.EndsWith(trustedUrl.Substring(2), StringComparison.OrdinalIgnoreCase)) {
                                     trusted = true;
                                     break;
                                 }
