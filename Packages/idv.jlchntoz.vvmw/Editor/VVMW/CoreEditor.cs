@@ -77,16 +77,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             screenTargetVisibilityState = new List<bool>();
             for (int i = 0, count = screenTargetsProperty.arraySize; i < count; i++)
                 screenTargetVisibilityState.Add(false);
-            UpdateTrustedUrlList(target as Core);
+            TrustedUrlUtils.CopyTrustedUrlsToStringArray(trustedUrlDomainsProperty);
         }
 
         public override void OnInspectorGUI() {
             base.OnInspectorGUI();
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, false, false)) return;
             serializedObject.Update();
-            EditorGUILayout.PropertyField(defaultUrlProperty);
+            TrustedUrlUtils.DrawUrlField(defaultUrlProperty);
             if (!string.IsNullOrEmpty(defaultUrlProperty.FindPropertyRelative("url").stringValue)) {
-                EditorGUILayout.PropertyField(defaultQuestUrlProperty);
+                TrustedUrlUtils.DrawUrlField(defaultQuestUrlProperty);
                 if (playerNames == null || playerNames.Length != playerHandlersProperty.arraySize)
                     playerNames = new string[playerHandlersProperty.arraySize];
                 for (int i = 0; i < playerNames.Length; i++) {
@@ -143,7 +143,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     "The list of trusted URL domains from VRChat. This list is for display proper error message when the video URL is not trusted."
                 ), true);
                 if (GUILayout.Button("Update from VRChat", GUILayout.ExpandWidth(false)))
-                    UpdateTrustedUrlList(target as Core);
+                    TrustedUrlUtils.CopyTrustedUrlsToStringArray(trustedUrlDomainsProperty);
             }
             if (showTrustUrlList)
                 using (new EditorGUILayout.VerticalScope(GUI.skin.box))
@@ -509,45 +509,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             property.GetArrayElementAtIndex(size).intValue = value;
         }
 
-        [MenuItem("Tools/VVMW/Update Trusted Url List")]
+        [MenuItem("Tools/VizVid/Update Trusted Url List")]
         static void UpdateTrustedUrlList() {
-            var urlList = GetTrustUrlList();
-            if (urlList == null) return;
-            foreach (var core in SceneManager.GetActiveScene().IterateAllComponents<Core>())
-                AssignTrustedUrlList(urlList, core);
-        }
-
-        static void UpdateTrustedUrlList(Core core) {
-            var urlList = GetTrustUrlList();
-            if (urlList == null) return;
-            AssignTrustedUrlList(urlList, core);
-        }
-
-        static List<string> GetTrustUrlList() {
-            var vrcsdkConfig = ConfigManager.RemoteConfig;
-            if (!vrcsdkConfig.IsInitialized()) {
-                Debug.LogWarning("[VVMW] VRCSDK config is not initialized.");
-                return null;
-            }
-            if (!vrcsdkConfig.HasKey("urlList")) {
-                Debug.LogWarning("[VVMW] Failed to fetch trusted url list.");
-                return null;
-            }
-            return vrcsdkConfig.GetList("urlList"); // Domain list with wildcard optionally
-        }
-
-        static void AssignTrustedUrlList(List<string> urlList , Core core) {
-            using (var so = new SerializedObject(core)) {
-                var trustedUrlDomainsProperty = so.FindProperty("trustedUrlDomains");
-                trustedUrlDomainsProperty.arraySize = urlList.Count;
-                for (int i = 0; i < urlList.Count; i++) {
-                    var url = urlList[i];
-                    if (url.StartsWith("*.")) url = url.Substring(2);
-                    trustedUrlDomainsProperty.GetArrayElementAtIndex(i).stringValue = url;
-                }
-                so.ApplyModifiedPropertiesWithoutUndo();
-            }
-            UdonSharpEditorUtility.CopyProxyToUdon(core);
+            var cores = new List<Core>(SceneManager.GetActiveScene().IterateAllComponents<Core>());
+            using (var so = new SerializedObject(cores.ToArray()))
+                TrustedUrlUtils.CopyTrustedUrlsToStringArray(so.FindProperty("trustedUrlDomains"));
         }
     }
 }

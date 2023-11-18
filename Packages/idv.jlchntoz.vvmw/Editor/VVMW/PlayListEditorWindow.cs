@@ -217,7 +217,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 tempContent.text = "URL (PC)";
                 urlRect = EditorGUI.PrefixLabel(urlRect, tempContent);
-                var newUrl = EditorGUI.TextField(urlRect, entry.url);
+                var newUrl = TrustedUrlUtils.DrawUrlField(entry.url, urlRect, "");
                 if (changed.changed) {
                     entry.url = newUrl;
                     selectedPlayList.entries[index] = entry;
@@ -231,7 +231,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 tempContent.text = "URL (Quest)";
                 urlQuestRect = EditorGUI.PrefixLabel(urlQuestRect, tempContent);
                 var newUrl = string.IsNullOrEmpty(entry.urlForQuest) ? entry.url : entry.urlForQuest;
-                newUrl = EditorGUI.TextField(urlQuestRect, newUrl);
+                newUrl = TrustedUrlUtils.DrawUrlField(newUrl, urlQuestRect, "");
                 if (changed.changed) {
                     entry.urlForQuest = newUrl == entry.url ? string.Empty : newUrl;
                     selectedPlayList.entries[index] = entry;
