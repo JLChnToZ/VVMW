@@ -6,16 +6,9 @@ using UnityEditor;
 using VRC.Core;
 using UdonSharp;
 using UdonSharpEditor;
+using VRC.SDKBase;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
-    public enum TrustedUrlTypes {
-        UnityVideo,
-        AVProDesktop,
-        AVProAndroid,
-        ImageUrl,
-        StringUrl,
-    }
-
     public sealed class TrustedUrlUtils {
         static readonly Dictionary<TrustedUrlTypes, TrustedUrlUtils> instances = new Dictionary<TrustedUrlTypes, TrustedUrlUtils>();
         static readonly AsyncLazy getTrustedUrlsTask = UniTask.Lazy(GetTrustedUrlsLazy);
@@ -112,8 +105,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             DrawUrlField(urlProperty, urlType, contentRect);
         }
 
-        public static void DrawUrlField(SerializedProperty urlProperty, TrustedUrlTypes urlTypes, Rect rect) {
-            var content = GetContent(urlProperty.displayName, urlProperty.tooltip);
+        public static void DrawUrlField(SerializedProperty urlProperty, TrustedUrlTypes urlTypes, Rect rect, GUIContent content = null) {
+            if (content == null) content = GetContent(urlProperty.displayName, urlProperty.tooltip);
             if (urlProperty.propertyType == SerializedPropertyType.Generic) // VRCUrl
                 urlProperty = urlProperty.FindPropertyRelative("url");
             var url = urlProperty.stringValue;
@@ -181,6 +174,24 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 messageCache[url] = invalidMessage;
             }
             return invalidMessage;
+        }
+    }
+
+    [CustomPropertyDrawer(typeof(TrustUrlCheckAttribute))]
+    public class VRCUrlTrustCheckDrawer : PropertyDrawer {
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
+            if (fieldInfo.FieldType != typeof(VRCUrl))
+                return EditorGUI.GetPropertyHeight(property, label);
+            return EditorGUIUtility.singleLineHeight;
+        }
+
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
+            if (fieldInfo.FieldType != typeof(VRCUrl)) {
+                EditorGUI.PropertyField(position, property, label);
+                return;
+            }
+            var attr = attribute as TrustUrlCheckAttribute;
+            TrustedUrlUtils.DrawUrlField(property, attr.type, position, label);
         }
     }
 }
