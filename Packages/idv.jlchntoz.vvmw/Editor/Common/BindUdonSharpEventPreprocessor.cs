@@ -35,8 +35,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         AddEntry(unityObject, usharp);
                 }
             }
-            var remapped = new List<UdonSharpBehaviour>();
-            var duplicateCheck = new HashSet<UdonSharpBehaviour>();
+            var remapped = new HashSet<UdonSharpBehaviour>();
             foreach (var kv in eventSenders) {
                 var sender = kv.Key;
                 if (sender == null) {
@@ -46,16 +45,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 using (var so = new SerializedObject(sender)) {
                     var prop = so.FindProperty("targets");
                     for (int i = 0, count = prop.arraySize; i < count; i++)
-                        if (prop.GetArrayElementAtIndex(i).objectReferenceValue is UdonSharpBehaviour ub && ub != null && duplicateCheck.Add(ub))
+                        if (prop.GetArrayElementAtIndex(i).objectReferenceValue is UdonSharpBehaviour ub && ub != null)
                             remapped.Add(ub);
-                    foreach (var entry in kv.Value)
-                        if (entry != null && duplicateCheck.Add(entry))
-                            remapped.Add(entry);
-                    prop.arraySize += remapped.Count;
-                    for (int i = 0, count = remapped.Count; i < count; i++)
-                        prop.GetArrayElementAtIndex(i).objectReferenceValue = remapped[i];
+                    remapped.UnionWith(kv.Value);
+                    prop.arraySize = remapped.Count;
+                    {
+                        int i = 0;
+                        foreach (var entry in remapped)
+                            prop.GetArrayElementAtIndex(i++).objectReferenceValue = entry;
+                    }
                     remapped.Clear();
-                    duplicateCheck.Clear();
                     so.ApplyModifiedPropertiesWithoutUndo();
                 }
                 UdonSharpEditorUtility.CopyProxyToUdon(sender);
