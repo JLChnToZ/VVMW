@@ -18,9 +18,9 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
     public class LanguageManagerUnifier : IProcessSceneWithReport {
         LanguageManager unifiedLanguageManager;
         UdonBehaviour unifiedLanguageManagerUdon;
-        HashSet<LanguageManager> languageManagers = new HashSet<LanguageManager>();
-        Dictionary<UdonBehaviour, LanguageManager> backingUdonBehaviours = new Dictionary<UdonBehaviour, LanguageManager>();
-        List<string> jsonTexts = new List<string>();
+        readonly HashSet<LanguageManager> languageManagers = new HashSet<LanguageManager>();
+        readonly Dictionary<UdonBehaviour, LanguageManager> backingUdonBehaviours = new Dictionary<UdonBehaviour, LanguageManager>();
+        readonly List<string> jsonTexts = new List<string>();
 
         public int callbackOrder => -1;
 
@@ -206,7 +206,8 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                         while (iterator.Next(true)) {
                             if (iterator.propertyType != SerializedPropertyType.ObjectReference) continue;
                             if (iterator.objectReferenceValue is UdonBehaviour udon) {
-                                if (udon == unifiedLanguageManagerUdon) continue;
+                                if (udon == unifiedLanguageManagerUdon ||
+                                    !typeof(LanguageManager).IsAssignableFrom(UdonSharpEditorUtility.GetUdonSharpBehaviourType(udon))) continue;
                                 iterator.objectReferenceValue = unifiedLanguageManagerUdon;
                                 hasModified = true;
                             } else {
