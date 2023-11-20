@@ -37,7 +37,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             PlayListEditorWindow.OnFrontendUpdated += OnFrontEndUpdated;
         }
 
-        protected virtual void OnDisable() {
+        protected override void OnDisable() {
+            base.OnDisable();
             PlayListEditorWindow.OnFrontendUpdated -= OnFrontEndUpdated;
         }
 

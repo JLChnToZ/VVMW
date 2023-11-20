@@ -10,8 +10,9 @@ using VRC.SDKBase;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     public sealed class TrustedUrlUtils {
+        public static event Action OnTrustedUrlsReady;
         static readonly Dictionary<TrustedUrlTypes, TrustedUrlUtils> instances = new Dictionary<TrustedUrlTypes, TrustedUrlUtils>();
-        static readonly AsyncLazy getTrustedUrlsTask = UniTask.Lazy(GetTrustedUrlsLazy);
+        static AsyncLazy getTrustedUrlsTask = UniTask.Lazy(GetTrustedUrlsLazy);
         static GUIContent tempContent, warningContent;
         readonly Dictionary<string, bool> trustedDomains = new Dictionary<string, bool>();
         readonly Dictionary<string, string> messageCache = new Dictionary<string, string>();
@@ -65,7 +66,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     () => initState.TrySetResult(),
                     () => initState.TrySetException(new Exception("Failed to initialize VRCSDK config."))
                 );
-                await initState.Task;
+                try {
+                    await initState.Task;
+                } catch (Exception ex) {
+                    getTrustedUrlsTask = UniTask.Lazy(GetTrustedUrlsLazy); // Retry on next time.
+                    throw ex;
+                }
             }
             if (vrcsdkConfig.HasKey("urlList")) {
                 var trustedUrls = vrcsdkConfig.GetList("urlList");
@@ -77,6 +83,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 instances[TrustedUrlTypes.ImageUrl].trustedUrls = vrcsdkConfig.GetList("imageHostUrlList");
             if (vrcsdkConfig.HasKey("stringHostUrlList"))
                 instances[TrustedUrlTypes.StringUrl].trustedUrls = vrcsdkConfig.GetList("stringHostUrlList");
+            OnTrustedUrlsReady?.Invoke();
         }
 
         public static void CopyTrustedUrlsToStringArray(SerializedProperty stringArray, TrustedUrlTypes urlType) =>

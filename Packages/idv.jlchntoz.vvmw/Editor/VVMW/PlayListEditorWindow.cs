@@ -57,9 +57,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 elementHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing,
                 showDefaultBackground = false,
             };
+            TrustedUrlUtils.OnTrustedUrlsReady += Repaint;
         }
 
-        void OnDisable() => SaveIfRequired();
+        void OnDisable() {
+            TrustedUrlUtils.OnTrustedUrlsReady -= Repaint;
+            SaveIfRequired();
+        }
 
         void OnGUI() {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar)) {

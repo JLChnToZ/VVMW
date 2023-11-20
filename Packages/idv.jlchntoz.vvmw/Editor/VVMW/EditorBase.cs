@@ -27,6 +27,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 var assetPath = AssetDatabase.GUIDToAssetPath(fontGUID);
                 if (!string.IsNullOrEmpty(assetPath)) font = AssetDatabase.LoadAssetAtPath<Font>(assetPath);
             }
+            selfUpdater.OnVersionRefreshed += Repaint;
+        }
+
+        protected virtual void OnDisable() {
+            if (selfUpdater != null) selfUpdater.OnVersionRefreshed -= Repaint;
         }
 
         public override void OnInspectorGUI() {
