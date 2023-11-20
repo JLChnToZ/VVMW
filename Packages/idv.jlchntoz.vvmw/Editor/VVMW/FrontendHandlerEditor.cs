@@ -39,6 +39,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         protected override void OnDisable() {
             base.OnDisable();
+            if (coreSerializedObject != null) {
+                coreSerializedObject.Dispose();
+                coreSerializedObject = null;
+            }
             PlayListEditorWindow.OnFrontendUpdated -= OnFrontEndUpdated;
         }
 
@@ -48,6 +52,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             serializedObject.Update();
             EditorGUILayout.PropertyField(coreProperty);
             if (coreProperty.objectReferenceValue == null) EditorGUILayout.HelpBox("Core is not assigned.", MessageType.Error);
+            if (coreSerializedObject == null || coreSerializedObject.targetObject != coreProperty.objectReferenceValue) {
+                coreSerializedObject?.Dispose();
+                coreSerializedObject = coreProperty.objectReferenceValue != null ? new SerializedObject(coreProperty.objectReferenceValue) : null;
+            }
             EditorGUILayout.PropertyField(enableQueueListProperty);
             if (playListNames == null || playListNames.Length != playListTitlesProperty.arraySize + 1)
                 UpdatePlayListNames();
@@ -105,10 +113,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.Space();
             targetsPropertyList.Draw();
             serializedObject.ApplyModifiedProperties();
-        }
-
-        void OnDestroy() {
-            if (coreSerializedObject != null) coreSerializedObject.Dispose();
         }
 
         void OnFrontEndUpdated(FrontendHandler handler) {
