@@ -338,7 +338,7 @@ namespace JLChnToZ.VRC.VVMW {
                 }
             }
             screenTargetPropertyBlock = new MaterialPropertyBlock();
-            Volume = defaultVolume;
+            UpdateVolume();
             if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedFrames(nameof(_PlayDefaultUrl), 0);
         }
 
