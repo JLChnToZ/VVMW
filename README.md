@@ -56,3 +56,7 @@ For any issues, please contact me on [Discord server](https://discord.gg/fkDueQM
 
 ## License
 [MIT](./Packages/idv.jlchntoz.vvmw/LICENSE)
+
+***
+
+Made with :heart: in :hong_kong: :taiwan:.
