@@ -151,6 +151,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         string GetValidateMessage(string url) {
+            if (url == null) return "";
             if (!messageCache.TryGetValue(url, out var invalidMessage)) {
                 invalidMessage = "";
                 if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) {

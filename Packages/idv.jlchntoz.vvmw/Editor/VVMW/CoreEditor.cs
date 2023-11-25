@@ -282,7 +282,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                 }
                 EditorGUIUtility.labelWidth += 16;
-                if (screenTargetVisibilityState[i])
+                if (i >= 0 && screenTargetVisibilityState[i])
                     using (new EditorGUI.IndentLevelScope()) {
                         int mode = modeProperty.intValue & 0x7;
                         bool useST = (modeProperty.intValue & 0x8) != 0;
