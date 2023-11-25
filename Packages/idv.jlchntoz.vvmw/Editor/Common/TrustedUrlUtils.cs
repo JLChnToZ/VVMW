@@ -137,6 +137,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 GUI.Label(warnRect, warnContent, labelStyle);
             }
             using (var changed = new EditorGUI.ChangeCheckScope()) {
+                if (url == null) url = "";
                 var newUrl = EditorGUI.TextField(rect2, content, url);
                 if (changed.changed) {
                     instnace.messageCache.Remove(url);
