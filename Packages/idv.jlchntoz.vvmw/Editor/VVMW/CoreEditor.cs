@@ -1,16 +1,23 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEditor;
+using UdonSharp;
 using UdonSharpEditor;
 using VRC.SDK3.Video.Components;
 using VRC.SDK3.Video.Components.AVPro;
 
+using UnityObject = UnityEngine.Object;
+using System.Reflection;
+
 namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(Core))]
     public class CoreEditor : VVMWEditorBase {
+        static readonly Dictionary<Type, FieldInfo> controllableTypes = new Dictionary<Type, FieldInfo>();
+        readonly Dictionary<Core, UdonSharpBehaviour> autoPlayControllers = new Dictionary<Core, UdonSharpBehaviour>();
         static GUIContent tempContent;
         static readonly string[] materialModeOptions = new [] { "Property Block", "Shared Material", "Cloned Materal" };
         static GUIContent dropDownIcon;
@@ -41,6 +48,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         bool[] playerTypes;
         List<bool> screenTargetVisibilityState;
         bool showTrustUrlList;
+
+        static CoreEditor() {
+            AssemblyReloadEvents.afterAssemblyReload += GatherControlledTypes;
+            GatherControlledTypes();
+        }
 
         protected override void OnEnable() {
             base.OnEnable();
@@ -78,40 +90,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             for (int i = 0, count = screenTargetsProperty.arraySize; i < count; i++)
                 screenTargetVisibilityState.Add(false);
             TrustedUrlUtils.CopyTrustedUrlsToStringArray(trustedUrlDomainsProperty, TrustedUrlTypes.AVProDesktop);
+            GetControlledTypesOnScene();
         }
 
         public override void OnInspectorGUI() {
             base.OnInspectorGUI();
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, false, false)) return;
             serializedObject.Update();
-            int autoPlayPlayerType = autoPlayPlayerTypeProperty.intValue - 1;
-            bool isAvPro = playerTypes != null && autoPlayPlayerType >= 0 && autoPlayPlayerType < playerTypes.Length && playerTypes[autoPlayPlayerType];
-            TrustedUrlUtils.DrawUrlField(defaultUrlProperty, isAvPro ? TrustedUrlTypes.AVProDesktop : TrustedUrlTypes.UnityVideo);
-            if (!string.IsNullOrEmpty(defaultUrlProperty.FindPropertyRelative("url").stringValue)) {
-                TrustedUrlUtils.DrawUrlField(defaultQuestUrlProperty, isAvPro ? TrustedUrlTypes.AVProAndroid : TrustedUrlTypes.UnityVideo);
-                if (playerNames == null || playerNames.Length != playerHandlersProperty.arraySize)
-                    playerNames = new string[playerHandlersProperty.arraySize];
-                if (playerTypes == null || playerTypes.Length != playerHandlersProperty.arraySize)
-                    playerTypes = new bool[playerHandlersProperty.arraySize];
-                for (int i = 0; i < playerNames.Length; i++) {
-                    var playerHandler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as VideoPlayerHandler;
-                    if (playerHandler == null)
-                        playerNames[i] = "null";
-                    else {
-                        playerNames[i] = string.IsNullOrEmpty(playerHandler.playerName) ? playerHandler.name : playerHandler.playerName;
-                        playerTypes[i] = playerHandler.isAvPro;
-                    }
-                }
-                var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
-                var content = GetTempContent(autoPlayPlayerTypeProperty);
-                using (new EditorGUI.PropertyScope(rect, content, autoPlayPlayerTypeProperty))
-                using (var changed = new EditorGUI.ChangeCheckScope()) {
-                    rect = EditorGUI.PrefixLabel(rect, content);
-                    autoPlayPlayerType = EditorGUI.Popup(rect, autoPlayPlayerType, playerNames);
-                    if (changed.changed) autoPlayPlayerTypeProperty.intValue = autoPlayPlayerType + 1;
-                }
-            }
-            EditorGUILayout.PropertyField(loopProperty);
+            DrawAutoPlayField();
             EditorGUILayout.PropertyField(totalRetryCountProperty);
             EditorGUILayout.PropertyField(retryDelayProperty);
             EditorGUILayout.Space();
@@ -155,6 +141,42 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.Space();
             targetsList.Draw();
             serializedObject.ApplyModifiedProperties();
+        }
+
+        void DrawAutoPlayField() {
+            if (autoPlayControllers.TryGetValue(target as Core, out var controller)) {
+                if (GUILayout.Button($"Edit URLs in {controller.name}"))
+                    Selection.activeGameObject = controller.gameObject;
+                return;
+            }
+            int autoPlayPlayerType = autoPlayPlayerTypeProperty.intValue - 1;
+            bool isAvPro = playerTypes != null && autoPlayPlayerType >= 0 && autoPlayPlayerType < playerTypes.Length && playerTypes[autoPlayPlayerType];
+            TrustedUrlUtils.DrawUrlField(defaultUrlProperty, isAvPro ? TrustedUrlTypes.AVProDesktop : TrustedUrlTypes.UnityVideo);
+            if (!string.IsNullOrEmpty(defaultUrlProperty.FindPropertyRelative("url").stringValue)) {
+                TrustedUrlUtils.DrawUrlField(defaultQuestUrlProperty, isAvPro ? TrustedUrlTypes.AVProAndroid : TrustedUrlTypes.UnityVideo);
+                if (playerNames == null || playerNames.Length != playerHandlersProperty.arraySize)
+                    playerNames = new string[playerHandlersProperty.arraySize];
+                if (playerTypes == null || playerTypes.Length != playerHandlersProperty.arraySize)
+                    playerTypes = new bool[playerHandlersProperty.arraySize];
+                for (int i = 0; i < playerNames.Length; i++) {
+                    var playerHandler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as VideoPlayerHandler;
+                    if (playerHandler == null)
+                        playerNames[i] = "null";
+                    else {
+                        playerNames[i] = string.IsNullOrEmpty(playerHandler.playerName) ? playerHandler.name : playerHandler.playerName;
+                        playerTypes[i] = playerHandler.isAvPro;
+                    }
+                }
+                var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
+                var content = GetTempContent(autoPlayPlayerTypeProperty);
+                using (new EditorGUI.PropertyScope(rect, content, autoPlayPlayerTypeProperty))
+                using (var changed = new EditorGUI.ChangeCheckScope()) {
+                    rect = EditorGUI.PrefixLabel(rect, content);
+                    autoPlayPlayerType = EditorGUI.Popup(rect, autoPlayPlayerType, playerNames);
+                    if (changed.changed) autoPlayPlayerTypeProperty.intValue = autoPlayPlayerType + 1;
+                }
+            }
+            EditorGUILayout.PropertyField(loopProperty);
         }
 
         void DrawPlayerHandlersListHeader(ref Rect rect) {
@@ -353,7 +375,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
             }
             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                var newTarget = EditorGUILayout.ObjectField(GetTempContent("Add Video Screen Target", "Drag renderers, materials, custom render textures, UI raw images here to receive video texture."), null, typeof(Object), true);
+                var newTarget = EditorGUILayout.ObjectField(GetTempContent("Add Video Screen Target", "Drag renderers, materials, custom render textures, UI raw images here to receive video texture."), null, typeof(UnityObject), true);
                 if (changed.changed && newTarget != null) {
                     if (AppendScreen(
                         newTarget,
@@ -397,7 +419,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
         }
 
-        public static bool AddTarget(Core core, Object newTarget, bool recordUndo = true, bool copyToUdon = false) {
+        public static bool AddTarget(Core core, UnityObject newTarget, bool recordUndo = true, bool copyToUdon = false) {
             using (var so = new SerializedObject(core)) {
                 if (newTarget is AudioSource) {
                     var audioSourcesProperty = so.FindProperty("audioSources");
@@ -422,7 +444,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         static bool AppendScreen(
-            Object newTarget,
+            UnityObject newTarget,
             SerializedProperty screenTargetsProperty,
             SerializedProperty screenTargetModesProperty,
             SerializedProperty screenTargetIndecesProperty,
@@ -494,7 +516,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             return tempContent;
         }
 
-        static void AppendElement(SerializedProperty property, Object value) {
+        static void AppendElement(SerializedProperty property, UnityObject value) {
             int size = property.arraySize;
             property.arraySize++;
             property.GetArrayElementAtIndex(size).objectReferenceValue = value;
@@ -517,6 +539,29 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             var cores = new List<Core>(SceneManager.GetActiveScene().IterateAllComponents<Core>());
             using (var so = new SerializedObject(cores.ToArray()))
                 TrustedUrlUtils.CopyTrustedUrlsToStringArray(so.FindProperty("trustedUrlDomains"), TrustedUrlTypes.AVProDesktop);
+        }
+
+        static void GatherControlledTypes() {
+            controllableTypes.Clear();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                foreach (var type in assembly.GetTypes()) {
+                    if (type.IsAbstract || !type.IsSubclassOf(typeof(UdonSharpBehaviour))) continue;
+                    var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (fields.Length == 0) continue;
+                    foreach (var field in fields) {
+                        if (field.FieldType == typeof(Core) && field.GetCustomAttribute<SingletonCoreControlAttribute>() != null) {
+                            controllableTypes[type] = field;
+                            break;
+                        }
+                    }
+                }
+        }
+
+        void GetControlledTypesOnScene() {
+            autoPlayControllers.Clear();
+            foreach (var controller in SceneManager.GetActiveScene().IterateAllComponents<UdonSharpBehaviour>())
+                if (controllableTypes.TryGetValue(controller.GetType(), out var field) && field.GetValue(controller) is Core coreComponent)
+                    autoPlayControllers[coreComponent] = controller;
         }
     }
 }
