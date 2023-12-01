@@ -13,8 +13,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty defaultLoopProperty;
         SerializedProperty defaultShuffleProperty;
         SerializedProperty enableQueueListProperty;
-        SerializedProperty localPlayListIndexProperty;
+        SerializedProperty defaultPlayListIndexProperty;
         SerializedProperty playListTitlesProperty;
+        SerializedProperty autoPlayProperty;
         SerializedProperty targetsProperty;
         ReorderableListUtils targetsPropertyList;
         SerializedObject coreSerializedObject;
@@ -29,8 +30,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             defaultLoopProperty = serializedObject.FindProperty("defaultLoop");
             defaultShuffleProperty = serializedObject.FindProperty("defaultShuffle");
             enableQueueListProperty = serializedObject.FindProperty("enableQueueList");
-            localPlayListIndexProperty = serializedObject.FindProperty("localPlayListIndex");
+            defaultPlayListIndexProperty = serializedObject.FindProperty("defaultPlayListIndex");
             playListTitlesProperty = serializedObject.FindProperty("playListTitles");
+            autoPlayProperty = serializedObject.FindProperty("autoPlay");
             targetsProperty = serializedObject.FindProperty("targets");
             targetsPropertyList = new ReorderableListUtils(targetsProperty);
             playListNames = null;
@@ -62,14 +64,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (GUILayout.Button("Edit Play Lists..."))
                 PlayListEditorWindow.StartEditPlayList(target as FrontendHandler);
             var rect = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight);
-            tempContent.text = "Autoplay Play List";
+            tempContent.text = "Default Play List";
             using (new EditorGUI.PropertyScope(rect, tempContent, playListTitlesProperty))
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 rect = EditorGUI.PrefixLabel(rect, tempContent);
-                var index = EditorGUI.Popup(rect, localPlayListIndexProperty.intValue, playListNames);
-                if (changed.changed) localPlayListIndexProperty.intValue = index;
+                var index = EditorGUI.Popup(rect, defaultPlayListIndexProperty.intValue, playListNames);
+                if (changed.changed) defaultPlayListIndexProperty.intValue = index;
             }
-            if (coreSerializedObject != null && localPlayListIndexProperty.intValue > 0) {
+            if (coreSerializedObject != null && defaultPlayListIndexProperty.intValue > 0) {
                 var url = coreSerializedObject.FindProperty("defaultUrl.url");
                 if (url != null && !string.IsNullOrEmpty(url.stringValue)) {
                     EditorGUILayout.HelpBox("You cannot set default URL in core and mark a play list to be autoplayed at the same time.", MessageType.Warning);
@@ -82,6 +84,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                 }
             }
+            EditorGUILayout.PropertyField(autoPlayProperty);
             EditorGUILayout.Space();
             var loopMode = LoopMode.None;
             bool hasLoopOne = false;

@@ -45,16 +45,20 @@ namespace JLChnToZ.VRC.VVMW {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(OverlayControl), "core"), true, true);
                 } else if (component is ResyncButtonConfigurator) {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(ResyncButtonConfigurator), "core"), true, true);
-                /*
                 } else if (component is AutoPlayOnNear) {
-                    var core = LocatableAttributeDrawer.Locate(component, GetField(typeof(AutoPlayOnNear), "core"), true, true) as Core;
-                    if (core != null) {
+                    var handler = LocatableAttributeDrawer.Locate(component, GetField(typeof(AutoPlayOnNear), "handler"), true, true) as FrontendHandler;
+                    if (handler != null) {
+                        using (var so = new SerializedObject(handler)) {
+                            so.FindProperty("autoPlay").boolValue = false;
+                            so.ApplyModifiedProperties();
+                        }
+                        LocatableAttributeDrawer.Locate(handler, GetField(typeof(FrontendHandler), "core"), true, true);
+                        var core = handler.core;
                         using (var so = new SerializedObject(core)) {
                             so.FindProperty("synced").boolValue = false;
                             so.ApplyModifiedProperties();
                         }
                     }
-                */
                 }
             }
             Undo.RegisterCreatedObjectUndo(go, $"Create {go.name}");
@@ -143,9 +147,7 @@ namespace JLChnToZ.VRC.VVMW {
         [MenuItem(createMenuRoot + "Additional Controls/Global Resync Button", false, 49)]
         static void CreateGlobalSyncButton() => SpawnPrefab(prefabRoot + "Global Sync Button.prefab");
 
-        /*
         [MenuItem(createMenuRoot + "Additional Controls/Auto Play On Near (Local Only)", false, 49)]
         static void CreateAutoPlayOnNear() => SpawnPrefab(prefabRoot + "Auto Play On Near.prefab");
-        */
     }
 }

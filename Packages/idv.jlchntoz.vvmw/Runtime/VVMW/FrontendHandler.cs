@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Globalization;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
+using UnityEngine.Serialization;
+
 #if AUDIOLINK_V1
 using AudioLink;
 #endif
@@ -25,6 +28,9 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] VRCUrl[] playListUrls, playListUrlsQuest;
         [SerializeField] string[] playListEntryTitles;
         [SerializeField] byte[] playListPlayerIndex;
+        [SerializeField, FormerlySerializedAs("localPlayListIndex")] int defaultPlayListIndex;
+        [Tooltip("Automatically play the default play list when the player is ready.")]
+        [SerializeField] bool autoPlay = true;
         [UdonSynced] VRCUrl[] queuedUrls;
         [UdonSynced] byte[] queuedPlayerIndex;
         [UdonSynced] byte flags;
@@ -37,7 +43,7 @@ namespace JLChnToZ.VRC.VVMW {
         byte[] localQueuedPlayerIndex;
         string[] localQueuedTitles;
         byte localFlags;
-        [SerializeField] int localPlayListIndex;
+        int localPlayListIndex;
         ushort localPlayingIndex;
 
         public VRCUrl[] QueueUrls {
@@ -159,21 +165,20 @@ namespace JLChnToZ.VRC.VVMW {
             synced = core.IsSynced;
             if (!synced || Networking.IsOwner(gameObject)) {
                 if (core.Loop) localFlags |= REPEAT_ONE;
-                if (localPlayListIndex > 0 && localPlayListIndex <= playListUrlOffsets.Length)
+                if (defaultPlayListIndex > 0 && defaultPlayListIndex <= playListUrlOffsets.Length && autoPlay)
                     SendCustomEventDelayedFrames(nameof(_AutoPlay), 0);
                 else {
-                    localPlayListIndex = 0;
                     RequestSync();
                     UpdateState();
                 }
-            } else
-                localPlayListIndex = 0; // Wait for deserialization
+            }
         }
 
         public void _AutoPlay() {
             core.Loop = RepeatOne;
             if (defaultLoop) localFlags |= REPEAT_ALL;
             if (defaultShuffle) localFlags |= SHUFFLE;
+            localPlayListIndex = defaultPlayListIndex;
             int length = (localPlayListIndex == playListUrlOffsets.Length ?
                 playListUrls.Length : playListUrlOffsets[localPlayListIndex]
             ) - playListUrlOffsets[localPlayListIndex - 1];
@@ -299,7 +304,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (localQueuedTitles == null || localQueuedTitles.Length != queuedUrls.Length) {
                 localQueuedTitles = new string[queuedUrls.Length];
                 for (int i = 0; i < localQueuedTitles.Length; i++)
-                    localQueuedTitles[i] = queuedUrls[i].Get();
+                    localQueuedTitles[i] = UnescapeUrl(queuedUrls[i]);
             }
             localFlags = flags;
             if (playListIndex > 0 && (localPlayListIndex != playListIndex || localPlayingIndex != playingIndex))
@@ -339,11 +344,11 @@ namespace JLChnToZ.VRC.VVMW {
                     localQueuedPlayerIndex = newPlayerIndexQueue;
                 }
                 if (localQueuedTitles == null || localQueuedTitles.Length == 0) {
-                    localQueuedTitles = new string[] { url.Get() };
+                    localQueuedTitles = new string[] { UnescapeUrl(url) };
                 } else {
                     var newTitles = new string[localQueuedTitles.Length + 1];
                     Array.Copy(localQueuedTitles, newTitles, localQueuedTitles.Length);
-                    newTitles[localQueuedTitles.Length] = url.Get();
+                    newTitles[localQueuedTitles.Length] = UnescapeUrl(url);
                     localQueuedTitles = newTitles;
                 }
                 RequestSync();
@@ -498,5 +503,63 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnTitleData() => UpdateState();
+
+        string UnescapeUrl(VRCUrl url) {
+            if (!Utilities.IsValid(url)) return "";
+            var title = url.Get();
+            if (string.IsNullOrEmpty(title)) return "";
+            int index = 0;
+            string result = "";
+            while (index >= 0) {
+                int offset = title.IndexOf('%', index);
+                if (offset < 0 || offset + 3 > title.Length) {
+                    result += title.Substring(index);
+                    break;
+                }
+                if (offset > index) {
+                    result += title.Substring(index, offset - index);
+                    index = offset;
+                }
+                // Not even a valid hex number
+                if (!byte.TryParse(title.Substring(offset + 1, 2), NumberStyles.HexNumber, null, out byte b)) {
+                    result += '%';
+                    index++;
+                    continue;
+                }
+                int utf32, length;
+                if      ((b & 0x80) == 0x00) { utf32 = b;        length = 1; }
+                else if ((b & 0xE0) == 0xC0) { utf32 = b & 0x1F; length = 2; }
+                else if ((b & 0xF0) == 0xE0) { utf32 = b & 0x0F; length = 3; }
+                else if ((b & 0xF8) == 0xF0) { utf32 = b & 0x07; length = 4; }
+                else if ((b & 0xFC) == 0xF8) { utf32 = b & 0x03; length = 5; }
+                else if ((b & 0xFE) == 0xFC) { utf32 = b & 0x01; length = 6; }
+                else { result += '%'; index++; continue; } // Invalid UTF-8
+                // Not enough bytes
+                if (index + length * 3 > title.Length) {
+                    result += '%';
+                    index++;
+                    continue;
+                }
+                for (int i = 1; i < length; i++) {
+                    offset = index + i * 3;
+                    if (title[offset] != '%' ||
+                        !byte.TryParse(title.Substring(offset + 1, 2), NumberStyles.HexNumber, null, out b) ||
+                        (b & 0xC0) != 0x80) {
+                        result += '%';
+                        utf32 = 0;
+                        break;
+                    }
+                    utf32 <<= 6;
+                    utf32 |= b & 0x3F;
+                }
+                if (utf32 == 0) {
+                    index++;
+                    continue;
+                }
+                result += char.ConvertFromUtf32(utf32);
+                index += length * 3;
+            }
+            return result;
+        }
     }
 }
