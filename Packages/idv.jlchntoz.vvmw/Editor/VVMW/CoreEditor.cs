@@ -20,7 +20,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         readonly Dictionary<Core, UdonSharpBehaviour> autoPlayControllers = new Dictionary<Core, UdonSharpBehaviour>();
         static GUIContent tempContent;
         static readonly string[] materialModeOptions = new [] { "Property Block", "Shared Material", "Cloned Materal" };
-        static GUIContent dropDownIcon;
+        static GUIStyle textFieldDropDownTextStyle, textFieldDropDownStyle;
         SerializedProperty trustedUrlDomainsProperty;
         SerializedProperty playerHandlersProperty;
         SerializedProperty audioSourcesProperty;
@@ -56,7 +56,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         protected override void OnEnable() {
             base.OnEnable();
-            if (dropDownIcon == null) dropDownIcon = EditorGUIUtility.IconContent("icon dropdown");
             trustedUrlDomainsProperty = serializedObject.FindProperty("trustedUrlDomains");
             playerHandlersProperty = serializedObject.FindProperty("playerHandlers");
             playerHandlersList = new ReorderableListUtils(playerHandlersProperty) {
@@ -305,7 +304,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
                 EditorGUIUtility.labelWidth += 16;
                 if (i >= 0 && screenTargetVisibilityState[i])
-                    using (new EditorGUI.IndentLevelScope()) {
+                    using (new EditorGUI.IndentLevelScope())
+                    using (new EditorGUILayout.VerticalScope(GUI.skin.box)) {
                         int mode = modeProperty.intValue & 0x7;
                         bool useST = (modeProperty.intValue & 0x8) != 0;
                         bool showMaterialOptions = false;
@@ -392,12 +392,21 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         static void DrawShaderPropertiesField(SerializedProperty property, GUIContent label, Shader selectedShader, Material[] materials, ShaderUtil.ShaderPropertyType type) {
-            using (new EditorGUILayout.HorizontalScope()) {
-                EditorGUILayout.PropertyField(property, label);
-                var size = EditorStyles.miniButton.CalcSize(dropDownIcon);
-                var buttonRect = EditorGUILayout.GetControlRect(false, size.y, EditorStyles.miniButton, GUILayout.Width(size.x));
+            if (textFieldDropDownTextStyle == null) textFieldDropDownTextStyle = GUI.skin.FindStyle("TextFieldDropDownText");
+            if (textFieldDropDownStyle == null) textFieldDropDownStyle = GUI.skin.FindStyle("TextFieldDropDown");
+            var controlRect = EditorGUILayout.GetControlRect(true);
+            using (new EditorGUI.PropertyScope(controlRect, label, property)) {
+                controlRect = EditorGUI.PrefixLabel(controlRect, label);
+                var size = textFieldDropDownStyle.CalcSize(GUIContent.none);
+                var textRect = controlRect;
+                textRect.xMin -= EditorGUI.indentLevel * 15F;
+                textRect.xMax -= size.x;
+                property.stringValue = EditorGUI.TextField(textRect, property.stringValue, textFieldDropDownTextStyle);
+                var buttonRect = controlRect;
+                buttonRect.xMin = buttonRect.xMax - size.x;
+                buttonRect.size = size;
                 using (new EditorGUI.DisabledScope(selectedShader == null && (materials == null || materials.Length == 0))) {
-                    if (GUI.Button(buttonRect, dropDownIcon, EditorStyles.miniButton)) {
+                    if (EditorGUI.DropdownButton(buttonRect, GUIContent.none, FocusType.Passive, textFieldDropDownStyle)) {
                         var menu = new GenericMenu();
                         if (selectedShader != null)
                             AppendShaderPropertiesToMenu(menu, selectedShader, property, type);
@@ -413,7 +422,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                                 AppendShaderPropertiesToMenu(menu, shader, property, type);
                             }
                         }
-                        menu.DropDown(buttonRect);
+                        menu.DropDown(controlRect);
                     }
                 }
             }
