@@ -15,6 +15,8 @@ Welcome! VizVid is a general-purpose video player wrapper for use in VRChat. It 
 - (Almost) one-click to change interface colors
 - Local pickupable & scaleable screen
 - Wrist band (VR) / keyboard (desktop) resync button & volume controls
+- Auto plays when local user steps into specific region
+- Auto fades out background music when video is playing
 - Custom shader with various display modes built-in (Stretch, Contain, Cover, Stereographic Video Source), can be configurated on material options
 - Localization system with auto language detection (English, Chinese, Japanese & Korean)
 - Locked UI with [Udon Auth](https://xtl.booth.pm/items/3826907).
