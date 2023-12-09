@@ -15,6 +15,9 @@ namespace JLChnToZ.VRC.VVMW {
 
         void Start() {
             audioSource = GetComponent<AudioSource>();
+        }
+
+        void OnEnable() {
             isVideoPlaying = core.enabled && core.gameObject.activeSelf && core.IsPlaying;
         }
 
