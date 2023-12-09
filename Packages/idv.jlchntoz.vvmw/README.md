@@ -16,6 +16,8 @@ This documentation is for V1.0.12 or later, some guidelines are different to old
 	* [How to Add an Overlay Control?](#how-to-add-an-overlay-control)
 	* [How to Add a Resync Button?](#how-to-add-a-resync-button)
 	* [How to Change color?](#how-to-change-color)
+    * [How to Setup Auto Plays When a User Goes Nearby?](#how-to-setup-auto-plays-when-a-user-goes-nearby)
+    * [How to Make Background Music Fade Out When Video is Playing?](#how-to-make-background-music-fade-out-when-video-is-playing)
 * [Details in the Bundle](#details-in-the-bundle)
 	* [VVMW (Game Object)](#vvmw-game-object)
 	* [Builtin Module / AVPro Module](#builtin-module-av-pro-module)
@@ -122,6 +124,23 @@ To add it, right-click on the player object in hierarchy, and select `VizVid > A
 Yes, you can change the UI color in nearly one-click. Every UI components comes with VizVid has attached a component called `Color Config`, what you have to do is change the color you like in this component, and click the `Apply` or `Apply to All` button below. The `Apply` button only applies the color to current selected UI, and `Apply to All` will copy the settings to other VizVid UIs and apply to them as well.
 
 ![ ](.tutorial/change-color.png)
+
+### How to Setup Auto Plays When a User Goes Nearby?
+VizVid built-in supports auto plays when a user goes into a specific region and stops when exits, it is for video playback in exhibition venues.
+
+To enable this feature, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Auto Play On Near (Local Only)`. You can then either set the distance (if you don't want to use the collider), or adjust the size of the collider to match your needs.
+![ ](.tutorial/add-controls-simple.png)
+
+### How to Make Background Music Fade Out When Video is Playing?
+As we all know, leaving background music playing in the world while watching/listening other video/music within the player is not a good experience. To solve this problem, we introduce BGM Volume Control component. This component is designed to attach to any background music audio source in your world.
+
+To add this, select your existing background music audio source game object, then click "Add Component" in inspector, select `VizVid > Components > BGM Volume Control`.
+![ ](.tutorial/add-bgm-control-1.png)
+
+Next, click on the "Find" button next to the core field, or drag your video player to here. And you may want to change the volume and/or other settings here.
+![ ](.tutorial/add-bgm-control-2.png)
+
+And thats it!
 
 ## Details in the Bundle
 In the prefab, it should look like this in hierarchy:
