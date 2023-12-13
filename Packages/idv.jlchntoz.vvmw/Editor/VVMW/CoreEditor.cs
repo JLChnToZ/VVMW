@@ -35,7 +35,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty loopProperty;
         SerializedProperty audioLinkProperty;
         SerializedProperty yttlManagerProperty;
-        SerializedProperty targetsProperty;
         SerializedProperty defaultTextureProperty;
         SerializedProperty screenTargetsProperty;
         SerializedProperty screenTargetModesProperty;
@@ -43,7 +42,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty screenTargetPropertyNamesProperty;
         SerializedProperty screenTargetDefaultTexturesProperty;
         SerializedProperty avProPropertyNamesProperty;
-        ReorderableListUtils playerHandlersList, audioSourcesList, targetsList;
+        SerializedReorderableList playerHandlersList, audioSourcesList, targetsList;
         string[] playerNames;
         bool[] playerTypes;
         List<bool> screenTargetVisibilityState;
@@ -58,12 +57,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             base.OnEnable();
             trustedUrlDomainsProperty = serializedObject.FindProperty("trustedUrlDomains");
             playerHandlersProperty = serializedObject.FindProperty("playerHandlers");
-            playerHandlersList = new ReorderableListUtils(playerHandlersProperty) {
-                DrawHeaderCallback = DrawPlayerHandlersListHeader,
+            playerHandlersList = new SerializedReorderableList(playerHandlersProperty) {
+                drawHeaderCallback = DrawPlayerHandlersListHeader,
             };
             audioSourcesProperty = serializedObject.FindProperty("audioSources");
-            audioSourcesList = new ReorderableListUtils(audioSourcesProperty) {
-                DrawHeaderCallback = DrawAudioSourcesListHeader,
+            audioSourcesList = new SerializedReorderableList(audioSourcesProperty) {
+                drawHeaderCallback = DrawAudioSourcesListHeader,
             };
             defaultUrlProperty = serializedObject.FindProperty("defaultUrl");
             defaultQuestUrlProperty = serializedObject.FindProperty("defaultQuestUrl");
@@ -83,8 +82,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             screenTargetDefaultTexturesProperty = serializedObject.FindProperty("screenTargetDefaultTextures");
             avProPropertyNamesProperty = serializedObject.FindProperty("avProPropertyNames");
             defaultTextureProperty = serializedObject.FindProperty("defaultTexture");
-            targetsProperty = serializedObject.FindProperty("targets");
-            targetsList = new ReorderableListUtils(targetsProperty);
+            targetsList = new SerializedReorderableList(serializedObject.FindProperty("targets"));
             screenTargetVisibilityState = new List<bool>();
             for (int i = 0, count = screenTargetsProperty.arraySize; i < count; i++)
                 screenTargetVisibilityState.Add(false);
@@ -100,13 +98,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(totalRetryCountProperty);
             EditorGUILayout.PropertyField(retryDelayProperty);
             EditorGUILayout.Space();
-            playerHandlersList.Draw();
+            playerHandlersList.DoLayoutList();
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(defaultTextureProperty);
             if (defaultTextureProperty.objectReferenceValue == null)
                 EditorGUILayout.HelpBox("It is required to set a default texture to display when no video is playing.", MessageType.Error);
             DrawScreenList();
-            audioSourcesList.Draw();
+            audioSourcesList.DoLayoutList();
             var newAudioSource = EditorGUILayout.ObjectField("Add Audio Source", null, typeof(AudioSource), true) as AudioSource;
             if (newAudioSource != null) {
                 bool hasExisting = false;
@@ -138,7 +136,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     for (int i = 0, count = trustedUrlDomainsProperty.arraySize; i < count; i++)
                         EditorGUILayout.LabelField(trustedUrlDomainsProperty.GetArrayElementAtIndex(i).stringValue, EditorStyles.miniLabel);
             EditorGUILayout.Space();
-            targetsList.Draw();
+            targetsList.DoLayoutList();
             serializedObject.ApplyModifiedProperties();
         }
 
@@ -178,12 +176,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(loopProperty);
         }
 
-        void DrawPlayerHandlersListHeader(ref Rect rect) {
+        void DrawPlayerHandlersListHeader(Rect rect) {
             GetTempContent("Auto Find");
             var miniButtonStyle = EditorStyles.miniButton;
             var size = miniButtonStyle.CalcSize(tempContent);
             var buttonRect = new Rect(rect.xMax - size.x, rect.y, size.x, rect.height);
             rect.width -= size.x;
+            EditorGUI.LabelField(rect, "Video Player Handlers");
             if (GUI.Button(buttonRect, tempContent, miniButtonStyle)) {
                 var handlers = (target as Core).GetComponentsInChildren<VideoPlayerHandler>(true);
                 playerHandlersProperty.arraySize = handlers.Length;
@@ -192,12 +191,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
         }
 
-        void DrawAudioSourcesListHeader(ref Rect rect) {
+        void DrawAudioSourcesListHeader(Rect rect) {
             GetTempContent("Setup Speakers");
             var miniButtonStyle = EditorStyles.miniButton;
             var size = miniButtonStyle.CalcSize(tempContent);
             var buttonRect = new Rect(rect.xMax - size.x, rect.y, size.x, rect.height);
             rect.width -= size.x;
+            EditorGUI.LabelField(rect, "Audio Sources");
             if (GUI.Button(buttonRect, tempContent, miniButtonStyle)) {
                 Undo.IncrementCurrentGroup();
                 int undoGroup = Undo.GetCurrentGroup();

@@ -10,7 +10,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
         static GUIContent textContent;
         SerializedProperty languageJsonFiles, languageJson;
         LanguageEditorWindow openedWindow;
-        ReorderableListUtils languageJsonFilesList;
+        SerializedReorderableList languageJsonFilesList;
         GUIStyle wrappedTextAreaStyle;
         bool showJson = false;
         [NonSerialized] bool hasInit;
@@ -24,7 +24,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                 };
             languageJsonFiles = serializedObject.FindProperty("languageJsonFiles");
             languageJson = serializedObject.FindProperty("languageJson");
-            languageJsonFilesList = new ReorderableListUtils(languageJsonFiles);
+            languageJsonFilesList = new SerializedReorderableList(languageJsonFiles);
             hasInit = true;
         }
         
@@ -39,7 +39,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
             EditorGUILayout.Space();
             serializedObject.Update();
             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                languageJsonFilesList.Draw();
+                languageJsonFilesList.DoLayoutList();
                 if (changed.changed && openedWindow != null) openedWindow.RefreshJsonLists();
             }
             if (openedWindow == null || openedWindow.LanguageManager != target) openedWindow = null;

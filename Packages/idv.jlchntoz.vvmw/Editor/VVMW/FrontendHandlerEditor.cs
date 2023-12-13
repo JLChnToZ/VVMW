@@ -17,7 +17,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty playListTitlesProperty;
         SerializedProperty autoPlayProperty;
         SerializedProperty targetsProperty;
-        ReorderableListUtils targetsPropertyList;
+        SerializedReorderableList targetsPropertyList;
         SerializedObject coreSerializedObject;
         string[] playListNames;
         GUIContent tempContent;
@@ -34,7 +34,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             playListTitlesProperty = serializedObject.FindProperty("playListTitles");
             autoPlayProperty = serializedObject.FindProperty("autoPlay");
             targetsProperty = serializedObject.FindProperty("targets");
-            targetsPropertyList = new ReorderableListUtils(targetsProperty);
+            targetsPropertyList = new SerializedReorderableList(targetsProperty);
             playListNames = null;
             PlayListEditorWindow.OnFrontendUpdated += OnFrontEndUpdated;
         }
@@ -114,7 +114,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     Application.OpenURL("https://xtl.booth.pm/items/3826907");
             }
             EditorGUILayout.Space();
-            targetsPropertyList.Draw();
+            targetsPropertyList.DoLayoutList();
             serializedObject.ApplyModifiedProperties();
         }
 
