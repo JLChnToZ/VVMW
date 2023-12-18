@@ -716,7 +716,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 try {
                     var title = entry["title"].ToString();
                     var url = entry["url"].ToString();
-                    var urlForQuest = entry["urlForQuest"].ToString();
+                    var urlForQuest = entry["urlForQuest"]?.ToString();
                     var playerIndex = (int)entry["playerIndex"];
                     selectedPlayList.entries.Add(new PlayListEntry {
                         title = title,
