@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -58,5 +59,12 @@ namespace JLChnToZ.VRC.VVMW {
                 Delegate.CreateDelegate(typeof(TDelegate), method, false) :
                 Delegate.CreateDelegate(typeof(TDelegate), target, method, false)
             );
+        
+#if !NETSTANDARD2_1
+        // Polyfill for old .NET Framework
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Contains(this string s, string value, StringComparison comparationType) =>
+            s.IndexOf(value, comparationType) >= 0;
+#endif
     }
 }

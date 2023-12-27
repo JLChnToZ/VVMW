@@ -537,11 +537,17 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 var propertyType = shader.GetPropertyType(i);
                 int currentScore = 0;
                 switch (propertyType) {
-                    case ShaderPropertyType.Float:
                     case ShaderPropertyType.Range:
+#if UNITY_2021_1_OR_NEWER
+                    case ShaderPropertyType.Float:
+#endif
                         currentScore = 1;
                         break;
+#if UNITY_2021_1_OR_NEWER
                     case ShaderPropertyType.Int:
+#else
+                    case ShaderPropertyType.Float:
+#endif
                         currentScore = 2;
                         break;
                 }
