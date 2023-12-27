@@ -42,6 +42,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty screenTargetPropertyNamesProperty;
         SerializedProperty screenTargetDefaultTexturesProperty;
         SerializedProperty avProPropertyNamesProperty;
+        SerializedProperty realtimeGIUpdateIntervalProperty;
         SerializedReorderableList playerHandlersList, audioSourcesList, targetsList;
         string[] playerNames;
         bool[] playerTypes;
@@ -82,6 +83,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             screenTargetDefaultTexturesProperty = serializedObject.FindProperty("screenTargetDefaultTextures");
             avProPropertyNamesProperty = serializedObject.FindProperty("avProPropertyNames");
             defaultTextureProperty = serializedObject.FindProperty("defaultTexture");
+            realtimeGIUpdateIntervalProperty = serializedObject.FindProperty("realtimeGIUpdateInterval");
             targetsList = new SerializedReorderableList(serializedObject.FindProperty("targets"));
             screenTargetVisibilityState = new List<bool>();
             for (int i = 0, count = screenTargetsProperty.arraySize; i < count; i++)
@@ -104,6 +106,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (defaultTextureProperty.objectReferenceValue == null)
                 EditorGUILayout.HelpBox("It is required to set a default texture to display when no video is playing.", MessageType.Error);
             DrawScreenList();
+            EditorGUILayout.PropertyField(realtimeGIUpdateIntervalProperty);
+            EditorGUILayout.Space();
             audioSourcesList.DoLayoutList();
             var newAudioSource = EditorGUILayout.ObjectField("Add Audio Source", null, typeof(AudioSource), true) as AudioSource;
             if (newAudioSource != null) {
@@ -461,29 +465,34 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             SerializedProperty screenTargetDefaultTexturesProperty,
             SerializedProperty avProPropertyNamesProperty
         ) {
+            int screenTargetMode;
+            Texture defaultTexture;
+            string mainTexturePropertyName = null, avProPropertyName = null;
             if (newTarget is CustomRenderTexture crt)
                 newTarget = crt.material;
             if (newTarget is Material material) {
-                AppendElement(screenTargetsProperty, material);
-                AppendElement(screenTargetModesProperty, 0);
-                var mainTexturePropertyName = FindMainTexturePropertyName(material);
-                AppendElement(screenTargetPropertyNamesProperty, mainTexturePropertyName);
-                AppendElement(screenTargetDefaultTexturesProperty, material.GetTexture(mainTexturePropertyName));
+                mainTexturePropertyName = FindMainTexturePropertyName(material);
+                avProPropertyName = FindAVProPropertyName(material);
+                screenTargetMode = avProPropertyName == null ? 8 : 0;
+                defaultTexture = material.GetTexture(mainTexturePropertyName);
             } else if (newTarget is Renderer renderer || (newTarget is GameObject rendererGO && rendererGO.TryGetComponent(out renderer))) {
-                AppendElement(screenTargetsProperty, renderer);
-                AppendElement(screenTargetModesProperty, 1);
+                newTarget = renderer;
                 material = renderer.sharedMaterial;
-                var mainTexturePropertyName = FindMainTexturePropertyName(material);
-                AppendElement(screenTargetPropertyNamesProperty, mainTexturePropertyName);
-                AppendElement(screenTargetDefaultTexturesProperty, material != null ? material.GetTexture(mainTexturePropertyName) : null);
+                mainTexturePropertyName = FindMainTexturePropertyName(material);
+                avProPropertyName = FindAVProPropertyName(material);
+                screenTargetMode = avProPropertyName == null ? 9 : 1;
+                defaultTexture = material != null ? material.GetTexture(mainTexturePropertyName) : null;
             } else if (newTarget is RawImage rawImage || (newTarget is GameObject rawImageGO && rawImageGO.TryGetComponent(out rawImage))) {
-                AppendElement(screenTargetsProperty, rawImage);
-                AppendElement(screenTargetModesProperty, 4);
-                AppendElement(screenTargetPropertyNamesProperty, "");
-                AppendElement(screenTargetDefaultTexturesProperty, rawImage.texture);
+                newTarget = rawImage;
+                screenTargetMode = 4;
+                defaultTexture = rawImage.texture;
             } else return false;
+            AppendElement(screenTargetsProperty, newTarget);
+            AppendElement(screenTargetModesProperty, screenTargetMode);
             AppendElement(screenTargetIndecesProperty, -1);
-            AppendElement(avProPropertyNamesProperty, "_IsAVProVideo");
+            AppendElement(screenTargetPropertyNamesProperty, mainTexturePropertyName ?? "_MainTex");
+            AppendElement(screenTargetDefaultTexturesProperty, defaultTexture);
+            AppendElement(avProPropertyNamesProperty, avProPropertyName ?? "_IsAVProVideo");
             return true;
         }
 
@@ -499,7 +508,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (ShaderUtil.GetPropertyType(shader, j) != type) continue;
                 var propertyName = ShaderUtil.GetPropertyName(shader, j);
                 menu.AddItem(
-                    new GUIContent($"{ShaderUtil.GetPropertyDescription(shader, j)} ({propertyName})"),
+                    new GUIContent($"{ShaderUtil.GetPropertyDescription(shader, j)} ({propertyName})".Replace('/', '.')),
                     property.stringValue == propertyName, SetValue, (property, propertyName)
                 );
             }
@@ -508,12 +517,46 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static string FindMainTexturePropertyName(Material material) {
             if (material != null) {
                 var shader = material.shader;
+                if (shader == null) return "";
                 int count = shader.GetPropertyCount();
                 for (int i = 0; i < count; i++)
                     if (shader.GetPropertyType(i) == ShaderPropertyType.Texture && shader.GetPropertyFlags(i).HasFlag(ShaderPropertyFlags.MainTexture))
                         return shader.GetPropertyName(i);
             }
             return "_MainTex";
+        }
+
+        static string FindAVProPropertyName(Material material) {
+            if (material == null) return null;
+            var shader = material.shader;
+            if (shader == null) return null;
+            string matchedName = null;
+            int count = shader.GetPropertyCount();
+            int score = 0;
+            for (int i = 0; i < count; i++) {
+                var propertyType = shader.GetPropertyType(i);
+                int currentScore = 0;
+                switch (propertyType) {
+                    case ShaderPropertyType.Float:
+                    case ShaderPropertyType.Range:
+                        currentScore = 1;
+                        break;
+                    case ShaderPropertyType.Int:
+                        currentScore = 2;
+                        break;
+                }
+                if (currentScore == 0) continue;
+                var name = shader.GetPropertyName(i);
+                if (name.StartsWith("_Is", StringComparison.OrdinalIgnoreCase))
+                    currentScore++;
+                if (name.Contains("AVPro", StringComparison.OrdinalIgnoreCase))
+                    currentScore += 2;
+                if (currentScore > score && currentScore > 3) {
+                    score = currentScore;
+                    matchedName = name;
+                }
+            }
+            return matchedName;
         }
 
         static GUIContent GetTempContent(SerializedProperty property) => GetTempContent(property.displayName, property.tooltip);

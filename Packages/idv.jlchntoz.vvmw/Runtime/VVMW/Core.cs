@@ -43,6 +43,8 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] int[] screenTargetIndeces;
         [SerializeField] string[] screenTargetPropertyNames, avProPropertyNames;
         [SerializeField] Texture[] screenTargetDefaultTextures;
+        [Tooltip("The interval to update realtime GI, set to 0 to disable realtime GI update.\nThis features requires setup the lignt probes and realtime GI in the scene and the screen renderers.")]
+        [SerializeField, Range(0, 10)] float realtimeGIUpdateInterval = 0;
         int[] screenTargetPropertyIds, avProPropertyIds;
         [FieldChangeCallback(nameof(SyncOffset))]
         float syncOffset = 0;
@@ -76,6 +78,7 @@ namespace JLChnToZ.VRC.VVMW {
         bool trustUpdated, isTrusted;
         MaterialPropertyBlock screenTargetPropertyBlock;
         AudioSource assignedAudioSource;
+        bool isRealtimeGIUpdaterRunning;
 
         // Yttl Receivers
         [NonSerialized] public VRCUrl url;
@@ -642,6 +645,7 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                 }
             }
+            UpdateRealtimeGI();
             SendEvent("_OnTextureChanged");
         }
 
@@ -658,6 +662,27 @@ namespace JLChnToZ.VRC.VVMW {
                 else
                     material.SetInt(avProPropertyIds[i], isAvPro ? 1 : 0);
             }
+        }
+
+        void UpdateRealtimeGI() {
+            if (isRealtimeGIUpdaterRunning || realtimeGIUpdateInterval <= 0) return;
+            isRealtimeGIUpdaterRunning = true;
+            SendCustomEventDelayedFrames(nameof(_UpdateRealtimeGI), 0);
+        }
+
+        public void _UpdateRealtimeGI() {
+            for (int i = 0, length = screenTargets.Length; i < length; i++)
+                switch (screenTargetModes[i] & 0x7) {
+                    case 1: case 2: case 3:
+                        var target = (Renderer)screenTargets[i];
+                        if (target != null) RendererExtensions.UpdateGIMaterials(target);
+                        break;
+                }
+            if (!enabled || !gameObject.activeInHierarchy || activeHandler == null || !activeHandler.IsReady) {
+                isRealtimeGIUpdaterRunning = false;
+                return;
+            }
+            SendCustomEventDelayedSeconds(nameof(_UpdateRealtimeGI), realtimeGIUpdateInterval);
         }
 
         public override void OnPreSerialization() {

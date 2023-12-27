@@ -11,6 +11,7 @@
         [Toggle(_)] _IsMirror ("Mirror Flip", Int) = 1
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
+        _EmissionIntensity ("Emission Intensity", Range(0, 10)) = 1.0
     }
     SubShader {
         Tags { "RenderType"="Opaque" }
@@ -22,6 +23,7 @@
 
         // Use shader model 3.0 target, to get nicer looking lighting
         #pragma target 3.0
+        #pragma shader_feature _EMISSION
         #include "./VideoShaderCommon.cginc"
 
         sampler2D _MainTex;
@@ -36,6 +38,7 @@
         float2 _StereoExtend;
         half _Glossiness;
         half _Metallic;
+        half _EmissionIntensity;
 
         struct Input {
             float2 uv_MainTex;
@@ -56,7 +59,7 @@
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
             o.Alpha = _Color.a;
-            o.Emission = videoColor;
+            o.Emission = videoColor * _EmissionIntensity;
         }
         ENDCG
     }
