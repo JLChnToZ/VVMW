@@ -10,6 +10,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Components/Overlay Control")]
     [DefaultExecutionOrder(2)]
+    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-add-an-overlay-control")]
     public class OverlayControl : VizVidBehaviour {
         Quaternion leftHandRotation = Quaternion.Euler(-90, -45, 0);
         Quaternion rightHandRotation = Quaternion.Euler(90, -45, 180);

@@ -13,6 +13,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/UI Handler")]
     [DefaultExecutionOrder(2)]
+    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#default-ui--screen-with-overlay")]
     public class UIHandler : VizVidBehaviour {
         [Header("Main Reference")]
         [SerializeField, Locatable(

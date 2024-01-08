@@ -434,11 +434,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         public static bool AddTarget(Core core, UnityObject newTarget, bool recordUndo = true, bool copyToUdon = false) {
             using (var so = new SerializedObject(core)) {
-                if (newTarget is AudioSource) {
-                    var audioSourcesProperty = so.FindProperty("audioSources");
-                    var index = audioSourcesProperty.arraySize++;
-                    audioSourcesProperty.GetArrayElementAtIndex(index).objectReferenceValue = newTarget;
-                } else if (!AppendScreen(
+                if (newTarget is AudioSource)
+                    AppendElement(so.FindProperty("audioSources"), newTarget);
+                else if (!AppendScreen(
                     newTarget,
                     so.FindProperty("screenTargets"),
                     so.FindProperty("screenTargetModes"),

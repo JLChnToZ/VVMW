@@ -14,6 +14,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Frontend Handler")]
     [DefaultExecutionOrder(1)]
+    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#play-list-queue-handler")]
     public class FrontendHandler : UdonSharpEventSender {
         protected const byte NONE = 0, REPEAT_ONE = 0x1, REPEAT_ALL = 0x2, SHUFFLE = 0x4;
         [SerializeField, Locatable, BindUdonSharpEvent, SingletonCoreControl] public Core core;

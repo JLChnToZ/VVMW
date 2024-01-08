@@ -12,6 +12,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
     [RequireComponent(typeof(VRC_Pickup))]
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Components/Pickup Panel")]
+    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-add-a-pickupable-screen")]
     public class PickupPanel : UdonSharpBehaviour {
         [Header("References")]
         [SerializeField] Transform scalingTarget;

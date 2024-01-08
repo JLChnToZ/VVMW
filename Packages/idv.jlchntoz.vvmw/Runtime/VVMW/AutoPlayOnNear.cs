@@ -5,6 +5,7 @@ using VRC.SDKBase;
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [AddComponentMenu("VizVid/Components/Auto Play On Near")]
+    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-setup-auto-plays-when-a-user-goes-nearby")]
     public class AutoPlayOnNear : VizVidBehaviour {
         [SerializeField, Locatable] FrontendHandler handler;
         [Tooltip("The distance to trigger the video, set to 0 to disable")]
