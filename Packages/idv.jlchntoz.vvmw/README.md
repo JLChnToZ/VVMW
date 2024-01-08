@@ -20,7 +20,7 @@ This documentation is for V1.0.12 or later, some guidelines are different to old
     * [How to Make Background Music Fade Out When Video is Playing?](#how-to-make-background-music-fade-out-when-video-is-playing)
 * [Details in the Bundle](#details-in-the-bundle)
 	* [VVMW (Game Object)](#vvmw-game-object)
-	* [Builtin Module / AVPro Module](#builtin-module-av-pro-module)
+	* [Builtin Module / AVPro Module](#builtin-module--av-pro-module)
 	* [Play List Queue Handler](#play-list-queue-handler)
 	* [Locale](#locale)
 	* [Default Screen / Screen](#default-screen-screen)
