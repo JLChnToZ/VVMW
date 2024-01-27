@@ -9,7 +9,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(VideoPlayerHandler))]
     public class VideoPlayerHandlerEditor : VVMWEditorBase {
 
-        SerializedProperty texturePropertyNameProperty, useSharedMaterialProperty, isAvProProperty, playerNameProperty, primaryAudioSourceProperty;
+        SerializedProperty texturePropertyNameProperty, useSharedMaterialProperty, isAvProProperty, playerNameProperty, primaryAudioSourceProperty, useFlickerWorkaroundProperty, blitMaterialProperty;
 
         protected override void OnEnable() {
             base.OnEnable();
@@ -18,6 +18,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             playerNameProperty = serializedObject.FindProperty("playerName");
             isAvProProperty = serializedObject.FindProperty("isAvPro");
             primaryAudioSourceProperty = serializedObject.FindProperty("primaryAudioSource");
+            useFlickerWorkaroundProperty = serializedObject.FindProperty("useFlickerWorkaround");
+            blitMaterialProperty = serializedObject.FindProperty("blitMaterial");
         }
 
         public override void OnInspectorGUI() {
@@ -104,6 +106,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
             }
             EditorGUILayout.PropertyField(primaryAudioSourceProperty);
+            if (isAvProProperty.boolValue) {
+                EditorGUILayout.PropertyField(useFlickerWorkaroundProperty);
+                if (useFlickerWorkaroundProperty.boolValue)
+                    EditorGUILayout.PropertyField(blitMaterialProperty);
+            }
             serializedObject.ApplyModifiedProperties();
         }
 

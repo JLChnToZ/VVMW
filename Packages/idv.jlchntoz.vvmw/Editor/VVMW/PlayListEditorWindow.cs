@@ -394,7 +394,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         continue;
                     }
                     playerHandlerNames[i] = string.IsNullOrEmpty(handler.playerName) ? handler.name : handler.playerName;
-                    if (handler.isAvPro) {
+                    if (handler.IsAvPro) {
                         playerHandlerTypes[i] = true;
                         if (firstAvProPlayerIndex < 0) firstAvProPlayerIndex = i;
                     } else {

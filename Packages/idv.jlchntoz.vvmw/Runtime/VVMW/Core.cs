@@ -208,7 +208,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public bool IsAVPro => activeHandler != null && activeHandler.isAvPro;
+        public bool IsAVPro => activeHandler != null && activeHandler.IsAvPro;
 
         public VRCUrl Url => localUrl;
 

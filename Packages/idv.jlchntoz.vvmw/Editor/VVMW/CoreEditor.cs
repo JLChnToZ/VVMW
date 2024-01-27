@@ -165,7 +165,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         playerNames[i] = "null";
                     else {
                         playerNames[i] = string.IsNullOrEmpty(playerHandler.playerName) ? playerHandler.name : playerHandler.playerName;
-                        playerTypes[i] = playerHandler.isAvPro;
+                        playerTypes[i] = playerHandler.IsAvPro;
                     }
                 }
                 var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
@@ -211,7 +211,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 for (int i = 0, count = playerHandlersProperty.arraySize; i < count; i++) {
                     var playerHandler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as VideoPlayerHandler;
                     if (playerHandler == null) continue;
-                    if (!playerHandler.isAvPro)
+                    if (!playerHandler.IsAvPro)
                         builtinPlayerHandlers.Add(playerHandler);
                     else if (avProPlayerHandler == null)
                         avProPlayerHandler = playerHandler;

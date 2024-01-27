@@ -4,6 +4,7 @@ using UnityEngine;
 using VRC.SDKBase;
 using VRC.SDK3.Components.Video;
 using VRC.SDK3.Video.Components.Base;
+using VRC.Udon.Common.Enums;
 
 namespace JLChnToZ.VRC.VVMW {
 
@@ -22,9 +23,14 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] string texturePropertyName = "_MainTex";
         [SerializeField] bool useSharedMaterial = true;
         [SerializeField] AudioSource primaryAudioSource;
-        public bool isAvPro;
+        [Tooltip("This option is only for AVPro video player.\nIt will use a workaround with a little performance cost to attempt to fix the screen flickering issue.")]
+        [SerializeField] bool useFlickerWorkaround = true;
+        [SerializeField] bool isAvPro;
+        [Tooltip("This material will be used to blit the screen to a temporary render texture for the flickering workaround. Don't change it unless needed.")]
+        [SerializeField] Material blitMaterial;
+        RenderTexture bufferedTexture;
         bool isActive, isReady, isPaused;
-        bool isWaitingForTexture;
+        bool isWaitingForTexture, isFlickerWorkaroundTextureRunning;
         BaseVRCVideoPlayer videoPlayer;
         new Renderer renderer;
         Texture texture;
@@ -46,9 +52,11 @@ namespace JLChnToZ.VRC.VVMW {
             set => videoPlayer.SetTime(value);
         }
 
+        public bool IsAvPro => isAvPro && bufferedTexture == null;
+
         public float Duration => isRTSP ? float.PositiveInfinity : videoPlayer.GetDuration();
 
-        public Texture Texture => texture;
+        public Texture Texture => bufferedTexture != null ? bufferedTexture : texture;
 
         public AudioSource PrimaryAudioSource => primaryAudioSource;
 
@@ -75,8 +83,8 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _GetTexture() {
             if (!isActive || !isWaitingForTexture || !videoPlayer.IsPlaying) {
-                texture = null;
                 isWaitingForTexture = false;
+                ClearTexture();
                 return;
             }
             if (useSharedMaterial)
@@ -88,9 +96,35 @@ namespace JLChnToZ.VRC.VVMW {
             }
             if (texture != null) {
                 isWaitingForTexture = false;
-                core._OnTextureChanged();
+                if (isAvPro && useFlickerWorkaround && !isFlickerWorkaroundTextureRunning && blitMaterial != null) {
+                    isFlickerWorkaroundTextureRunning = true;
+                    SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
+                } else
+                    core._OnTextureChanged();
             } else
                 SendCustomEventDelayedSeconds(nameof(_GetTexture), 0.2F);
+        }
+
+        // Experimental workaround for AVPro screen flickering issue.
+        public void _BlitBufferScreen() {
+            if (!isActive || !videoPlayer.IsPlaying || texture == null || !enabled) {
+                isFlickerWorkaroundTextureRunning = false;
+                return;
+            }
+            SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
+            int width = texture.width, height = texture.height;
+            if (bufferedTexture != null && (bufferedTexture.width != width || bufferedTexture.height != height)) {
+                VRCRenderTexture.ReleaseTemporary(bufferedTexture);
+                bufferedTexture = null;
+            }
+            if (bufferedTexture == null) {
+                Debug.Log($"[VVMW] Created temporary render texture for {playerName}: {width}x{height}");
+                bufferedTexture = VRCRenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB64, RenderTextureReadWrite.sRGB, 1);
+                bufferedTexture.filterMode = FilterMode.Bilinear;
+                bufferedTexture.wrapMode = TextureWrapMode.Clamp;
+                core._OnTextureChanged();
+            }
+            VRCGraphics.Blit(texture, bufferedTexture, blitMaterial);
         }
 
         public void LoadUrl(VRCUrl url, bool reload) {
@@ -175,7 +209,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (videoPlayer.IsPlaying) videoPlayer.Stop();
             isPaused = false;
             if (!isActive) return;
-            texture = null;
+            ClearTexture();
             core.OnVideoEnd();
         }
 
@@ -193,6 +227,15 @@ namespace JLChnToZ.VRC.VVMW {
             if (index < 0 || index > 5) return false;
             var protocol = urlStr.Substring(0, index).ToLower();
             return Array.IndexOf(rtspVaildProtocols, protocol) >= 0;
+        }
+
+        void ClearTexture() {
+            texture = null;
+            if (bufferedTexture != null) {
+                Debug.Log($"[VVMW] Released temporary render texture for {playerName}.");
+                VRCRenderTexture.ReleaseTemporary(bufferedTexture);
+                bufferedTexture = null;
+            }
         }
     }
 }
