@@ -99,21 +99,22 @@ namespace JLChnToZ.VRC.VVMW {
                 if (isAvPro && useFlickerWorkaround && !isFlickerWorkaroundTextureRunning && blitMaterial != null) {
                     isFlickerWorkaroundTextureRunning = true;
                     SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
-                } else
-                    core._OnTextureChanged();
+                }
+                core._OnTextureChanged();
             } else
                 SendCustomEventDelayedSeconds(nameof(_GetTexture), 0.2F);
         }
 
         // Experimental workaround for AVPro screen flickering issue.
         public void _BlitBufferScreen() {
-            if (!isActive || !videoPlayer.IsPlaying || texture == null || !enabled) {
+            if (!isActive || !videoPlayer.IsPlaying || texture == null) {
                 isFlickerWorkaroundTextureRunning = false;
                 return;
             }
             SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
             int width = texture.width, height = texture.height;
             if (bufferedTexture != null && (bufferedTexture.width != width || bufferedTexture.height != height)) {
+                Debug.Log($"[VVMW] The size of temporary render texture for {playerName} has changed, releasing the old one.");
                 VRCRenderTexture.ReleaseTemporary(bufferedTexture);
                 bufferedTexture = null;
             }
@@ -136,6 +137,7 @@ namespace JLChnToZ.VRC.VVMW {
             } else {
                 isReady = false;
                 videoPlayer.LoadURL(url);
+                ClearTexture();
             }
             lastUrl = url;
             isRTSP = IsRTSP(url);
@@ -236,6 +238,7 @@ namespace JLChnToZ.VRC.VVMW {
                 VRCRenderTexture.ReleaseTemporary(bufferedTexture);
                 bufferedTexture = null;
             }
+            if (isActive) core._OnTextureChanged();
         }
     }
 }
