@@ -30,6 +30,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty syncedProperty;
         SerializedProperty totalRetryCountProperty;
         SerializedProperty retryDelayProperty;
+        SerializedProperty autoPlayDelayProperty;
         SerializedProperty defaultVolumeProperty;
         SerializedProperty defaultMutedProperty;
         SerializedProperty loopProperty;
@@ -71,6 +72,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             syncedProperty = serializedObject.FindProperty("synced");
             totalRetryCountProperty = serializedObject.FindProperty("totalRetryCount");
             retryDelayProperty = serializedObject.FindProperty("retryDelay");
+            autoPlayDelayProperty = serializedObject.FindProperty("autoPlayDelay");
             defaultVolumeProperty = serializedObject.FindProperty("defaultVolume");
             defaultMutedProperty = serializedObject.FindProperty("defaultMuted");
             loopProperty = serializedObject.FindProperty("loop");
@@ -178,6 +180,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
             }
             EditorGUILayout.PropertyField(loopProperty);
+            EditorGUILayout.PropertyField(autoPlayDelayProperty);
+            if (autoPlayDelayProperty.floatValue < 0) autoPlayDelayProperty.floatValue = 0;
         }
 
         void DrawPlayerHandlersListHeader(Rect rect) {

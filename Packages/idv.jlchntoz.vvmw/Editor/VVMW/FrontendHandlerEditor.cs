@@ -16,6 +16,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty defaultPlayListIndexProperty;
         SerializedProperty playListTitlesProperty;
         SerializedProperty autoPlayProperty;
+        SerializedProperty autoPlayDelayProperty;
         SerializedProperty targetsProperty;
         SerializedReorderableList targetsPropertyList;
         SerializedObject coreSerializedObject;
@@ -33,6 +34,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             defaultPlayListIndexProperty = serializedObject.FindProperty("defaultPlayListIndex");
             playListTitlesProperty = serializedObject.FindProperty("playListTitles");
             autoPlayProperty = serializedObject.FindProperty("autoPlay");
+            autoPlayDelayProperty = serializedObject.FindProperty("autoPlayDelay");
             targetsProperty = serializedObject.FindProperty("targets");
             targetsPropertyList = new SerializedReorderableList(targetsProperty);
             playListNames = null;
@@ -85,6 +87,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
             }
             EditorGUILayout.PropertyField(autoPlayProperty);
+            if (autoPlayProperty.boolValue) {
+                EditorGUILayout.PropertyField(autoPlayDelayProperty);
+                if (autoPlayDelayProperty.floatValue < 0) autoPlayDelayProperty.floatValue = 0;
+            }
             EditorGUILayout.Space();
             var loopMode = LoopMode.None;
             bool hasLoopOne = false;

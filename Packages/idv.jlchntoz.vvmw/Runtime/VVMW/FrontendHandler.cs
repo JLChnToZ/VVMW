@@ -32,6 +32,11 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, FormerlySerializedAs("localPlayListIndex")] int defaultPlayListIndex;
         [Tooltip("Automatically play the default play list when the player is ready.")]
         [SerializeField] bool autoPlay = true;
+        [Tooltip("The delay to start playing the default video when the scene is loaded.\n" +
+            "This is to prevent rate limit between video players in same instance.\n" +
+            "If you have multiple video players (not limited to VizVid) which will auto plays in the same world, " +
+            "you should set this to a value at least in multiple of 5 to stagger the loading time.")]
+        [SerializeField] float autoPlayDelay = 0;
         [UdonSynced] VRCUrl[] queuedUrls;
         [UdonSynced] byte[] queuedPlayerIndex;
         [UdonSynced] byte flags;
@@ -167,7 +172,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (!synced || Networking.IsOwner(gameObject)) {
                 if (core.Loop) localFlags |= REPEAT_ONE;
                 if (defaultPlayListIndex > 0 && defaultPlayListIndex <= playListUrlOffsets.Length && autoPlay)
-                    SendCustomEventDelayedFrames(nameof(_AutoPlay), 0);
+                    SendCustomEventDelayedSeconds(nameof(_AutoPlay), autoPlayDelay);
                 else {
                     RequestSync();
                     UpdateState();

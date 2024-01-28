@@ -33,6 +33,11 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] bool synced = true;
         [SerializeField] int totalRetryCount = 3;
         [SerializeField, Range(5, 20)] float retryDelay = 5.5F;
+        [Tooltip("The delay to start playing the default video when the scene is loaded.\n" +
+            "This is to prevent rate limit between video players in same instance.\n" +
+            "If you have multiple video players (not limited to VizVid) which will auto plays in the same world, " +
+            "you should set this to a value at least in multiple of 5 to stagger the loading time.")]
+        [SerializeField] float autoPlayDelay = 0;
         [SerializeField, Range(0, 1), FieldChangeCallback(nameof(Volume))]
         float defaultVolume = 1;
         [SerializeField, FieldChangeCallback(nameof(Muted))]
@@ -343,7 +348,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             screenTargetPropertyBlock = new MaterialPropertyBlock();
             UpdateVolume();
-            if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedFrames(nameof(_PlayDefaultUrl), 0);
+            if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedSeconds(nameof(_PlayDefaultUrl), autoPlayDelay);
         }
 
         public void _PlayDefaultUrl() {
