@@ -11,7 +11,7 @@ This documentation is for V1.0.12 or later, some guidelines are different to old
 	* [How to Add Extra Screen?](#how-to-add-extra-screen)
 	* [How to Add Extra Audio Source?](#how-to-add-extra-audio-source)
 	* [How to Add Extra Controllers?](#how-to-add-extra-controllers)
-	* [How to Add/Import/Export a Play List?](#how-to-addimportexport-a-play-list)
+	* [How to Add/Import/Export a Play List?](#how-to-add-import-export-a-play-list)
 	* [How to Add a Pickupable Screen?](#how-to-add-a-pickupable-screen)
 	* [How to Add an Overlay Control?](#how-to-add-an-overlay-control)
 	* [How to Add a Resync Button?](#how-to-add-a-resync-button)
@@ -23,9 +23,9 @@ This documentation is for V1.0.12 or later, some guidelines are different to old
 	* [Builtin Module / AVPro Module](#builtin-module--av-pro-module)
 	* [Play List Queue Handler](#play-list-queue-handler)
 	* [Locale](#locale)
-	* [Default Screen / Screen](#default-screen-screen)
+	* [Default Screen / Screen](#default-screen--screen)
 	* [Default Audio Source](#default-audio-source)
-	* [Default UI / Screen with Overlay](#default-ui-screen-with-overlay)
+	* [Default UI / Screen with Overlay](#default-ui--screen-with-overlay)
 * [Third Party Support](#third-party-support)
 	* [Udon Auth](#udon-auth)
 	* [Audio Link](#audio-link)
@@ -159,10 +159,15 @@ Let me explain one by one.
 ### VVMW (Game Object)
 This is the "brain" of the system, it controls and synchronizes the player (if enabled) between users within the same world instance. If you open the inspector, you will find theres many options that let you to fiddle around:
 
-- **Default URL**: The URL will be played automatically when user joins your world.
-- **Default Quest URL**: The optional alternative URL will be played for Quest/Android clients. Leave empty to use default URL.
-- **Auto Play Player Type**: The "module" to use to play the above URL.
-- **Loop**: Is default the player loops (can be toggled via UI)
+- These options only appears when you are not using with play list queue handler and unlinked it:
+  - **Default URL**: The URL will be played automatically when user joins your world.
+  - **Default Quest URL**: The optional alternative URL will be played for Quest/Android clients. Leave empty to use default URL.
+  - **Auto Play Player Type**: The "module" to use to play the above URL.
+  - **Loop**: Is default the player loops (can be toggled via UI)
+  - **Auto Play Delay Time**: The delay to start playing the default video when the scene is loaded.
+    This is to prevent rate limit between video players in same instance.
+    If you have multiple video players (not limited to VizVid) which will auto plays in the same world
+    you should set this to a value at least in multiple of `5` to stagger the loading time.
 - **Player Handlers**: The "modules" of actual the player components.
   You usually don't need to change this, unless you want to disable unused player systems. See "Builtin Module" and "AVPro Module" for the modules.
 - **Default Texture**: The default texture displays when the player is not playing anything. You can change to any texture here, but if you want it to be simple, just leave it in default value.
@@ -214,7 +219,14 @@ This is an optional component that manages the queue of the playback. You can pr
         If it is a live stream or soundcloud, it is required to use AVPro player module.
         - **Load Play List from YouTube**: You can enter the play list URL from YouTube to append it to current selected play list. It requires a selected play list to operate with.
         - **Fetch Titles**: Fetch titles automatically if not filled. Currently only supports YouTube.
-- **Autoplay Play list**: The play list you want to be played while user joined your world.
+- **Dafault Play list**: The play list default selected when user joins the world.
+- **Auto Play**: If you want the above play list to be played automatically, enable it.
+  But if you want it [auto play on user nearby](#how-to-setup-auto-plays-when-a-user-goes-nearby) feature,
+  you should disable it and follow the instruction above.
+- **Auto Play Delay Time**: The delay to start playing the default video when the scene is loaded.
+  This is to prevent rate limit between video players in same instance.
+  If you have multiple video players (not limited to VizVid) which will auto plays in the same world
+  you should set this to a value at least in multiple of `5` to stagger the loading time.
 - **Default Loop**: Is default the player loops (can be toggled via UI).
   The difference to loop option in VVMW (Core) is this option will loop over whole play list / user queue list.
 - **Default Shuffle**: Is default the player plays randomly instead of the queued order (can be toggled via UI).
