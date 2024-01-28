@@ -196,6 +196,11 @@ The following are the options could be changed here:
 - **Primary Audio Source**: The audio source that the player primary outputs.
   If it is built-in player module, this will be the only audio output.
   If you have Audio Link set up, this audio source will be sent to Audio Link when playing.
+- **Use Flicker Workaround**: This option is only for AVPro video player.
+  It will use a workaround with a little performance cost to attempt to fix the screen flickering issue.
+  Technically speaking, this will also fix the flipped upside-down and colorspace of the output video screen texture,
+  make it be able to display correctly even no proper shader support.
+- **Blit Material**: This material will be used to blit the screen to a temporary render texture for the flickering workaround. Don't change it unless needed.
 
 ### Play List Queue Handler
 This is an optional component that manages the queue of the playback. You can pre-define playlist and/or enabling player queue options here.
