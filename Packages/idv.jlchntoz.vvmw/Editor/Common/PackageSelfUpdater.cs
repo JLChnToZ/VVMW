@@ -81,16 +81,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             #if VPM_RESOLVER_INCLUDED
             if (!Repos.UserRepoExists(listingsID) && !Repos.AddRepo(new Uri(listingsURL)))
                 return;
-            ConfirmAndUpdate();
             #endif
+            ConfirmAndUpdate();
         }
 
         public void ConfirmAndUpdate() {
+            #if VPM_RESOLVER_INCLUDED
             if (string.IsNullOrEmpty(packageName)) {
                 Debug.LogError("Unable to find package name.");
                 return;
             }
-            #if VPM_RESOLVER_INCLUDED
             var version = availableVersion;
             if (string.IsNullOrEmpty(version)) {
                 var allVersions = Resolver.GetAllVersionsOf(packageName);
@@ -108,6 +108,17 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 sb.AppendLine($"- {dependency}");
             if (EditorUtility.DisplayDialog("Update Package", sb.ToString(), "Update", "Cancel"))
                 UpdateUnchecked(vrcPackage).Forget();
+            #else
+            switch (EditorUtility.DisplayDialogComplex(
+                "Unable to Update Package",
+                "It seems your project is not managed by VRChat Creator Companion (VCC).\n" +
+                "You need to migrate your project to Creator Companion to get automatic updates.",
+                "Close", "What is Creator Companion?", "How to migrate?"
+            )) {
+                case 1: Application.OpenURL("https://vcc.docs.vrchat.com/"); break;
+                case 2: Application.OpenURL("https://vcc.docs.vrchat.com/vpm/migrating"); break;
+            }
+            Debug.LogError("Unable to update package. Please migrate your project to Creator Companion first.");
             #endif
         }
 
