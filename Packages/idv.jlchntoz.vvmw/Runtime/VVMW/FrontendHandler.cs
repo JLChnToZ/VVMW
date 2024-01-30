@@ -168,6 +168,11 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void Start() {
+            if (!core.isInit) {
+                Debug.LogWarning("[VVMW] It seems FrontendHandler initialized before Core, and this should not happened (Hence the script execution order).\nWaiting for Core to initialize...");
+                SendCustomEventDelayedFrames("_start", 0);
+                return;
+            }
             synced = core.IsSynced;
             if (!synced || Networking.IsOwner(gameObject)) {
                 if (core.Loop) localFlags |= REPEAT_ONE;

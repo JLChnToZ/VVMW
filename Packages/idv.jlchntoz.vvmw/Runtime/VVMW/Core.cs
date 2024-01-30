@@ -85,6 +85,7 @@ namespace JLChnToZ.VRC.VVMW {
         MaterialPropertyBlock screenTargetPropertyBlock;
         AudioSource assignedAudioSource;
         bool isRealtimeGIUpdaterRunning;
+        internal bool isInit;
 
         // Yttl Receivers
         [NonSerialized] public VRCUrl url;
@@ -349,6 +350,7 @@ namespace JLChnToZ.VRC.VVMW {
             screenTargetPropertyBlock = new MaterialPropertyBlock();
             UpdateVolume();
             if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedSeconds(nameof(_PlayDefaultUrl), autoPlayDelay);
+            isInit = true;
         }
 
         public void _PlayDefaultUrl() {
