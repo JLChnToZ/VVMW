@@ -56,7 +56,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public float Duration => isRTSP ? float.PositiveInfinity : videoPlayer.GetDuration();
 
-        public Texture Texture => bufferedTexture != null ? bufferedTexture : texture;
+        public Texture Texture => texture != null && bufferedTexture != null ? bufferedTexture : texture;
 
         public AudioSource PrimaryAudioSource => primaryAudioSource;
 
@@ -96,29 +96,33 @@ namespace JLChnToZ.VRC.VVMW {
             }
             if (texture != null) {
                 isWaitingForTexture = false;
-                if (isAvPro && useFlickerWorkaround && !isFlickerWorkaroundTextureRunning && blitMaterial != null) {
-                    isFlickerWorkaroundTextureRunning = true;
-                    SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
-                }
+                BlitBufferScreen();
                 core._OnTextureChanged();
             } else
                 SendCustomEventDelayedSeconds(nameof(_GetTexture), 0.2F);
         }
 
-        // Experimental workaround for AVPro screen flickering issue.
+        void BlitBufferScreen() {
+            if (!isAvPro || !useFlickerWorkaround || isFlickerWorkaroundTextureRunning ||
+                isPaused || blitMaterial == null || texture == null || !videoPlayer.IsPlaying)
+                return;
+            isFlickerWorkaroundTextureRunning = true;
+            SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
+            if (bufferedTexture != null && texture.width == bufferedTexture.width && texture.height == bufferedTexture.height)
+                return;
+            Debug.Log($"[VVMW] Released temporary render texture for {playerName}.");
+            VRCRenderTexture.ReleaseTemporary(bufferedTexture);
+            bufferedTexture = null;
+        }
+
         public void _BlitBufferScreen() {
-            if (!isActive || !videoPlayer.IsPlaying || texture == null) {
+            if (!isActive || isPaused || !videoPlayer.IsPlaying || texture == null) {
                 isFlickerWorkaroundTextureRunning = false;
                 return;
             }
             SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
-            int width = texture.width, height = texture.height;
-            if (bufferedTexture != null && (bufferedTexture.width != width || bufferedTexture.height != height)) {
-                Debug.Log($"[VVMW] The size of temporary render texture for {playerName} has changed, releasing the old one.");
-                VRCRenderTexture.ReleaseTemporary(bufferedTexture);
-                bufferedTexture = null;
-            }
             if (bufferedTexture == null) {
+                int width = texture.width, height = texture.height;
                 Debug.Log($"[VVMW] Created temporary render texture for {playerName}: {width}x{height}");
                 bufferedTexture = VRCRenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB64, RenderTextureReadWrite.sRGB, 1);
                 bufferedTexture.filterMode = FilterMode.Bilinear;
@@ -192,6 +196,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override void OnVideoPlay() {
             isPaused = false;
             if (!isActive) return;
+            BlitBufferScreen();
             core.OnVideoPlay();
         }
 
