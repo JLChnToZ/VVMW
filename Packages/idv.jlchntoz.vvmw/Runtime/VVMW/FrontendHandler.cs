@@ -51,6 +51,7 @@ namespace JLChnToZ.VRC.VVMW {
         byte localFlags;
         int localPlayListIndex;
         ushort localPlayingIndex;
+        bool isInit;
 
         public VRCUrl[] QueueUrls {
             get {
@@ -183,6 +184,7 @@ namespace JLChnToZ.VRC.VVMW {
                     UpdateState();
                 }
             }
+            isInit = true;
         }
 
         public void _AutoPlay() {
@@ -308,6 +310,10 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public override void OnDeserialization() {
+            if (!isInit) {
+                SendCustomEventDelayedFrames("_onDeserialization", 0);
+                return;
+            }
             if (!synced) return;
             localQueuedUrls = queuedUrls;
             localQueuedPlayerIndex = queuedPlayerIndex;
