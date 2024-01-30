@@ -594,11 +594,12 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _OnTextureChanged() {
             var videoTexture = VideoTexture;
-            var isAvPro = IsAVPro;
+            var hasVideoTexture = videoTexture != null;
+            var isAvPro = hasVideoTexture && IsAVPro;
             for (int i = 0, length = screenTargets.Length; i < length; i++) {
                 if (screenTargets[i] == null) continue;
                 Texture texture = null;
-                if (videoTexture != null)
+                if (hasVideoTexture)
                     texture = videoTexture;
                 else if (screenTargetDefaultTextures != null && i < screenTargetDefaultTextures.Length)
                     texture = screenTargetDefaultTextures[i];
