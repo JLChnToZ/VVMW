@@ -85,7 +85,7 @@ namespace JLChnToZ.VRC.VVMW {
         MaterialPropertyBlock screenTargetPropertyBlock;
         AudioSource assignedAudioSource;
         bool isRealtimeGIUpdaterRunning;
-        internal bool isInit;
+        internal bool afterFirstRun;
 
         // Yttl Receivers
         [NonSerialized] public VRCUrl url;
@@ -126,10 +126,9 @@ namespace JLChnToZ.VRC.VVMW {
                     } else
                         handler.IsActive = false;
                 }
-                if (value == 0 && wasPlaying && !isLocalReloading && !IsUrlValid(loadingUrl)) {
+                if (value == 0 && wasPlaying && !isLocalReloading && !IsUrlValid(loadingUrl))
                     SendEvent("_onVideoEnd");
-                    _OnTextureChanged();
-                }
+                _OnTextureChanged();
             }
         }
         public byte LastActivePlayer => lastActivePlayer;
@@ -324,7 +323,8 @@ namespace JLChnToZ.VRC.VVMW {
             return Array.IndexOf(trustedUrlDomains, url.Substring(startIndex + 1, endIndex - startIndex - 1)) >= 0;
         }
 
-        void Start() {
+        void OnEnable() {
+            if (afterFirstRun) return;
             foreach (var handler in playerHandlers)
                 handler.core = this;
             if (screenTargetPropertyNames != null) {
@@ -350,7 +350,7 @@ namespace JLChnToZ.VRC.VVMW {
             screenTargetPropertyBlock = new MaterialPropertyBlock();
             UpdateVolume();
             if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedSeconds(nameof(_PlayDefaultUrl), autoPlayDelay);
-            isInit = true;
+            afterFirstRun = true;
         }
 
         public void _PlayDefaultUrl() {

@@ -51,7 +51,7 @@ namespace JLChnToZ.VRC.VVMW {
         byte localFlags;
         int localPlayListIndex;
         ushort localPlayingIndex;
-        bool isInit, isDataArrivedBeforeInit;
+        bool afterFirstRun, isDataArrivedBeforeInit;
 
         public VRCUrl[] QueueUrls {
             get {
@@ -168,10 +168,14 @@ namespace JLChnToZ.VRC.VVMW {
             UpdateState();
         }
 
-        void Start() {
-            if (!core.isInit) {
+        void OnEnable() => _Init();
+
+        public void _Init() {
+            if (afterFirstRun) return;
+            if (!core.afterFirstRun) {
                 Debug.LogWarning("[VVMW] It seems FrontendHandler initialized before Core, and this should not happened (Hence the script execution order).\nWaiting for Core to initialize...");
-                SendCustomEventDelayedFrames("_start", 0);
+                if (gameObject.activeInHierarchy && enabled)
+                    SendCustomEventDelayedFrames(nameof(_Init), 0);
                 return;
             }
             synced = core.IsSynced;
@@ -184,7 +188,7 @@ namespace JLChnToZ.VRC.VVMW {
                     UpdateState();
                 }
             }
-            isInit = true;
+            afterFirstRun = true;
             if (isDataArrivedBeforeInit)
                 OnDeserialization();
         }
@@ -312,7 +316,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public override void OnDeserialization() {
-            if (!isInit) {
+            if (!afterFirstRun) {
                 isDataArrivedBeforeInit = true;
                 return;
             }

@@ -19,6 +19,7 @@ namespace JLChnToZ.VRC.VVMW.I18N {
         string languageKey = "EN";
         string[] languageKeys;
         string[] languageNames;
+        bool afterFirstRun;
 
         public string[] LanguageKeys => languageKeys;
         public string[] LanguageNames => languageNames;
@@ -31,7 +32,9 @@ namespace JLChnToZ.VRC.VVMW.I18N {
             }
         }
 
-        void Start() {
+        void OnEnable() {
+            if (afterFirstRun) return;
+            afterFirstRun = true;
             if (VRCJson.TryDeserializeFromJson(languageJson, out DataToken rawLanguages) && rawLanguages.TokenType == TokenType.DataDictionary) {
                 var uiLanguage = VRCPlayerApi.GetCurrentLanguage();
                 languages = rawLanguages.DataDictionary;

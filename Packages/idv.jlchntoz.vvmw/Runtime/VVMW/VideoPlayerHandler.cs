@@ -38,6 +38,7 @@ namespace JLChnToZ.VRC.VVMW {
         int texturePropertyID;
         VRCUrl lastUrl;
         bool isRTSP;
+        bool afterFirstRun;
 
         public bool IsActive {
             get => isActive;
@@ -49,7 +50,11 @@ namespace JLChnToZ.VRC.VVMW {
 
         public float Time {
             get => videoPlayer.GetTime();
-            set => videoPlayer.SetTime(value);
+            set {
+                videoPlayer.SetTime(value);
+                // If it is paused, we need to blit the screen manually.
+                if (isPaused) BlitBufferScreen();
+            }
         }
 
         public bool IsAvPro => isAvPro && bufferedTexture == null;
@@ -71,7 +76,9 @@ namespace JLChnToZ.VRC.VVMW {
 
         public bool IsPaused => isPaused;
 
-        void Start() {
+        void OnEnable() {
+            if (afterFirstRun) return;
+            afterFirstRun = true;
             videoPlayer = (BaseVRCVideoPlayer)GetComponent(typeof(BaseVRCVideoPlayer));
             renderer = (Renderer)GetComponent(typeof(Renderer));
             texturePropertyID = VRCShader.PropertyToID(texturePropertyName);
@@ -104,7 +111,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void BlitBufferScreen() {
             if (!isAvPro || !useFlickerWorkaround || isFlickerWorkaroundTextureRunning ||
-                isPaused || blitMaterial == null || texture == null || !videoPlayer.IsPlaying)
+                blitMaterial == null || texture == null || !videoPlayer.IsPlaying)
                 return;
             isFlickerWorkaroundTextureRunning = true;
             SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
@@ -116,11 +123,14 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _BlitBufferScreen() {
-            if (!isActive || isPaused || !videoPlayer.IsPlaying || texture == null) {
+            if (!isActive || !videoPlayer.IsPlaying || texture == null) {
                 isFlickerWorkaroundTextureRunning = false;
                 return;
             }
-            SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
+            if (isPaused) // Special case: we render 1 more frame when paused.
+                isFlickerWorkaroundTextureRunning = false;
+            else
+                SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
             if (bufferedTexture == null) {
                 int width = texture.width, height = texture.height;
                 Debug.Log($"[VVMW] Created temporary render texture for {playerName}: {width}x{height}");

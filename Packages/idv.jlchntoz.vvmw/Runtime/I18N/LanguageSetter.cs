@@ -13,8 +13,11 @@ namespace JLChnToZ.VRC.VVMW.I18N {
         [SerializeField] GameObject entryTemplate;
         Toggle[] spawnedEntries;
         bool hasInit = false;
+        bool afterFirstRun;
 
-        void Start() {
+        void OnEnable() {
+            if (afterFirstRun) return;
+            afterFirstRun = true;
             entryTemplate.SetActive(false);
             SendCustomEventDelayedFrames(nameof(_DetectLanguageInit), 0);
         }

@@ -14,6 +14,7 @@ namespace JLChnToZ.VRC.VVMW.I18N {
         object[] args;
         Text text;
         TextMeshProUGUI textMeshPro;
+        bool afterFirstRun;
 
         public object[] Args {
             get => args;
@@ -23,7 +24,9 @@ namespace JLChnToZ.VRC.VVMW.I18N {
             }
         }
 
-        void Start() {
+        void OnEnable() {
+            if (afterFirstRun) return;
+            afterFirstRun = true;
             if (manager == null) return;
             text = GetComponent<Text>();
             textMeshPro = GetComponent<TextMeshProUGUI>();

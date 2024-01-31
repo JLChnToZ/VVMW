@@ -119,7 +119,7 @@ namespace JLChnToZ.VRC.VVMW {
         int interactTriggerId;
         DateTime joinTime, playListLastInteractTime;
         TimeSpan interactCoolDown = TimeSpan.FromSeconds(5);
-        bool hasInit;
+        bool afterFirstRun;
 
         int SelectedPlayListIndex {
             get {
@@ -137,8 +137,8 @@ namespace JLChnToZ.VRC.VVMW {
 
         void OnEnable() {
             if (playbackControlsAnimator != null) playbackControlsAnimator.SetTrigger("Init");
-            if (hasInit) return;
-            hasInit = true;
+            if (afterFirstRun) return;
+            afterFirstRun = true;
             joinTime = DateTime.UtcNow;
             var hasHandler = Utilities.IsValid(handler);
             if (hasHandler) core = handler.core;
@@ -300,7 +300,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnVolumeChange() {
-            if (!hasInit) return;
+            if (!afterFirstRun) return;
             if (volumeSlider != null)
                 volumeSlider.SetValueWithoutNotify(core.Volume);
             if (muteButton != null && unmuteButton != null) {
@@ -369,7 +369,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnLanguageChanged() {
-            if (!hasInit) return;
+            if (!afterFirstRun) return;
             _OnUIUpdate();
             _OnSyncOffsetChange();
             if (Utilities.IsValid(handler) && handler.HasQueueList && playListNames != null) {
@@ -390,7 +390,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnUIUpdate() {
-            if (!hasInit) return;
+            if (!afterFirstRun) return;
             bool hasHandler = Utilities.IsValid(handler);
             bool unlocked = !hasHandler || !handler.Locked;
             bool canPlay = false;
@@ -722,7 +722,7 @@ namespace JLChnToZ.VRC.VVMW {
             core.SyncOffset = 0;
         }
         public void _OnSyncOffsetChange() {
-            if (!hasInit) return;
+            if (!afterFirstRun) return;
             if (shiftOffsetText != null) shiftOffsetText.text = string.Format(languageManager.GetLocale("TimeDrift"), core.SyncOffset);
         }
 
