@@ -18,7 +18,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
     public class CoreEditor : VVMWEditorBase {
         static readonly Dictionary<Type, FieldInfo> controllableTypes = new Dictionary<Type, FieldInfo>();
         readonly Dictionary<Core, UdonSharpBehaviour> autoPlayControllers = new Dictionary<Core, UdonSharpBehaviour>();
-        static GUIContent tempContent;
         static readonly string[] materialModeOptions = new [] { "Property Block", "Shared Material", "Cloned Materal" };
         static GUIStyle textFieldDropDownTextStyle, textFieldDropDownStyle;
         SerializedProperty trustedUrlDomainsProperty;
@@ -130,7 +129,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(audioLinkProperty);
             EditorGUILayout.PropertyField(yttlManagerProperty);
             using (new EditorGUILayout.HorizontalScope()) {
-                showTrustUrlList = EditorGUILayout.Foldout(showTrustUrlList, GetTempContent(
+                showTrustUrlList = EditorGUILayout.Foldout(showTrustUrlList, Utils.GetTempContent(
                     "Trusted URL List",
                     "The list of trusted URL domains from VRChat. This list is for display proper error message when the video URL is not trusted."
                 ), true);
@@ -171,7 +170,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                 }
                 var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
-                var content = GetTempContent(autoPlayPlayerTypeProperty);
+                var content = Utils.GetTempContent(autoPlayPlayerTypeProperty);
                 using (new EditorGUI.PropertyScope(rect, content, autoPlayPlayerTypeProperty))
                 using (var changed = new EditorGUI.ChangeCheckScope()) {
                     rect = EditorGUI.PrefixLabel(rect, content);
@@ -185,7 +184,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void DrawPlayerHandlersListHeader(Rect rect) {
-            GetTempContent("Auto Find");
+            var tempContent = Utils.GetTempContent("Auto Find");
             var miniButtonStyle = EditorStyles.miniButton;
             var size = miniButtonStyle.CalcSize(tempContent);
             var buttonRect = new Rect(rect.xMax - size.x, rect.y, size.x, rect.height);
@@ -200,7 +199,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void DrawAudioSourcesListHeader(Rect rect) {
-            GetTempContent("Setup Speakers");
+            var tempContent = Utils.GetTempContent("Setup Speakers");
             var miniButtonStyle = EditorStyles.miniButton;
             var size = miniButtonStyle.CalcSize(tempContent);
             var buttonRect = new Rect(rect.xMax - size.x, rect.y, size.x, rect.height);
@@ -284,7 +283,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 EditorGUIUtility.labelWidth -= 16;
                 using (new EditorGUILayout.HorizontalScope()) {
                     screenTargetVisibilityState[i] = EditorGUILayout.Toggle(screenTargetVisibilityState[i], EditorStyles.foldout, GUILayout.Width(13));
-                    EditorGUILayout.PropertyField(targetProperty, GetTempContent($"Video Screen Target {i + 1}"));
+                    EditorGUILayout.PropertyField(targetProperty, Utils.GetTempContent($"Video Screen Target {i + 1}"));
                     var value = targetProperty.objectReferenceValue;
                     if (value is GameObject gameObject) {
                         if (gameObject.TryGetComponent(out Renderer renderer))
@@ -358,20 +357,20 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             var nameProperty = screenTargetPropertyNamesProperty.GetArrayElementAtIndex(i);
                             var avProProperty = avProPropertyNamesProperty.GetArrayElementAtIndex(i);
                             DrawShaderPropertiesField(
-                                nameProperty, GetTempContent("Video Texture Property Name", "The name of the property in material to set the video texture."),
+                                nameProperty, Utils.GetTempContent("Video Texture Property Name", "The name of the property in material to set the video texture."),
                                 selectedShader, materials, ShaderUtil.ShaderPropertyType.TexEnv
                             );
                             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                                useST = EditorGUILayout.Toggle(GetTempContent("Use Scale Offset", "Will use scale offset (_Texture_ST) to adjust the texture if it is flipped upside-down."), useST);
+                                useST = EditorGUILayout.Toggle(Utils.GetTempContent("Use Scale Offset", "Will use scale offset (_Texture_ST) to adjust the texture if it is flipped upside-down."), useST);
                                 if (!useST) DrawShaderPropertiesField(
-                                    avProProperty, GetTempContent("AVPro Flag Property Name", "If it is using AVPro player, this property value will set to 1, otherwise 0."),
+                                    avProProperty, Utils.GetTempContent("AVPro Flag Property Name", "If it is using AVPro player, this property value will set to 1, otherwise 0."),
                                     selectedShader, materials, ShaderUtil.ShaderPropertyType.Float
                                 );
                             }
                         }
                         var textureProperty = screenTargetDefaultTexturesProperty.GetArrayElementAtIndex(i);
                         var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
-                        var label = GetTempContent("Default Texture", "The texture to display when no video is playing. Will use the global default texture if it is null.");
+                        var label = Utils.GetTempContent("Default Texture", "The texture to display when no video is playing. Will use the global default texture if it is null.");
                         using (new EditorGUI.PropertyScope(rect, label, textureProperty))
                         using (var changed = new EditorGUI.ChangeCheckScope()) {
                             var texture = textureProperty.objectReferenceValue;
@@ -383,7 +382,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
             }
             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                var newTarget = EditorGUILayout.ObjectField(GetTempContent("Add Video Screen Target", "Drag renderers, materials, custom render textures, UI raw images here to receive video texture."), null, typeof(UnityObject), true);
+                var newTarget = EditorGUILayout.ObjectField(Utils.GetTempContent("Add Video Screen Target", "Drag renderers, materials, custom render textures, UI raw images here to receive video texture."), null, typeof(UnityObject), true);
                 if (changed.changed && newTarget != null) {
                     if (AppendScreen(
                         newTarget,
@@ -565,15 +564,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
             }
             return matchedName;
-        }
-
-        static GUIContent GetTempContent(SerializedProperty property) => GetTempContent(property.displayName, property.tooltip);
-
-        static GUIContent GetTempContent(string text, string tooltip = "") {
-            if (tempContent == null) tempContent = new GUIContent();
-            tempContent.text = text;
-            tempContent.tooltip = tooltip;
-            return tempContent;
         }
 
         static void AppendElement(SerializedProperty property, UnityObject value) {

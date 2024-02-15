@@ -15,7 +15,6 @@ using UnityObject = UnityEngine.Object;
 namespace JLChnToZ.VRC.VVMW.Editors {
 
     public class PlayListEditorWindow : EditorWindow {
-        static GUIContent tempContent;
         FrontendHandler frontendHandler;
         Core loadedCore;
         string[] playerHandlerNames;
@@ -46,7 +45,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void OnEnable() {
-            if (tempContent == null) tempContent = new GUIContent();
             if (playListView == null) playListView = new ReorderableList(playLists, typeof(PlayList), true, true, true, true) {
                 drawHeaderCallback = DrawPlayListHeader,
                 drawElementCallback = DrawPlayList,
@@ -185,16 +183,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             titleRect.height = EditorGUIUtility.singleLineHeight;
             float playerRectWidth = titleRect.width;
             if (playerHandlerNames != null) {
-                if (entry.playerIndex >= 0 && entry.playerIndex < playerHandlerNames.Length)
-                    tempContent.text = playerHandlerNames[entry.playerIndex];
-                else
-                    tempContent.text = "";
-                playerRectWidth = EditorStyles.popup.CalcSize(tempContent).x;
+                playerRectWidth = EditorStyles.popup.CalcSize(
+                    Utils.GetTempContent(entry.playerIndex >= 0 && entry.playerIndex < playerHandlerNames.Length ? playerHandlerNames[entry.playerIndex] : "")
+                ).x;
             }
             titleRect.xMax = titleRect.width - playerRectWidth - 10;
             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                tempContent.text = "Title";
-                titleRect = EditorGUI.PrefixLabel(titleRect, tempContent);
+                titleRect = EditorGUI.PrefixLabel(titleRect, Utils.GetTempContent("Title"));
                 var newTitle = EditorGUI.TextField(titleRect, entry.title);
                 if (changed.changed) {
                     entry.title = newTitle;
@@ -221,8 +216,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             urlRect.yMin = titleRect.yMax + EditorGUIUtility.standardVerticalSpacing;
             urlRect.height = EditorGUIUtility.singleLineHeight;
             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                tempContent.text = "URL (PC)";
-                urlRect = EditorGUI.PrefixLabel(urlRect, tempContent);
+                urlRect = EditorGUI.PrefixLabel(urlRect, Utils.GetTempContent("URL (PC)"));
                 var newUrl = TrustedUrlUtils.DrawUrlField(entry.url, isAvPro ? TrustedUrlTypes.AVProDesktop : TrustedUrlTypes.UnityVideo, urlRect, "");
                 if (changed.changed) {
                     entry.url = newUrl;
@@ -234,8 +228,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             urlQuestRect.yMin = urlRect.yMax + EditorGUIUtility.standardVerticalSpacing;
             urlQuestRect.height = EditorGUIUtility.singleLineHeight;
             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                tempContent.text = "URL (Quest)";
-                urlQuestRect = EditorGUI.PrefixLabel(urlQuestRect, tempContent);
+                urlQuestRect = EditorGUI.PrefixLabel(urlQuestRect, Utils.GetTempContent("URL (Quest)"));
                 var newUrl = string.IsNullOrEmpty(entry.urlForQuest) ? entry.url : entry.urlForQuest;
                 newUrl = TrustedUrlUtils.DrawUrlField(newUrl, isAvPro ? TrustedUrlTypes.AVProAndroid : TrustedUrlTypes.UnityVideo, urlQuestRect, "");
                 if (changed.changed) {
@@ -448,6 +441,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         case "ArchiTech.ProTV.PlaylistData":
                             ImportPlayListFromProTV(mb, 3, creaeNewPlayList);
                             break;
+                        case "Texel.PlaylistData":
+                            ImportPlayListFromTXL(mb, creaeNewPlayList);
+                            break;
                         case "JTPlaylist.Udon.JTPlaylist":
                             ImportPlayListFromJT(mb, creaeNewPlayList);
                             break;
@@ -577,7 +573,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         void ImportPlayListFromYamaPlayer(dynamic yamaPlayerPlayList, bool newPlayList = false) {
             try {
-                var playList = GetOrCreatePlayList(yamaPlayerPlayList.PlayListName, newPlayList);
+                var playList = GetOrCreatePlayList(yamaPlayerPlayList.PlayListName ?? "Imported Play List", newPlayList);
                 foreach (var track in yamaPlayerPlayList.Tracks) {
                     var trackMode = (int)track.Mode;
                     var title = track.Title;
@@ -610,6 +606,29 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         url = url?.Get() ?? string.Empty,
                         urlForQuest = string.Empty,
                         playerIndex = isLive ? firstAvProPlayerIndex : firstUnityPlayerIndex,
+                    });
+                    isDirty = true;
+                }
+            } catch (Exception ex) {
+                Debug.LogException(ex);
+            }
+        }
+
+        void ImportPlayListFromTXL(dynamic txlPlaylist, bool newPlaylist = false) {
+            try {
+                var playList = GetOrCreatePlayList(txlPlaylist.playlistName ?? "Imported Play List", newPlaylist);
+                VRCUrl[] playlist = txlPlaylist.playlist;
+                VRCUrl[] questPlaylist = txlPlaylist.questPlaylist ?? playlist;
+                string[] trackNames = txlPlaylist.trackNames;
+                for (int i = 0; i < playlist.Length; i++) {
+                    var url = playlist[i];
+                    var questUrl = questPlaylist[i];
+                    var title = trackNames[i];
+                    playList.entries.Add(new PlayListEntry {
+                        title = title,
+                        url = url?.Get() ?? string.Empty,
+                        urlForQuest = questUrl?.Get() ?? string.Empty,
+                        playerIndex = 0,
                     });
                     isDirty = true;
                 }

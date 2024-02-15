@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEditor;
 
 namespace JLChnToZ.VRC.VVMW {
     public static class Utils {
+        static GUIContent tempContent;
+
         public static IEnumerable<T> IterateAllComponents<T>(this Scene scene, bool includeEditorOnly = false) where T : Component {
             var pending = new Stack<Transform>();
             var components = new List<T>();
@@ -59,7 +61,19 @@ namespace JLChnToZ.VRC.VVMW {
                 Delegate.CreateDelegate(typeof(TDelegate), method, false) :
                 Delegate.CreateDelegate(typeof(TDelegate), target, method, false)
             );
-        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static GUIContent GetTempContent(SerializedProperty property) =>
+            GetTempContent(property.displayName, property.tooltip);
+
+        public static GUIContent GetTempContent(string text = "", string tooltip = "", Texture2D image = null) {
+            if (tempContent == null) tempContent = new GUIContent();
+            tempContent.text = text;
+            tempContent.tooltip = tooltip;
+            tempContent.image = image;
+            return tempContent;
+        }
+
 #if !NETSTANDARD2_1
         // Polyfill for old .NET Framework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

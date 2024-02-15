@@ -1,5 +1,4 @@
 ﻿using UnityEditor;
-using UdonSharp;
 using UdonSharpEditor;
 
 namespace JLChnToZ.VRC.VVMW.Editors {

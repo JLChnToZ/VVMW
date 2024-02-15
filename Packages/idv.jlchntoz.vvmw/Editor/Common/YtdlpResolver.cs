@@ -45,7 +45,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     return;
                 }
             }
-            if (request.isNetworkError) {
+            if (
+                #if UNITY_2020_1_OR_NEWER
+                request.result != UnityWebRequest.Result.Success
+                #else
+                request.isNetworkError || request.isHttpError
+                #endif
+            ) {
                 if (File.Exists(path)) File.Delete(path);
             } else {
                 File.Move(path, ytdlpPath);

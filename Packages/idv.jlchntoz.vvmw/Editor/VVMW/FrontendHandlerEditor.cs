@@ -21,11 +21,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedReorderableList targetsPropertyList;
         SerializedObject coreSerializedObject;
         string[] playListNames;
-        GUIContent tempContent;
 
         protected override void OnEnable() {
             base.OnEnable();
-            if (tempContent == null) tempContent = new GUIContent();
             coreProperty = serializedObject.FindProperty("core");
             lockedProperty = serializedObject.FindProperty("locked");
             defaultLoopProperty = serializedObject.FindProperty("defaultLoop");
@@ -66,7 +64,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (GUILayout.Button("Edit Play Lists..."))
                 PlayListEditorWindow.StartEditPlayList(target as FrontendHandler);
             var rect = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight);
-            tempContent.text = "Default Play List";
+            var tempContent = Utils.GetTempContent("Default Play List");
             using (new EditorGUI.PropertyScope(rect, tempContent, playListTitlesProperty))
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 rect = EditorGUI.PrefixLabel(rect, tempContent);

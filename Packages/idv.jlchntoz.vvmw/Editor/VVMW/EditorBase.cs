@@ -11,10 +11,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static PackageSelfUpdater selfUpdater;
         static Font font;
         static GUIStyle versionLabelStyle;
-        static GUIContent tempContent;
 
         protected virtual void OnEnable() {
-            if (tempContent == null) tempContent = new GUIContent();
             if (selfUpdater == null) {
                 selfUpdater = new PackageSelfUpdater(GetType().Assembly, listingsID, listingsURL);
                 selfUpdater.CheckInstallationInBackground();
@@ -53,7 +51,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         fontStyle = FontStyle.Bold,
                         font = font,
                     };
-                tempContent.text = $"v{selfUpdater.CurrentVersion}";
+                var tempContent = Utils.GetTempContent($"v{selfUpdater.CurrentVersion}");
                 var versionSize = versionLabelStyle.CalcSize(tempContent);
                 GUI.Label(new Rect(bannerRect.xMax - versionSize.x, bannerRect.yMin, versionSize.x, versionSize.y), tempContent, versionLabelStyle);
             }

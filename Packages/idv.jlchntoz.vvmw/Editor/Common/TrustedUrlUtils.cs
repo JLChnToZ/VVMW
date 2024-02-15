@@ -4,16 +4,16 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEditor;
 using VRC.Core;
+using VRC.SDKBase;
 using UdonSharp;
 using UdonSharpEditor;
-using VRC.SDKBase;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     public sealed class TrustedUrlUtils {
         public static event Action OnTrustedUrlsReady;
         static readonly Dictionary<TrustedUrlTypes, TrustedUrlUtils> instances = new Dictionary<TrustedUrlTypes, TrustedUrlUtils>();
         static AsyncLazy getTrustedUrlsTask = UniTask.Lazy(GetTrustedUrlsLazy);
-        static GUIContent tempContent, warningContent;
+        static GUIContent warningContent;
         readonly Dictionary<string, bool> trustedDomains = new Dictionary<string, bool>();
         readonly Dictionary<string, string> messageCache = new Dictionary<string, string>();
         readonly HashSet<string> supportedProtocols;
@@ -38,13 +38,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             instances[TrustedUrlTypes.AVProAndroid] = new TrustedUrlUtils(supportedProtocolsExo);
             instances[TrustedUrlTypes.ImageUrl] = new TrustedUrlUtils(supportedProtocolsCurl);
             instances[TrustedUrlTypes.StringUrl] = new TrustedUrlUtils(supportedProtocolsCurl);
-        }
-
-        static GUIContent GetContent(string label, string tooltip = null) {
-            if (tempContent == null) tempContent = new GUIContent();
-            tempContent.text = label;
-            tempContent.tooltip = tooltip;
-            return tempContent;
         }
 
         static GUIContent GetWarningContent(string tooltip) {
@@ -113,7 +106,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         public static void DrawUrlField(SerializedProperty urlProperty, TrustedUrlTypes urlTypes, Rect rect, GUIContent content = null) {
-            if (content == null) content = GetContent(urlProperty.displayName, urlProperty.tooltip);
+            if (content == null) content = Utils.GetTempContent(urlProperty.displayName, urlProperty.tooltip);
             if (urlProperty.propertyType == SerializedPropertyType.Generic) // VRCUrl
                 urlProperty = urlProperty.FindPropertyRelative("url");
             var url = urlProperty.stringValue;
@@ -122,7 +115,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         public static string DrawUrlField(string url, TrustedUrlTypes urlType, Rect rect, string propertyLabel = null, string propertyTooltip = null) =>
-            DrawUrlField(url, urlType, rect, GetContent(propertyLabel, propertyTooltip));
+            DrawUrlField(url, urlType, rect, Utils.GetTempContent(propertyLabel, propertyTooltip));
 
         public static string DrawUrlField(string url, TrustedUrlTypes urlType, Rect rect, GUIContent content) {
             var instnace = instances[urlType];
