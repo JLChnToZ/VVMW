@@ -2,7 +2,7 @@
 
 ![Banner](.tutorial/cover.png)
 
-Welcome! VizVid is a general-purpose video player wrapper for use in VRChat. It aims to cover many use cases, from watch-together video/live stream player in lounges, to large event venue for music performances, or even booths for exhibitions or showcases. Due to its target customers, it has a flexible architecture, just like a factory made electronic but with a easy to open back lid, make it easier to let users mess them around for their needs.
+Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It aims to cover many use cases, from watch-together video/live stream player in lounges, to large event venue for music performances, or even booths for exhibitions or showcases. Due to its target customers, it has a flexible architecture, just like a factory made electronic but with a easy to open back lid, make it easier to let users mess them around for their needs.
 
 This documentation is for V1.0.12 or later, some guidelines are different to older versions.
 
@@ -11,7 +11,7 @@ This documentation is for V1.0.12 or later, some guidelines are different to old
 	* [How to Add Extra Screen?](#how-to-add-extra-screen)
 	* [How to Add Extra Audio Source?](#how-to-add-extra-audio-source)
 	* [How to Add Extra Controllers?](#how-to-add-extra-controllers)
-	* [How to Add/Import/Export a Play List?](#how-to-add-import-export-a-play-list)
+	* [How to Add/Import/Export a Playlist?](#how-to-add-import-export-a-playlist)
 	* [How to Add a Pickupable Screen?](#how-to-add-a-pickupable-screen)
 	* [How to Add an Overlay Control?](#how-to-add-an-overlay-control)
 	* [How to Add a Resync Button?](#how-to-add-a-resync-button)
@@ -21,7 +21,7 @@ This documentation is for V1.0.12 or later, some guidelines are different to old
 * [Details in the Bundle](#details-in-the-bundle)
 	* [VVMW (Game Object)](#vvmw-game-object)
 	* [Builtin Module / AVPro Module](#builtin-module--av-pro-module)
-	* [Play List Queue Handler](#play-list-queue-handler)
+	* [Playlist Queue Handler](#playlist-queue-handler)
 	* [Locale](#locale)
 	* [Default Screen / Screen](#default-screen--screen)
 	* [Default Audio Source](#default-audio-source)
@@ -79,18 +79,18 @@ To add them, right-click on the player object in hierarchy, and select one of th
 
 ![ ](.tutorial/add-controls-simple.png)
 
-### How to Add/Import/Export a Play List?
-Play lists are pre-defined lists that the player will plays. All play lists associated to a video player instance are defined and controlled in a "Play List Queue Handler" game object, unlike how some other video player designs, whatever amount of controllers you added for a player, you are still interacting with the same list of the queued videos. Here is how you can manipulate play lists:
+### How to Add/Import/Export a Playlist?
+Playlists are pre-defined lists that the player will plays. All playlists associated to a video player instance are defined and controlled in a "Playlist Queue Handler" game object, unlike how some other video player designs, whatever amount of controllers you added for a player, you are still interacting with the same list of the queued videos. Here is how you can manipulate Playlists:
 1. Select "Play List Queue Handler" game object in hierarchy.
-2. Click "Edit Play Lists..." button.
+2. Click "Edit Playlists..." button.
 3. In the new popup window, you can:
-    a. Create/remove a play list
-    b. Import play list from other video players and YouTube
-    c. Import/Export play list to/from JSON file
+    a. Create/remove a Playlist
+    b. Import Playlist from other video players and YouTube
+    c. Import/Export Playlist to/from JSON file
 4. After editing, remember to click the "save" button on the top of the window.
 
-Current supported play lists / video players to be imported directly:
-- VizVid (Yes, you can pour the play lists from other instances within the world as well)
+Current supported Playlists / video players to be imported directly:
+- VizVid (Yes, you can pour the Playlists from other instances within the world as well)
 - USharp Video
 - Yama Player
 - KineL Video Player
@@ -98,7 +98,7 @@ Current supported play lists / video players to be imported directly:
 - JT Playlist
 - ProTV by ArchiTech
 
-To import above listed play lists, drag the game object containing their play lists to this play list editor. Beware it is sightly different when you drop it between the left panel and the right: If you dropped on the left, new play lists will be added; and if you dropped on the right, it will append to current selected play list if applicable.
+To import above listed Playlists, drag the game object containing their Playlists to this Playlist editor. Beware it is sightly different when you drop it between the left panel and the right: If you dropped on the left, new Playlists will be added; and if you dropped on the right, it will append to current selected Playlist if applicable.
 
 ### How to Add a Pickupable Screen?
 This component was [originally created by Yama Buta](https://yamabuta.booth.pm/items/4189997), which is a local-only pickupable screen with scaling feature, and it is rewrited to use with VizVid.
@@ -159,7 +159,7 @@ Let me explain one by one.
 ### VVMW (Game Object)
 This is the "brain" of the system, it controls and synchronizes the player (if enabled) between users within the same world instance. If you open the inspector, you will find theres many options that let you to fiddle around:
 
-- These options only appears when you are not using with play list queue handler and unlinked it:
+- These options only appears when you are not using with Playlist queue handler and unlinked it:
   - **Default URL**: The URL will be played automatically when user joins your world.
   - **Default Quest URL**: The optional alternative URL will be played for Quest/Android clients. Leave empty to use default URL.
   - **Auto Play Player Type**: The "module" to use to play the above URL.
@@ -202,30 +202,30 @@ The following are the options could be changed here:
   make it be able to display correctly even no proper shader support.
 - **Blit Material**: This material will be used to blit the screen to a temporary render texture for the flickering workaround. Don't change it unless needed.
 
-### Play List Queue Handler
+### Playlist Queue Handler
 This is an optional component that manages the queue of the playback. You can pre-define playlist and/or enabling player queue options here.
 
 - **Core**: Reference to the VVMW main component. If it is empty, you can click the "Find" button to resolve it.
 - **Enable Queue List**: If enabled, while user want to play a video and it is playing other video, the video url will be queued.
   Recommend as this is more polite to everyone.
-- **Edit Play Lists...**: Edit the play lists defined in this component.  
-  The options below are in the play list editor window now:
+- **Edit Playlists...**: Edit the Playlists defined in this component.  
+  The options below are in the Playlist editor window now:
     - **Reload**: Discard any changes to the playlist and reload to inspector.
     - **Save**: Save changes to the component. **REQUIRED TO CLICK AFTER EDIT OR YOUR CHANGES WILL BE LOST!**
-    - **Export All**: Export all play lists to a JSON file.
-    - **Export Selected**: Export selected play list to a JSON file.
-    - **Import from JSON**: Import previously saved JSON file back to play lists. You will be prompted to append or replace after selecting a JSON file.
-    - **Play Lists**: The list of pre-defined play lists. You can add/remove/reorder/rename them here.
-    - **&lt;Your Play List Name&gt;**: When you selects a play list, you can edit the play list here.
+    - **Export All**: Export all Playlists to a JSON file.
+    - **Export Selected**: Export selected Playlist to a JSON file.
+    - **Import from JSON**: Import previously saved JSON file back to Playlists. You will be prompted to append or replace after selecting a JSON file.
+    - **Playlists**: The list of pre-defined Playlists. You can add/remove/reorder/rename them here.
+    - **&lt;Your Playlist Name&gt;**: When you selects a Playlist, you can edit the Playlist here.
         - **Title**: The title to be displayed.
         - **URL (PC)**: The url to the video, can be YouTube, Twitch, SoundCloud, RTSP, RTMP links.
         - **URL (Quest)**: The url to be loaded on Quest/Android clients, useful when RTSP/RTMP links won't work and need an alternative to those clients.
         - **&lt;Builtin / AVPro Player&gt;**: The player module to play this link.
         If it is a live stream or soundcloud, it is required to use AVPro player module.
-        - **Load Play List from YouTube**: You can enter the play list URL from YouTube to append it to current selected play list. It requires a selected play list to operate with.
+        - **Load Playlist from YouTube**: You can enter the Playlist URL from YouTube to append it to current selected Playlist. It requires a selected Playlist to operate with.
         - **Fetch Titles**: Fetch titles automatically if not filled. Currently only supports YouTube.
-- **Dafault Play list**: The play list default selected when user joins the world.
-- **Auto Play**: If you want the above play list to be played automatically, enable it.
+- **Dafault Playlist**: The Playlist default selected when user joins the world.
+- **Auto Play**: If you want the above Playlist to be played automatically, enable it.
   But if you want it [auto play on user nearby](#how-to-setup-auto-plays-when-a-user-goes-nearby) feature,
   you should disable it and follow the instruction above.
 - **Auto Play Delay Time**: The delay to start playing the default video when the scene is loaded.
@@ -233,13 +233,13 @@ This is an optional component that manages the queue of the playback. You can pr
   If you have multiple video players (not limited to VizVid) which will auto plays in the same world
   you should set this to a value at least in multiple of `5` to stagger the loading time.
 - **Default Loop**: Is default the player loops (can be toggled via UI).
-  The difference to loop option in VVMW (Core) is this option will loop over whole play list / user queue list.
+  The difference to loop option in VVMW (Core) is this option will loop over whole Playlist / user queue list.
 - **Default Shuffle**: Is default the player plays randomly instead of the queued order (can be toggled via UI).
 - **Locked**: Is default the player locked up.
   This feature is designed to use with [Udon Auth](https://xtl.booth.pm/items/3826907) (paid asset) or other compatible scripts.
 - **Targets**: Same as above, it is for integration to custom scripts.
 
-On tutorial on how to add playlist, plese see [How to Add a New Play List?](#how-to-add-a-new-play-list) section.
+On tutorial on how to add playlist, plese see [How to Add a New Playlist?](#how-to-add-a-new-playlist) section.
 
 ### Locale
 The locale manager. You can add/modify the texts in it with the language editor.

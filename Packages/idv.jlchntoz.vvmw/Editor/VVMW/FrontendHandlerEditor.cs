@@ -61,10 +61,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(enableQueueListProperty);
             if (playListNames == null || playListNames.Length != playListTitlesProperty.arraySize + 1)
                 UpdatePlayListNames();
-            if (GUILayout.Button("Edit Play Lists..."))
+            if (GUILayout.Button("Edit Playlists..."))
                 PlayListEditorWindow.StartEditPlayList(target as FrontendHandler);
             var rect = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight);
-            var tempContent = Utils.GetTempContent("Default Play List");
+            var tempContent = Utils.GetTempContent("Default Playlist");
             using (new EditorGUI.PropertyScope(rect, tempContent, playListTitlesProperty))
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 rect = EditorGUI.PrefixLabel(rect, tempContent);
@@ -74,7 +74,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (coreSerializedObject != null && defaultPlayListIndexProperty.intValue > 0) {
                 var url = coreSerializedObject.FindProperty("defaultUrl.url");
                 if (url != null && !string.IsNullOrEmpty(url.stringValue)) {
-                    EditorGUILayout.HelpBox("You cannot set default URL in core and mark a play list to be autoplayed at the same time.", MessageType.Warning);
+                    EditorGUILayout.HelpBox("You cannot set default URL in core and mark a playlist to be autoplayed at the same time.", MessageType.Warning);
                     using (new EditorGUILayout.HorizontalScope()) {
                         GUILayout.FlexibleSpace();
                         if (GUILayout.Button("Clear Default URL", EditorStyles.miniButton, GUILayout.ExpandWidth(false))) {

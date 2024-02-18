@@ -40,7 +40,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         public static void StartEditPlayList(FrontendHandler handler) {
-            var window = GetWindow<PlayListEditorWindow>("Play List Editor");
+            var window = GetWindow<PlayListEditorWindow>("Playlist Editor");
             window.FrontendHandler = handler;
         }
 
@@ -67,7 +67,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar)) {
                 FrontendHandler = EditorGUILayout.ObjectField(FrontendHandler, typeof(FrontendHandler), true) as FrontendHandler;
                 if (GUILayout.Button("Reload", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)) &&
-                    EditorUtility.DisplayDialog("Reload", "Are you sure you want to reload the play list?", "Yes", "No"))
+                    EditorUtility.DisplayDialog("Reload", "Are you sure you want to reload the Playlist?", "Yes", "No"))
                     DeserializePlayList();
                 using (new EditorGUI.DisabledGroupScope(!isDirty))
                     if (GUILayout.Button("Save", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
@@ -104,7 +104,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     if (playListEntryView != null) {
                         using (new EditorGUILayout.HorizontalScope()) {
                             ytPlaylistUrl = EditorGUILayout.TextField(ytPlaylistUrl);
-                            if (GUILayout.Button("Load Play List from Youtube", GUILayout.ExpandWidth(false))) {
+                            if (GUILayout.Button("Load Playlist from Youtube", GUILayout.ExpandWidth(false))) {
                                 FetchPlayList(ytPlaylistUrl).Forget();
                                 ytPlaylistUrl = string.Empty;
                             }
@@ -133,10 +133,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         break;
                 }
             }
-            EditorGUILayout.HelpBox("Hint: You can drag the play list game objects from other video players to here to import them.", MessageType.Info);
+            EditorGUILayout.HelpBox("Hint: You can drag the Playlist game objects from other video players to here to import them.", MessageType.Info);
         }
 
-        void DrawPlayListHeader(Rect rect) => EditorGUI.LabelField(rect, "Play Lists", EditorStyles.boldLabel);
+        void DrawPlayListHeader(Rect rect) => EditorGUI.LabelField(rect, "Playlists", EditorStyles.boldLabel);
 
         void DrawPlayList(Rect rect, int index, bool isActive, bool isFocused) {
             var playList = playLists[index];
@@ -334,7 +334,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         void AddPlayList(ReorderableList list) {
             playLists.Add(new PlayList {
-                title = $"Play List {playLists.Count + 1}",
+                title = $"Playlist {playLists.Count + 1}",
                 entries = new List<PlayListEntry>(),
             });
             list.index = playLists.Count - 1;
@@ -400,7 +400,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (firstAvProPlayerIndex < 0) firstAvProPlayerIndex = 0;
         }
 
-#region Play List Importers
+#region Playlist Importers
         void HandlePlayListObjectDrop(bool creaeNewPlayList = false) {
             DragAndDrop.AcceptDrag();
             UpdatePlayerHandlerInfos();
@@ -469,7 +469,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void ImportPlayListFromUSharpVideo(dynamic usharpVideo, bool newPlayList = false) {
-            var playList = GetOrCreatePlayList("Imported Play List", newPlayList);
+            var playList = GetOrCreatePlayList("Imported Playlist", newPlayList);
             try {
                 VRCUrl[] urls = usharpVideo.playlist;
                 bool defaultStremMode = usharpVideo.defaultStreamMode;
@@ -489,7 +489,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void ImportPlayListFromProTV(dynamic proTVPlayList, int version, bool newPlayList = false) {
-            var playList = GetOrCreatePlayList("Imported Play List", newPlayList);
+            var playList = GetOrCreatePlayList("Imported Playlist", newPlayList);
             try {
                 VRCUrl[] urls = version >= 3 ? proTVPlayList.mainUrls : proTVPlayList.urls;
                 VRCUrl[] alts = version >= 3 ? proTVPlayList.alternateUrls : proTVPlayList.alts;
@@ -512,7 +512,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void ImportPlayListFromIwaSync3(dynamic iwaSync3PlayList, bool newPlayList = false) {
-            var playList = GetOrCreatePlayList("Imported Play List", newPlayList);
+            var playList = GetOrCreatePlayList("Imported Playlist", newPlayList);
             try {
                 foreach (var track in ((object)iwaSync3PlayList).GetType().GetField("tracks", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).GetValue(iwaSync3PlayList)) {
                     var trackMode = (int)track.mode;
@@ -552,7 +552,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void ImportPlayListFromKinel(dynamic kinelPlayList, bool newPlayList = false, string playListName = null) {
-            var playList = GetOrCreatePlayList(playListName ?? "Imported Play List", newPlayList);
+            var playList = GetOrCreatePlayList(playListName ?? "Imported Playlist", newPlayList);
             try {
                 foreach (var videoData in kinelPlayList.videoDatas) {
                     var trackMode = (int)videoData.mode;
@@ -573,7 +573,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         void ImportPlayListFromYamaPlayer(dynamic yamaPlayerPlayList, bool newPlayList = false) {
             try {
-                var playList = GetOrCreatePlayList(yamaPlayerPlayList.PlayListName ?? "Imported Play List", newPlayList);
+                var playList = GetOrCreatePlayList(yamaPlayerPlayList.PlayListName ?? "Imported Playlist", newPlayList);
                 foreach (var track in yamaPlayerPlayList.Tracks) {
                     var trackMode = (int)track.Mode;
                     var title = track.Title;
@@ -592,7 +592,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void ImportPlayListFromJT(dynamic jtPlaylist, bool newPlayList = false) {
-            var playList = GetOrCreatePlayList("Imported Play List", newPlayList);
+            var playList = GetOrCreatePlayList("Imported Playlist", newPlayList);
             try {
                 string[] titles = jtPlaylist.titles;
                 VRCUrl[] urls = jtPlaylist.urls;
@@ -616,7 +616,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         void ImportPlayListFromTXL(dynamic txlPlaylist, bool newPlaylist = false) {
             try {
-                var playList = GetOrCreatePlayList(txlPlaylist.playlistName ?? "Imported Play List", newPlaylist);
+                var playList = GetOrCreatePlayList(txlPlaylist.playlistName ?? "Imported Playlist", newPlaylist);
                 VRCUrl[] playlist = txlPlaylist.playlist;
                 VRCUrl[] questPlaylist = txlPlaylist.questPlaylist ?? playlist;
                 string[] trackNames = txlPlaylist.trackNames;
@@ -638,9 +638,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 #endregion
 
-#region Play List Exporters
+#region Playlist Exporters
         void ExportPlayListToJson(bool saveAll) {
-            var path = EditorUtility.SaveFilePanel("Save Play List", Application.dataPath, "playList.json", "json");
+            var path = EditorUtility.SaveFilePanel("Save Playlist", Application.dataPath, "playList.json", "json");
             if (string.IsNullOrEmpty(path)) return;
             var jsonWriter = new JsonWriter {
                 PrettyPrint = true,
@@ -683,14 +683,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void ImportPlayListFromJson() {
-            var path = EditorUtility.OpenFilePanel("Load Play List", Application.dataPath, "json");
+            var path = EditorUtility.OpenFilePanel("Load Playlist", Application.dataPath, "json");
             if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
             var jsonData = JsonMapper.ToObject(File.ReadAllText(path));
             switch (jsonData.GetJsonType()) {
                 case JsonType.Array:
                     if (playLists.Count > 0 && !EditorUtility.DisplayDialog(
-                        "Load Play List",
-                        "Where do you want to load all play lists to?",
+                        "Load Playlist",
+                        "Where do you want to load all Playlists to?",
                         "Keep Current (Append)",
                         "Replace All"
                     )) {
@@ -702,11 +702,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 case JsonType.Object:
                     if (selectedPlayList.entries != null)
                         switch (EditorUtility.DisplayDialogComplex(
-                            "Load Play List",
-                            "Where do you want to load this play list to?",
+                            "Load Playlist",
+                            "Where do you want to load this Playlist to?",
                             "Keep Current (Append)",
                             "Replace Current",
-                            "New Play List"
+                            "New Playlist"
                         )) {
                             case 1: selectedPlayList.entries.Clear(); isDirty = true; break;
                             case 2: selectedPlayList = GetOrCreatePlayList(jsonData["title"].ToString(), true); break;
@@ -753,7 +753,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         async UniTask FetchPlayList(string url) {
             var ytPlaylist = await YtdlpResolver.GetPlayLists(url);
-            var playList = GetOrCreatePlayList("Imported Play List");
+            var playList = GetOrCreatePlayList("Imported Playlist");
             foreach (var entry in ytPlaylist.Where(e => e.title != "[Deleted video]" && e.title != "[Private video]"))
                 playList.entries.Add(new PlayListEntry {
                     title = entry.title,
