@@ -32,7 +32,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         public bool IsInstalledManually => isInstalledManually;
 
+        #if VPM_RESOLVER_INCLUDED
         public event Action OnVersionRefreshed;
+        #endif
 
         public PackageSelfUpdater(Assembly assembly, string listingsID, string listingsURL) :
             this(PackageManagerPackageInfo.FindForAssembly(assembly), listingsID, listingsURL) { }
@@ -68,14 +70,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 availableVersion = allVersions[0];
             var manifest = VPMProjectManifest.Load(Resolver.ProjectDir);
             isInstalledManually = !manifest.locked.ContainsKey(packageName) && !manifest.dependencies.ContainsKey(packageName);
-            #endif
             CheckInstallationCallback().Forget();
+            #endif
         }
 
+        #if VPM_RESOLVER_INCLUDED
         async UniTask CheckInstallationCallback() {
             await UniTask.SwitchToMainThread();
             OnVersionRefreshed?.Invoke();
         }
+        #endif
 
         public void ResolveInstallation() {
             #if VPM_RESOLVER_INCLUDED
