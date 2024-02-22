@@ -49,3 +49,11 @@ csharp_space_between_method_call_empty_parameter_list_parentheses = false
 # Wrapping preferences
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
+# Allow UDON local events naming rules (public methods start with underscore)
+dotnet_naming_symbols.public_methods.applicable_kinds = method
+dotnet_naming_symbols.public_methods.applicable_accessibilities = public
+dotnet_naming_style.underscored.capitalization = pascal_case, camel_case
+dotnet_naming_style.underscored.required_prefix = _
+dotnet_naming_rule.udon_local_events.symbols = public_methods
+dotnet_naming_rule.udon_local_events.style = underscored
+dotnet_naming_rule.udon_local_events.serverity = none
