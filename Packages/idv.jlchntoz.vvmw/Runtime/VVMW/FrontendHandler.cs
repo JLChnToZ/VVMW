@@ -84,7 +84,13 @@ namespace JLChnToZ.VRC.VVMW {
 
         public bool HasQueueList => enableQueueList;
 
-        public int PlayListIndex => localPlayListIndex;
+        public int PlayListIndex {
+            get {
+                if (localPlayingIndex > 0) return localPlayingIndex;
+                if (!enableQueueList) return defaultPlayListIndex;
+                return 0;
+            }
+        }
     
         public string[] PlayListTitles => playListTitles;
     

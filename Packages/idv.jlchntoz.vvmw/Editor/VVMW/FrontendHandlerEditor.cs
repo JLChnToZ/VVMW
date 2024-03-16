@@ -58,18 +58,36 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 coreSerializedObject?.Dispose();
                 coreSerializedObject = coreProperty.objectReferenceValue != null ? new SerializedObject(coreProperty.objectReferenceValue) : null;
             }
-            EditorGUILayout.PropertyField(enableQueueListProperty);
-            if (playListNames == null || playListNames.Length != playListTitlesProperty.arraySize + 1)
+            using (var changed = new EditorGUI.ChangeCheckScope()) {
+                EditorGUILayout.PropertyField(enableQueueListProperty);
+                if (changed.changed &&
+                    !enableQueueListProperty.boolValue &&
+                    defaultPlayListIndexProperty.intValue == 0 &&
+                    playListTitlesProperty.arraySize > 0)
+                    defaultPlayListIndexProperty.intValue = 1;
+            }
+            if (playListNames == null || playListNames.Length != playListTitlesProperty.arraySize + (enableQueueListProperty.boolValue ? 1 : 0))
                 UpdatePlayListNames();
             if (GUILayout.Button("Edit Playlists..."))
                 PlayListEditorWindow.StartEditPlayList(target as FrontendHandler);
             var rect = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight);
             var tempContent = Utils.GetTempContent("Default Playlist");
-            using (new EditorGUI.PropertyScope(rect, tempContent, playListTitlesProperty))
+            using (new EditorGUI.DisabledScope(playListNames.Length == 0))
+            using (new EditorGUI.PropertyScope(rect, tempContent, defaultPlayListIndexProperty))
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 rect = EditorGUI.PrefixLabel(rect, tempContent);
-                var index = EditorGUI.Popup(rect, defaultPlayListIndexProperty.intValue, playListNames);
-                if (changed.changed) defaultPlayListIndexProperty.intValue = index;
+                var index = defaultPlayListIndexProperty.intValue;
+                bool forceUpdate = false;
+                if (!enableQueueListProperty.boolValue) index--;
+                if (index < 0 || index >= playListNames.Length) {
+                    index = 0;
+                    forceUpdate = true;
+                }
+                index = EditorGUI.Popup(rect, index, playListNames);
+                if (forceUpdate || changed.changed) {
+                    if (!enableQueueListProperty.boolValue) index++;
+                    defaultPlayListIndexProperty.intValue = index;
+                }
             }
             if (coreSerializedObject != null && defaultPlayListIndexProperty.intValue > 0) {
                 var url = coreSerializedObject.FindProperty("defaultUrl.url");
@@ -128,11 +146,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void UpdatePlayListNames() {
-            if (playListNames == null || playListNames.Length != playListTitlesProperty.arraySize + 1)
-                playListNames = new string[playListTitlesProperty.arraySize + 1];
-            playListNames[0] = "<Queue List>";
-            for (int i = 0; i < playListNames.Length - 1; i++)
-                playListNames[i + 1] = playListTitlesProperty.GetArrayElementAtIndex(i).stringValue;
+            int queueListOffset = enableQueueListProperty.boolValue ? 1 : 0;
+            int requiredSize = playListTitlesProperty.arraySize + queueListOffset;
+            if (playListNames == null || playListNames.Length != requiredSize)
+                playListNames = new string[requiredSize];
+            if (queueListOffset > 0) playListNames[0] = "<Queue List>";
+            for (int i = queueListOffset; i < requiredSize; i++)
+                playListNames[i] = playListTitlesProperty.GetArrayElementAtIndex(i - queueListOffset).stringValue;
         }
 
         struct PlayList {
