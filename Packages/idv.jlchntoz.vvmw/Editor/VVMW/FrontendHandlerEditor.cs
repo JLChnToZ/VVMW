@@ -81,11 +81,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (!enableQueueListProperty.boolValue) index--;
                 if (index < 0 || index >= playListNames.Length) {
                     index = 0;
-                    forceUpdate = true;
+                    forceUpdate = defaultPlayListIndexProperty.intValue != index;
                 }
                 index = EditorGUI.Popup(rect, index, playListNames);
                 if (forceUpdate || changed.changed) {
-                    if (!enableQueueListProperty.boolValue) index++;
+                    if (!enableQueueListProperty.boolValue && playListNames.Length > 0) index++;
                     defaultPlayListIndexProperty.intValue = index;
                 }
             }
