@@ -38,6 +38,7 @@ namespace JLChnToZ.VRC.VVMW {
             "you should set this to a value at least in multiple of 5 to stagger the loading time.")]
         [SerializeField] float autoPlayDelay = 0;
         [UdonSynced] VRCUrl[] queuedUrls;
+        [UdonSynced] string[] queuedTitles;
         [UdonSynced] byte[] queuedPlayerIndex;
         [UdonSynced] byte flags;
         [UdonSynced] ushort[] playListOrder;
@@ -311,6 +312,7 @@ namespace JLChnToZ.VRC.VVMW {
             queuedUrls = localQueuedUrls == null ? new VRCUrl[0] : localQueuedUrls;
             queuedPlayerIndex = localQueuedPlayerIndex == null ? new byte[0] : localQueuedPlayerIndex;
             playListOrder = localPlayListOrder == null ? new ushort[0] : localPlayListOrder;
+            queuedTitles = localQueuedTitles == null || localPlayListIndex == 0 ? new string[0] : localQueuedTitles;
             flags = localFlags;
             playListIndex = (ushort)localPlayListIndex;
             playingIndex = localPlayingIndex;
@@ -331,11 +333,7 @@ namespace JLChnToZ.VRC.VVMW {
             localQueuedUrls = queuedUrls;
             localQueuedPlayerIndex = queuedPlayerIndex;
             localPlayListOrder = playListOrder;
-            if (localQueuedTitles == null || localQueuedTitles.Length != queuedUrls.Length) {
-                localQueuedTitles = new string[queuedUrls.Length];
-                for (int i = 0; i < localQueuedTitles.Length; i++)
-                    localQueuedTitles[i] = UnescapeUrl(queuedUrls[i]);
-            }
+            localQueuedTitles = queuedTitles;
             localFlags = flags;
             if (playListIndex > 0 && (localPlayListIndex != playListIndex || localPlayingIndex != playingIndex))
                 core.SetTitle(playListEntryTitles[playingIndex], playListTitles[playListIndex - 1]);
@@ -373,12 +371,13 @@ namespace JLChnToZ.VRC.VVMW {
                     newPlayerIndexQueue[localQueuedPlayerIndex.Length] = index;
                     localQueuedPlayerIndex = newPlayerIndexQueue;
                 }
+                string queuedTitle = $"{Networking.LocalPlayer.displayName}:\n{UnescapeUrl(url)}";
                 if (localQueuedTitles == null || localQueuedTitles.Length == 0) {
-                    localQueuedTitles = new string[] { UnescapeUrl(url) };
+                    localQueuedTitles = new string[] { queuedTitle };
                 } else {
                     var newTitles = new string[localQueuedTitles.Length + 1];
                     Array.Copy(localQueuedTitles, newTitles, localQueuedTitles.Length);
-                    newTitles[localQueuedTitles.Length] = UnescapeUrl(url);
+                    newTitles[localQueuedTitles.Length] = queuedTitle;
                     localQueuedTitles = newTitles;
                 }
                 RequestSync();
