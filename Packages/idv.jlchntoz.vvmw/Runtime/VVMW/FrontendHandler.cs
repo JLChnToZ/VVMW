@@ -38,7 +38,7 @@ namespace JLChnToZ.VRC.VVMW {
             "you should set this to a value at least in multiple of 5 to stagger the loading time.")]
         [SerializeField] float autoPlayDelay = 0;
         [UdonSynced] VRCUrl[] queuedUrls;
-        [UdonSynced] string[] queuedTitles;
+        [UdonSynced] string queuedTitles;
         [UdonSynced] byte[] queuedPlayerIndex;
         [UdonSynced] byte flags;
         [UdonSynced] ushort[] playListOrder;
@@ -87,7 +87,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public int PlayListIndex {
             get {
-                if (localPlayingIndex > 0) return localPlayingIndex;
+                if (localPlayListIndex > 0) return localPlayListIndex;
                 if (!enableQueueList) return defaultPlayListIndex;
                 return 0;
             }
@@ -312,7 +312,7 @@ namespace JLChnToZ.VRC.VVMW {
             queuedUrls = localQueuedUrls == null ? new VRCUrl[0] : localQueuedUrls;
             queuedPlayerIndex = localQueuedPlayerIndex == null ? new byte[0] : localQueuedPlayerIndex;
             playListOrder = localPlayListOrder == null ? new ushort[0] : localPlayListOrder;
-            queuedTitles = localQueuedTitles == null || localPlayListIndex == 0 ? new string[0] : localQueuedTitles;
+            queuedTitles = localQueuedTitles == null ? "" : string.Join("\u2029", localQueuedTitles);
             flags = localFlags;
             playListIndex = (ushort)localPlayListIndex;
             playingIndex = localPlayingIndex;
@@ -333,7 +333,7 @@ namespace JLChnToZ.VRC.VVMW {
             localQueuedUrls = queuedUrls;
             localQueuedPlayerIndex = queuedPlayerIndex;
             localPlayListOrder = playListOrder;
-            localQueuedTitles = queuedTitles;
+            localQueuedTitles = queuedTitles.Split('\u2029');
             localFlags = flags;
             if (playListIndex > 0 && (localPlayListIndex != playListIndex || localPlayingIndex != playingIndex))
                 core.SetTitle(playListEntryTitles[playingIndex], playListTitles[playListIndex - 1]);
