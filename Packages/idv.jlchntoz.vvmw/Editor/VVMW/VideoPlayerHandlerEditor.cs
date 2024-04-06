@@ -9,7 +9,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(VideoPlayerHandler))]
     public class VideoPlayerHandlerEditor : VVMWEditorBase {
 
-        SerializedProperty texturePropertyNameProperty, useSharedMaterialProperty, isAvProProperty, playerNameProperty, primaryAudioSourceProperty, useFlickerWorkaroundProperty, blitMaterialProperty;
+        SerializedProperty texturePropertyNameProperty,
+            useSharedMaterialProperty,
+            isAvProProperty,
+            playerNameProperty,
+            primaryAudioSourceProperty,
+            useFlickerWorkaroundProperty,
+            blitMaterialProperty;
+        Material[] materials;
 
         protected override void OnEnable() {
             base.OnEnable();
@@ -20,6 +27,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             primaryAudioSourceProperty = serializedObject.FindProperty("primaryAudioSource");
             useFlickerWorkaroundProperty = serializedObject.FindProperty("useFlickerWorkaround");
             blitMaterialProperty = serializedObject.FindProperty("blitMaterial");
+            materials = null;
         }
 
         public override void OnInspectorGUI() {
@@ -44,10 +52,27 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             HideControlledComponent(renderer);
             using (var so = new SerializedObject(renderer)) {
                 so.FindProperty("m_Enabled").boolValue = false;
-                EditorGUILayout.PropertyField(so.FindProperty("m_Materials"), true);
+                var materialsProperty = so.FindProperty("m_Materials");
+                bool isChanged = false;
+                using (var changed = new EditorGUI.ChangeCheckScope()) {
+                    EditorGUILayout.PropertyField(materialsProperty, true);
+                    isChanged = changed.changed;
+                }
+                if (materials == null || materials.Length != materialsProperty.arraySize) {
+                    materials = new Material[materialsProperty.arraySize];
+                    isChanged = true;
+                }
+                if (isChanged)
+                    for (int i = 0; i < materials.Length; i++)
+                        materials[i] = materialsProperty.GetArrayElementAtIndex(i).objectReferenceValue as Material;
                 so.ApplyModifiedProperties();
             }
-            EditorGUILayout.PropertyField(texturePropertyNameProperty);
+            Utils.DrawShaderPropertiesField(
+                texturePropertyNameProperty,
+                Utils.GetTempContent(texturePropertyNameProperty.displayName, texturePropertyNameProperty.tooltip),
+                null, materials,
+                ShaderUtil.ShaderPropertyType.TexEnv
+            );
             var meshFilter = target.GetComponent<MeshFilter>();
             HideControlledComponent(meshFilter);
             EditorGUILayout.Space();

@@ -19,7 +19,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static readonly Dictionary<Type, FieldInfo> controllableTypes = new Dictionary<Type, FieldInfo>();
         readonly Dictionary<Core, UdonSharpBehaviour> autoPlayControllers = new Dictionary<Core, UdonSharpBehaviour>();
         static readonly string[] materialModeOptions = new [] { "Property Block", "Shared Material", "Cloned Materal" };
-        static GUIStyle textFieldDropDownTextStyle, textFieldDropDownStyle;
         SerializedProperty trustedUrlDomainsProperty;
         SerializedProperty playerHandlersProperty;
         SerializedProperty audioSourcesProperty;
@@ -356,13 +355,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         if (showMaterialOptions) {
                             var nameProperty = screenTargetPropertyNamesProperty.GetArrayElementAtIndex(i);
                             var avProProperty = avProPropertyNamesProperty.GetArrayElementAtIndex(i);
-                            DrawShaderPropertiesField(
+                            Utils.DrawShaderPropertiesField(
                                 nameProperty, Utils.GetTempContent("Video Texture Property Name", "The name of the property in material to set the video texture."),
                                 selectedShader, materials, ShaderUtil.ShaderPropertyType.TexEnv
                             );
                             using (var changed = new EditorGUI.ChangeCheckScope()) {
                                 useST = EditorGUILayout.Toggle(Utils.GetTempContent("Use Scale Offset", "Will use scale offset (_Texture_ST) to adjust the texture if it is flipped upside-down."), useST);
-                                if (!useST) DrawShaderPropertiesField(
+                                if (!useST) Utils.DrawShaderPropertiesField(
                                     avProProperty, Utils.GetTempContent("AVPro Flag Property Name", "If it is using AVPro player, this property value will set to 1, otherwise 0."),
                                     selectedShader, materials, ShaderUtil.ShaderPropertyType.Float
                                 );
@@ -396,43 +395,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
             }
             EditorGUILayout.Space();
-        }
-
-        static void DrawShaderPropertiesField(SerializedProperty property, GUIContent label, Shader selectedShader, Material[] materials, ShaderUtil.ShaderPropertyType type) {
-            if (textFieldDropDownTextStyle == null) textFieldDropDownTextStyle = GUI.skin.FindStyle("TextFieldDropDownText");
-            if (textFieldDropDownStyle == null) textFieldDropDownStyle = GUI.skin.FindStyle("TextFieldDropDown");
-            var controlRect = EditorGUILayout.GetControlRect(true);
-            using (new EditorGUI.PropertyScope(controlRect, label, property)) {
-                controlRect = EditorGUI.PrefixLabel(controlRect, label);
-                var size = textFieldDropDownStyle.CalcSize(GUIContent.none);
-                var textRect = controlRect;
-                textRect.xMin -= EditorGUI.indentLevel * 15F;
-                textRect.xMax -= size.x;
-                property.stringValue = EditorGUI.TextField(textRect, property.stringValue, textFieldDropDownTextStyle);
-                var buttonRect = controlRect;
-                buttonRect.xMin = buttonRect.xMax - size.x;
-                buttonRect.size = size;
-                using (new EditorGUI.DisabledScope(selectedShader == null && (materials == null || materials.Length == 0))) {
-                    if (EditorGUI.DropdownButton(buttonRect, GUIContent.none, FocusType.Passive, textFieldDropDownStyle)) {
-                        var menu = new GenericMenu();
-                        if (selectedShader != null)
-                            AppendShaderPropertiesToMenu(menu, selectedShader, property, type);
-                        else {
-                            var shaderSet = new HashSet<Shader>();
-                            for (int j = 0; j < materials.Length; j++) {
-                                var material = materials[j];
-                                if (material == null) continue;
-                                shaderSet.Add(material.shader);
-                            }
-                            foreach (var shader in shaderSet) {
-                                if (menu.GetItemCount() > 0) menu.AddSeparator("");
-                                AppendShaderPropertiesToMenu(menu, shader, property, type);
-                            }
-                        }
-                        menu.DropDown(controlRect);
-                    }
-                }
-            }
         }
 
         public static bool AddTarget(Core core, UnityObject newTarget, bool recordUndo = true, bool copyToUdon = false) {
@@ -472,14 +434,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (newTarget is CustomRenderTexture crt)
                 newTarget = crt.material;
             if (newTarget is Material material) {
-                mainTexturePropertyName = FindMainTexturePropertyName(material);
+                mainTexturePropertyName = Utils.FindMainTexturePropertyName(material);
                 avProPropertyName = FindAVProPropertyName(material);
                 screenTargetMode = avProPropertyName == null ? 8 : 0;
                 defaultTexture = material.GetTexture(mainTexturePropertyName);
             } else if (newTarget is Renderer renderer || (newTarget is GameObject rendererGO && rendererGO.TryGetComponent(out renderer))) {
                 newTarget = renderer;
                 material = renderer.sharedMaterial;
-                mainTexturePropertyName = FindMainTexturePropertyName(material);
+                mainTexturePropertyName = Utils.FindMainTexturePropertyName(material);
                 avProPropertyName = FindAVProPropertyName(material);
                 screenTargetMode = avProPropertyName == null ? 9 : 1;
                 defaultTexture = material != null ? material.GetTexture(mainTexturePropertyName) : null;
@@ -495,36 +457,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             AppendElement(screenTargetDefaultTexturesProperty, defaultTexture);
             AppendElement(avProPropertyNamesProperty, avProPropertyName ?? "_IsAVProVideo");
             return true;
-        }
-
-        static void SetValue(object entry) {
-            (SerializedProperty prop, string value) = ((SerializedProperty, string))entry;
-            prop.stringValue = value;
-            prop.serializedObject.ApplyModifiedProperties();
-        }
-
-        static void AppendShaderPropertiesToMenu(GenericMenu menu, Shader shader, SerializedProperty property, ShaderUtil.ShaderPropertyType type) {
-            int count = ShaderUtil.GetPropertyCount(shader);
-            for (int j = 0; j < count; j++) {
-                if (ShaderUtil.GetPropertyType(shader, j) != type) continue;
-                var propertyName = ShaderUtil.GetPropertyName(shader, j);
-                menu.AddItem(
-                    new GUIContent($"{ShaderUtil.GetPropertyDescription(shader, j)} ({propertyName})".Replace('/', '.')),
-                    property.stringValue == propertyName, SetValue, (property, propertyName)
-                );
-            }
-        }
-
-        static string FindMainTexturePropertyName(Material material) {
-            if (material != null) {
-                var shader = material.shader;
-                if (shader == null) return "";
-                int count = shader.GetPropertyCount();
-                for (int i = 0; i < count; i++)
-                    if (shader.GetPropertyType(i) == ShaderPropertyType.Texture && shader.GetPropertyFlags(i).HasFlag(ShaderPropertyFlags.MainTexture))
-                        return shader.GetPropertyName(i);
-            }
-            return "_MainTex";
         }
 
         static string FindAVProPropertyName(Material material) {

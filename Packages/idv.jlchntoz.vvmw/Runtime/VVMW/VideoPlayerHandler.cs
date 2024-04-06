@@ -16,7 +16,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DefaultExecutionOrder(0)]
     [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#builtin-module--avpro-module")]
     public class VideoPlayerHandler : UdonSharpBehaviour {
-        string[] rtspVaildProtocols = new string[] { "rtsp", "rtmp", "rtspt", "rtspu", "rtmps", "rtsps" };
+        string[] realTimeProtocols = new string[] { "rtsp", "rtmp", "rtspt", "rtspu", "rtmps", "rtsps" };
         [NonSerialized] public Core core;
         [Tooltip("The name of current video player. Can be the key mapped in language pack JSON.")]
         public string playerName = "";
@@ -37,7 +37,7 @@ namespace JLChnToZ.VRC.VVMW {
         MaterialPropertyBlock propertyBlock;
         int texturePropertyID;
         VRCUrl lastUrl;
-        bool isRTSP;
+        bool isRealTimeProtocol;
         bool afterFirstRun;
 
         public bool IsActive {
@@ -59,7 +59,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public bool IsAvPro => isAvPro && bufferedTexture == null;
 
-        public float Duration => isRTSP ? float.PositiveInfinity : videoPlayer.GetDuration();
+        public float Duration => isRealTimeProtocol ? float.PositiveInfinity : videoPlayer.GetDuration();
 
         public Texture Texture => texture != null && bufferedTexture != null ? bufferedTexture : texture;
 
@@ -154,7 +154,7 @@ namespace JLChnToZ.VRC.VVMW {
                 ClearTexture();
             }
             lastUrl = url;
-            isRTSP = IsRTSP(url);
+            isRealTimeProtocol = IsRealTimeProtocol(url);
             isPaused = false;
         }
 
@@ -173,8 +173,8 @@ namespace JLChnToZ.VRC.VVMW {
         public void Stop() {
             if (!isActive) return;
             videoPlayer.Stop();
-            if (isRTSP) {
-                isRTSP = false;
+            if (isRealTimeProtocol) {
+                isRealTimeProtocol = false;
                 lastUrl = VRCUrl.Empty;
             }
             OnVideoEnd();
@@ -219,10 +219,14 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public override void OnVideoEnd() {
-            if (isRTSP) return; // Don't do anything if it's RTSP
-            // For AVPro players, even it fires OnVideoEnd event,
-            // its IsPlaying flag doesn't change to false,
-            // so we have to stop it manually.
+            // Here are quirky behaviors of AVPro video player for firing OnVideoEnd event:
+            // 1. If it's real-time protocol,
+            //    it doesn't mean the stream is ended,
+            //    so we have to ignore this event.
+            if (isRealTimeProtocol) return;
+            // 2. For video has measurable duration,
+            //    its IsPlaying flag doesn't change to false even it reaches the end,
+            //    so we have to stop it manually.
             if (videoPlayer.IsPlaying) videoPlayer.Stop();
             isPaused = false;
             if (!isActive) return;
@@ -236,14 +240,14 @@ namespace JLChnToZ.VRC.VVMW {
             core.OnVideoLoop();
         }
 
-        bool IsRTSP(VRCUrl url) {
+        bool IsRealTimeProtocol(VRCUrl url) {
             if (!Utilities.IsValid(url)) return false;
             var urlStr = url.Get();
             if (string.IsNullOrEmpty(urlStr) || urlStr.Length < 7) return false;
             int index = urlStr.IndexOf("://");
             if (index < 0 || index > 5) return false;
             var protocol = urlStr.Substring(0, index).ToLower();
-            return Array.IndexOf(rtspVaildProtocols, protocol) >= 0;
+            return Array.IndexOf(realTimeProtocols, protocol) >= 0;
         }
 
         void ClearTexture() {
