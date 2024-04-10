@@ -333,7 +333,8 @@ namespace JLChnToZ.VRC.VVMW {
             localQueuedUrls = queuedUrls;
             localQueuedPlayerIndex = queuedPlayerIndex;
             localPlayListOrder = playListOrder;
-            localQueuedTitles = queuedTitles.Split('\u2029');
+            localQueuedTitles = string.IsNullOrEmpty(queuedTitles) && (queuedUrls == null || queuedUrls.Length == 0) ?
+                new string[0] : queuedTitles.Split('\u2029');
             localFlags = flags;
             if (playListIndex > 0 && (localPlayListIndex != playListIndex || localPlayingIndex != playingIndex))
                 core.SetTitle(playListEntryTitles[playingIndex], playListTitles[playListIndex - 1]);
