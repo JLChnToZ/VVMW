@@ -1,6 +1,7 @@
-﻿using UdonSharp;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
+using UdonSharp;
 using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
@@ -13,6 +14,7 @@ namespace JLChnToZ.VRC.VVMW {
     public class ButtonEntry : UdonSharpBehaviour {
         LanguageManager manager;
         [SerializeField] Text buttonText;
+        [SerializeField] TextMeshProUGUI buttonTMPro;
         object[] args;
         string key;
         public UdonSharpBehaviour callbackTarget;
@@ -36,7 +38,13 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public string Text => buttonText.text;
+        public string Text {
+            get {
+                if (buttonText != null) return buttonText.text;
+                if (buttonTMPro != null) return buttonTMPro.text;
+                return "";
+            }
+        }
 
         public LanguageManager LanguageManager {
             get => manager;
@@ -52,6 +60,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (args != null && args.Length > 0)
                 result = string.Format(result, args);
             if (buttonText != null) buttonText.text = result;
+            if (buttonTMPro != null) buttonTMPro.text = result;
         }
 
         public void _OnClick() {

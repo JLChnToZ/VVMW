@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -18,11 +19,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 return;
             }
             foreach (var versionDisplay in scene.IterateAllComponents<VersionDisplay>()) {
-                if (!versionDisplay.TryGetComponent(out Text text)) {
-                    Debug.LogWarning($"[VersionDisplay] {versionDisplay.name} does not have a Text component.", versionDisplay);
+                Component component;
+                if (versionDisplay.TryGetComponent(out Text text))
+                    component = text;
+                else if (versionDisplay.TryGetComponent(out TMP_Text tmpText))
+                    component = tmpText;
+                else {
+                    Debug.LogWarning($"[VersionDisplay] {versionDisplay.name} does not have a Text or TextMeshProUGUI component.", versionDisplay);
                     continue;
                 }
-                using (var so = new SerializedObject(text)) {
+                using (var so = new SerializedObject(component)) {
                     var sp = so.FindProperty("m_Text");
                     if (sp == null) {
                         Debug.LogWarning($"[VersionDisplay] {versionDisplay.name} does not have a Text component.", versionDisplay);

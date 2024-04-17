@@ -1,4 +1,5 @@
-﻿using UdonSharp;
+﻿using TMPro;
+using UdonSharp;
 using UnityEngine;
 using UnityEngine.UI;
 using VRC.SDKBase;
@@ -45,6 +46,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Slider volumeSliderVR;
         [SerializeField] RectTransform volumeSliderDesktop;
         [SerializeField] Text desktopHintsReloadButtonKey, desktopHintsVolumeUpKey, desktopHintsVolumeDownKey;
+        [SerializeField] TextMeshProUGUI desktopHintsReloadButtonKeyTMPro, desktopHintsVolumeUpKeyTMPro, desktopHintsVolumeDownKeyTMPro;
         Animator desktopModeAnim;
         bool vrMode, afterFirstRun;
         VRCPlayerApi localPlayer;
@@ -87,10 +89,16 @@ namespace JLChnToZ.VRC.VVMW {
             }
             if (desktopHintsReloadButtonKey != null)
                 desktopHintsReloadButtonKey.text = reloadKey.ToString();
+            if (desktopHintsReloadButtonKeyTMPro != null)
+                desktopHintsReloadButtonKeyTMPro.text = reloadKey.ToString();
             if (desktopHintsVolumeUpKey != null)
                 desktopHintsVolumeUpKey.text = volumeUpKey.ToString();
+            if (desktopHintsVolumeUpKeyTMPro != null)
+                desktopHintsVolumeUpKeyTMPro.text = volumeUpKey.ToString();
             if (desktopHintsVolumeDownKey != null)
                 desktopHintsVolumeDownKey.text = volumeDownKey.ToString();
+            if (desktopHintsVolumeDownKeyTMPro != null)
+                desktopHintsVolumeDownKeyTMPro.text = volumeDownKey.ToString();
         }
 
         void Update() {

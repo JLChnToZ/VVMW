@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UdonSharp;
+using TMPro;
 
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
@@ -11,6 +12,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DefaultExecutionOrder(3)]
     public class ListEntry : UdonSharpBehaviour {
         [SerializeField] Text content;
+        [SerializeField] TextMeshProUGUI contentTMPro;
         [BindEvent(nameof(Button.onClick), nameof(_OnClick))]
         [SerializeField] Button primaryButton;
         [BindEvent(nameof(Button.onClick), nameof(_OnDeleteClick))]
@@ -35,8 +37,15 @@ namespace JLChnToZ.VRC.VVMW {
         bool isSelected;
 
         public string TextContent {
-            get => content.text;
-            set => content.text = value;
+            get {
+                if (content != null) return content.text;
+                if (contentTMPro != null) return contentTMPro.text;
+                return "";
+            }
+            set {
+                if (content != null) content.text = value;
+                if (contentTMPro != null) contentTMPro.text = value;
+            }
         }
 
         public bool HasDelete {
@@ -56,7 +65,8 @@ namespace JLChnToZ.VRC.VVMW {
             get => isSelected;
             set {
                 isSelected = value;
-                content.color = isSelected ? selectedColor : normalColor;
+                if (content != null) content.color = isSelected ? selectedColor : normalColor;
+                if (contentTMPro != null) contentTMPro.color = isSelected ? selectedColor : normalColor;
             }
         }
 
