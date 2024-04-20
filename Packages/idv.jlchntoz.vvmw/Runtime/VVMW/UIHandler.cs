@@ -39,8 +39,10 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Button cancelButton;
         [BindEvent(nameof(Button.onClick), nameof(_InputConfirmClick))]
         [SerializeField] Button urlInputConfirmButton;
+        [TMProMigratable(nameof(selectdPlayerTMPro))]
         [SerializeField] Text selectdPlayerText;
         [SerializeField] TextMeshProUGUI selectdPlayerTMPro;
+        [TMProMigratable(nameof(queueModeTMPro))]
         [SerializeField] Text queueModeText;
         [SerializeField] TextMeshProUGUI queueModeTMPro;
         [SerializeField] GameObject otherObjectUnderUrlInput;
@@ -59,6 +61,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Button globalReloadButton;
         [BindEvent(nameof(Button.onClick), nameof(_Skip))]
         [SerializeField] Button playNextButton;
+        [TMProMigratable(nameof(enqueueCountTMPro))]
         [SerializeField] Text enqueueCountText;
         [SerializeField] TextMeshProUGUI enqueueCountTMPro;
         [BindEvent(nameof(Button.onClick), nameof(_RepeatOne))]
@@ -76,7 +79,12 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Toggle playlistToggle;
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnSeek))]
         [SerializeField] Slider progressSlider;
-        [SerializeField] Text statusText, timeText, durationText;
+        [TMProMigratable(nameof(statusTMPro))]
+        [SerializeField] Text statusText;
+        [TMProMigratable(nameof(timeTMPro))]
+        [SerializeField] Text timeText;
+        [TMProMigratable(nameof(durationTMPro))]
+        [SerializeField] Text durationText;
         [SerializeField] TextMeshProUGUI statusTMPro, timeTMPro, durationTMPro;
         [SerializeField] GameObject timeContainer;
 
@@ -112,6 +120,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Button shiftForward100msButton;
         [BindEvent(nameof(Button.onClick), nameof(_ShiftReset))]
         [SerializeField] Button shiftResetButton;
+        [TMProMigratable(nameof(shiftOffsetTMPro))]
         [SerializeField] Text shiftOffsetText;
         [SerializeField] TextMeshProUGUI shiftOffsetTMPro;
 

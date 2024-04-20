@@ -45,7 +45,12 @@ namespace JLChnToZ.VRC.VVMW {
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnVolumeSliderChanged))]
         [SerializeField] Slider volumeSliderVR;
         [SerializeField] RectTransform volumeSliderDesktop;
-        [SerializeField] Text desktopHintsReloadButtonKey, desktopHintsVolumeUpKey, desktopHintsVolumeDownKey;
+        [TMProMigratable(nameof(desktopHintsReloadButtonKeyTMPro))]
+        [SerializeField] Text desktopHintsReloadButtonKey;
+        [TMProMigratable(nameof(desktopHintsVolumeUpKeyTMPro))]
+        [SerializeField] Text desktopHintsVolumeUpKey;
+        [TMProMigratable(nameof(desktopHintsVolumeDownKeyTMPro))]
+        [SerializeField] Text desktopHintsVolumeDownKey;
         [SerializeField] TextMeshProUGUI desktopHintsReloadButtonKeyTMPro, desktopHintsVolumeUpKeyTMPro, desktopHintsVolumeDownKeyTMPro;
         Animator desktopModeAnim;
         bool vrMode, afterFirstRun;
