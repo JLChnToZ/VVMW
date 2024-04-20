@@ -38,7 +38,7 @@ namespace JLChnToZ.VRC.VVMW {
             return newComponent;
         }
 
-        static bool IsRequired(Type type, Type checkType) {
+        public static bool IsRequired(Type type, Type checkType) {
             if (!dependents.TryGetValue(type, out var types)) {
                 var temp = new List<Type>();
                 foreach (var requireComponent in type.GetCustomAttributes<RequireComponent>(true)) {

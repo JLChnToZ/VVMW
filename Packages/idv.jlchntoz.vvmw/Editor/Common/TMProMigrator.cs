@@ -69,9 +69,18 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     EditorUtility.SetDirty(monoBehaviour);
                 }
             }
+            var components = new List<Component>();
             foreach (var text in root.GetComponentsInChildren<Text>(true)) {
                 var referencedComponents = ComponentReplacer.GetReferencedComponents(text);
-                if (referencedComponents.Count == 0) Migrate(text);
+                if (referencedComponents.Count > 0) continue;
+                text.GetComponents(components);
+                bool isRequired = false;
+                foreach (var component in components)
+                    if (component != text && ComponentReplacer.IsRequired(component.GetType(), typeof(Text))) {
+                        isRequired = true;
+                        break;
+                    }
+                if (!isRequired) Migrate(text);
             }
         }
 
