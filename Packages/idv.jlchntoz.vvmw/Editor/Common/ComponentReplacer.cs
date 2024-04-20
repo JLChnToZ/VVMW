@@ -9,11 +9,10 @@ using static UnityEngine.Object;
 
 namespace JLChnToZ.VRC.VVMW {
     public class ComponentReplacer {
-        static readonly List<Component> allComponents = new List<Component>();
+        static readonly Dictionary<Component, List<(Component, string)>> references = new Dictionary<Component, List<(Component, string)>>();
         static readonly Dictionary<Type, Type[]> dependents = new Dictionary<Type, Type[]>();
         readonly List<ComponentReplacer> downstreams = new List<ComponentReplacer>();
         readonly Type componentType;
-        readonly HashSet<(Component, string)> references = new HashSet<(Component, string)>();
         readonly GameObject sourceGameObject;
         GameObject temporaryGameObject;
         readonly Component[] componentsInGameObject;
@@ -55,20 +54,45 @@ namespace JLChnToZ.VRC.VVMW {
             return false;
         }
 
-        static void InitAllComponents(Scene scene) {
-            if (allComponents.Count != 0) return;
+        public static void InitAllComponents() {
+            #if UNITY_2022_2_OR_NEWER
+            int scneCount = SceneManager.loadedSceneCount;
+            #else
+            int scneCount = SceneManager.sceneCount;
+            #endif
+            var roots = new List<GameObject>();
             var temp = new List<Component>();
             var stack = new Stack<Transform>();
-            foreach (var root in scene.GetRootGameObjects())
-                stack.Push(root.transform);
+            for (int i = 0; i < scneCount; i++) {
+                SceneManager.GetSceneAt(i).GetRootGameObjects(roots);
+                foreach (var root in roots)
+                    stack.Push(root.transform);
+            }
             while (stack.Count > 0) {
                 var current = stack.Pop();
                 for (int i = current.childCount - 1; i >= 0; i--)
                     stack.Push(current.GetChild(i));
                 current.GetComponents(temp);
-                allComponents.AddRange(temp);
+                foreach (var c in temp) {
+                    if (c == null || c is Transform) continue;
+                    using (var so = new SerializedObject(c)) {
+                        var sp = so.GetIterator();
+                        while (sp.Next(true)) {
+                            if (sp.propertyType != SerializedPropertyType.ObjectReference) continue;
+                            var target = sp.objectReferenceValue as Component;
+                            if (target == null || target == c) continue;
+                            if (!references.TryGetValue(target, out var mapping))
+                                references[target] = mapping = new List<(Component, string)>();
+                            mapping.Add((c, sp.propertyPath));
+                        }
+                    }
+                }
             }
         }
+
+        public static ICollection<(Component, string)> GetReferencedComponents(Component component) =>
+            component != null && references.TryGetValue(component, out var mapping) ?
+            mapping : Array.Empty<(Component, string)>();
 
         ComponentReplacer(GameObject sourceGameObject, Component[] components, int index) {
             this.sourceGameObject = sourceGameObject;
@@ -76,23 +100,12 @@ namespace JLChnToZ.VRC.VVMW {
             componentIndex = index;
             var component = components[index];
             componentType = component.GetType();
-            InitAllComponents(sourceGameObject.scene);
-            foreach (var c in allComponents) {
-                if (c == null || c == component) continue;
-                if (c.gameObject == sourceGameObject)
-                    if (IsRequired(c.GetType(), componentType)) {
-                        int i = Array.IndexOf(componentsInGameObject, c);
-                        if (i >= 0) downstreams.Add(new ComponentReplacer(sourceGameObject, componentsInGameObject, i));
-                        else Debug.LogWarning($"Component {c.GetType()} is required by {componentType} but not found in the same GameObject.");
-                    }
-                using (var so = new SerializedObject(c)) {
-                    var sp = so.GetIterator();
-                    while (sp.Next(true))
-                        if (sp.propertyType == SerializedPropertyType.ObjectReference && sp.objectReferenceValue == component)
-                            references.Add((c, sp.propertyPath));
-                }
+            foreach (var c in componentsInGameObject) {
+                if (c == null || c == component || !IsRequired(c.GetType(), componentType)) continue;
+                int i = Array.IndexOf(componentsInGameObject, c);
+                if (i >= 0) downstreams.Add(new ComponentReplacer(sourceGameObject, componentsInGameObject, i));
+                else Debug.LogWarning($"Component {c.GetType()} is required by {componentType} but not found in the same GameObject.");
             }
-            Debug.Log($"Component {component.name} has {downstreams.Count} downstreams and {references.Count} references.");
         }
 
         void CloneToTemporary() {
@@ -133,10 +146,14 @@ namespace JLChnToZ.VRC.VVMW {
                 var temp = sourceGameObject.AddComponent(current.componentType);
                 current.componentsInGameObject[current.componentIndex] = temp;
                 if (temp != null) EditorUtility.CopySerializedIfDifferent(current.componentsInTemporary[current.componentIndex], temp);
-                foreach (var (component, path) in current.references) {
-                    var sp = new SerializedObject(component).FindProperty(path);
-                    sp.objectReferenceValue = temp;
-                }
+                if (references.TryGetValue(current.componentsInTemporary[current.componentIndex], out var mapping))
+                    foreach (var (component, path) in mapping) {
+                        using (var so = new SerializedObject(component)) {
+                            var sp = so.FindProperty(path);
+                            sp.objectReferenceValue = temp;
+                            so.ApplyModifiedProperties();
+                        }
+                    }
             }
         }
 

@@ -440,7 +440,7 @@ namespace JLChnToZ.VRC.VVMW {
                     break;
                 case 2: // Error
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
-                    if (statusText == null) break;
+                    if (statusText == null && statusTMPro == null) break;
                     if (timeContainer != null) {
                         SetStatusEnabled(true);
                         timeContainer.SetActive(false);
@@ -706,7 +706,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
         
         void SetStatusEnabled(bool enabled) {
-            if (timeContainer == null || statusText == null || statusTMPro == null) return;
+            if (timeContainer == null || (statusText == null && statusTMPro == null)) return;
             timeContainer.SetActive(!enabled);
             if (statusText != null) statusText.enabled = enabled;
             if (statusTMPro != null) statusTMPro.enabled = enabled;

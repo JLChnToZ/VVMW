@@ -11,6 +11,7 @@ namespace JLChnToZ.VRC.VVMW {
     [AddComponentMenu("VizVid/Components/List Entry")]
     [DefaultExecutionOrder(3)]
     public class ListEntry : UdonSharpBehaviour {
+        [TMProMigratable(nameof(contentTMPro))]
         [SerializeField] Text content;
         [SerializeField] TextMeshProUGUI contentTMPro;
         [BindEvent(nameof(Button.onClick), nameof(_OnClick))]

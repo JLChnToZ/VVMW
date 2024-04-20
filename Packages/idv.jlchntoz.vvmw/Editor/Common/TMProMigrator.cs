@@ -18,6 +18,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         [MenuItem("Tools/VizVid/Migrate TMPro Components")]
         static void MigrateSelected() {
             LoadFontMapping();
+            ComponentReplacer.InitAllComponents();
             foreach (var gameObject in Selection.gameObjects)
                 Migrate(gameObject);
         }
@@ -54,7 +55,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
                 if (isTypeMigratable && monoBehaviour.TryGetComponent(out Text text))
                     Migrate(text);
-                if (mapping != null)
+                if (mapping != null) {
                     foreach (var kv in mapping) {
                         var sourceField = kv.Key;
                         var targetField = kv.Value;
@@ -65,9 +66,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             targetField.SetValue(monoBehaviour, targetText);
                         }
                     }
+                    EditorUtility.SetDirty(monoBehaviour);
+                }
             }
-            foreach (var text in root.GetComponentsInChildren<Text>(true))
-                Migrate(text);
+            foreach (var text in root.GetComponentsInChildren<Text>(true)) {
+                var referencedComponents = ComponentReplacer.GetReferencedComponents(text);
+                if (referencedComponents.Count == 0) Migrate(text);
+            }
         }
 
         public static TextMeshProUGUI Migrate(Text textComponent) {
