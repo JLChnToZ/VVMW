@@ -91,6 +91,7 @@ namespace JLChnToZ.VRC.VVMW.I18N {
         }
 
         public string GetLocale(string key) {
+            if (string.IsNullOrEmpty(key)) return "";
             if (currentLanguage == null) return key;
             if (currentLanguage.TryGetValue(key, TokenType.String, out DataToken token))
                 return token.String;

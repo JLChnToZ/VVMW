@@ -393,7 +393,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void UpdatePlayerText() {
-            selectdPlayerText.text = videoPlayerSelectButtons[selectedPlayer - 1].Text;
+            if (selectdPlayerText != null) selectdPlayerText.text = videoPlayerSelectButtons[selectedPlayer - 1].Text;
         }
 
         public void _OnUIUpdate() {
