@@ -2,6 +2,7 @@
 using UdonSharp;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace JLChnToZ.VRC.VVMW.I18N {
 
@@ -33,7 +34,10 @@ namespace JLChnToZ.VRC.VVMW.I18N {
             for (int i = 0; i < keys.Length; i++) {
                 var entry = Instantiate(entryTemplate);
                 entry.transform.SetParent(transform, false);
-                entry.GetComponentInChildren<Text>().text = names[i];
+                var text = entry.GetComponentInChildren<Text>();
+                if (text != null) text.text = names[i];
+                var tmp = entry.GetComponentInChildren<TextMeshProUGUI>();
+                if (tmp != null) tmp.text = names[i];
                 entry.SetActive(true);
                 spawnedEntries[i] = entry.GetComponent<Toggle>();
             }

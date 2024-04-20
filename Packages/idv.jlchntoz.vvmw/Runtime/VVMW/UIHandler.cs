@@ -104,6 +104,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Button playListTogglePanelButton;
         [SerializeField, BindUdonSharpEvent] PooledScrollView queueListScrollView;
         [SerializeField] GameObject playNextIndicator;
+        [TMProMigratable(nameof(selectedPlayListTMPro))]
         [SerializeField] Text selectedPlayListText;
         [SerializeField] TextMeshProUGUI selectedPlayListTMPro;
         [BindEvent(nameof(Button.onClick), nameof(_OnCurrentPlayListSelectClick))]
@@ -161,6 +162,9 @@ namespace JLChnToZ.VRC.VVMW {
             if (enqueueCountText != null) {
                 enqueueCountFormat = enqueueCountText.text;
                 enqueueCountText.text = string.Format(enqueueCountFormat, 0);
+            } else if (enqueueCountTMPro != null) {
+                enqueueCountFormat = enqueueCountTMPro.text;
+                enqueueCountTMPro.text = string.Format(enqueueCountFormat, 0);
             }
             if (playListPanelRoot != null) playListPanelRoot.SetActive(true);
             if (playListScrollView != null) {
@@ -579,11 +583,11 @@ namespace JLChnToZ.VRC.VVMW {
                 SelectedPlayListIndex = selectedPlayListIndex = playListIndex;
             if (playNextButton != null) playNextButton.gameObject.SetActive(hasPending);
             if (currentPlayListButton != null) currentPlayListButton.gameObject.SetActive(hasPending);
-            SetText(enqueueCountText, enqueueCountTMPro, string.Format(enqueueCountFormat, pendingCount));
-            if (selectedPlayListText != null)
-                selectedPlayListText.text = selectedPlayListIndex > 0 ?
-                    handler.PlayListTitles[selectedPlayListIndex - 1] :
-                    languageManager.GetLocale("QueueList");
+            if (!string.IsNullOrEmpty(enqueueCountFormat))
+                SetText(enqueueCountText, enqueueCountTMPro, string.Format(enqueueCountFormat, pendingCount));
+            SetText(selectedPlayListText, selectedPlayListTMPro,
+                selectedPlayListIndex > 0 ? handler.PlayListTitles[selectedPlayListIndex - 1] : languageManager.GetLocale("QueueList")
+            );
             bool shouldRefreshQueue = playListUpdateRequired || selectedPlayListIndex <= 0 || lastSelectedPlayListIndex != selectedPlayListIndex || lastPlayingIndex != playingIndex;
             lastSelectedPlayListIndex = selectedPlayListIndex;
             lastPlayingIndex = playingIndex;

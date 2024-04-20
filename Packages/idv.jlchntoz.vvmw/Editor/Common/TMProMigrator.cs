@@ -36,10 +36,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         public static void Migrate(GameObject root) {
-            var monoBehaviours = root.GetComponentsInChildren<MonoBehaviour>(true);
             var migratableTypes = new Dictionary<Type, bool>();
             var migratableFields = new Dictionary<Type, Dictionary<FieldInfo, FieldInfo>>();
-            foreach (var monoBehaviour in monoBehaviours) {
+            foreach (var monoBehaviour in root.GetComponentsInChildren<MonoBehaviour>(true)) {
                 var type = monoBehaviour.GetType();
                 if (!migratableTypes.TryGetValue(type, out var isTypeMigratable))
                     migratableTypes[type] = isTypeMigratable = type.GetCustomAttribute<TMProMigratableAttribute>() != null;
@@ -67,6 +66,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         }
                     }
             }
+            foreach (var text in root.GetComponentsInChildren<Text>(true))
+                Migrate(text);
         }
 
         public static TextMeshProUGUI Migrate(Text textComponent) {
