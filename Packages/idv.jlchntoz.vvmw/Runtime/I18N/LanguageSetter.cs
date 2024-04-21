@@ -34,9 +34,9 @@ namespace JLChnToZ.VRC.VVMW.I18N {
             for (int i = 0; i < keys.Length; i++) {
                 var entry = Instantiate(entryTemplate);
                 entry.transform.SetParent(transform, false);
-                var text = entry.GetComponentInChildren<Text>();
+                var text = entry.GetComponentInChildren<Text>(true);
                 if (text != null) text.text = names[i];
-                var tmp = entry.GetComponentInChildren<TextMeshProUGUI>();
+                var tmp = entry.GetComponentInChildren<TextMeshProUGUI>(true);
                 if (tmp != null) tmp.text = names[i];
                 entry.SetActive(true);
                 spawnedEntries[i] = entry.GetComponent<Toggle>();

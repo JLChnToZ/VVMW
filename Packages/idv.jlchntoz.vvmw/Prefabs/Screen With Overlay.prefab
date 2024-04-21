@@ -1993,6 +1993,7 @@ GameObject:
   - component: {fileID: 7990677866980655225}
   - component: {fileID: 3076768596473184359}
   - component: {fileID: 5897058056484269590}
+  - component: {fileID: 395213938022429537}
   m_Layer: 0
   m_Name: Delay Text
   m_TagString: Untagged
@@ -2105,7 +2106,8 @@ MonoBehaviour:
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
   _syncMethod: 0
-  serializedProgramAsset: {fileID: 0}
+  serializedProgramAsset: {fileID: 11400000, guid: 375b03ecc69b6e54391225abc067cfe7,
+    type: 2}
   programSource: {fileID: 11400000, guid: afa47a47857e18146a6d82c9ea50c6b0, type: 2}
   serializedPublicVariablesBytesString: Ai8AAAAAATIAAABWAFIAQwAuAFUAZABvAG4ALgBDAG8AbQBtAG8AbgAuAFUAZABvAG4AVgBhAHIAaQBhAGIAbABlAFQAYQBiAGwAZQAsACAAVgBSAEMALgBVAGQAbwBuAC4AQwBvAG0AbQBvAG4AAAAAAAYBAAAAAAAAACcBBAAAAHQAeQBwAGUAAWgAAABTAHkAcwB0AGUAbQAuAEMAbwBsAGwAZQBjAHQAaQBvAG4AcwAuAEcAZQBuAGUAcgBpAGMALgBMAGkAcwB0AGAAMQBbAFsAVgBSAEMALgBVAGQAbwBuAC4AQwBvAG0AbQBvAG4ALgBJAG4AdABlAHIAZgBhAGMAZQBzAC4ASQBVAGQAbwBuAFYAYQByAGkAYQBiAGwAZQAsACAAVgBSAEMALgBVAGQAbwBuAC4AQwBvAG0AbQBvAG4AXQBdACwAIABtAHMAYwBvAHIAbABpAGIAAQEJAAAAVgBhAHIAaQBhAGIAbABlAHMALwEAAAABaAAAAFMAeQBzAHQAZQBtAC4AQwBvAGwAbABlAGMAdABpAG8AbgBzAC4ARwBlAG4AZQByAGkAYwAuAEwAaQBzAHQAYAAxAFsAWwBWAFIAQwAuAFUAZABvAG4ALgBDAG8AbQBtAG8AbgAuAEkAbgB0AGUAcgBmAGEAYwBlAHMALgBJAFUAZABvAG4AVgBhAHIAaQBhAGIAbABlACwAIABWAFIAQwAuAFUAZABvAG4ALgBDAG8AbQBtAG8AbgBdAF0ALAAgAG0AcwBjAG8AcgBsAGkAYgABAAAABgEAAAAAAAAAAi8CAAAAAUkAAABWAFIAQwAuAFUAZABvAG4ALgBDAG8AbQBtAG8AbgAuAFUAZABvAG4AVgBhAHIAaQBhAGIAbABlAGAAMQBbAFsAUwB5AHMAdABlAG0ALgBJAG4AdAAzADIALAAgAG0AcwBjAG8AcgBsAGkAYgBdAF0ALAAgAFYAUgBDAC4AVQBkAG8AbgAuAEMAbwBtAG0AbwBuAAIAAAAGAgAAAAAAAAAnAQQAAAB0AHkAcABlAAEXAAAAUwB5AHMAdABlAG0ALgBTAHQAcgBpAG4AZwAsACAAbQBzAGMAbwByAGwAaQBiACcBCgAAAFMAeQBtAGIAbwBsAE4AYQBtAGUAAR8AAABfAF8AXwBVAGQAbwBuAFMAaABhAHIAcABCAGUAaABhAHYAaQBvAHUAcgBWAGUAcgBzAGkAbwBuAF8AXwBfACcBBAAAAHQAeQBwAGUAARYAAABTAHkAcwB0AGUAbQAuAEkAbgB0ADMAMgAsACAAbQBzAGMAbwByAGwAaQBiABcBBQAAAFYAYQBsAHUAZQACAAAABwUHBQcF
   publicVariablesUnityEngineObjects: []
@@ -2123,6 +2125,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   colorIndex: 1
+--- !u!114 &395213938022429537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3609706133764127266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f6cb7c958edcdc44bc1400622b6cdc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3957198161855924167
 GameObject:
   m_ObjectHideFlags: 0
@@ -5584,7 +5598,9 @@ MonoBehaviour:
   cancelButton: {fileID: 8533432941130906217}
   urlInputConfirmButton: {fileID: 2522005100658211503}
   selectdPlayerText: {fileID: 1871437365707141800}
+  selectdPlayerTMPro: {fileID: 0}
   queueModeText: {fileID: 4274047030299547134}
+  queueModeTMPro: {fileID: 0}
   otherObjectUnderUrlInput: {fileID: 1832616573580324778}
   playbackControlsAnimator: {fileID: 8193631149065468083}
   playButton: {fileID: 7796722855169674898}
@@ -5594,6 +5610,7 @@ MonoBehaviour:
   globalReloadButton: {fileID: 0}
   playNextButton: {fileID: 6113559061238110570}
   enqueueCountText: {fileID: 7243952161894959004}
+  enqueueCountTMPro: {fileID: 0}
   repeatOffButton: {fileID: 9039282186901071159}
   repeatOneButton: {fileID: 2709535250364749467}
   repeatAllButton: {fileID: 4675328042641458222}
@@ -5604,6 +5621,9 @@ MonoBehaviour:
   statusText: {fileID: 4081750117402772080}
   timeText: {fileID: 1831172172697254301}
   durationText: {fileID: 5749459164001069690}
+  statusTMPro: {fileID: 0}
+  timeTMPro: {fileID: 0}
+  durationTMPro: {fileID: 0}
   timeContainer: {fileID: 0}
   volumeSlider: {fileID: 8001222877319417337}
   muteButton: {fileID: 2813640105949131958}
@@ -5615,6 +5635,7 @@ MonoBehaviour:
   queueListScrollView: {fileID: 4136825756390268076}
   playNextIndicator: {fileID: 0}
   selectedPlayListText: {fileID: 573662285814026412}
+  selectedPlayListTMPro: {fileID: 0}
   currentPlayListButton: {fileID: 5065227983473882738}
   shiftBack100msButton: {fileID: 2688631826079340242}
   shiftBack50msButton: {fileID: 5644903411782385773}
@@ -5622,6 +5643,7 @@ MonoBehaviour:
   shiftForward100msButton: {fileID: 5215060939886370506}
   shiftResetButton: {fileID: 1953999595961846628}
   shiftOffsetText: {fileID: 3235232710273548969}
+  shiftOffsetTMPro: {fileID: 0}
 --- !u!114 &7315061199001338449
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7027,6 +7049,7 @@ GameObject:
   - component: {fileID: 8121825609860789895}
   - component: {fileID: 365253990612465607}
   - component: {fileID: 3221767355448356205}
+  - component: {fileID: 5648597407577321542}
   m_Layer: 0
   m_Name: Next On
   m_TagString: Untagged
@@ -7216,6 +7239,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   colorIndex: 0
+--- !u!114 &5648597407577321542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9187551818807828401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f6cb7c958edcdc44bc1400622b6cdc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &972765696443435798
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8281,6 +8316,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Language Select
       objectReference: {fileID: 0}
+    - target: {fileID: 1982525966636977268, guid: 13c9f233915c23d4db49ce0029cc0660,
+        type: 3}
+      propertyPath: m_PreferredHeight
+      value: 32
+      objectReference: {fileID: 0}
     - target: {fileID: 4387744014332955188, guid: 13c9f233915c23d4db49ce0029cc0660,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -8410,7 +8450,7 @@ PrefabInstance:
     - target: {fileID: 7134733308030709407, guid: 13c9f233915c23d4db49ce0029cc0660,
         type: 3}
       propertyPath: m_FontData.m_FontSize
-      value: 24
+      value: 22
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

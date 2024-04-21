@@ -29,7 +29,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     continue;
                 }
                 using (var so = new SerializedObject(component)) {
-                    var sp = so.FindProperty("m_Text");
+                    var sp = so.FindProperty("m_Text") ?? so.FindProperty("m_text");
                     if (sp == null) {
                         Debug.LogWarning($"[VersionDisplay] {versionDisplay.name} does not have a Text component.", versionDisplay);
                         continue;
