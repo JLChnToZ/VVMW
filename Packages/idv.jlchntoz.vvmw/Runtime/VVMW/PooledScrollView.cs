@@ -120,6 +120,13 @@ namespace JLChnToZ.VRC.VVMW {
                 scrollRect = GetComponent<ScrollRect>();
                 viewportRect = scrollRect.viewport;
                 contentRect = scrollRect.content;
+                var transformsAfterEntry = new Transform[contentRect.childCount];
+                int count = 0;
+                for (int i = contentRect.childCount - 1; i >= 0; i--) {
+                    var child = contentRect.GetChild(i);
+                    if (child == template.transform) break;
+                    transformsAfterEntry[count++] = child;
+                }
                 templateRect = template.GetComponent<RectTransform>();
                 var templateHeight = templateRect.rect.height;
                 var viewportHeight = viewportRect.rect.height;
@@ -143,6 +150,8 @@ namespace JLChnToZ.VRC.VVMW {
                     entry._OnParentScroll();
                     entries[i] = entry;
                 }
+                for (int i = 0; i < count; i++)
+                    transformsAfterEntry[i].SetAsLastSibling();
                 template.gameObject.SetActive(false);
                 EventPrefix = eventPrefix;
                 hasInit = true;

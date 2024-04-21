@@ -573,7 +573,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void RecordPlaybackHistory(VRCUrl url, byte playerIndex, string title) {
             if (historySize <= 0) return;
-            if (localHistoryUrls != null || localHistoryUrls.Length == 0) {
+            if (localHistoryUrls == null || localHistoryUrls.Length == 0) {
                 localHistoryUrls = new VRCUrl[1] { url };
                 localHistoryPlayerIndex = new byte[1] { playerIndex };
                 localHistoryTitles = new string[1] { title };

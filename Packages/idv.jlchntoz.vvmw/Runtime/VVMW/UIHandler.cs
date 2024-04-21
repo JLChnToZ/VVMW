@@ -143,16 +143,25 @@ namespace JLChnToZ.VRC.VVMW {
                 if (playListScrollView == null) return 0;
                 int selectedIndex = playListScrollView.SelectedIndex;
                 if (handler != null) {
-                    if (handler.HistorySize > 0) selectedIndex--;
-                    if (!handler.HasQueueList) selectedIndex++;
+                    if (handler.HistorySize > 0) {
+                        if (selectedIndex == 0) return -1;
+                        if (handler.HasQueueList) selectedIndex--;
+                    } else if (!handler.HasQueueList)
+                        selectedIndex++;
                 }
                 return selectedIndex;
             }
             set {
                 if (playListScrollView == null) return;
+                if (value < 0) {
+                    playListScrollView.SelectedIndex = 0;
+                    return;
+                }
                 if (handler != null) {
-                    if (handler.HistorySize > 0) value++;
-                    if (!handler.HasQueueList) value--;
+                    if (handler.HistorySize > 0) {
+                        if (handler.HasQueueList) value++;
+                    } else if (!handler.HasQueueList)
+                        value--;
                 }
                 playListScrollView.SelectedIndex = value;
             }
@@ -552,8 +561,6 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(isShuffle);
                 UpdatePlayList();
-                if (playNextIndicator != null)
-                    playNextIndicator.SetActive(!isShuffle && SelectedPlayListIndex == 0 && handler.PlayListIndex == 0 && handler.PendingCount > 0);
                 SetText(queueModeText, queueModeTMPro,
                     languageManager.GetLocale(
                         handler.PlayListIndex == 0 && handler.HasQueueList && (core.IsReady || core.IsLoading || handler.QueueUrls.Length > 0) ?
@@ -601,13 +608,15 @@ namespace JLChnToZ.VRC.VVMW {
             if (isEntryContainerInactive || isNotCoolingDown)
                 SelectedPlayListIndex = selectedPlayListIndex = playListIndex;
             if (playNextButton != null) playNextButton.gameObject.SetActive(hasPending);
-            if (currentPlayListButton != null) currentPlayListButton.gameObject.SetActive(hasPending);
+            if (currentPlayListButton != null) currentPlayListButton.gameObject.SetActive(hasPending && selectedPlayListIndex >= 0);
             if (!string.IsNullOrEmpty(enqueueCountFormat))
                 SetText(enqueueCountText, enqueueCountTMPro, string.Format(enqueueCountFormat, pendingCount));
             SetText(selectedPlayListText, selectedPlayListTMPro,
                 selectedPlayListIndex > 0 ? handler.PlayListTitles[selectedPlayListIndex - 1] :
                 selectedPlayListIndex < 0 ? languageManager.GetLocale("PlaybackHistory") : languageManager.GetLocale("QueueList")
             );
+            if (playNextIndicator != null)
+                playNextIndicator.SetActive(!handler.Shuffle && selectedPlayListIndex == 0 && handler.PlayListIndex == 0 && handler.PendingCount > 0);
             bool shouldRefreshQueue = playListUpdateRequired || selectedPlayListIndex <= 0 || lastSelectedPlayListIndex != selectedPlayListIndex || lastPlayingIndex != playingIndex;
             lastSelectedPlayListIndex = selectedPlayListIndex;
             lastPlayingIndex = playingIndex;
