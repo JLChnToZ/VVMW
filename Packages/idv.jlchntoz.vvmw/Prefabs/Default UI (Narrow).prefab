@@ -675,7 +675,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -2810,7 +2810,9 @@ MonoBehaviour:
   cancelButton: {fileID: 8290869560386212173}
   urlInputConfirmButton: {fileID: 2854221936331231627}
   selectdPlayerText: {fileID: 2061350802308454796}
+  selectdPlayerTMPro: {fileID: 0}
   queueModeText: {fileID: 4482131514141933274}
+  queueModeTMPro: {fileID: 0}
   otherObjectUnderUrlInput: {fileID: 7288062804350703706}
   playbackControlsAnimator: {fileID: 0}
   playButton: {fileID: 2217345797032712172}
@@ -2820,6 +2822,7 @@ MonoBehaviour:
   globalReloadButton: {fileID: 0}
   playNextButton: {fileID: 8325685683876548251}
   enqueueCountText: {fileID: 4288828015829449517}
+  enqueueCountTMPro: {fileID: 0}
   repeatOffButton: {fileID: 566990503289482660}
   repeatOneButton: {fileID: 6339032665224571791}
   repeatAllButton: {fileID: 8308481080980158165}
@@ -2830,6 +2833,9 @@ MonoBehaviour:
   statusText: {fileID: 5696366712094312257}
   timeText: {fileID: 2574768215009891528}
   durationText: {fileID: 653182846935121114}
+  statusTMPro: {fileID: 0}
+  timeTMPro: {fileID: 0}
+  durationTMPro: {fileID: 0}
   timeContainer: {fileID: 3365451404990097794}
   volumeSlider: {fileID: 9011248801257047175}
   muteButton: {fileID: 7068553316507465878}
@@ -2841,6 +2847,7 @@ MonoBehaviour:
   queueListScrollView: {fileID: 2238140308991275377}
   playNextIndicator: {fileID: 7007343303285611290}
   selectedPlayListText: {fileID: 1906736415800344448}
+  selectedPlayListTMPro: {fileID: 0}
   currentPlayListButton: {fileID: 0}
   shiftBack100msButton: {fileID: 7893048275672336846}
   shiftBack50msButton: {fileID: 2497692468103134531}
@@ -2848,6 +2855,7 @@ MonoBehaviour:
   shiftForward100msButton: {fileID: 553968645604594544}
   shiftResetButton: {fileID: 3904133871135181308}
   shiftOffsetText: {fileID: 1856597698551737061}
+  shiftOffsetTMPro: {fileID: 0}
 --- !u!114 &6165191218252423545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4159,7 +4167,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -4806,6 +4814,12 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4852418709479977052, guid: bd2ec73dfe9d6ef4e8b222c1a4fe9cee,
+        type: 3}
+      propertyPath: serializedProgramAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: ca60e82c5138fc94a9bd38f31e4c81fc,
+        type: 2}
     - target: {fileID: 5788622370935596912, guid: bd2ec73dfe9d6ef4e8b222c1a4fe9cee,
         type: 3}
       propertyPath: m_AnchorMax.y
