@@ -142,12 +142,18 @@ namespace JLChnToZ.VRC.VVMW {
             get {
                 if (playListScrollView == null) return 0;
                 int selectedIndex = playListScrollView.SelectedIndex;
-                if (handler != null && !handler.HasQueueList) selectedIndex++;
+                if (handler != null) {
+                    if (handler.HistorySize > 0) selectedIndex--;
+                    if (!handler.HasQueueList) selectedIndex++;
+                }
                 return selectedIndex;
             }
             set {
                 if (playListScrollView == null) return;
-                if (handler != null && !handler.HasQueueList) value--;
+                if (handler != null) {
+                    if (handler.HistorySize > 0) value++;
+                    if (!handler.HasQueueList) value--;
+                }
                 playListScrollView.SelectedIndex = value;
             }
         }
@@ -170,10 +176,17 @@ namespace JLChnToZ.VRC.VVMW {
             if (playListScrollView != null) {
                 playListNames = hasHandler ? handler.PlayListTitles : null;
                 if (playListNames != null) {
-                    if (handler.HasQueueList) {
-                        var temp = new string[playListNames.Length + 1];
-                        temp[0] = languageManager.GetLocale("QueueList");
-                        Array.Copy(playListNames, 0, temp, 1, playListNames.Length);
+                    bool hasQueueList = handler.HasQueueList;
+                    bool hasHistory = handler.HistorySize > 0;
+                    if (hasQueueList || hasHistory) {
+                        int length = playListNames.Length;
+                        if (hasQueueList) length++;
+                        if (hasHistory) length++;
+                        var temp = new string[length];
+                        int i = 0;
+                        if (hasHistory) temp[i++] = languageManager.GetLocale("PlaybackHistory");
+                        if (hasQueueList) temp[i++] = languageManager.GetLocale("QueueList");
+                        Array.Copy(playListNames, 0, temp, i, playListNames.Length);
                         playListNames = temp;
                     }
                 } else if (playListNames == null)
@@ -392,9 +405,15 @@ namespace JLChnToZ.VRC.VVMW {
             if (!afterFirstRun) return;
             _OnUIUpdate();
             _OnSyncOffsetChange();
-            if (Utilities.IsValid(handler) && handler.HasQueueList && playListNames != null) {
-                playListNames[0] = languageManager.GetLocale("QueueList");
-                if (playListScrollView != null) playListScrollView.EntryNames = playListNames;
+            if (Utilities.IsValid(handler)) {
+                bool hasQueueList = handler.HasQueueList;
+                bool hasHistory = handler.HistorySize > 0;
+                if ((hasQueueList || hasHistory) && playListNames != null) {
+                    int i = 0;
+                    if (hasHistory) playListNames[i++] = languageManager.GetLocale("PlaybackHistory");
+                    if (hasQueueList) playListNames[i++] = languageManager.GetLocale("QueueList");
+                    if (playListScrollView != null) playListScrollView.EntryNames = playListNames;
+                }
             }
             UpdatePlayerText();
         }
@@ -566,7 +585,7 @@ namespace JLChnToZ.VRC.VVMW {
             int displayCount, offset;
             int pendingCount = handler.PendingCount;
             VRCUrl[] queuedUrls = handler.QueueUrls, playListUrls = handler.PlayListUrls;
-            string[] entryTitles = handler.PlayListEntryTitles, queuedTitles = handler.QueueTitles;
+            string[] entryTitles = handler.PlayListEntryTitles, queuedTitles = handler.QueueTitles, historyTitles = handler.HistoryTitles;
             int[] urlOffsets = handler.PlayListUrlOffsets;
             if (playListIndex > 0) {
                 offset = urlOffsets[playListIndex - 1];
@@ -586,7 +605,8 @@ namespace JLChnToZ.VRC.VVMW {
             if (!string.IsNullOrEmpty(enqueueCountFormat))
                 SetText(enqueueCountText, enqueueCountTMPro, string.Format(enqueueCountFormat, pendingCount));
             SetText(selectedPlayListText, selectedPlayListTMPro,
-                selectedPlayListIndex > 0 ? handler.PlayListTitles[selectedPlayListIndex - 1] : languageManager.GetLocale("QueueList")
+                selectedPlayListIndex > 0 ? handler.PlayListTitles[selectedPlayListIndex - 1] :
+                selectedPlayListIndex < 0 ? languageManager.GetLocale("PlaybackHistory") : languageManager.GetLocale("QueueList")
             );
             bool shouldRefreshQueue = playListUpdateRequired || selectedPlayListIndex <= 0 || lastSelectedPlayListIndex != selectedPlayListIndex || lastPlayingIndex != playingIndex;
             lastSelectedPlayListIndex = selectedPlayListIndex;
@@ -605,6 +625,9 @@ namespace JLChnToZ.VRC.VVMW {
                 if (selectedPlayListIndex > 0) {
                     offset = urlOffsets[selectedPlayListIndex - 1];
                     displayCount = (selectedPlayListIndex < urlOffsets.Length ? urlOffsets[selectedPlayListIndex] : playListUrls.Length) - offset;
+                } else if (selectedPlayListIndex < 0) {
+                    offset = 0;
+                    displayCount = historyTitles.Length;
                 } else {
                     offset = 0;
                     displayCount = queuedUrls.Length;
@@ -614,6 +637,10 @@ namespace JLChnToZ.VRC.VVMW {
             if (selectedPlayListIndex == 0) {
                 queueListScrollView.CanDelete = true;
                 queueListScrollView.EntryNames = queuedTitles;
+                queueListScrollView.SetIndexWithoutScroll(-1);
+            } else if (selectedPlayListIndex == -1) {
+                queueListScrollView.CanDelete = false;
+                queueListScrollView.EntryNames = historyTitles;
                 queueListScrollView.SetIndexWithoutScroll(-1);
             } else {
                 queueListScrollView.CanDelete = false;
@@ -646,12 +673,22 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _OnQueueListEntryClick() {
             playListLastInteractTime = DateTime.UtcNow;
-            handler._PlayAt(SelectedPlayListIndex, queueListScrollView.lastInteractIndex, false);
+            int selectedPlayListIndex = SelectedPlayListIndex;
+            handler._PlayAt(selectedPlayListIndex, queueListScrollView.lastInteractIndex, false);
+            if (selectedPlayListIndex < 0) {
+                SelectedPlayListIndex = 0;
+                UpdatePlayList();
+            }
         }
 
         public void _OnQueueListEntryDelete() {
             playListLastInteractTime = DateTime.UtcNow;
-            handler._PlayAt(SelectedPlayListIndex, queueListScrollView.lastInteractIndex, true);
+            int selectedPlayListIndex = SelectedPlayListIndex;
+            handler._PlayAt(selectedPlayListIndex, queueListScrollView.lastInteractIndex, true);
+            if (selectedPlayListIndex < 0) {
+                SelectedPlayListIndex = 0;
+                UpdatePlayList();
+            }
         }
 
         public void _UpdateProgress() {

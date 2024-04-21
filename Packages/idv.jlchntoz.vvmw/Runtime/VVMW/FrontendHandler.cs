@@ -20,6 +20,8 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, Locatable, BindUdonSharpEvent, SingletonCoreControl] public Core core;
         [Tooltip("If enabled, while user want to play a video and it is playing other video, the video will be queued. Recommend as this is more polite to everyone.")]
         [SerializeField] bool enableQueueList = true;
+        [Tooltip("This will records playback history from user input. Set to 0 to disable.")]
+        [SerializeField] int historySize = 5;
         [Tooltip("Locks the player frontend by default, this option must be used with other scripts to control the player.")]
         [FieldChangeCallback(nameof(Locked))]
         [SerializeField] bool locked = false;
@@ -44,11 +46,17 @@ namespace JLChnToZ.VRC.VVMW {
         [UdonSynced] ushort[] playListOrder;
         [UdonSynced] ushort playingIndex;
         [UdonSynced] ushort playListIndex;
+        [UdonSynced] VRCUrl[] historyUrls;
+        [UdonSynced] byte[] historyPlayerIndex;
+        [UdonSynced] string historyTitles;
         bool synced;
         ushort[] localPlayListOrder;
         VRCUrl[] localQueuedUrls;
         byte[] localQueuedPlayerIndex;
         string[] localQueuedTitles;
+        VRCUrl[] localHistoryUrls;
+        byte[] localHistoryPlayerIndex;
+        string[] localHistoryTitles;
         byte localFlags;
         int localPlayListIndex;
         ushort localPlayingIndex;
@@ -75,6 +83,20 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        public VRCUrl[] HistoryUrls {
+            get {
+                if (localHistoryUrls == null) localHistoryUrls = new VRCUrl[0];
+                return localHistoryUrls;
+            }
+        }
+
+        public string[] HistoryTitles {
+            get {
+                if (localHistoryTitles == null) localHistoryTitles = new string[0];
+                return localHistoryTitles;
+            }
+        }
+
         public bool Locked {
             get => locked;
             private set {
@@ -84,6 +106,8 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public bool HasQueueList => enableQueueList;
+
+        public int HistorySize => historySize;
 
         public int PlayListIndex {
             get {
@@ -313,6 +337,9 @@ namespace JLChnToZ.VRC.VVMW {
             queuedPlayerIndex = localQueuedPlayerIndex == null ? new byte[0] : localQueuedPlayerIndex;
             playListOrder = localPlayListOrder == null ? new ushort[0] : localPlayListOrder;
             queuedTitles = localQueuedTitles == null ? "" : string.Join("\u2029", localQueuedTitles);
+            historyUrls = localHistoryUrls == null ? new VRCUrl[0] : localHistoryUrls;
+            historyPlayerIndex = localHistoryPlayerIndex == null ? new byte[0] : localHistoryPlayerIndex;
+            historyTitles = localHistoryTitles == null ? "" : string.Join("\u2029", localHistoryTitles);
             flags = localFlags;
             playListIndex = (ushort)localPlayListIndex;
             playingIndex = localPlayingIndex;
@@ -335,6 +362,10 @@ namespace JLChnToZ.VRC.VVMW {
             localPlayListOrder = playListOrder;
             localQueuedTitles = string.IsNullOrEmpty(queuedTitles) && (queuedUrls == null || queuedUrls.Length == 0) ?
                 new string[0] : queuedTitles.Split('\u2029');
+            localHistoryUrls = historyUrls;
+            localHistoryPlayerIndex = historyPlayerIndex;
+            localHistoryTitles = string.IsNullOrEmpty(historyTitles) && (historyUrls == null || historyUrls.Length == 0) ?
+                new string[0] : historyTitles.Split('\u2029');
             localFlags = flags;
             if (playListIndex > 0 && (localPlayListIndex != playListIndex || localPlayingIndex != playingIndex))
                 core.SetTitle(playListEntryTitles[playingIndex], playListTitles[playListIndex - 1]);
@@ -345,6 +376,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void PlayUrl(VRCUrl url, byte index) {
+            Debug.Log($"PlayUrl({url}, {index})");
             if (!Utilities.IsValid(url)) return;
             bool shouldRequestSync = false;
             if (localPlayListIndex > 0) {
@@ -385,8 +417,14 @@ namespace JLChnToZ.VRC.VVMW {
                 UpdateState();
                 return;
             }
+            RecordPlaybackHistory(url, index, $"{Networking.LocalPlayer.displayName}:\n{UnescapeUrl(url)}");
             if (shouldRequestSync) RequestSync();
             core.PlayUrl(url, index);
+        }
+
+        public void PlayHistory(int index) {
+            if (localHistoryUrls == null || index < 0 || index >= localHistoryUrls.Length) return;
+            PlayUrl(localHistoryUrls[index], localHistoryPlayerIndex[index]);
         }
 
         public void _PlayNext() {
@@ -395,14 +433,18 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _PlayAt(int playListIndex, int entryIndex, bool deleteOnly) {
-            if (playListIndex != localPlayListIndex) {
+            int actualPlayListIndex = playListIndex;
+            if (actualPlayListIndex < 0) actualPlayListIndex = 0;
+            if (actualPlayListIndex != localPlayListIndex) {
                 localQueuedUrls = null;
                 localQueuedPlayerIndex = null;
                 localPlayListOrder = null;
-                localPlayListIndex = playListIndex;
+                localPlayListIndex = actualPlayListIndex;
             }
-            if (localPlayListIndex > 0)
+            if (playListIndex > 0)
                 PlayPlayList(entryIndex);
+            else if (playListIndex == -1)
+                PlayHistory(entryIndex);
             else
                 PlayQueueList(entryIndex, deleteOnly);
         }
@@ -502,6 +544,7 @@ namespace JLChnToZ.VRC.VVMW {
             newLength--;
             var url = localQueuedUrls[index];
             var playerIndex = localQueuedPlayerIndex[index];
+            var title = localQueuedTitles[index];
             var newQueue = newLength == localQueuedUrls.Length ? localQueuedUrls : new VRCUrl[newLength];
             var newPlayerIndexQueue = newLength == localQueuedUrls.Length ? localQueuedPlayerIndex : new byte[newLength];
             var newTitles = newLength == localQueuedUrls.Length ? localQueuedTitles : new string[newLength];
@@ -520,10 +563,47 @@ namespace JLChnToZ.VRC.VVMW {
             localQueuedUrls = newQueue;
             localQueuedPlayerIndex = newPlayerIndexQueue;
             localQueuedTitles = newTitles;
+            if (!deleteOnly) {
+                core.PlayUrl(url, playerIndex);
+                RecordPlaybackHistory(url, playerIndex, title);
+            }
             RequestSync();
-            if (!deleteOnly) core.PlayUrl(url, playerIndex);
             UpdateState();
         }
+
+        void RecordPlaybackHistory(VRCUrl url, byte playerIndex, string title) {
+            if (historySize <= 0) return;
+            if (localHistoryUrls != null || localHistoryUrls.Length == 0) {
+                localHistoryUrls = new VRCUrl[1] { url };
+                localHistoryPlayerIndex = new byte[1] { playerIndex };
+                localHistoryTitles = new string[1] { title };
+                return;
+            }
+            VRCUrl[] tempUrls;
+            byte[] tempPlayerIndex;
+            string[] tempTitles;
+            int currentSize;
+            if (localHistoryUrls.Length < historySize) {
+                tempUrls = new VRCUrl[localHistoryUrls.Length + 1];
+                tempPlayerIndex = new byte[localHistoryPlayerIndex.Length + 1];
+                tempTitles = new string[localHistoryTitles.Length + 1];
+                currentSize = localHistoryUrls.Length;
+            } else {
+                tempUrls = localHistoryUrls;
+                tempPlayerIndex = localHistoryPlayerIndex;
+                tempTitles = localHistoryTitles;
+                currentSize = historySize - 1;
+            }
+            Array.Copy(localHistoryUrls, 0, tempUrls, 1, currentSize);
+            Array.Copy(localHistoryPlayerIndex, 0, tempPlayerIndex, 1, currentSize);
+            Array.Copy(localHistoryTitles, 0, tempTitles, 1, currentSize);
+            tempUrls[0] = url;
+            tempPlayerIndex[0] = playerIndex;
+            tempTitles[0] = title;
+            localHistoryUrls = tempUrls;
+            localHistoryPlayerIndex = tempPlayerIndex;
+            localHistoryTitles = tempTitles;
+        } 
 
         bool RequestSync() {
             if (!synced) return false;

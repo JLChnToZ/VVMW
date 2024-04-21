@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEditorInternal;
 using UdonSharpEditor;
-using System;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(FrontendHandler))]
@@ -13,6 +11,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty defaultLoopProperty;
         SerializedProperty defaultShuffleProperty;
         SerializedProperty enableQueueListProperty;
+        SerializedProperty historySizeProperty;
         SerializedProperty defaultPlayListIndexProperty;
         SerializedProperty playListTitlesProperty;
         SerializedProperty autoPlayProperty;
@@ -29,6 +28,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             defaultLoopProperty = serializedObject.FindProperty("defaultLoop");
             defaultShuffleProperty = serializedObject.FindProperty("defaultShuffle");
             enableQueueListProperty = serializedObject.FindProperty("enableQueueList");
+            historySizeProperty = serializedObject.FindProperty("historySize");
             defaultPlayListIndexProperty = serializedObject.FindProperty("defaultPlayListIndex");
             playListTitlesProperty = serializedObject.FindProperty("playListTitles");
             autoPlayProperty = serializedObject.FindProperty("autoPlay");
@@ -65,6 +65,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     defaultPlayListIndexProperty.intValue == 0 &&
                     playListTitlesProperty.arraySize > 0)
                     defaultPlayListIndexProperty.intValue = 1;
+            }
+            using (var changed = new EditorGUI.ChangeCheckScope()) {
+                EditorGUILayout.PropertyField(historySizeProperty);
+                if (changed.changed && historySizeProperty.intValue < 0) historySizeProperty.intValue = 0;
             }
             if (playListNames == null || playListNames.Length != playListTitlesProperty.arraySize + (enableQueueListProperty.boolValue ? 1 : 0))
                 UpdatePlayListNames();
