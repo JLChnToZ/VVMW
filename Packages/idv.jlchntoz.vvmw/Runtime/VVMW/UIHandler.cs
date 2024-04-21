@@ -424,9 +424,8 @@ namespace JLChnToZ.VRC.VVMW {
             if (videoPlayerSelectRoot != null) videoPlayerSelectRoot.SetActive(false);
         }
 
-        void UpdatePlayerText() {
-            if (selectdPlayerText != null) selectdPlayerText.text = videoPlayerSelectButtons[selectedPlayer - 1].Text;
-        }
+        void UpdatePlayerText() =>
+            SetText(selectdPlayerText, selectdPlayerTMPro, videoPlayerSelectButtons[selectedPlayer - 1].Text);
 
         public void _OnUIUpdate() {
             if (!afterFirstRun) return;
@@ -555,11 +554,12 @@ namespace JLChnToZ.VRC.VVMW {
                 UpdatePlayList();
                 if (playNextIndicator != null)
                     playNextIndicator.SetActive(!isShuffle && SelectedPlayListIndex == 0 && handler.PlayListIndex == 0 && handler.PendingCount > 0);
-                if (queueModeText != null)
-                    queueModeText.text = languageManager.GetLocale(
+                SetText(queueModeText, queueModeTMPro,
+                    languageManager.GetLocale(
                         handler.PlayListIndex == 0 && handler.HasQueueList && (core.IsReady || core.IsLoading || handler.QueueUrls.Length > 0) ?
                         "QueueModeNext" : "QueueModeInstant"
-                    );
+                    )
+                );
             } else {
                 bool isRepeatOne = core.Loop;
                 if (repeatOffButton != null) repeatOffButton.gameObject.SetActive(!isRepeatOne);
