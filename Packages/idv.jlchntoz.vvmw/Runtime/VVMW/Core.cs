@@ -19,6 +19,8 @@ namespace JLChnToZ.VRC.VVMW {
     [DefaultExecutionOrder(0)]
     [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#vvmw-game-object")]
     public class Core : UdonSharpEventSender {
+        const long OWNER_SYNC_COOLDOWN_TICKS = 3 * TimeSpan.TicksPerSecond;
+        const long DOUBLE_CLICK_THRESHOLD_TICKS = 500 * TimeSpan.TicksPerMillisecond;
         const byte IDLE = 0, LOADING = 1, PLAYING = 2, PAUSED = 3;
         [HideInInspector, SerializeField] string[] trustedUrlDomains = new string[0]; // This list will be fetched on build, via VRChat SDK
         Vector4 normalST = new Vector4(1, 1, 0, 0), flippedST = new Vector4(1, -1, 0, 1);
@@ -86,6 +88,8 @@ namespace JLChnToZ.VRC.VVMW {
         AudioSource assignedAudioSource;
         bool isRealtimeGIUpdaterRunning;
         internal bool afterFirstRun;
+        bool isOwnerSyncRequested;
+        DateTime lastSyncTime, lastClickResyncTime;
 
         // Yttl Receivers
         [NonSerialized] public VRCUrl url;
@@ -350,6 +354,7 @@ namespace JLChnToZ.VRC.VVMW {
             screenTargetPropertyBlock = new MaterialPropertyBlock();
             UpdateVolume();
             if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedSeconds(nameof(_PlayDefaultUrl), autoPlayDelay);
+            else if (synced) SendCustomEventDelayedSeconds(nameof(_RequestOwnerSync), autoPlayDelay + 3);
             afterFirstRun = true;
         }
 
@@ -462,6 +467,18 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void LocalSync() {
             if (synced) {
+                var currentTime = Networking.GetNetworkDateTime();
+                if (lastClickResyncTime < currentTime) {
+                    if ((currentTime - lastClickResyncTime).Ticks < DOUBLE_CLICK_THRESHOLD_TICKS) {
+                        lastClickResyncTime = currentTime + TimeSpan.FromTicks(OWNER_SYNC_COOLDOWN_TICKS);
+                        if (!isOwnerSyncRequested) {
+                            isOwnerSyncRequested = true;
+                            SendCustomEventDelayedFrames(nameof(_RequestOwnerSync), 0);
+                        }
+                        return;
+                    }
+                    lastClickResyncTime = currentTime;
+                }
                 #if UNITY_ANDROID
                 if (IsUrlValid(questUrl))
                     localUrl = questUrl;
@@ -696,6 +713,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public override void OnPreSerialization() {
             if (!synced || isLocalReloading) return;
+            lastSyncTime = Networking.GetNetworkDateTime();
             if (activeHandler == null) {
                 activePlayer = 0;
                 state = IDLE;
@@ -864,10 +882,15 @@ namespace JLChnToZ.VRC.VVMW {
 
         bool IsUrlValid(VRCUrl url) => Utilities.IsValid(url) && !url.Equals(VRCUrl.Empty);
 
-        public void _RequestOwnerSync() => SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(OwnerSync));
+        public void _RequestOwnerSync() {
+            isOwnerSyncRequested = false;
+            if (!synced) return;
+            SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(OwnerSync));
+        }
 
         public void OwnerSync() {
             if (!Networking.IsOwner(gameObject) || !synced) return;
+            if ((Networking.GetNetworkDateTime() - lastSyncTime).Ticks < OWNER_SYNC_COOLDOWN_TICKS) return;
             RequestSerialization();
         }
 
