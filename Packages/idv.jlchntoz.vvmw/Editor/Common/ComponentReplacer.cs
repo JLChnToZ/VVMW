@@ -9,7 +9,13 @@ using static UnityEngine.Object;
 
 namespace JLChnToZ.VRC.VVMW {
     public class ComponentReplacer {
+        delegate FieldInfo GFIASTFP(SerializedProperty property, out Type type);
+        static readonly GFIASTFP getFieldInfoAndStaticTypeFromProperty = Delegate.CreateDelegate(
+            typeof(GFIASTFP), Type.GetType("UnityEditor.ScriptAttributeUtility, UnityEditor", false)?
+            .GetMethod("GetFieldInfoAndStaticTypeFromProperty", BindingFlags.NonPublic | BindingFlags.Static)
+        ) as GFIASTFP;
         static readonly Dictionary<Component, List<(Component, string)>> references = new Dictionary<Component, List<(Component, string)>>();
+        static readonly HashSet<(Type, string)> blackListedPaths = new HashSet<(Type, string)>();
         static readonly Dictionary<Type, Type[]> dependents = new Dictionary<Type, Type[]>();
         readonly List<ComponentReplacer> downstreams = new List<ComponentReplacer>();
         readonly Type componentType;
@@ -18,6 +24,8 @@ namespace JLChnToZ.VRC.VVMW {
         readonly Component[] componentsInGameObject;
         Component[] componentsInTemporary;
         readonly int componentIndex;
+
+        public static void AddToBlackList(Type type, string path) => blackListedPaths.Add((type, path));
 
         public static T TryReplaceComponent<T>(Component oldComponent, bool copyContent) where T : Component {
             if (oldComponent == null) return null;
@@ -93,6 +101,25 @@ namespace JLChnToZ.VRC.VVMW {
         public static ICollection<(Component, string)> GetReferencedComponents(Component component) =>
             component != null && references.TryGetValue(component, out var mapping) ?
             mapping : Array.Empty<(Component, string)>();
+        
+        public static bool CanAllReferencesReplaceWith<T>(Component component) =>
+            CanAllReferencesReplaceWith(component, typeof(T));
+
+        public static bool CanAllReferencesReplaceWith(Component component, Type replaceType) {
+            var referencedComponents = GetReferencedComponents(component);
+            if (referencedComponents.Count == 0) return true;
+            foreach (var (referencedBy, path) in referencedComponents) {
+                if (referencedBy == null) continue;
+                if (blackListedPaths.Contains((referencedBy.GetType(), path))) return false;
+                using (var so = new SerializedObject(referencedBy)) {
+                    var sp = so.FindProperty(path);
+                    if (sp == null) continue;
+                    getFieldInfoAndStaticTypeFromProperty(sp, out var type);
+                    if (type != null && !type.IsAssignableFrom(replaceType)) return false;
+                }
+            }
+            return true;
+        }
 
         ComponentReplacer(GameObject sourceGameObject, Component[] components, int index) {
             this.sourceGameObject = sourceGameObject;

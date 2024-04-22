@@ -15,6 +15,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static readonly Dictionary<string, TMP_FontAsset> fontAssetMapping = new Dictionary<string, TMP_FontAsset>();
         static readonly List<MonoBehaviour> tempMonoBehaviours = new List<MonoBehaviour>();
 
+        static TMProMigratator() {
+            #if VRC_SDK_VRCSDK3
+            ComponentReplacer.AddToBlackList(typeof(InputField), "m_Placeholder");
+            ComponentReplacer.AddToBlackList(typeof(TMP_InputField), "m_Placeholder");
+            ComponentReplacer.AddToBlackList(typeof(global::VRC.SDK3.Components.VRCUrlInputField), "m_Placeholder");
+            #endif
+        }
+
         [MenuItem("Tools/VizVid/Migrate TMPro Components")]
         static void MigrateSelected() {
             LoadFontMapping();
@@ -53,7 +61,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                     migratableFields[type] = mapping;
                 }
-                if (isTypeMigratable && monoBehaviour.TryGetComponent(out Text text))
+                if (isTypeMigratable &&
+                    monoBehaviour.TryGetComponent(out Text text) &&
+                    ComponentReplacer.CanAllReferencesReplaceWith<TextMeshProUGUI>(text))
                     Migrate(text);
                 if (mapping != null) {
                     foreach (var kv in mapping) {
@@ -71,8 +81,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             var components = new List<Component>();
             foreach (var text in root.GetComponentsInChildren<Text>(true)) {
-                var referencedComponents = ComponentReplacer.GetReferencedComponents(text);
-                if (referencedComponents.Count > 0) continue;
+                if (!ComponentReplacer.CanAllReferencesReplaceWith<TextMeshProUGUI>(text)) continue;
                 text.GetComponents(components);
                 bool isRequired = false;
                 foreach (var component in components)

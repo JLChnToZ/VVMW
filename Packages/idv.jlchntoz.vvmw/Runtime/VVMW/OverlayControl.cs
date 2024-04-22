@@ -51,7 +51,14 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Text desktopHintsVolumeUpKey;
         [TMProMigratable(nameof(desktopHintsVolumeDownKeyTMPro))]
         [SerializeField] Text desktopHintsVolumeDownKey;
+        [TMProMigratable(nameof(desktopHintsReloadButtonKey2TMPro))]
+        [SerializeField] Text desktopHintsReloadButtonKey2;
+        [TMProMigratable(nameof(desktopHintsVolumeUpKey2TMPro))]
+        [SerializeField] Text desktopHintsVolumeUpKey2;
+        [TMProMigratable(nameof(desktopHintsVolumeDownKey2TMPro))]
+        [SerializeField] Text desktopHintsVolumeDownKey2;
         [SerializeField] TextMeshProUGUI desktopHintsReloadButtonKeyTMPro, desktopHintsVolumeUpKeyTMPro, desktopHintsVolumeDownKeyTMPro;
+        [SerializeField] TextMeshProUGUI desktopHintsReloadButtonKey2TMPro, desktopHintsVolumeUpKey2TMPro, desktopHintsVolumeDownKey2TMPro;
         Animator desktopModeAnim;
         bool vrMode, afterFirstRun;
         VRCPlayerApi localPlayer;
@@ -104,6 +111,18 @@ namespace JLChnToZ.VRC.VVMW {
                 desktopHintsVolumeDownKey.text = volumeDownKey.ToString();
             if (desktopHintsVolumeDownKeyTMPro != null)
                 desktopHintsVolumeDownKeyTMPro.text = volumeDownKey.ToString();
+            if (desktopHintsReloadButtonKey2 != null)
+                desktopHintsReloadButtonKey2.text = reloadKey.ToString();
+            if (desktopHintsReloadButtonKey2TMPro != null)
+                desktopHintsReloadButtonKey2TMPro.text = reloadKey.ToString();
+            if (desktopHintsVolumeUpKey2 != null)
+                desktopHintsVolumeUpKey2.text = volumeUpKey.ToString();
+            if (desktopHintsVolumeUpKey2TMPro != null)
+                desktopHintsVolumeUpKey2TMPro.text = volumeUpKey.ToString();
+            if (desktopHintsVolumeDownKey2 != null)
+                desktopHintsVolumeDownKey2.text = volumeDownKey.ToString();
+            if (desktopHintsVolumeDownKey2TMPro != null)
+                desktopHintsVolumeDownKey2TMPro.text = volumeDownKey.ToString();
         }
 
         void Update() {
