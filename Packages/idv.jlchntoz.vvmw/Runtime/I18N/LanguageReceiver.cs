@@ -5,6 +5,7 @@ using TMPro;
 
 namespace JLChnToZ.VRC.VVMW.I18N {
 
+    [TMProMigratable]
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [AddComponentMenu("VizVid/Locales/Language Receiver")]
     [DefaultExecutionOrder(1)]
