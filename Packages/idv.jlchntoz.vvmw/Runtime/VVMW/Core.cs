@@ -92,7 +92,8 @@ namespace JLChnToZ.VRC.VVMW {
         DateTime lastSyncTime, lastClickResyncTime;
 
         // Yttl Receivers
-        [NonSerialized] public VRCUrl url;
+        [NonSerialized, FieldChangeCallback(nameof(URL))]
+        public VRCUrl url = VRCUrl.Empty;
         [NonSerialized, FieldChangeCallback(nameof(Author))]
         public string author = "";
         [NonSerialized, FieldChangeCallback(nameof(Title))]
@@ -280,10 +281,15 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        VRCUrl URL {
+            get => url;
+            set => url = value ?? VRCUrl.Empty;
+        }
+
         string Title {
             get => title;
             set {
-                if (hasCustomTitle || url == null || !url.Equals(localUrl)) return;
+                if (hasCustomTitle || !url.Equals(localUrl)) return;
                 title = value;
             }
         }
@@ -291,7 +297,7 @@ namespace JLChnToZ.VRC.VVMW {
         string Author {
             get => author;
             set {
-                if (hasCustomTitle || url == null || !url.Equals(localUrl)) return;
+                if (hasCustomTitle || !url.Equals(localUrl)) return;
                 author = value;
             }
         }
@@ -299,7 +305,7 @@ namespace JLChnToZ.VRC.VVMW {
         string ViewCount {
             get => viewCount;
             set {
-                if (hasCustomTitle || url == null || !url.Equals(localUrl)) return;
+                if (hasCustomTitle || !url.Equals(localUrl)) return;
                 viewCount = value;
             }
         }
@@ -307,7 +313,7 @@ namespace JLChnToZ.VRC.VVMW {
         string Description {
             get => description;
             set {
-                if (hasCustomTitle || url == null || !url.Equals(localUrl)) return;
+                if (hasCustomTitle || !url.Equals(localUrl)) return;
                 description = value;
             }
         }
@@ -330,6 +336,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void OnEnable() {
             if (afterFirstRun) return;
+            url = VRCUrl.Empty;
             foreach (var handler in playerHandlers)
                 handler.core = this;
             if (screenTargetPropertyNames != null) {
