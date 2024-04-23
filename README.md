@@ -7,12 +7,14 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 ## Features
 - Basic playback, seeking controls
 - Pre-defined playlists & user queue list
+- Playback history for user inputed URLs (since v1.0.32)
 - Quest (Android) client specific URLs (only available on pre-defined URLs, play lists and API)
 - Low latency mode, (tested with RTSP/RTMP streams)
 - Local mode (toggleable syncing with other users within instance before uploading)
 - Modulized screen, audio & UI architecture, support multiple instances
 - Both on-screen & separated interfaces available
 - (Almost) one-click to change interface colors
+- Supports both legacy UI and TextMeshPro setup (since v1.0.32)
 - Local pickupable & scaleable screen
 - Wrist band (VR) / keyboard (desktop) resync button & volume controls
 - Auto plays when local user steps into specific region

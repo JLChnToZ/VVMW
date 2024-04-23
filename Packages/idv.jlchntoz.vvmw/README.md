@@ -18,6 +18,7 @@ This documentation is for V1.0.12 or later, some guidelines are different to old
 	* [How to Change color?](#how-to-change-color)
     * [How to Setup Auto Plays When a User Goes Nearby?](#how-to-setup-auto-plays-when-a-user-goes-nearby)
     * [How to Make Background Music Fade Out When Video is Playing?](#how-to-make-background-music-fade-out-when-video-is-playing)
+    * [How to Upgrade to Text Mesh Pro?](#how-to-upgrade-to-text-mesh-pro)
 * [Details in the Bundle](#details-in-the-bundle)
 	* [VVMW (Game Object)](#vvmw-game-object)
 	* [Builtin Module / AVPro Module](#builtin-module--av-pro-module)
@@ -97,6 +98,7 @@ Current supported Playlists / video players to be imported directly:
 - iwaSync 3
 - JT Playlist
 - ProTV by ArchiTech
+- VideoTXL
 
 To import above listed Playlists, drag the game object containing their Playlists to this Playlist editor. Beware it is sightly different when you drop it between the left panel and the right: If you dropped on the left, new Playlists will be added; and if you dropped on the right, it will append to current selected Playlist if applicable.
 
@@ -141,6 +143,18 @@ Next, click on the "Find" button next to the core field, or drag your video play
 ![ ](.tutorial/add-bgm-control-2.png)
 
 And thats it!
+
+### How to Upgrade to Text Mesh Pro?
+
+Both Unity and VRChat SDK encourages to use TextMeshPro (TMPro) instead of legacy Text components for all UIs in your scene for readability and aesthetics in VR. To upgrade VizVid to use TMPro instead of legacy Text, starting from v1.0.32, you can do the following:
+
+1. Select the outermost UI game objects of VizVid you want to migrate, such as Default UI, Overlay Control, Re-Sync Button.
+2. Select `Tools > VizVid > Migrate TMPro Components` in menu, the script will do the thing.
+3. That's it!
+
+Please note this only applies to currently what you have on the scene, if the player is upgraded in the future and new UI components are added, or you have added/replaced any UIs of the player afterwards, you will have to do this again.
+
+If you want to test the player within Unity Editor but find out all non-English text become tofu after migration, you may refer to this article: [TextMeshPro in VRChat](https://hai-vr.notion.site/TextMeshPro-in-VRChat-91561782adea47a78569cec641fd5ee9#88dd13b80e4d4caeafc00f26b4aa2ae1).
 
 ## Details in the Bundle
 In the prefab, it should look like this in hierarchy:

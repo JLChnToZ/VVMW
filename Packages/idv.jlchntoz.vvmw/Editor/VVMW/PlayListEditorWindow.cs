@@ -11,6 +11,7 @@ using VRC.SDKBase;
 using VVMW.ThirdParties.LitJson;
 
 using UnityObject = UnityEngine.Object;
+using System.Collections;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
 
@@ -514,7 +515,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         void ImportPlayListFromIwaSync3(dynamic iwaSync3PlayList, bool newPlayList = false) {
             var playList = GetOrCreatePlayList("Imported Playlist", newPlayList);
             try {
-                foreach (var track in ((object)iwaSync3PlayList).GetType().GetField("tracks", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).GetValue(iwaSync3PlayList)) {
+                foreach (var track in (dynamic)((object)iwaSync3PlayList).GetType().GetField("tracks", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).GetValue(iwaSync3PlayList)) {
                     var trackMode = (int)track.mode;
                     var title = track.title;
                     var url = track.url;
