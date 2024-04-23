@@ -367,8 +367,10 @@ namespace JLChnToZ.VRC.VVMW {
             localHistoryTitles = string.IsNullOrEmpty(historyTitles) && (historyUrls == null || historyUrls.Length == 0) ?
                 new string[0] : historyTitles.Split('\u2029');
             localFlags = flags;
-            if (playListIndex > 0 && (localPlayListIndex != playListIndex || localPlayingIndex != playingIndex))
-                core.SetTitle(playListEntryTitles[playingIndex], playListTitles[playListIndex - 1]);
+            if (playListIndex > 0) {
+                if (localPlayListIndex != playListIndex || localPlayingIndex != playingIndex)
+                    core.SetTitle(playListEntryTitles[playingIndex], playListTitles[playListIndex - 1]);
+            } else core._ResetTitle();
             localPlayListIndex = playListIndex;
             localPlayingIndex = playingIndex;
             core.Loop = RepeatOne;
@@ -565,6 +567,7 @@ namespace JLChnToZ.VRC.VVMW {
             localQueuedTitles = newTitles;
             if (!deleteOnly) {
                 core.PlayUrl(url, playerIndex);
+                core._ResetTitle();
                 RecordPlaybackHistory(url, playerIndex, title);
             }
             RequestSync();

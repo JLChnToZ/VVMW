@@ -101,6 +101,7 @@ namespace JLChnToZ.VRC.VVMW {
         public string viewCount = "";
         [NonSerialized, FieldChangeCallback(nameof(Description))]
         public string description = "";
+        bool hasCustomTitle;
 
         public string[] PlayerNames {
             get {
@@ -282,7 +283,7 @@ namespace JLChnToZ.VRC.VVMW {
         string Title {
             get => title;
             set {
-                if (url == null || !url.Equals(localUrl)) return;
+                if (hasCustomTitle || url == null || !url.Equals(localUrl)) return;
                 title = value;
             }
         }
@@ -290,7 +291,7 @@ namespace JLChnToZ.VRC.VVMW {
         string Author {
             get => author;
             set {
-                if (url == null || !url.Equals(localUrl)) return;
+                if (hasCustomTitle || url == null || !url.Equals(localUrl)) return;
                 author = value;
             }
         }
@@ -298,7 +299,7 @@ namespace JLChnToZ.VRC.VVMW {
         string ViewCount {
             get => viewCount;
             set {
-                if (url == null || !url.Equals(localUrl)) return;
+                if (hasCustomTitle || url == null || !url.Equals(localUrl)) return;
                 viewCount = value;
             }
         }
@@ -306,7 +307,7 @@ namespace JLChnToZ.VRC.VVMW {
         string Description {
             get => description;
             set {
-                if (url == null || !url.Equals(localUrl)) return;
+                if (hasCustomTitle || url == null || !url.Equals(localUrl)) return;
                 description = value;
             }
         }
@@ -405,15 +406,7 @@ namespace JLChnToZ.VRC.VVMW {
             #endif
             activeHandler.LoadUrl(url, false);
             if (RequestSync()) state = LOADING;
-            if (yttl != null) {
-                if (!url.Equals(this.url)) {
-                    author = "";
-                    title = "";
-                    viewCount = "";
-                    description = "";
-                }
-                yttl.LoadData(url, this);
-            }
+            LoadYTTL();
         }
 
         public override void OnVideoError(VideoError videoError) {
@@ -756,7 +749,8 @@ namespace JLChnToZ.VRC.VVMW {
                 url = pcUrl;
                 altUrl = questUrl;
             }
-            if (state != IDLE && localUrl != url && (!IsUrlValid(localUrl) || !IsUrlValid(url) || localUrl.Get() != url.Get())) {
+            bool shouldReload = state != IDLE && localUrl != url && (!IsUrlValid(localUrl) || !IsUrlValid(url) || localUrl.Get() != url.Get());
+            if (shouldReload) {
                 if (activeHandler == null) {
                     Debug.LogWarning($"[VVMW] Owner serialization incomplete, will queue a sync request.");
                     SendCustomEventDelayedSeconds(nameof(_RequestOwnerSync), 1);
@@ -770,15 +764,9 @@ namespace JLChnToZ.VRC.VVMW {
                 trustUpdated = false;
                 SendEvent("_OnVideoBeginLoad");
                 activeHandler.LoadUrl(url, false);
-                if (yttl != null) {
-                    author = "";
-                    title = "";
-                    viewCount = "";
-                    description = "";
-                    yttl.LoadData(url, this);
-                }
             }
             localUrl = url;
+            if (shouldReload) LoadYTTL();
             if (activeHandler != null && activeHandler.IsReady) {
                 int intState = state;
                 switch (intState) {
@@ -934,12 +922,37 @@ namespace JLChnToZ.VRC.VVMW {
         public void Yttl_OnDataLoaded() => SendEvent("_OnTitleData");
 
         public void SetTitle(string title, string author) {
+            hasCustomTitle = true;
             url = VRCUrl.Empty;
             this.title = title;
             this.author = author;
             description = "";
             viewCount = "";
             SendEvent("_OnTitleData");
+        }
+
+        public void _ResetTitle() {
+            if (!hasCustomTitle) return;
+            hasCustomTitle = false;
+            url = VRCUrl.Empty;
+            if (yttl == null) {
+                author = "";
+                title = "";
+                viewCount = "";
+                description = "";
+            } else
+                LoadYTTL();
+            SendEvent("_OnTitleData");
+        }
+
+        void LoadYTTL() {
+            if (yttl == null || hasCustomTitle || url.Equals(localUrl)) return;
+            author = "";
+            title = "";
+            viewCount = "";
+            description = "";
+            if (localUrl != null)
+                yttl.LoadData(localUrl, this);
         }
     }
 }
