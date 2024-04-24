@@ -378,7 +378,6 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void PlayUrl(VRCUrl url, byte index) {
-            Debug.Log($"PlayUrl({url}, {index})");
             if (!Utilities.IsValid(url)) return;
             bool shouldRequestSync = false;
             if (localPlayListIndex > 0) {
@@ -420,8 +419,9 @@ namespace JLChnToZ.VRC.VVMW {
                 return;
             }
             RecordPlaybackHistory(url, index, $"{Networking.LocalPlayer.displayName}:\n{UnescapeUrl(url)}");
-            if (shouldRequestSync) RequestSync();
+            if (shouldRequestSync || historySize > 0) RequestSync();
             core.PlayUrl(url, index);
+            core._ResetTitle();
         }
 
         public void PlayHistory(int index) {

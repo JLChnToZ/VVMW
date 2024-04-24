@@ -434,7 +434,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void UpdatePlayerText() =>
-            SetText(selectdPlayerText, selectdPlayerTMPro, videoPlayerSelectButtons[selectedPlayer - 1].Text);
+            SetLocalizedText(selectdPlayerText, selectdPlayerTMPro, videoPlayerSelectButtons[selectedPlayer - 1].Text);
 
         public void _OnUIUpdate() {
             if (!afterFirstRun) return;
@@ -448,36 +448,29 @@ namespace JLChnToZ.VRC.VVMW {
             switch (core.State) {
                 case 0: // Idle
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
-                    if (statusText != null || statusTMPro != null) {
-                        SetStatusEnabled(true);
-                        SetText(statusText, statusTMPro, languageManager.GetLocale("VVMW_Name"));
-                    }
-                    SetText(durationText, durationTMPro, languageManager.GetLocale("TimeIdleFormat"));
-                    SetText(timeText, timeTMPro, languageManager.GetLocale("TimeIdleFormat"));
+                    SetStatusEnabled(true);
+                    SetLocalizedText(statusText, statusTMPro, "VVMW_Name");
+                    SetLocalizedText(durationText, durationTMPro, "TimeIdleFormat");
+                    SetLocalizedText(timeText, timeTMPro, "TimeIdleFormat");
                     break;
                 case 1: // Loading
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
-                    if (statusText != null || statusTMPro != null) {
-                        SetStatusEnabled(true);
-                        SetText(statusText, statusTMPro, languageManager.GetLocale("Loading"));
-                    }
-                    SetText(durationText, durationTMPro, languageManager.GetLocale("TimeIdleFormat"));
-                    SetText(timeText, timeTMPro, languageManager.GetLocale("TimeIdleFormat"));
+                    SetStatusEnabled(true);
+                    SetLocalizedText(statusText, statusTMPro, "Loading");
+                    SetLocalizedText(durationText, durationTMPro, "TimeIdleFormat");
+                    SetLocalizedText(timeText, timeTMPro, "TimeIdleFormat");
                     canStop = unlocked;
                     break;
                 case 2: // Error
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
                     if (statusText == null && statusTMPro == null) break;
-                    if (timeContainer != null) {
-                        SetStatusEnabled(true);
-                        timeContainer.SetActive(false);
-                    }
+                    SetStatusEnabled(true);
                     var errorCode = core.LastError;
                     switch (errorCode) {
-                        case VideoError.InvalidURL: SetText(statusText, statusTMPro, languageManager.GetLocale("InvalidURL")); break;
-                        case VideoError.AccessDenied: SetText(statusText, statusTMPro, languageManager.GetLocale(core.IsTrusted ? "AccessDenied" : "AccessDeniedUntrusted")); break;
-                        case VideoError.PlayerError: SetText(statusText, statusTMPro, languageManager.GetLocale("PlayerError")); break;
-                        case VideoError.RateLimited: SetText(statusText, statusTMPro, languageManager.GetLocale("RateLimited")); break;
+                        case VideoError.InvalidURL: SetLocalizedText(statusText, statusTMPro, "InvalidURL"); break;
+                        case VideoError.AccessDenied: SetLocalizedText(statusText, statusTMPro, core.IsTrusted ? "AccessDenied" : "AccessDeniedUntrusted"); break;
+                        case VideoError.PlayerError: SetLocalizedText(statusText, statusTMPro, "PlayerError"); break;
+                        case VideoError.RateLimited: SetLocalizedText(statusText, statusTMPro, "RateLimited"); break;
                         default: SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("Unknown"), (int)errorCode)); break;
                     }
                     SetText(durationText, durationTMPro, "");
@@ -488,7 +481,7 @@ namespace JLChnToZ.VRC.VVMW {
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
                     if (statusText != null || statusTMPro != null) {
                         SetStatusEnabled(true);
-                        SetText(statusText, statusTMPro, languageManager.GetLocale("Ready"));
+                        SetLocalizedText(statusText, statusTMPro, "Ready");
                     }
                     if (progressSlider != null) {
                         progressSlider.SetValueWithoutNotify(1);
@@ -577,7 +570,7 @@ namespace JLChnToZ.VRC.VVMW {
                     shuffleOffButton.interactable = false;
                 }
                 if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(false);
-                SetText(queueModeText, queueModeTMPro, languageManager.GetLocale("QueueModeInstant"));
+                SetLocalizedText(queueModeText, queueModeTMPro, "QueueModeInstant");
             }
         }
 
@@ -611,10 +604,10 @@ namespace JLChnToZ.VRC.VVMW {
             if (currentPlayListButton != null) currentPlayListButton.gameObject.SetActive(hasPending && selectedPlayListIndex >= 0);
             if (!string.IsNullOrEmpty(enqueueCountFormat))
                 SetText(enqueueCountText, enqueueCountTMPro, string.Format(enqueueCountFormat, pendingCount));
-            SetText(selectedPlayListText, selectedPlayListTMPro,
-                selectedPlayListIndex > 0 ? handler.PlayListTitles[selectedPlayListIndex - 1] :
-                selectedPlayListIndex < 0 ? languageManager.GetLocale("PlaybackHistory") : languageManager.GetLocale("QueueList")
-            );
+            if (selectedPlayListIndex > 0)
+                SetText(selectedPlayListText, selectedPlayListTMPro, handler.PlayListTitles[selectedPlayListIndex - 1]);
+            else
+                SetLocalizedText(selectedPlayListText, selectedPlayListTMPro, selectedPlayListIndex < 0 ? "PlaybackHistory" : "QueueList");
             if (playNextIndicator != null)
                 playNextIndicator.SetActive(!handler.Shuffle && selectedPlayListIndex == 0 && handler.PlayListIndex == 0 && handler.PendingCount > 0);
             bool shouldRefreshQueue = playListUpdateRequired || selectedPlayListIndex <= 0 || lastSelectedPlayListIndex != selectedPlayListIndex || lastPlayingIndex != playingIndex;
@@ -713,13 +706,13 @@ namespace JLChnToZ.VRC.VVMW {
             var duration = core.Duration;
             if (duration <= 0 || float.IsInfinity(duration)) {
                 SetStatusEnabled(true);
-                SetText(timeText, timeTMPro, languageManager.GetLocale("TimeIdleFormat"));
-                SetText(durationText, durationTMPro, languageManager.GetLocale("TimeIdleFormat"));
+                SetLocalizedText(timeText, timeTMPro, "TimeIdleFormat");
+                SetLocalizedText(durationText, durationTMPro, "TimeIdleFormat");
                 if (statusText != null || statusTMPro != null) {
                     if (!string.IsNullOrEmpty(core.title) || !string.IsNullOrEmpty(core.author))
                         SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("StreamingWithTitle"), core.title, core.author));
                     else
-                        SetText(statusText, statusTMPro, languageManager.GetLocale("Streaming"));
+                        SetLocalizedText(statusText, statusTMPro, "Streaming");
                 }
                 if (progressSlider != null) {
                     progressSlider.SetValueWithoutNotify(1);
@@ -731,19 +724,22 @@ namespace JLChnToZ.VRC.VVMW {
                 var durationTS = TimeSpan.FromSeconds(duration);
                 SetText(durationText, durationTMPro, string.Format(languageManager.GetLocale("TimeFormat"), durationTS));
                 SetText(timeText, timeTMPro, string.Format(languageManager.GetLocale("TimeFormat"), time));
-                if (statusText != null || statusTMPro != null) {
-                    if (core.IsPaused)
-                        SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("Paused"), time, durationTS));
-                    else if (!string.IsNullOrEmpty(core.title) || !string.IsNullOrEmpty(core.author))
-                        SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("PlayingWithTitle"), time, durationTS, core.title, core.author));
-                    else
-                        SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("Playing"), time, durationTS));
-                }
+                if (core.IsPaused)
+                    SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("Paused"), time, durationTS));
+                else if (!string.IsNullOrEmpty(core.title) || !string.IsNullOrEmpty(core.author))
+                    SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("PlayingWithTitle"), time, durationTS, core.title, core.author));
+                else
+                    SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("Playing"), time, durationTS));
                 if (progressSlider != null) {
                     progressSlider.SetValueWithoutNotify(core.Progress);
                     progressSlider.interactable = true;
                 }
             }
+        }
+
+        void SetLocalizedText(Text text, TextMeshProUGUI tmp, string locale) {
+            if (text == null && tmp == null) return;
+            SetText(text, tmp, languageManager.GetLocale(locale));
         }
 
         void SetText(Text text, TextMeshProUGUI tmp, string content) {
