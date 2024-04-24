@@ -61,6 +61,7 @@ namespace JLChnToZ.VRC.VVMW {
         int localPlayListIndex;
         ushort localPlayingIndex;
         bool afterFirstRun, isDataArrivedBeforeInit;
+        char[] punyCodeSplitDelimiters = new char[] { '-' };
 
         public VRCUrl[] QueueUrls {
             get {
@@ -617,12 +618,29 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _OnTitleData() => UpdateState();
 
+        #region URL Parsing
         string UnescapeUrl(VRCUrl url) {
             if (!Utilities.IsValid(url)) return "";
             var title = url.Get();
             if (string.IsNullOrEmpty(title)) return "";
-            int index = 0;
-            string result = "";
+            string result;
+            int index = title.IndexOf("://");
+            if (index >= 0) {
+                index += 3;
+                result = title.Substring(0, index);
+                int nextIndex = title.IndexOf('/', index);
+                var domainParts = title.Substring(index, nextIndex - index).Split('.');
+                for (int i = 0; i < domainParts.Length; i++) {
+                    var fragment = domainParts[i];
+                    if (fragment.StartsWith("xn--"))
+                        domainParts[i] = DecodePunycode(fragment.Substring(4));
+                }
+                result += string.Join(".", domainParts);
+                index = nextIndex;
+            } else {
+                result = "";
+                index = 0;
+            }
             while (index >= 0) {
                 int offset = title.IndexOf('%', index);
                 if (offset < 0 || offset + 3 > title.Length) {
@@ -674,5 +692,54 @@ namespace JLChnToZ.VRC.VVMW {
             }
             return result;
         }
+
+        string DecodePunycode(string source) {
+            var result = new char[source.Length];
+            int outputLength = 0;
+            int basic = Mathf.Max(0, source.LastIndexOf('-'));
+            for (int i = 0; i < basic; i++) {
+                if (source[i] >= 0x80) return source;
+                result[outputLength++] = source[i];
+            }
+            for (int i = 0, j = basic > 0 ? basic + 1 : 0, length = source.Length, n = 0x80, bias = 72; j < length; i++, outputLength++) {
+                int oldI = i;
+                for (int w = 1, k = 36; ; k += 36) {
+                    if (j >= length) return source;
+                    int digit = BasicToDigit(source[j++]);
+                    if (digit < 0 || digit >= 36 || digit > Mathf.Floor((float)(int.MaxValue - i) / w)) return source;
+                    i += digit * w;
+                    int t = k <= bias ? 1 : k >= bias + 26 ? 26 : k - bias;
+                    if (digit < t) break;
+                    int baseMinusT = 36 - t;
+                    if (w > Mathf.Floor((float)int.MaxValue / baseMinusT)) return source;
+                    w *= baseMinusT;
+                }
+                int outOffset = outputLength + 1;
+                bias = Adapt(i - oldI, outputLength + 1, oldI == 0);
+                if (i / outOffset > int.MaxValue - n) return source;
+                n += i / outOffset;
+                i %= outOffset;
+                Array.Copy(result, i, result, i + 1, outputLength - i);
+                result[i] = (char)n;
+            }
+            return new string(result, 0, outputLength);
+        }
+
+        int BasicToDigit(char cp) {
+            if (cp >= 'a' && cp <= 'z') return cp - 'a';
+            if (cp >= 'A' && cp <= 'Z') return cp - 'A';
+            if (cp >= '0' && cp <= '9') return cp - '0' + 26;
+            return -1;
+        }
+
+        int Adapt(int delta, int numPoints, bool firstTime) {
+            delta = firstTime ? delta / 700 : delta / 2;
+            delta += delta / numPoints;
+            int k;
+            for (k = 0; delta > 455; k += 36)
+                delta /= 35;
+            return k + 36 * delta / (delta + 38);
+        }
+        #endregion
     }
 }
