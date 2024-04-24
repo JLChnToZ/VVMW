@@ -629,6 +629,7 @@ namespace JLChnToZ.VRC.VVMW {
                 index += 3;
                 result = title.Substring(0, index);
                 int nextIndex = title.IndexOf('/', index);
+                if (nextIndex < 0) nextIndex = title.Length;
                 var domainParts = title.Substring(index, nextIndex - index).Split('.');
                 for (int i = 0; i < domainParts.Length; i++) {
                     var fragment = domainParts[i];
