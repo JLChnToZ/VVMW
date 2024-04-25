@@ -109,6 +109,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 var fontSize = textComponent.fontSize;
                 var fontStyle = textComponent.fontStyle;
                 var alignment = textComponent.alignment;
+                var alignByGeometry = textComponent.alignByGeometry;
                 var color = textComponent.color;
                 var lineSpacing = textComponent.lineSpacing;
                 var richText = textComponent.supportRichText;
@@ -132,24 +133,25 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
                 tmpComponent.fontSize = fontSize;
                 switch (fontStyle) {
-                    case FontStyle.Normal: tmpComponent.fontStyle = FontStyles.Normal; break;
                     case FontStyle.Bold: tmpComponent.fontStyle = FontStyles.Bold; break;
                     case FontStyle.Italic: tmpComponent.fontStyle = FontStyles.Italic; break;
                     case FontStyle.BoldAndItalic: tmpComponent.fontStyle = FontStyles.Bold | FontStyles.Italic; break;
+                    default: tmpComponent.fontStyle = FontStyles.Normal; break;
                 }
                 switch (alignment) {
                     case TextAnchor.UpperLeft: tmpComponent.alignment = TextAlignmentOptions.TopLeft; break;
-                    case TextAnchor.UpperCenter: tmpComponent.alignment = TextAlignmentOptions.Top; break;
+                    case TextAnchor.UpperCenter: tmpComponent.alignment = alignByGeometry ? TextAlignmentOptions.TopGeoAligned : TextAlignmentOptions.Top; break;
                     case TextAnchor.UpperRight: tmpComponent.alignment = TextAlignmentOptions.TopRight; break;
-                    case TextAnchor.MiddleLeft: tmpComponent.alignment = TextAlignmentOptions.MidlineLeft; break;
-                    case TextAnchor.MiddleCenter: tmpComponent.alignment = TextAlignmentOptions.Midline; break;
-                    case TextAnchor.MiddleRight: tmpComponent.alignment = TextAlignmentOptions.MidlineRight; break;
+                    case TextAnchor.MiddleLeft: tmpComponent.alignment = TextAlignmentOptions.Left; break;
+                    case TextAnchor.MiddleCenter: tmpComponent.alignment = alignByGeometry ? TextAlignmentOptions.CenterGeoAligned : TextAlignmentOptions.Center; break;
+                    case TextAnchor.MiddleRight: tmpComponent.alignment = TextAlignmentOptions.Right; break;
                     case TextAnchor.LowerLeft: tmpComponent.alignment = TextAlignmentOptions.BottomLeft; break;
-                    case TextAnchor.LowerCenter: tmpComponent.alignment = TextAlignmentOptions.Bottom; break;
+                    case TextAnchor.LowerCenter: tmpComponent.alignment = alignByGeometry ? TextAlignmentOptions.BottomGeoAligned : TextAlignmentOptions.Bottom; break;
                     case TextAnchor.LowerRight: tmpComponent.alignment = TextAlignmentOptions.BottomRight; break;
+                    default: tmpComponent.alignment = alignByGeometry ? TextAlignmentOptions.MidlineGeoAligned : TextAlignmentOptions.Center; break;
                 }
                 tmpComponent.color = color;
-                tmpComponent.lineSpacing = lineSpacing;
+                tmpComponent.lineSpacing = (lineSpacing - 1) * 100;
                 tmpComponent.richText = richText;
                 tmpComponent.overflowMode = vertOverflow == VerticalWrapMode.Truncate ? TextOverflowModes.Truncate : TextOverflowModes.Overflow;
                 tmpComponent.enableWordWrapping = horzOverflow == HorizontalWrapMode.Wrap;
