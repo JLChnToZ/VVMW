@@ -178,10 +178,15 @@ This is the "brain" of the system, it controls and synchronizes the player (if e
   - **Default Quest URL**: The optional alternative URL will be played for Quest/Android clients. Leave empty to use default URL.
   - **Auto Play Player Type**: The "module" to use to play the above URL.
   - **Loop**: Is default the player loops (can be toggled via UI)
-  - **Auto Play Delay Time**: The delay to start playing the default video when the scene is loaded.
-    This is to prevent rate limit between video players in same instance.
-    If you have multiple video players (not limited to VizVid) which will auto plays in the same world
-    you should set this to a value at least in multiple of `5` to stagger the loading time.
+- **Auto Play Delay Time**: The delay to start playing the default video when the scene is loaded.
+  This is to prevent rate limit between video players in same instance.
+  If you have multiple video players (not limited to VizVid) which will auto plays in the same world
+  you should set this to a value at least in multiple of `5` to stagger the loading time.
+- **Total Retry Count**: How many times should retry when video failed to load.
+- **Retry Delay**: Delay to retry when video failed to load.
+- **Time Drift Detect Threshold**: The player will adjust the time to sync with the owner's time when the time drift is greater than this value.
+  Recommend keep this value not too low or too high, as it may cause the video to jump back and forth,
+  or timing between players may drift too far.
 - **Player Handlers**: The "modules" of actual the player components.
   You usually don't need to change this, unless you want to disable unused player systems. See "Builtin Module" and "AVPro Module" for the modules.
 - **Default Texture**: The default texture displays when the player is not playing anything. You can change to any texture here, but if you want it to be simple, just leave it in default value.
@@ -198,6 +203,8 @@ This is the "brain" of the system, it controls and synchronizes the player (if e
 - **Audio Link**: [Audio Link](https://github.com/llealloo/vrc-udon-audio-link) support. It will wire the audio to provided Audio Link instance when the player is playing.
 - **Targets**: For integration to custom scripts, it will sends out events to any Udon (sharp) behaviours assignaed here.
   I don't provide source-code level documentation so please read the source code if you want to integrate with your scripts.
+- **Realtime GI Update Interval**: The interval to update realtime GI, set to 0 to disable realtime GI update.
+  This features requires setup the lignt probes and realtime GI in the scene and the screen renderers.
 
 ### Builtin Module / AVPro Module
 These are the video player modules. The purpose of these game objects are interfaces from the undely video player components to the core.
