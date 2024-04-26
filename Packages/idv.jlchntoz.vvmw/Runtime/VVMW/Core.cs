@@ -26,7 +26,8 @@ namespace JLChnToZ.VRC.VVMW {
         Vector4 normalST = new Vector4(1, 1, 0, 0), flippedST = new Vector4(1, -1, 0, 1);
         Rect normalRect = new Rect(0, 0, 1, 1), flippedRect = new Rect(0, 1, 1, -1);
         [SerializeField] VideoPlayerHandler[] playerHandlers;
-        [Tooltip("Audio sources to link to video player, will be set to the primary audio source of the video player, and volumes can be controlled by the video player.")]
+        [Tooltip("Audio sources to link to video player, will be set to the primary audio source of the video player, " +
+            "and volumes can be controlled by the video player.")]
         [SerializeField] AudioSource[] audioSources;
         [SerializeField] VRCUrl defaultUrl;
         [Tooltip("The default url to use when playing on Quest. Leave empty to use the same url as PC.")]
@@ -44,15 +45,21 @@ namespace JLChnToZ.VRC.VVMW {
         float defaultVolume = 1;
         [SerializeField, FieldChangeCallback(nameof(Muted))]
         bool defaultMuted = false;
-        [Tooltip("The default texture to use when video is not ready or error occurred. It is required to have a texture when use with property block mode.")]
+        [Tooltip("The default texture to use when video is not ready or error occurred. " +
+            "It is required to have a texture when use with property block mode.")]
         [SerializeField] Texture defaultTexture;
         [SerializeField] UnityEngine.Object[] screenTargets;
         [SerializeField] int[] screenTargetModes;
         [SerializeField] int[] screenTargetIndeces;
         [SerializeField] string[] screenTargetPropertyNames, avProPropertyNames;
         [SerializeField] Texture[] screenTargetDefaultTextures;
-        [Tooltip("The interval to update realtime GI, set to 0 to disable realtime GI update.\nThis features requires setup the lignt probes and realtime GI in the scene and the screen renderers.")]
+        [Tooltip("The interval to update realtime GI, set to 0 to disable realtime GI update.\n" +
+            "This features requires setup the lignt probes and realtime GI in the scene and the screen renderers.")]
         [SerializeField, Range(0, 10)] float realtimeGIUpdateInterval = 0;
+        [Tooltip("The player will adjust the time to sync with the owner's time when the time drift is greater than this value.\n" +
+            "Recommend keep this value not too low or too high, as it may cause the video to jump back and forth, " +
+            "or timing between players may drift too far.")]
+        [SerializeField, Range(0, 5)] float timeDriftDetectThreshold = 0.9F;
         int[] screenTargetPropertyIds, avProPropertyIds;
         [FieldChangeCallback(nameof(SyncOffset))]
         float syncOffset = 0;
@@ -858,7 +865,7 @@ namespace JLChnToZ.VRC.VVMW {
         void SyncTime() {
             if (Networking.IsOwner(gameObject)) {
                 var newTime = CalcSyncTime();
-                if (Mathf.Abs((float)(newTime - time) / TimeSpan.TicksPerSecond) >= 0.1F) {
+                if (Mathf.Abs((float)(newTime - time) / TimeSpan.TicksPerSecond) >= timeDriftDetectThreshold) {
                     time = newTime;
                     RequestSerialization();
                 }
@@ -868,7 +875,7 @@ namespace JLChnToZ.VRC.VVMW {
                 float t = CalcVideoTime();
                 var t2 = activeHandler.Time;
                 if (loop) t2 = Mathf.Repeat(t2, duration);
-                if (Mathf.Abs(t2 - t) >= 0.1F) {
+                if (Mathf.Abs(t2 - t) >= timeDriftDetectThreshold) {
                     activeHandler.Time = t;
                     SendEvent("_OnTimeDrift");
                 }

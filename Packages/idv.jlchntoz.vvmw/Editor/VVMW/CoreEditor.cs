@@ -42,6 +42,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty screenTargetDefaultTexturesProperty;
         SerializedProperty avProPropertyNamesProperty;
         SerializedProperty realtimeGIUpdateIntervalProperty;
+        SerializedProperty timeDriftDetectThresholdProperty;
         SerializedReorderableList playerHandlersList, audioSourcesList, targetsList;
         string[] playerNames;
         bool[] playerTypes;
@@ -84,6 +85,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             avProPropertyNamesProperty = serializedObject.FindProperty("avProPropertyNames");
             defaultTextureProperty = serializedObject.FindProperty("defaultTexture");
             realtimeGIUpdateIntervalProperty = serializedObject.FindProperty("realtimeGIUpdateInterval");
+            timeDriftDetectThresholdProperty = serializedObject.FindProperty("timeDriftDetectThreshold");
             targetsList = new SerializedReorderableList(serializedObject.FindProperty("targets"));
             screenTargetVisibilityState = new List<bool>();
             for (int i = 0, count = screenTargetsProperty.arraySize; i < count; i++)
@@ -99,6 +101,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             DrawAutoPlayField();
             EditorGUILayout.PropertyField(totalRetryCountProperty);
             EditorGUILayout.PropertyField(retryDelayProperty);
+            EditorGUILayout.PropertyField(timeDriftDetectThresholdProperty);
             EditorGUILayout.Space();
             playerHandlersList.DoLayoutList();
             EditorGUILayout.Space();
