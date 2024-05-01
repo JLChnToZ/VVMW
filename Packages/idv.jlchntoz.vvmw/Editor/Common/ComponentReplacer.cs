@@ -4,6 +4,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
+using UnityObject = UnityEngine.Object;
 
 using static UnityEngine.Object;
 
@@ -23,6 +24,8 @@ namespace JLChnToZ.VRC.VVMW {
         GameObject temporaryGameObject;
         readonly Component[] componentsInGameObject;
         Component[] componentsInTemporary;
+        readonly Component prefabComponent;
+        readonly GameObject prefabInstance;
         readonly int componentIndex;
 
         public static void AddToBlackList(Type type, string path) => blackListedPaths.Add((type, path));
@@ -46,7 +49,7 @@ namespace JLChnToZ.VRC.VVMW {
             return newComponent;
         }
 
-        public static bool IsRequired(Type type, Type checkType) {
+        public static bool IsRequired(Type type, Type checkType, Type capableType = null) {
             if (!dependents.TryGetValue(type, out var types)) {
                 var temp = new List<Type>();
                 foreach (var requireComponent in type.GetCustomAttributes<RequireComponent>(true)) {
@@ -57,7 +60,7 @@ namespace JLChnToZ.VRC.VVMW {
                 dependents[type] = types = temp.ToArray();
             }
             foreach (var t in types)
-                if (t.IsAssignableFrom(checkType))
+                if (t.IsAssignableFrom(checkType) && (capableType == null || !t.IsAssignableFrom(capableType)))
                     return true;
             return false;
         }
@@ -133,6 +136,9 @@ namespace JLChnToZ.VRC.VVMW {
                 if (i >= 0) downstreams.Add(new ComponentReplacer(sourceGameObject, componentsInGameObject, i));
                 else Debug.LogWarning($"Component {c.GetType()} is required by {componentType} but not found in the same GameObject.");
             }
+            prefabComponent = PrefabUtility.GetCorrespondingObjectFromSource(component);
+            if (prefabComponent != null)
+                prefabInstance = PrefabUtility.GetOutermostPrefabInstanceRoot(component);
         }
 
         void CloneToTemporary() {
@@ -170,7 +176,13 @@ namespace JLChnToZ.VRC.VVMW {
             while (stack.Count > 0) {
                 var current = stack.Pop();
                 foreach (var downstream in current.downstreams) stack.Push(downstream);
-                var temp = sourceGameObject.AddComponent(current.componentType);
+                Component temp = null;
+                if (current.prefabComponent != null) {
+                    PrefabUtility.RevertRemovedComponent(prefabInstance, current.prefabComponent, InteractionMode.AutomatedAction);
+                    temp = current.componentsInGameObject[current.componentIndex];
+                    if (temp == null) sourceGameObject.TryGetComponent(current.componentType, out temp);
+                }
+                if (temp == null) temp = sourceGameObject.AddComponent(current.componentType);
                 current.componentsInGameObject[current.componentIndex] = temp;
                 if (temp != null) EditorUtility.CopySerializedIfDifferent(current.componentsInTemporary[current.componentIndex], temp);
                 if (references.TryGetValue(current.componentsInTemporary[current.componentIndex], out var mapping))

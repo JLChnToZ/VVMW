@@ -10,9 +10,7 @@ using static UnityEngine.Object;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     public static class TMProMigratator {
-        static readonly string defaultFontGuid = "f7984a9379f06e74a8d507baf148b47c";
-        static readonly Dictionary<Font, string> fontGuidMapping = new Dictionary<Font, string>();
-        static readonly Dictionary<string, TMP_FontAsset> fontAssetMapping = new Dictionary<string, TMP_FontAsset>();
+        static readonly Dictionary<Font, TMP_FontAsset> fontAssetMapping = new Dictionary<Font, TMP_FontAsset>();
         static readonly List<MonoBehaviour> tempMonoBehaviours = new List<MonoBehaviour>();
 
         static TMProMigratator() {
@@ -30,17 +28,20 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             foreach (var gameObject in Selection.gameObjects)
                 Migrate(gameObject);
         }
+
         public static void LoadFontMapping() {
-            fontGuidMapping.Clear();
             fontAssetMapping.Clear();
             foreach (var guid in AssetDatabase.FindAssets("t:TMP_FontAsset", new[] { "Assets", "Packages" })) {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var fontAsset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
                 if (fontAsset == null) continue;
                 var font = fontAsset.sourceFontFile;
-                if (font == null) continue;
-                fontGuidMapping[font] = guid;
-                fontAssetMapping[guid] = fontAsset;
+                if (font == null) {
+                    using (var so = new SerializedObject(fontAsset))
+                        font = so.FindProperty("m_SourceFontFile_EditorRef").objectReferenceValue as Font;
+                    if (font == null) continue;
+                }
+                fontAssetMapping[font] = fontAsset;
             }
         }
 
@@ -85,7 +86,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 text.GetComponents(components);
                 bool isRequired = false;
                 foreach (var component in components)
-                    if (component != text && ComponentReplacer.IsRequired(component.GetType(), typeof(Text))) {
+                    if (component != text && ComponentReplacer.IsRequired(component.GetType(), typeof(Text), typeof(TextMeshProUGUI))) {
                         isRequired = true;
                         break;
                     }
@@ -95,74 +96,58 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         public static TextMeshProUGUI Migrate(Text textComponent) {
             if (textComponent == null) return null;
-            var specialHandlingTypes = new List<MonoBehaviour>();
-            textComponent.GetComponents(tempMonoBehaviours);
-            GameObject tempGameObject = null;
-            try {
-                if (specialHandlingTypes.Count > 0) {
-                    tempGameObject = Instantiate(textComponent.gameObject);
-                    tempGameObject.SetActive(false);
-                    tempGameObject.hideFlags = HideFlags.HideAndDontSave;
-                }
-                var text = textComponent.text;
-                var font = textComponent.font;
-                var fontSize = textComponent.fontSize;
-                var fontStyle = textComponent.fontStyle;
-                var alignment = textComponent.alignment;
-                var alignByGeometry = textComponent.alignByGeometry;
-                var color = textComponent.color;
-                var lineSpacing = textComponent.lineSpacing;
-                var richText = textComponent.supportRichText;
-                var vertOverflow = textComponent.verticalOverflow;
-                var horzOverflow = textComponent.horizontalOverflow;
-                var bestFit = textComponent.resizeTextForBestFit;
-                var minSize = textComponent.resizeTextMinSize;
-                var maxSize = textComponent.resizeTextMaxSize;
-                var raycastTarget = textComponent.raycastTarget;
-                var gameObject = textComponent.gameObject;
-                var tmpComponent = ComponentReplacer.TryReplaceComponent<TextMeshProUGUI>(textComponent, false);
-                if (tmpComponent == null) return null;
-                tmpComponent.text = text;
-                if (font != null && fontGuidMapping.TryGetValue(font, out var fontGuid)) {
-                    if (!fontAssetMapping.TryGetValue(fontGuid, out var fontAsset)) {
-                        fontAsset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(AssetDatabase.GUIDToAssetPath(defaultFontGuid));
-                        fontAssetMapping[fontGuid] = fontAsset;
-                    }
-                    fontGuidMapping[font] = fontGuid;
-                    tmpComponent.font = fontAsset;
-                }
-                tmpComponent.fontSize = fontSize;
-                switch (fontStyle) {
-                    case FontStyle.Bold: tmpComponent.fontStyle = FontStyles.Bold; break;
-                    case FontStyle.Italic: tmpComponent.fontStyle = FontStyles.Italic; break;
-                    case FontStyle.BoldAndItalic: tmpComponent.fontStyle = FontStyles.Bold | FontStyles.Italic; break;
-                    default: tmpComponent.fontStyle = FontStyles.Normal; break;
-                }
-                switch (alignment) {
-                    case TextAnchor.UpperLeft: tmpComponent.alignment = TextAlignmentOptions.TopLeft; break;
-                    case TextAnchor.UpperCenter: tmpComponent.alignment = alignByGeometry ? TextAlignmentOptions.TopGeoAligned : TextAlignmentOptions.Top; break;
-                    case TextAnchor.UpperRight: tmpComponent.alignment = TextAlignmentOptions.TopRight; break;
-                    case TextAnchor.MiddleLeft: tmpComponent.alignment = TextAlignmentOptions.Left; break;
-                    case TextAnchor.MiddleCenter: tmpComponent.alignment = alignByGeometry ? TextAlignmentOptions.CenterGeoAligned : TextAlignmentOptions.Center; break;
-                    case TextAnchor.MiddleRight: tmpComponent.alignment = TextAlignmentOptions.Right; break;
-                    case TextAnchor.LowerLeft: tmpComponent.alignment = TextAlignmentOptions.BottomLeft; break;
-                    case TextAnchor.LowerCenter: tmpComponent.alignment = alignByGeometry ? TextAlignmentOptions.BottomGeoAligned : TextAlignmentOptions.Bottom; break;
-                    case TextAnchor.LowerRight: tmpComponent.alignment = TextAlignmentOptions.BottomRight; break;
-                    default: tmpComponent.alignment = alignByGeometry ? TextAlignmentOptions.MidlineGeoAligned : TextAlignmentOptions.Center; break;
-                }
-                tmpComponent.color = color;
-                tmpComponent.lineSpacing = (lineSpacing - 1) * 100;
-                tmpComponent.richText = richText;
-                tmpComponent.overflowMode = vertOverflow == VerticalWrapMode.Truncate ? TextOverflowModes.Truncate : TextOverflowModes.Overflow;
-                tmpComponent.enableWordWrapping = horzOverflow == HorizontalWrapMode.Wrap;
-                tmpComponent.enableAutoSizing = bestFit;
-                tmpComponent.fontSizeMin = minSize;
-                tmpComponent.fontSizeMax = maxSize;
-                tmpComponent.raycastTarget = raycastTarget;
-                return tmpComponent;
-            } finally {
-                if (tempGameObject != null) DestroyImmediate(tempGameObject);
+            var text = textComponent.text;
+            var font = textComponent.font;
+            var fontSize = textComponent.fontSize;
+            var fontStyle = textComponent.fontStyle;
+            var alignment = textComponent.alignment;
+            var alignByGeometry = textComponent.alignByGeometry;
+            var color = textComponent.color;
+            var lineSpacing = textComponent.lineSpacing;
+            var richText = textComponent.supportRichText;
+            var vertOverflow = textComponent.verticalOverflow;
+            var horzOverflow = textComponent.horizontalOverflow;
+            var bestFit = textComponent.resizeTextForBestFit;
+            var minSize = textComponent.resizeTextMinSize;
+            var maxSize = textComponent.resizeTextMaxSize;
+            var raycastTarget = textComponent.raycastTarget;
+            var tmpComponent = ComponentReplacer.TryReplaceComponent<TextMeshProUGUI>(textComponent, false);
+            if (tmpComponent == null) return null;
+            tmpComponent.text = text;
+            if (font == null || !fontAssetMapping.TryGetValue(font, out var fontAsset)) {
+                fontAsset = TMP_Settings.GetFontAsset();
+                if (font != null && fontAsset != null) fontAssetMapping[font] = fontAsset;
             }
+            tmpComponent.font = fontAsset;
+            tmpComponent.fontSize = fontSize;
+            switch (fontStyle) {
+                case FontStyle.Bold: tmpComponent.fontStyle = FontStyles.Bold; break;
+                case FontStyle.Italic: tmpComponent.fontStyle = FontStyles.Italic; break;
+                case FontStyle.BoldAndItalic: tmpComponent.fontStyle = FontStyles.Bold | FontStyles.Italic; break;
+                default: tmpComponent.fontStyle = FontStyles.Normal; break;
+            }
+            switch (alignment) {
+                case TextAnchor.UpperLeft: tmpComponent.alignment = TextAlignmentOptions.TopLeft; break;
+                case TextAnchor.UpperCenter: tmpComponent.alignment = alignByGeometry ? TextAlignmentOptions.TopGeoAligned : TextAlignmentOptions.Top; break;
+                case TextAnchor.UpperRight: tmpComponent.alignment = TextAlignmentOptions.TopRight; break;
+                case TextAnchor.MiddleLeft: tmpComponent.alignment = TextAlignmentOptions.Left; break;
+                case TextAnchor.MiddleCenter: tmpComponent.alignment = alignByGeometry ? TextAlignmentOptions.CenterGeoAligned : TextAlignmentOptions.Center; break;
+                case TextAnchor.MiddleRight: tmpComponent.alignment = TextAlignmentOptions.Right; break;
+                case TextAnchor.LowerLeft: tmpComponent.alignment = TextAlignmentOptions.BottomLeft; break;
+                case TextAnchor.LowerCenter: tmpComponent.alignment = alignByGeometry ? TextAlignmentOptions.BottomGeoAligned : TextAlignmentOptions.Bottom; break;
+                case TextAnchor.LowerRight: tmpComponent.alignment = TextAlignmentOptions.BottomRight; break;
+                default: tmpComponent.alignment = alignByGeometry ? TextAlignmentOptions.MidlineGeoAligned : TextAlignmentOptions.Center; break;
+            }
+            tmpComponent.color = color;
+            tmpComponent.lineSpacing = (lineSpacing - 1) * 100;
+            tmpComponent.richText = richText;
+            tmpComponent.overflowMode = vertOverflow == VerticalWrapMode.Truncate ? TextOverflowModes.Truncate : TextOverflowModes.Overflow;
+            tmpComponent.enableWordWrapping = horzOverflow == HorizontalWrapMode.Wrap;
+            tmpComponent.enableAutoSizing = bestFit;
+            tmpComponent.fontSizeMin = minSize;
+            tmpComponent.fontSizeMax = maxSize;
+            tmpComponent.raycastTarget = raycastTarget;
+            return tmpComponent;
         }
     }
 }
