@@ -103,7 +103,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public static ICollection<(Component, string)> GetReferencedComponents(Component component) =>
             component != null && references.TryGetValue(component, out var mapping) ?
-            mapping : Array.Empty<(Component, string)>();
+            mapping as ICollection<(Component, string)> : Array.Empty<(Component, string)>();
         
         public static bool CanAllReferencesReplaceWith<T>(Component component) =>
             CanAllReferencesReplaceWith(component, typeof(T));
