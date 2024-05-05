@@ -6,12 +6,9 @@ using UnityEngine.UI;
 using UnityEditor;
 using TMPro;
 
-using static UnityEngine.Object;
-
 namespace JLChnToZ.VRC.VVMW.Editors {
     public static class TMProMigratator {
         static readonly Dictionary<Font, TMP_FontAsset> fontAssetMapping = new Dictionary<Font, TMP_FontAsset>();
-        static readonly List<MonoBehaviour> tempMonoBehaviours = new List<MonoBehaviour>();
 
         static TMProMigratator() {
             #if VRC_SDK_VRCSDK3
@@ -48,6 +45,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         public static void Migrate(GameObject root) {
             var migratableTypes = new Dictionary<Type, bool>();
             var migratableFields = new Dictionary<Type, Dictionary<FieldInfo, FieldInfo>>();
+            var newCreated = new Dictionary<FieldInfo, TextMeshProUGUI>();
             foreach (var monoBehaviour in root.GetComponentsInChildren<MonoBehaviour>(true)) {
                 var type = monoBehaviour.GetType();
                 if (!migratableTypes.TryGetValue(type, out var isTypeMigratable))
@@ -58,7 +56,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         if (attr == null) continue;
                         if (mapping == null) mapping = new Dictionary<FieldInfo, FieldInfo>();
                         var targetField = type.GetField(attr.TMProFieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                        if (targetField != null) mapping[field] = targetField;
+                        if (targetField != null)
+                            mapping[field] = targetField;
                     }
                     migratableFields[type] = mapping;
                 }
@@ -67,17 +66,28 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     ComponentReplacer.CanAllReferencesReplaceWith<TextMeshProUGUI>(text))
                     Migrate(text);
                 if (mapping != null) {
+                    newCreated.Clear();
                     foreach (var kv in mapping) {
                         var sourceField = kv.Key;
-                        var targetField = kv.Value;
                         var sourceValue = sourceField.GetValue(monoBehaviour);
-                        if (sourceValue is Text sourceText) {
-                            var targetText = Migrate(sourceText);
-                            sourceField.SetValue(monoBehaviour, null);
-                            targetField.SetValue(monoBehaviour, targetText);
-                        }
+                        if (!(sourceValue is Text sourceText) ||
+                            kv.Value.GetValue(monoBehaviour) != null)
+                            continue;
+                        var targetText = Migrate(sourceText);
+                        if (targetText == null) continue;
+                        newCreated[sourceField] = targetText;
                     }
-                    EditorUtility.SetDirty(monoBehaviour);
+                    if (newCreated.Count > 0)
+                        using (var so = new SerializedObject(monoBehaviour)) {
+                            foreach (var kv in newCreated) {
+                                if (!mapping.TryGetValue(kv.Key, out var destField)) continue;
+                                var prop = so.FindProperty(kv.Key.Name);
+                                if (prop != null) prop.objectReferenceValue = null;
+                                prop = so.FindProperty(destField.Name);
+                                if (prop != null) prop.objectReferenceValue = kv.Value;
+                            }
+                            so.ApplyModifiedProperties();
+                        }
                 }
             }
             var components = new List<Component>();

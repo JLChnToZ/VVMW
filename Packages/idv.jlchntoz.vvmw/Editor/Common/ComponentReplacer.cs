@@ -44,7 +44,7 @@ namespace JLChnToZ.VRC.VVMW {
             replacer.DestroyDependents();
             var newComponent = gameObject.AddComponent<T>();
             if (copyContent) EditorUtility.CopySerializedIfDifferent(oldComponent, newComponent);
-            replacer.RestoreDependents();
+            replacer.RestoreDependents(newComponent);
             replacer.DestroyTemporary();
             return newComponent;
         }
@@ -170,28 +170,35 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        void RestoreDependents() {
+        void RestoreDependents(Component newAddedComponent = null) {
             var stack = new Stack<ComponentReplacer>();
             stack.Push(this);
             while (stack.Count > 0) {
                 var current = stack.Pop();
                 foreach (var downstream in current.downstreams) stack.Push(downstream);
                 Component temp = null;
-                if (current.prefabComponent != null) {
+                if (current.componentIndex == componentIndex)
+                    temp = newAddedComponent;
+                else if (current.prefabComponent != null) {
                     PrefabUtility.RevertRemovedComponent(prefabInstance, current.prefabComponent, InteractionMode.AutomatedAction);
                     temp = current.componentsInGameObject[current.componentIndex];
                     if (temp == null) sourceGameObject.TryGetComponent(current.componentType, out temp);
                 }
                 if (temp == null) temp = sourceGameObject.AddComponent(current.componentType);
                 current.componentsInGameObject[current.componentIndex] = temp;
-                if (temp != null) EditorUtility.CopySerializedIfDifferent(current.componentsInTemporary[current.componentIndex], temp);
+                if (temp != null) {
+                    var src = current.componentsInTemporary[current.componentIndex];
+                    if (src != null && src.GetType() == temp.GetType())
+                        EditorUtility.CopySerializedIfDifferent(current.componentsInTemporary[current.componentIndex], temp);
+                }
                 if (references.TryGetValue(current.componentsInTemporary[current.componentIndex], out var mapping))
                     foreach (var (component, path) in mapping) {
-                        using (var so = new SerializedObject(component)) {
-                            var sp = so.FindProperty(path);
-                            sp.objectReferenceValue = temp;
-                            so.ApplyModifiedProperties();
-                        }
+                        using (var so = new SerializedObject(component))
+                            try {
+                                var sp = so.FindProperty(path);
+                                sp.objectReferenceValue = temp;
+                                so.ApplyModifiedProperties();
+                            } catch {}
                     }
             }
         }
