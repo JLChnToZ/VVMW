@@ -19,7 +19,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         FrontendHandler frontendHandler;
         Core loadedCore;
         string[] playerHandlerNames;
-        bool[] playerHandlerTypes;
+        PlayerType[] playerHandlerTypes;
         int firstUnityPlayerIndex = -1, firstAvProPlayerIndex = -1;
         [SerializeField] List<PlayList> playLists = new List<PlayList>();
         ReorderableList playListView;
@@ -212,13 +212,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                 }
             }
-            var isAvPro = playerHandlerTypes != null && entry.playerIndex >= 0 && entry.playerIndex < playerHandlerTypes.Length && playerHandlerTypes[entry.playerIndex];
+            var playerType = playerHandlerTypes != null && entry.playerIndex >= 0 && entry.playerIndex < playerHandlerTypes.Length ? playerHandlerTypes[entry.playerIndex] : PlayerType.Unknown;
             var urlRect = rect;
             urlRect.yMin = titleRect.yMax + EditorGUIUtility.standardVerticalSpacing;
             urlRect.height = EditorGUIUtility.singleLineHeight;
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 urlRect = EditorGUI.PrefixLabel(urlRect, Utils.GetTempContent("URL (PC)"));
-                var newUrl = TrustedUrlUtils.DrawUrlField(entry.url, isAvPro ? TrustedUrlTypes.AVProDesktop : TrustedUrlTypes.UnityVideo, urlRect, "");
+                var newUrl = TrustedUrlUtils.DrawUrlField(entry.url, playerType.ToTrustUrlType(false), urlRect, "");
                 if (changed.changed) {
                     entry.url = newUrl;
                     selectedPlayList.entries[index] = entry;
@@ -231,7 +231,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 urlQuestRect = EditorGUI.PrefixLabel(urlQuestRect, Utils.GetTempContent("URL (Quest)"));
                 var newUrl = string.IsNullOrEmpty(entry.urlForQuest) ? entry.url : entry.urlForQuest;
-                newUrl = TrustedUrlUtils.DrawUrlField(newUrl, isAvPro ? TrustedUrlTypes.AVProAndroid : TrustedUrlTypes.UnityVideo, urlQuestRect, "");
+                newUrl = TrustedUrlUtils.DrawUrlField(newUrl, playerType.ToTrustUrlType(true), urlQuestRect, "");
                 if (changed.changed) {
                     entry.urlForQuest = newUrl == entry.url ? string.Empty : newUrl;
                     selectedPlayList.entries[index] = entry;
@@ -380,20 +380,22 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (playerHandlerNames == null || playerHandlerNames.Length != handlersCount)
                     playerHandlerNames = new string[handlersCount];
                 if (playerHandlerTypes == null || playerHandlerTypes.Length != handlersCount)
-                    playerHandlerTypes = new bool[handlersCount];
+                    playerHandlerTypes = new PlayerType[handlersCount];
                 for (int i = 0; i < handlersCount; i++) {
-                    var handler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as VideoPlayerHandler;
+                    var handler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as AbstractMediaPlayerHandler;
                     if (handler == null) {
                         playerHandlerNames[i] = $"Player {i + 1}";
                         continue;
                     }
                     playerHandlerNames[i] = string.IsNullOrEmpty(handler.playerName) ? handler.name : handler.playerName;
-                    if (handler.IsAvPro) {
-                        playerHandlerTypes[i] = true;
-                        if (firstAvProPlayerIndex < 0) firstAvProPlayerIndex = i;
-                    } else {
-                        playerHandlerTypes[i] = false;
-                        if (firstUnityPlayerIndex < 0) firstUnityPlayerIndex = i;
+                    playerHandlerTypes[i] = handler.GetPlayerType();
+                    switch (playerHandlerTypes[i]) {
+                        case PlayerType.Unity:
+                            if (firstUnityPlayerIndex < 0) firstUnityPlayerIndex = i;
+                            break;
+                        case PlayerType.AVPro:
+                            if (firstAvProPlayerIndex < 0) firstAvProPlayerIndex = i;
+                            break;
                     }
                 }
             }

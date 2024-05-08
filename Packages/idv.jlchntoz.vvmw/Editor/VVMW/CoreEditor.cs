@@ -45,7 +45,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty timeDriftDetectThresholdProperty;
         SerializedReorderableList playerHandlersList, audioSourcesList, targetsList;
         string[] playerNames;
-        bool[] playerTypes;
+        PlayerType[] playerTypes;
         List<bool> screenTargetVisibilityState;
         bool showTrustUrlList;
 
@@ -154,21 +154,21 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 return;
             }
             int autoPlayPlayerType = autoPlayPlayerTypeProperty.intValue - 1;
-            bool isAvPro = playerTypes != null && autoPlayPlayerType >= 0 && autoPlayPlayerType < playerTypes.Length && playerTypes[autoPlayPlayerType];
-            TrustedUrlUtils.DrawUrlField(defaultUrlProperty, isAvPro ? TrustedUrlTypes.AVProDesktop : TrustedUrlTypes.UnityVideo);
+            var playerType = playerTypes != null && autoPlayPlayerType >= 0 && autoPlayPlayerType < playerTypes.Length ? playerTypes[autoPlayPlayerType] : PlayerType.Unknown;
+            TrustedUrlUtils.DrawUrlField(defaultUrlProperty, playerType.ToTrustUrlType(false));
             if (!string.IsNullOrEmpty(defaultUrlProperty.FindPropertyRelative("url").stringValue)) {
-                TrustedUrlUtils.DrawUrlField(defaultQuestUrlProperty, isAvPro ? TrustedUrlTypes.AVProAndroid : TrustedUrlTypes.UnityVideo);
+                TrustedUrlUtils.DrawUrlField(defaultQuestUrlProperty, playerType.ToTrustUrlType(true));
                 if (playerNames == null || playerNames.Length != playerHandlersProperty.arraySize)
                     playerNames = new string[playerHandlersProperty.arraySize];
                 if (playerTypes == null || playerTypes.Length != playerHandlersProperty.arraySize)
-                    playerTypes = new bool[playerHandlersProperty.arraySize];
+                    playerTypes = new PlayerType[playerHandlersProperty.arraySize];
                 for (int i = 0; i < playerNames.Length; i++) {
-                    var playerHandler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as VideoPlayerHandler;
+                    var playerHandler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as AbstractMediaPlayerHandler;
                     if (playerHandler == null)
                         playerNames[i] = "null";
                     else {
                         playerNames[i] = string.IsNullOrEmpty(playerHandler.playerName) ? playerHandler.name : playerHandler.playerName;
-                        playerTypes[i] = playerHandler.IsAvPro;
+                        playerTypes[i] = playerHandler.GetPlayerType();
                     }
                 }
                 var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
@@ -193,7 +193,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             rect.width -= size.x;
             EditorGUI.LabelField(rect, "Video Player Handlers");
             if (GUI.Button(buttonRect, tempContent, miniButtonStyle)) {
-                var handlers = (target as Core).GetComponentsInChildren<VideoPlayerHandler>(true);
+                var handlers = (target as Core).GetComponentsInChildren<AbstractMediaPlayerHandler>(true);
                 playerHandlersProperty.arraySize = handlers.Length;
                 for (int i = 0; i < handlers.Length; i++)
                     playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue = handlers[i];
@@ -210,11 +210,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (GUI.Button(buttonRect, tempContent, miniButtonStyle)) {
                 Undo.IncrementCurrentGroup();
                 int undoGroup = Undo.GetCurrentGroup();
-                var builtinPlayerHandlers = new List<VideoPlayerHandler>();
-                VideoPlayerHandler avProPlayerHandler = null; // only one avpro player handler is supported
+                var builtinPlayerHandlers = new List<AbstractMediaPlayerHandler>();
+                AbstractMediaPlayerHandler avProPlayerHandler = null; // only one avpro player handler is supported
                 bool hasMultipleAvProPlayerHandler = false;
                 for (int i = 0, count = playerHandlersProperty.arraySize; i < count; i++) {
-                    var playerHandler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as VideoPlayerHandler;
+                    var playerHandler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as AbstractMediaPlayerHandler;
                     if (playerHandler == null) continue;
                     if (!playerHandler.IsAvPro)
                         builtinPlayerHandlers.Add(playerHandler);

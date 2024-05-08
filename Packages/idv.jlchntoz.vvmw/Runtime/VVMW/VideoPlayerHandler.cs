@@ -15,11 +15,8 @@ namespace JLChnToZ.VRC.VVMW {
     [AddComponentMenu("VizVid/Components/Video Player Handler")]
     [DefaultExecutionOrder(0)]
     [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#builtin-module--avpro-module")]
-    public class VideoPlayerHandler : UdonSharpBehaviour {
+    public class VideoPlayerHandler : AbstractMediaPlayerHandler {
         string[] realTimeProtocols = new string[] { "rtsp", "rtmp", "rtspt", "rtspu", "rtmps", "rtsps" };
-        [NonSerialized] public Core core;
-        [Tooltip("The name of current video player. Can be the key mapped in language pack JSON.")]
-        public string playerName = "";
         [SerializeField] string texturePropertyName = "_MainTex";
         [SerializeField] bool useSharedMaterial = true;
         [SerializeField] AudioSource primaryAudioSource;
@@ -29,18 +26,16 @@ namespace JLChnToZ.VRC.VVMW {
         [Tooltip("This material will be used to blit the screen to a temporary render texture for the flickering workaround. Don't change it unless needed.")]
         [SerializeField] Material blitMaterial;
         RenderTexture bufferedTexture;
-        bool isActive, isReady, isPaused;
         bool isWaitingForTexture, isFlickerWorkaroundTextureRunning;
         BaseVRCVideoPlayer videoPlayer;
         new Renderer renderer;
-        Texture texture;
         MaterialPropertyBlock propertyBlock;
         int texturePropertyID;
         VRCUrl lastUrl;
         bool isRealTimeProtocol;
         bool afterFirstRun;
 
-        public bool IsActive {
+        public override bool IsActive {
             get => isActive;
             set {
                 isActive = value;
@@ -48,7 +43,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public float Time {
+        public override float Time {
             get => videoPlayer.GetTime();
             set {
                 videoPlayer.SetTime(value);
@@ -57,24 +52,24 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public bool IsAvPro => isAvPro && bufferedTexture == null;
+        public override bool IsAvPro => isAvPro && bufferedTexture == null;
 
-        public float Duration => isRealTimeProtocol ? float.PositiveInfinity : videoPlayer.GetDuration();
+        public override float Duration => isRealTimeProtocol ? float.PositiveInfinity : videoPlayer.GetDuration();
 
-        public Texture Texture => texture != null && bufferedTexture != null ? bufferedTexture : texture;
+        public override Texture Texture => texture != null && bufferedTexture != null ? bufferedTexture : texture;
 
-        public AudioSource PrimaryAudioSource => primaryAudioSource;
+        public override AudioSource PrimaryAudioSource => primaryAudioSource;
 
-        public bool Loop {
+        public override bool Loop {
             get => videoPlayer.Loop;
             set => videoPlayer.Loop = value;
         }
 
-        public bool IsReady => isReady && videoPlayer.IsReady;
+        public override bool IsReady => isReady && videoPlayer.IsReady;
 
-        public bool IsPlaying => videoPlayer.IsPlaying;
+        public override bool IsPlaying => videoPlayer.IsPlaying;
 
-        public bool IsPaused => isPaused;
+        public override bool IsPaused => isPaused;
 
         void OnEnable() {
             if (afterFirstRun) return;
@@ -142,7 +137,7 @@ namespace JLChnToZ.VRC.VVMW {
             VRCGraphics.Blit(texture, bufferedTexture, blitMaterial);
         }
 
-        public void LoadUrl(VRCUrl url, bool reload) {
+        public override void LoadUrl(VRCUrl url, bool reload) {
             if (videoPlayer.IsPlaying) videoPlayer.Stop();
             if (!isActive) return;
             if (!reload && Utilities.IsValid(lastUrl) && lastUrl.Equals(url) && IsReady && videoPlayer.GetDuration() != 0 && !float.IsInfinity(videoPlayer.GetDuration())) {
@@ -158,19 +153,19 @@ namespace JLChnToZ.VRC.VVMW {
             isPaused = false;
         }
 
-        public void Play() {
+        public override void Play() {
             if (!isActive) return;
             videoPlayer.Play();
             OnVideoPlay();
         }
 
-        public void Pause() {
+        public override void Pause() {
             if (!isActive) return;
             videoPlayer.Pause();
             OnVideoPause();
         }
 
-        public void Stop() {
+        public override void Stop() {
             if (!isActive) return;
             videoPlayer.Stop();
             if (isRealTimeProtocol) {

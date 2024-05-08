@@ -4,7 +4,6 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
-using UnityObject = UnityEngine.Object;
 
 using static UnityEngine.Object;
 
@@ -186,12 +185,10 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 if (temp == null) temp = sourceGameObject.AddComponent(current.componentType);
                 current.componentsInGameObject[current.componentIndex] = temp;
-                if (temp != null) {
-                    var src = current.componentsInTemporary[current.componentIndex];
-                    if (src != null && src.GetType() == temp.GetType())
-                        EditorUtility.CopySerializedIfDifferent(current.componentsInTemporary[current.componentIndex], temp);
-                }
-                if (references.TryGetValue(current.componentsInTemporary[current.componentIndex], out var mapping))
+                var src = current.componentsInTemporary[current.componentIndex];
+                if (src == null) continue;
+                if (temp != null && src.GetType() == temp.GetType()) EditorUtility.CopySerializedIfDifferent(src, temp);
+                if (references.TryGetValue(src, out var mapping))
                     foreach (var (component, path) in mapping) {
                         using (var so = new SerializedObject(component))
                             try {

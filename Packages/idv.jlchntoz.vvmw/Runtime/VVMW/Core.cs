@@ -25,7 +25,7 @@ namespace JLChnToZ.VRC.VVMW {
         [HideInInspector, SerializeField] string[] trustedUrlDomains = new string[0]; // This list will be fetched on build, via VRChat SDK
         Vector4 normalST = new Vector4(1, 1, 0, 0), flippedST = new Vector4(1, -1, 0, 1);
         Rect normalRect = new Rect(0, 0, 1, 1), flippedRect = new Rect(0, 1, 1, -1);
-        [SerializeField] VideoPlayerHandler[] playerHandlers;
+        [SerializeField] AbstractMediaPlayerHandler[] playerHandlers;
         [Tooltip("Audio sources to link to video player, will be set to the primary audio source of the video player, " +
             "and volumes can be controlled by the video player.")]
         [SerializeField] AudioSource[] audioSources;
@@ -85,7 +85,7 @@ namespace JLChnToZ.VRC.VVMW {
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/Prefabs/Third-Parties/YTTL/YTTL Manager.prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.First
         )] YttlManager yttl;
-        VideoPlayerHandler activeHandler;
+        AbstractMediaPlayerHandler activeHandler;
         int retryCount = 0;
         bool isLoading, isLocalReloading, isResyncTime, isError, isSyncAudioLink;
         VideoError lastError = VideoError.Unknown;
