@@ -13,7 +13,7 @@ namespace JLChnToZ.VRC.VVMW {
     public class ImageViewerHandler : AbstractMediaPlayerHandler {
         VRCImageDownloader loader;
         VRCUrl currentUrl;
-        bool loop;
+        bool loop, isPlaying;
 
         public override bool IsActive {
             get => isActive;
@@ -21,6 +21,8 @@ namespace JLChnToZ.VRC.VVMW {
                 isActive = value;
                 texture = null;
                 currentUrl = null;
+                isReady = false;
+                isPlaying = false;
             }
         }
 
@@ -29,7 +31,9 @@ namespace JLChnToZ.VRC.VVMW {
             set => loop = value;
         }
 
-        public override bool IsPlaying => texture;
+        public override bool IsPlaying => isPlaying;
+
+        public override bool IsStatic => true;
 
         public override void LoadUrl(VRCUrl url, bool reload) {
             if (loader == null) loader = new VRCImageDownloader();
@@ -42,19 +46,22 @@ namespace JLChnToZ.VRC.VVMW {
             currentUrl = url;
             texture = null;
             isReady = false;
+            isPlaying = false;
         }
 
         public override void OnImageLoadSuccess(IVRCImageDownload image) {
             if (!image.Url.Equals(currentUrl)) return;
             texture = image.Result;
             isReady = true;
+            isPlaying = false;
             if (isActive) core.OnVideoReady();
         }
 
         public override void OnImageLoadError(IVRCImageDownload image) {
             texture = null;
             currentUrl = null;
-            isReady = true;
+            isReady = false;
+            isPlaying = false;
             if (isActive) {
                 var error = VideoError.Unknown;
                 switch (image.Error) {
@@ -77,22 +84,20 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public override void Play() {
-            isPaused = false;
+            isPlaying = true;
             if (isActive) {
                 core.OnVideoPlay();
                 if (texture) core._OnTextureChanged();
             }
         }
 
-        public override void Pause() {
-            isPaused = true;
-            if (isActive) core.OnVideoPause();
-        }
+        public override void Pause() => Play();
 
         public override void Stop() {
             texture = null;
             currentUrl = null;
             isReady = false;
+            isPlaying = false;
             if (isActive) core.OnVideoEnd();
         }
     }

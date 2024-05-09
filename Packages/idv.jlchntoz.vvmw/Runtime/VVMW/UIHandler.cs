@@ -473,8 +473,8 @@ namespace JLChnToZ.VRC.VVMW {
                         case VideoError.RateLimited: SetLocalizedText(statusText, statusTMPro, "RateLimited"); break;
                         default: SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("Unknown"), (int)errorCode)); break;
                     }
-                    SetText(durationText, durationTMPro, "");
-                    SetText(timeText, timeTMPro, "");
+                    SetText(durationText, durationTMPro, "TimeIdleFormat");
+                    SetText(timeText, timeTMPro, "TimeIdleFormat");
                     canStop = unlocked;
                     break;
                 case 3: // Ready
@@ -711,6 +711,8 @@ namespace JLChnToZ.VRC.VVMW {
                 if (statusText != null || statusTMPro != null) {
                     if (!string.IsNullOrEmpty(core.title) || !string.IsNullOrEmpty(core.author))
                         SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("StreamingWithTitle"), core.title, core.author));
+                    else if (core.IsStatic)
+                        SetLocalizedText(statusText, statusTMPro, "DisplayStatic");
                     else
                         SetLocalizedText(statusText, statusTMPro, "Streaming");
                 }

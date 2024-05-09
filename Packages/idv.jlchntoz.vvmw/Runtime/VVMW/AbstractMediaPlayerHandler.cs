@@ -31,6 +31,8 @@ namespace JLChnToZ.VRC.VVMW {
 
         public virtual Texture Texture => texture;
 
+        public virtual bool IsStatic => false;
+
         public abstract void LoadUrl(VRCUrl url, bool reload);
 
         public virtual void Play() {}

@@ -262,6 +262,8 @@ namespace JLChnToZ.VRC.VVMW {
 
         public VideoError LastError => lastError;
 
+        public bool IsStatic => activeHandler != null && activeHandler.IsStatic;
+
         public float Progress {
             get {
                 if (activeHandler == null) return 0;
@@ -831,6 +833,7 @@ namespace JLChnToZ.VRC.VVMW {
             var duration = activeHandler.Duration;
             if (duration <= 0 || float.IsInfinity(duration)) {
                 isResyncTime = false;
+                RequestSerialization();
                 return;
             }
             SyncTime();
