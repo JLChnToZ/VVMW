@@ -492,14 +492,14 @@ namespace JLChnToZ.VRC.VVMW {
                 case 4: // Playing
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(false);
                     SetStatusEnabled(false);
-                    canPause = unlocked;
+                    canPause = unlocked && !core.IsStatic;
                     canStop = unlocked;
                     canSeek = true;
                     break;
                 case 5: // Paused
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(false);
                     SetStatusEnabled(false);
-                    canPlay = unlocked;
+                    canPlay = unlocked && !core.IsStatic;
                     canStop = unlocked;
                     canSeek = true;
                     break;

@@ -19,7 +19,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void OnEnable() {
-            isVideoPlaying = core.enabled && core.gameObject.activeSelf && core.IsPlaying;
+            isVideoPlaying = core.enabled && core.gameObject.activeSelf && core.IsPlaying && !core.IsStatic;
         }
 
         void Update() {
@@ -32,9 +32,9 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void Unmute() => isMuted = false;
         
-        public override void OnVideoStart() => isVideoPlaying = true;
+        public override void OnVideoStart() => isVideoPlaying = !core.IsStatic;
 
-        public override void OnVideoPlay() => isVideoPlaying = true;
+        public override void OnVideoPlay() => isVideoPlaying = !core.IsStatic;
 
         public override void OnVideoPause() => isVideoPlaying = false;
 
