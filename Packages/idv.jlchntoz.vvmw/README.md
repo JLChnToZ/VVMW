@@ -204,7 +204,7 @@ This is the "brain" of the system, it controls and synchronizes the player (if e
 - **Targets**: For integration to custom scripts, it will sends out events to any Udon (sharp) behaviours assignaed here.
   I don't provide source-code level documentation so please read the source code if you want to integrate with your scripts.
 - **Realtime GI Update Interval**: The interval to update realtime GI, set to 0 to disable realtime GI update.
-  This features requires setup the lignt probes and realtime GI in the scene and the screen renderers.
+  This features requires setup the light probes and realtime GI in the scene and the screen renderers.
 
 ### Builtin Module / AVPro Module
 These are the video player modules. The purpose of these game objects are interfaces from the undely video player components to the core.
