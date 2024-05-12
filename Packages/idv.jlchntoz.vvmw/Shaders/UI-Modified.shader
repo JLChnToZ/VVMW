@@ -10,6 +10,12 @@ Shader "UI/Modified" {
         [NoScaleOffset] _MSDFTex("Override Texture", 2D) = "black" {}
 		_PixelRange("MSDF Pixel Range", Float) = 4.0
 
+        [Header(Conditional Appearance in VRChat Camera Mirror)]
+        [Toggle(_VRC_SUPPORT)] _VRCSupport ("Enable", Int) = 0
+        [EnumMask(Direct Look, VR Handheld Camera, Desktop Handheld Camera, Screen Shot, VR Mirror, VR Handheld Camera in Mirror, # INVALID #, VR Screen Shot in Mirror, Desktop Mirror, # INVALID #, Desktop Handheld Camera in Mirror, Desktop Screen Shot in Mirror)]
+        _RenderMode ("Visible Modes", Int) = 4095
+        [Toggle(_)] _MirrorFlip ("Flip in Mirror", Int) = 0
+
         [Header(Render Pipeline Settings)]
         [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
         [Space]
@@ -62,6 +68,7 @@ Shader "UI/Modified" {
             #pragma multi_compile_local __ MSDF_OVERRIDE
             #pragma multi_compile_local __ UNITY_UI_CLIP_RECT
             #pragma multi_compile_local __ UNITY_UI_ALPHACLIP
+            #pragma shader_feature_local __ _VRC_SUPPORT
 
             struct appdata_t {
                 float4 vertex : POSITION;
@@ -93,6 +100,14 @@ Shader "UI/Modified" {
             float4 _ClipRect;
             float _PixelRange;
 
+            #ifdef _VRC_SUPPORT
+                int _RenderMode;
+                int _MirrorFlip;
+
+                int _VRChatCameraMode; // 0 = Normal, 1 = VR Handheld Camera, 2 = Desktop Handheld Camera, 3 = Screenshot
+                int _VRChatMirrorMode; // 0 = Normal, 1 = VR Mirror, 2 = Desktop Mirror
+            #endif
+
             float median(float3 col) {
                 return max(min(col.r, col.g), min(max(col.r, col.g), col.b));
             }
@@ -101,6 +116,21 @@ Shader "UI/Modified" {
                 v2f OUT;
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
+
+                #ifdef _VRC_SUPPORT
+                    int currentRenderMode = pow(2, _VRChatCameraMode + _VRChatMirrorMode * 3);
+                    if (_RenderMode / currentRenderMode % 2 == 0) {
+                        OUT.worldPosition = 0;
+                        OUT.vertex = 0;
+                        OUT.color = 0;
+                        OUT.texcoord = 0;
+                        OUT.centroidtexcoord = 0;
+                        OUT.generatedtexcoord = 0;
+                        return OUT;
+                    }
+                    if (_MirrorFlip != 0 && _VRChatMirrorMode > 0) v.vertex.x *= -1;
+                #endif
+
                 OUT.worldPosition = v.vertex;
                 OUT.vertex = UnityObjectToClipPos(OUT.worldPosition);
 
