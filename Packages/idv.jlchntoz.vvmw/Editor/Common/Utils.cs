@@ -143,16 +143,20 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public static string FindMainTexturePropertyName(Material material) {
+            string fallback = null;
             if (material != null) {
                 var shader = material.shader;
                 if (shader == null) return "";
                 int count = shader.GetPropertyCount();
                 for (int i = 0; i < count; i++)
-                    if (shader.GetPropertyType(i) == ShaderPropertyType.Texture &&
-                        shader.GetPropertyFlags(i).HasFlag(ShaderPropertyFlags.MainTexture))
-                        return shader.GetPropertyName(i);
+                    if (shader.GetPropertyType(i) == ShaderPropertyType.Texture) {
+                        if (shader.GetPropertyFlags(i).HasFlag(ShaderPropertyFlags.MainTexture))
+                            return shader.GetPropertyName(i);
+                        if (fallback == null)
+                            fallback = shader.GetPropertyName(i);
+                    }
             }
-            return "_MainTex";
+            return fallback ?? "_MainTex";
         }
 
 #if !NETSTANDARD2_1

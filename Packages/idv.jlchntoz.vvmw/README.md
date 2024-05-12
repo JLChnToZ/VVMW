@@ -49,7 +49,8 @@ Alternatively, the playlist attached on separated controls can be moved or disab
 You may just right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Screen`.
 ![ ](.tutorial/add-controls-simple.png)
 
-- Extra: If your screen has special configuration such as using a custom shader, you may need to change the values in the inspector. If you are adopting shaders that designed to work with [iwaSync3](https://hoshinolabs.booth.pm/items/2666275), you could leave it as-is, VizVid defaults to a configuration which compatible with those shaders.
+> [!NOTE]
+> Extra: If your screen has special configuration such as using a custom shader, you may need to change the values in the inspector. If you are adopting shaders that designed to work with [iwaSync3](https://hoshinolabs.booth.pm/items/2666275), you could leave it as-is, VizVid defaults to a configuration which compatible with those shaders.
 
 ![ ](.tutorial/add-screen-3.png)
 
@@ -286,11 +287,11 @@ VizVid built-in supports integration with Udon Auth, the later one is a paid ass
 ![ ](.tutorial/udonauth-2.png)
 
 1. Assume you have set up Udon Auth in your scene, select the lock panel, click + button at custom callbacks field.
-2. Find the "Player List Queue Handler" inside the player, drag it to custom callbacks field.
-3. Select "Player List Queue Handler"
+2. Find the "Playlist Queue Handler" inside the player, drag it to custom callbacks field.
+3. Select "Playlist Queue Handler"
 4. Enable "Lock" option.
 
-In the other hand, you can program your own locks instead of using my paid asset, just send the `_OnUnlock` custom event to the Udon attached on Player List Queue Handler, and it will become unlocked.
+In the other hand, you can program your own locks instead of using my paid asset, just send the `_OnUnlock` custom event to the Udon attached on Playlist Queue Handler, and it will become unlocked.
 
 ### Audio Link
 This player provides basic integration to Audio Link, basic setup please refer to the "Audio Link" option above.  
