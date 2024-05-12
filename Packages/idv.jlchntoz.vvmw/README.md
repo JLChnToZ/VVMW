@@ -102,7 +102,10 @@ Current supported Playlists / video players to be imported directly:
 - ProTV by ArchiTech
 - VideoTXL
 
-To import above listed Playlists, drag the game object containing their Playlists to this Playlist editor. Beware it is sightly different when you drop it between the left panel and the right: If you dropped on the left, new Playlists will be added; and if you dropped on the right, it will append to current selected Playlist if applicable.
+To import above listed Playlists, drag the game object containing their Playlists to this Playlist editor.
+
+> [!NOTE]
+> Beware it is sightly different when you drop it between the left panel and the right: If you dropped on the left, new Playlists will be added; and if you dropped on the right, it will append to current selected Playlist if applicable.
 
 ### How to Add a Pickupable Screen?
 This component was [originally created by Yama Buta](https://yamabuta.booth.pm/items/4189997), which is a local-only pickupable screen with scaling feature, and it is rewrited to use with VizVid.
@@ -154,7 +157,8 @@ Both Unity and VRChat SDK encourages to use TextMeshPro (TMPro) instead of legac
 2. Select `Tools > VizVid > Migrate TMPro Components` in menu, the script will do the thing.
 3. That's it!
 
-Please note this only applies to currently what you have on the scene, if the player is upgraded in the future and new UI components are added, or you have added/replaced any UIs of the player afterwards, you will have to do this again.
+> [!NOTE]
+> Please note this only applies to currently what you have on the scene, if the player is upgraded in the future and new UI components are added, or you have added/replaced any UIs of the player afterwards, you will have to do this again.
 
 If you want to test the player within Unity Editor but find out all non-English text become tofu after migration, you may refer to this article: [TextMeshPro in VRChat](https://hai-vr.notion.site/TextMeshPro-in-VRChat-91561782adea47a78569cec641fd5ee9#88dd13b80e4d4caeafc00f26b4aa2ae1).
 
@@ -174,7 +178,6 @@ Let me explain one by one.
 
 ### VVMW (Game Object)
 This is the "brain" of the system, it controls and synchronizes the player (if enabled) between users within the same world instance. If you open the inspector, you will find theres many options that let you to fiddle around:
-
 - These options only appears when you are not using with Playlist queue handler and unlinked it:
   - **Default URL**: The URL will be played automatically when user joins your world.
   - **Default Quest URL**: The optional alternative URL will be played for Quest/Android clients. Leave empty to use default URL.
@@ -295,7 +298,7 @@ In the other hand, you can program your own locks instead of using my paid asset
 
 ### Audio Link
 This player provides basic integration to Audio Link, basic setup please refer to the "Audio Link" option above.  
-![_](.tutorial/add-audiolink.png)
+![ ](.tutorial/add-audiolink.png)
 
 Additionally, if you want to use together with multiple channel audio sources provided from AVPro, you will need an audio source that don't controlled by the player, which will emits basic stereo output.
 
@@ -313,7 +316,7 @@ You have 2 ways to do this:
 
 ### LTCGI
 This player provides basic integration to [LTCGI](https://ltcgi.dev/). To use with LTCGI, use the provided "VideoCRT" CustomRenderTexture in Materials folder as video texture input inside LTCGI controller, then assigns this CustomRenderTexture to "Add Video Screen Target" option in the VVMW core, other then that just follow LTCGI documentation ([this](https://ltcgi.dev/Getting%20Started/Setup/Controller) and [this](https://ltcgi.dev/Getting%20Started/Setup/LTCGI_Screen)).  
-![_](.tutorial/add-ltcgi.png)
+![ ](.tutorial/add-ltcgi.png)
 
 ### YTTL
 [YTTL (Video title viewer)](https://65536.booth.pm/items/4588619) is an addon for providing ability to display titles from several known sources (e.g. YouTube, Twitch, SoundCloud) in video players, it was created by ureishi and it is licensed with CC0. However, installing it on video players that are not originally supported, including VizVid, can be a bit tricky if you're not familiar with the technical side of things. To make it easier, we've included a modified version of YTTL, but you'll still need to follow a few steps to enable it:
