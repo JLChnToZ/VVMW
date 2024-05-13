@@ -57,7 +57,8 @@ For any issues, please contact me on [Discord server](https://discord.gg/fkDueQM
 - **HsiaoTzuOWO** - UI & Implementation Test
 - **Yan**-K - UI / UX Consultant
 - **六森** - Advertisement Materials & Demo World
-- **水鳥waterbird** - Naming
+- **水鳥waterbird** - Naming & Japanese Documentation Proofreading
+- **Kuriko** - Japanese Documentation
 
 ## License
 [MIT](./Packages/idv.jlchntoz.vvmw/LICENSE)
