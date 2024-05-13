@@ -35,18 +35,18 @@
 	* [YTTL](#YTTL)
 
 ## 安裝方法
-於 Hierarchy 空白處按下滑鼠右鍵，選擇`VizVid > Video Player`。
+於 Hierarchy 空白處按下滑鼠右鍵，選擇`VizVid > Video Player`。  
 ![ ](.tutorial/add-player-simple.png)
 
-這邊可以先看一下不同的播放器形式：
+這邊可以先看一下不同的播放器形式：  
 ![ ](.tutorial/basic-install-type-1.png)
 ![ ](.tutorial/basic-install-type-2.png)
 
-另外，如圖片所示，分割出來的播放清單也可以移動或停用：
+另外，如圖片所示，分割出來的播放清單也可以移動或停用：  
 ![ ](.tutorial/basic-install-type-2-no-playlist.png)
 
 ### 新增額外螢幕
-於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Screen`以新增。
+於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Screen`以新增。  
 ![ ](.tutorial/add-controls-simple.png)
 
 > [!NOTE]
@@ -57,10 +57,10 @@
 ### 新增額外 Audio Source
 可以透過增加額外的 Audio Source (喇叭)，製作例如多聲道、環繞音效等等音響配置。需注意，此設定僅支援 AVPro。不支援 Unity 的內建播放器。
 
-於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇 `VizVid > Additional Controls > Audio Source` 以新增。
+於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇 `VizVid > Additional Controls > Audio Source` 以新增。  
 ![ ](.tutorial/add-controls-simple.png)
 
-點選播放器元件上「Setup Speakers」按鈕進行設定。
+點選播放器元件上「Setup Speakers」按鈕進行設定。  
 ![ ](.tutorial/add-audio-simple.png)
 
 ### 新增額外的控制面板
@@ -110,7 +110,7 @@ VizVid 可以透過「Playlist Queue Handler」物件，事先製作 VizVid 用�
 ### 新增移動式螢幕
 本元件由 [Yama Buta](https://yamabuta.booth.pm/items/4189997) 原創製作，具有放大縮小功能的 Local 移動式螢幕。VizVid 為了對應此功能，重新進行了編寫。
 
-於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Pickupable Screen`以新增。
+於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Pickupable Screen`以新增。  
 ![ ](.tutorial/add-controls-simple.png)
 
 ### 新增重疊控制面板
@@ -118,33 +118,32 @@ VizVid 可以透過「Playlist Queue Handler」物件，事先製作 VizVid 用�
 
 ![ ](.tutorial/overlay-sample.png)
 
-於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Overlay Controls`以新增。
+於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Overlay Controls`以新增。  
 ![ ](.tutorial/add-controls-simple.png)
 
 ### 新增 Re-Sync 按鈕
 此元件適合有串流內容的活動會場，讓觀眾可以重新同步串流內容，是重疊面板的替代方案。提供了`Re-Sync Button` 和 `Global Sync Button`兩種類型的按鈕。差異在於會觸發本機或全體的重新同步。
 
-於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Resync Button`或`Global Resync Button`以新增。
+於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Resync Button`或`Global Resync Button`以新增。  
 ![ ](.tutorial/add-controls-simple.png)
 
 ### 更改顏色
-沒錯，你可以幾乎一鍵更改 UI 的配色。VizVid 的每個 UI 元件中，都包含了`Color Config`腳本。只要調整好喜歡的配色，點選下方的`Apply`或`Apply to All`。`Apply`按鈕僅會套用目前更改的 UI 配色，`Apply to All`則會將配色套用至所有的 UI。
-
+沒錯，你可以幾乎一鍵更改 UI 的配色。VizVid 的每個 UI 元件中，都包含了`Color Config`腳本。只要調整好喜歡的配色，點選下方的`Apply`或`Apply to All`。`Apply`按鈕僅會套用目前更改的 UI 配色，`Apply to All`則會將配色套用至所有的 UI。  
 ![ ](.tutorial/change-color.png)
 
 ### 設定使用者接近自動播放
 VizVid 原生支援使用者進入特定區域時播放，離開時停止。適合用於展場類地圖的影片播放。
 
-於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Auto Play On Near (Local Only)`以啟用此功能。根據需求，調整 Collider 大小設定觸發範圍。若不想使用 Collider，也可以透過設定距離來達成。
+於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Auto Play On Near (Local Only)`以啟用此功能。根據需求，調整 Collider 大小設定觸發範圍。若不想使用 Collider，也可以透過設定距離來達成。  
 ![ ](.tutorial/add-controls-simple.png)
 
 ### 設定影片播放時背景音樂自動淡出
 有玩過 VRChat 過的玩家應該理解，在自帶背景音樂的地圖中，同時又透過播放器播放音樂、影片等等內容，兩種聲音就這麼撞在一起，這種遊玩體驗想必很糟。向各位介紹背景音樂音量控制元件。這個元件是設計給地圖內建的背景音樂，可以附掛在地圖中所有的 Audio Source 上。
 
-選擇裝有背景音樂的 Audio Source 遊戲物件，於 Inspector 中，點選「Add Componen」，選擇`VizVid > Components > BGM Volume Control`以新增。
+選擇裝有背景音樂的 Audio Source 遊戲物件，於 Inspector 中，點選「Add Componen」，選擇`VizVid > Components > BGM Volume Control`以新增。  
 ![ ](.tutorial/add-bgm-control-1.png)
 
-在新增好的元件，按下 Core 右邊的 Find 按鈕，或是把播放器拖曳至這裡。就可以調整音量和其他的設定了。
+在新增好的元件，按下 Core 右邊的 Find 按鈕，或是把播放器拖曳至這裡。就可以調整音量和其他的設定了。  
 ![ ](.tutorial/add-bgm-control-2.png)
 
 就醬！
