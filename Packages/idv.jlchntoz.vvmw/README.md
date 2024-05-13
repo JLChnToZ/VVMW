@@ -37,10 +37,10 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 	* [YTTL](#yttl)
 
 ## How to install?
-You may just right-click anywhere in hierarchy, and select `VizVid > Video Player`.
+You may just right-click anywhere in hierarchy, and select `VizVid > Video Player`.  
 ![ ](.tutorial/add-player-simple.png)
 
-Here is a glance of the difference between the variants:
+Here is a glance of the difference between the variants:  
 ![ ](.tutorial/basic-install-type-1.png)
 ![ ](.tutorial/basic-install-type-2.png)
 
@@ -48,7 +48,7 @@ Alternatively, the playlist attached on separated controls can be moved or disab
 ![ ](.tutorial/basic-install-type-2-no-playlist.png)
 
 ### How to Add Extra Screen?
-You may just right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Screen`.
+You may just right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Screen`.  
 ![ ](.tutorial/add-controls-simple.png)
 
 > [!NOTE]
@@ -59,22 +59,22 @@ You may just right-click on the player object in hierarchy, and select `VizVid >
 ### How to Add Extra Audio Source?
 You can add more audio sources (speakers) to make something like multi-channel surrounded audio, but these extra audio sources only works with AVPro player but not Built-in Unity video players.
 
-To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Audio Source`.
+To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Audio Source`.  
 ![ ](.tutorial/add-controls-simple.png)
 
-Then, click the "Setup Speakers" button on the player component inspector.
+Then, click the "Setup Speakers" button on the player component inspector.  
 ![ ](.tutorial/add-audio-simple.png)
 
 ### How to Add Extra Controllers?
 VizVid is aim to be flexible, so do the controllers. We have provide 3 variants to fit in different cases, and these controllers can be linked to one single core. Before we started, let me introduce these 3 variants:
 - On-screen: Don't require extra spaces to put the controls, suitable for chilling worlds.  
-  The prefab name is `Screen With Overlay`.
+  The prefab name is `Screen With Overlay`.  
   ![ ](.tutorial/controls-onscreen.png)
 - Separated: Good alternative if you don't want to interact on the screen, but require some spaces under the screen.  
-  The prefab name is `Default UI`.
+  The prefab name is `Default UI`.  
   ![ ](.tutorial/controls-separated.png)
 - Narrow: Suitable for the controls don't come along with the screen (or even without any screen).  
-  The prefab name is `Default UI (Narrow)`.
+  The prefab name is `Default UI (Narrow)`.  
   ![ ](.tutorial/controls-narrow.png)
 
 To add them, right-click on the player object in hierarchy, and select one of these depends which type of controls you want to add:
@@ -112,41 +112,39 @@ To import above listed Playlists, drag the game object containing their Playlist
 ### How to Add a Pickupable Screen?
 This component was [originally created by Yama Buta](https://yamabuta.booth.pm/items/4189997), which is a local-only pickupable screen with scaling feature, and it is rewrited to use with VizVid.
 
-To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Pickupable Screen`.
+To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Pickupable Screen`.  
 ![ ](.tutorial/add-controls-simple.png)
 
 ### How to Add an Overlay Control?
-This is a component that spawns a mini controller on every user's wrist (VR mode) or a overlay UI on screen (PC mode). User can adjust the players volume and reload current video using laser pointer (VR) or keyboard input (PC).
-
+This is a component that spawns a mini controller on every user's wrist (VR mode) or a overlay UI on screen (PC mode). User can adjust the players volume and reload current video using laser pointer (VR) or keyboard input (PC).  
 ![ ](.tutorial/overlay-sample.png)
 
-To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Overlay Controls`.
+To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Overlay Controls`.  
 ![ ](.tutorial/add-controls-simple.png)
 
 ### How to Add a Resync Button?
 This component is an alternative to the wrist / overlay UI screen resync button control, to let users resyncs your live stream in an event venue. There are 2 variants: `Re-Sync Button` and `Global Sync Button`, the difference is one is local only and another one is a global trigger.
 
-To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Resync Button` or `Global Resync Button`.
+To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Resync Button` or `Global Resync Button`.  
 ![ ](.tutorial/add-controls-simple.png)
 
 ### How to Change color?
-Yes, you can change the UI color in nearly one-click. Every UI components comes with VizVid has attached a component called `Color Config`, what you have to do is change the color you like in this component, and click the `Apply` or `Apply to All` button below. The `Apply` button only applies the color to current selected UI, and `Apply to All` will copy the settings to other VizVid UIs and apply to them as well.
-
+Yes, you can change the UI color in nearly one-click. Every UI components comes with VizVid has attached a component called `Color Config`, what you have to do is change the color you like in this component, and click the `Apply` or `Apply to All` button below. The `Apply` button only applies the color to current selected UI, and `Apply to All` will copy the settings to other VizVid UIs and apply to them as well.  
 ![ ](.tutorial/change-color.png)
 
 ### How to Setup Auto Plays When a User Goes Nearby?
 VizVid built-in supports auto plays when a user goes into a specific region and stops when exits, it is for video playback in exhibition venues.
 
-To enable this feature, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Auto Play On Near (Local Only)`. You can then either set the distance (if you don't want to use the collider), or adjust the size of the collider to match your needs.
+To enable this feature, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Auto Play On Near (Local Only)`. You can then either set the distance (if you don't want to use the collider), or adjust the size of the collider to match your needs.  
 ![ ](.tutorial/add-controls-simple.png)
 
 ### How to Make Background Music Fade Out When Video is Playing?
 As we all know, leaving background music playing in the world while watching/listening other video/music within the player is not a good experience. To solve this problem, we introduce BGM Volume Control component. This component is designed to attach to any background music audio source in your world.
 
-To add this, select your existing background music audio source game object, then click "Add Component" in inspector, select `VizVid > Components > BGM Volume Control`.
+To add this, select your existing background music audio source game object, then click "Add Component" in inspector, select `VizVid > Components > BGM Volume Control`.  
 ![ ](.tutorial/add-bgm-control-1.png)
 
-Next, click on the "Find" button next to the core field, or drag your video player to here. And you may want to change the volume and/or other settings here.
+Next, click on the "Find" button next to the core field, or drag your video player to here. And you may want to change the volume and/or other settings here.  
 ![ ](.tutorial/add-bgm-control-2.png)
 
 And thats it!
