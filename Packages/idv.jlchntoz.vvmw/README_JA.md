@@ -28,7 +28,7 @@ VizVidはVRChatに向けて開発し、汎用的な動画プレイヤーのフ�
     - [Playlist Queue Handler](#Playlist-Queue-Handler)
     - [Locale](#Locale)
     - [Default Screen / Screen](#Default-Screen-Screen)
-    - [サードパーティーへ製品の対応](#サードパーティーへ製品の対応)
+- [サードパーティーへ製品の対応](#サードパーティーへ製品の対応)
     - [Udon Auth](#Udon-Auth)
     - [Audio Link](#Audio-Link)
     - [LTCGI](#LTCHI)
