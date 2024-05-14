@@ -55,7 +55,7 @@
 ![ ](.tutorial/add-screen-3.png)
 
 ### 新增額外 Audio Source
-可以透過增加額外的 Audio Source (喇叭)，製作例如多聲道、環繞音效等等音響配置。需注意，此設定僅支援 AVPro。不支援 Unity 的內建播放器。
+可以透過增加額外的 Audio Source (喇叭)，製作例如多聲道、環繞音效等等音響配置。需注意，此設定僅支援 AVPro。不支援 Unity 的 Builtin Player。
 
 於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇 `VizVid > Additional Controls > Audio Source` 以新增。  
 ![ ](.tutorial/add-controls-simple.png)
@@ -108,7 +108,7 @@ VizVid 可以透過「Playlist Queue Handler」物件，事先製作 VizVid 用�
 > 請注意，根據物件擺放位置的左右側，會出現不同的結果：左側會加入全新的播放清單。右側會根據目前選擇的播放清單的相容性進行新增。
 
 ### 新增移動式螢幕
-本元件由 [Yama Buta](https://yamabuta.booth.pm/items/4189997) 原創製作，具有放大縮小功能的 Local 移動式螢幕。VizVid 為了對應此功能，重新進行了編寫。
+本元件由[山の豚](https://yamabuta.booth.pm/items/4189997)原創製作，具有放大縮小功能的 Local 移動式螢幕。VizVid 為了對應此功能，重新進行了編寫。
 
 於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Pickupable Screen`以新增。  
 ![ ](.tutorial/add-controls-simple.png)
@@ -179,7 +179,7 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
 這是 VizVid 的「大腦」。在同個世界房間中，擔任 VizVid 的同步 (若有啟用)、控制的工作。在 Inspector 中能顯示、調整的選項如下：
 - 這部分的選項，僅限 Playlist Queue Handler 停用，並解除連動的情況下才會顯示：
   - **Default URL**：玩家加入時，會自動播放的播放清單。
-  - **Default Quest URL**：針對 Quest / Android 使用者，可以設定替代用的網址。若不輸入，則會沿用 Default URL 進行播放。
+  - **Default Quest URL**：針對 Quest / Android 使用者，可以設定替代用的網址。若留空，則沿用 Default URL 進行播放。
   - **Auto Play Player Type**：選擇播放網址的「模組」。
   - **Loop**：可設定是否預設啟用重複播放 (事後可經由控制面板調整)。
 - **Auto Play Delay Time**：場景載入完成後的延遲播放時間。
@@ -198,7 +198,7 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
   收在三角形內的選項是進階設定。不使用第三方著色器接收影像的話，基本上不需要調整。
 - **Add Video Screen Target**：要使用額外新增螢幕的話，可以將支援的元件拖曳至此。
 - **Audio Sources**：會列出播放影片聲音的 Audio Source。VizVid 會控制他們的音量。
-  內建影片播放器僅支援透過單個 Audio Source 輸出聲音。系統會優先使用它進行聲音輸出。
+  Builtin Player 僅支援透過單個 Audio Source 輸出聲音。系統會優先使用它進行聲音輸出。
   AVPro 則支援最多 8 聲道，也代表你最多可以設定 8 個獨立的 Audio Source 發出聲音，例如左聲道輸出至左方 Audio Source，右後聲道設定至右後方 Audio Source。
   放置完畢後，可以點選「Setup Speaker」自動配置聲道位置。(有多個 AVPro 的情況，需全手動配置。敬請理解。)
 - **Default Volume**：預設音量。
@@ -219,7 +219,7 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
 - **Maximum Resolution**：載入影片的最高解析度 (如果可選)。數值是影片的高度。預設值為`1080`。
 - **Use Low Latency**：AVPro 限定選項。若要觀賞串流內容。此選項可降低觀看延遲。
 - **Primary Audio Source**：聲音會優先輸出的 Audio Source。
-  如果是內建播放器，他將是唯一的輸出源。
+  如果是 Builtin Player，他將是唯一的輸出源。
   如果有設定 Audio Link，他會將設定在此的 Audio Source 聲音送至 Audio Link。
 - **Use Flicker Workaround**：AVPro 限定選項。
   雖然會使用極少量的額外資源，但可以緩解觀賞串流內容時，畫面閃爍的問題。
@@ -244,7 +244,7 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
     - **&lt;播放清單名稱&gt;**：選擇播放清單時，可以進行以下操作：
         - **Title**：要顯示的影片標題。
         - **URL (PC)**：影片連結。支援 YouTube、Twitch、SoundCloud、RTMP、RTSP 等等連結。
-        - **URL (Quest)**：對於 RTSPT / RTMP 等等 Quest / Android 平台不支援的連結，提供可用連結的替代方案(留空即會沿用 PC 的連結)。
+        - **URL (Quest)**：對於 RTSPT / RTMP 等等 Quest / Android 平台不支援的連結，提供可用連結的替代方案 (留空即會沿用 PC 的連結)。
         - **&lt;Builtin / AVPro Player&gt;**：選擇播放連結的模組。
         若播放連結為串流或 SoundCloud，請選擇 AVPro 模組。
         - **Load Playlist from YouTube**：將 YouTube 播放清單匯入至選擇的播放清單。
