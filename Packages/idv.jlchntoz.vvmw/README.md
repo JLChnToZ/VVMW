@@ -7,7 +7,7 @@
 Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It aims to cover many use cases, from watch-together video/live stream player in lounges, to large event venue for music performances, or even booths for exhibitions or showcases. Due to its target customers, it has a flexible architecture, just like a factory made electronic but with a easy to open back lid, make it easier to let users mess them around for their needs.
 
 > [!NOTE]
-> This documentation is for V1.0.34 or later, some guidelines are different to older versions.
+> This documentation is for V1.0.37 or later, some guidelines are different to older versions.
 
 ## Table of Contents
 * [How to install?](#how-to-install)
@@ -237,6 +237,7 @@ This is an optional component that manages the queue of the playback. You can pr
 - **History Size**: How many recent user entered URL entries will be recorded.  
   If this value is greater than `0`, a "Playback History" entry beside queue list and playlists will appeared. When the player plays a user-input URL, the URL and who entered will append here, allowing it to be quickly re-queued afterwards.  
   Setting this value to `0` will entirely disable this feature.
+  (URLs selected in playlists will not recorded)
 - **Edit Playlists...**: Edit the Playlists defined in this component.  
   The options below are in the Playlist editor window now:
     - **Reload**: Discard any changes to the playlist and reload to inspector.

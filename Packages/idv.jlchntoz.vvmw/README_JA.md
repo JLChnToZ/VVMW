@@ -7,7 +7,7 @@ VizVidの使用をご検討いただき、誠にありがとうございます�
 VizVidはVRChatに向けて開発し、汎用的な動画プレイヤーのフロントエンドです。ラウンジで皆で楽しんでいただける動画/ライブ配信プレイヤーだけではなく、大規模イベント、さらに展示会やショーケース・ブースでも対応する、汎用性が満載の動画プレイヤーになります。柔軟な構築されたガジェットのように、裏蓋を開けたら様々な形を簡単に調整され、ユーザーの皆様に多様な場合を対応されます。
 
 > [!NOTE]
-> このマニュアルは v1.0.34 以降に対応しており、一部の内容は古いバージョンと異なります。
+> このマニュアルは v1.0.37 以降に対応しており、一部の内容は古いバージョンと異なります。
 
 ## 目次<a name="目次"></a>
 - [導入方法](#導入方法)
@@ -24,7 +24,7 @@ VizVidはVRChatに向けて開発し、汎用的な動画プレイヤーのフ�
     - [Text Mesh Proへの移行](#Text-Mesh-Proへの移行)
 - [バンドルの仕組み](#バンドルの仕組み)
     - [VVMW (Game Object)](#VVMW-Game-Object)
-    - [Builtin Module / AVPro Module](#Builtin-Module--AVPro-Module)
+    - [Builtin Module / AVPro Module / Image Module](#Builtin-Module--AVPro-Module--Image-Module)
     - [Playlist Queue Handler](#Playlist-Queue-Handler)
     - [Locale](#Locale)
     - [Default Screen / Screen](#Default-Screen-Screen)
@@ -191,10 +191,10 @@ Unityハイアラーキにあるプレハブは、以下の通りになります
 * **Targets**：カスタムスクリプトの統合に対応するため、ここでアサインされたUdon (sharp) に、イベントデータを出力します。(統合したい方は、各自ソースコードを読んでおいてください。ソースコードに関する記事は提供していませんので、予めご了承ください。)
 * **Realtime GI Update Interval**：リアルタイムGIを更新する間隔。無効化するには、0に設定しておけばOKです。Light Probe・Realtime GIなど、ワールドと画面レンダラーに設定することで、この機能の使用ができます。
 
-### Builtin Module / AVPro Module<a name="builtin-module-avpro-module"></a>
-動画再生用のプレイヤーモジュールです。バックエンドの動画プレイヤーをVizVidのフロントエンドに接続するゲームオブジェクトです。調整可能なオプションはこちらになります：
-* **Player Name**：UIに表示するプレイヤーの名前です。名前を変更するか、またlang.jsonファイルを改変して、ローカライズを行えます。
-* **Materials**, **Texture Property Name**：基本的にこの設定を調整する必要はありません。これはバックエンドのプレイヤーから、映像を取得するものです。
+### Builtin Module / AVPro Module / Image Module<a name="builtin-module-avpro-module-image-module"></a>
+動画再生 / 画像表示用モジュールです。バックエンドの動画プレイヤー / 画像ビューアをVizVidのフロントエンドに接続するゲームオブジェクトです。調整可能なオプションはこちらになります：
+* **Player Name**：UIに表示するプレイヤー / ビューアの名前です。名前を変更するか、またlang.jsonファイルを改変して、ローカライズを行えます。
+* **Materials**, **Texture Property Name**：基本的にこの設定を調整する必要はありません。これはバックエンドのプレイヤー / ビューアから、画面を取得するものです。
 * **Maximum Resolution**：動画解像度の選択が可能の場合、設定値の高さの映像データを読み込みます。デフォルト値は1080です。
 * (※AVPro限定オプション) Use Low Latency：ライブ配信を視聴する場合、低遅延モードの有効化を設定します。
 * **Primary Audio Source**：音声データをオーディオソースに優先送信する設定です。Builtin Playerの場合、これは唯一の出力源になります。Audio Linkを設定している場合、オーディオソースから流れた音をAudio Linkに送信します。
@@ -205,7 +205,11 @@ Unityハイアラーキにあるプレハブは、以下の通りになります
 ### Playlist Queue Handler<a name="playlist-queue-handler"></a>
 再生キューを管理する、オプショナルコンポーネントです。プレイリストの管理と再生キューの有効化の設定ができます。
 * **Core**：VVMWに接続用コンポーネントです。設定されていない場合、「Find」をクリックして設定を行います。
-* **Enable Queue List**：有効化にすると、動画再生の間に追加したURLは、キューリストに入れます。ある程度再生マナーを入れたい方にお勧めします。
+* **Enable Queue List**：有効化にすると、動画再生の間に追加したURLは、キューリストに入れます。ある程度再生マナーを持ちたい方におすすめします。
+* **History Size**：再生履歴の数を設定します。
+  0より大きい値に設定すると、キューリストの側に、再生履歴が表示します。VizVidに入力したURLと入力者が再生履歴に記録され、再生履歴からURLを選択すると、素早く再キューイングすることができます。
+  値を0に設定すると無効化にされます。
+  (事前に組み込まれたプレイリストは記録されません。)
 * **Edit Playlists…**：事前に入れるプレイリスト編集用コンポーネントです。 \
 調整可能な項目は以下になります：
     * **Reload**：編集内容を破棄し、インスペクターにリロードします。
@@ -213,12 +217,12 @@ Unityハイアラーキにあるプレハブは、以下の通りになります
     * **Export All**：すべてのプレイリストをJSON形式で書き出します。
     * **Export Selected**：選択したプレイリストをJSON形式で書き出します。
     * **Import from JSON**：前回保存したプレイリストのJSONファイルをインポートします。インポートする時点で、追加・上書きを選択するプロンプトウィンドウが表示されます。
-    * **Playlists**：事前に入れたプレイリストです。追加・消去・並べ替え・名前変更ができます。
+    * **Playlists**：事前に組み込まれたプレイリストです。追加・消去・並べ替え・名前変更ができます。
     * **&lt;プレイリスト名>**：プレイリストを選択すると、以下の編集ができます：
         * **Title**：プレイヤーに表示するタイトルです。
-        * **URL (PC)**：動画のリンク、YouTube・Twitch・SoundCloud・RTSP・RTMPなどの対応ができます。
-        * **URL (Quest)**：Quest / Android ユーザー向けリンクです。RTSPTなど、Androidプラットフォームに対応しないリンクに対して、代用のリンクを入れます。(入れない場合は、PC用URLを流用します。)
-        * **&lt;Builtin / AVPro Player>**：再生するプレイヤーモジュールを事前に指定します。ライブ配信やSoundCloudなど、AVProが必須の場合に指定することができます。
+        * **URL (PC)**：動画のURL、YouTube・Twitch・SoundCloud・RTSP・RTMPなどの対応ができます。
+        * **URL (Quest)**：Quest / Android ユーザー向けURLです。RTSPTなど、Androidプラットフォームに対応しないURLに対して、代用のURLを入れます。(入れない場合は、PC用URLを流用します。)
+        * **&lt;Builtin / AVPro Player / Image Viewer>**：再生/表示するモジュールを事前に指定します。ライブ配信やSoundCloudなど、AVProが必須の場合に指定することができます。
         * **Load Playlist from YouTube**：YouTubeプレイリストを入力することで、選択するプレイリストに追加されます。
         * **Fetch Titles**：動画タイトルを取得します。現時点はYouTubeのみ対応します。
 * **Default Playlist**：ユーザーがJoinする時、デフォルト選択するプレイリストです。

@@ -5,7 +5,7 @@
 嗨！VizVid 是一款為了 VRChat 所設計的多功能媒體播放器前端。它的用途廣泛，除了在地圖與朋友一起觀看影片或直播用的播放器、大型音樂表演的活動場地，甚至在展覽會或展示攤位都能使用。針對各式各樣的需求，VizVid 有著前所未有的靈活性。猶如電子零件廠販賣的電子用品般，只要打開後蓋，就能依各自所需，自由地進行調整。
 
 > [!NOTE]
-> 本說明文件內容，涵蓋了 v1.0.34 或往後更新的版本，一部分的說明與舊版會有所不同。
+> 本說明文件內容，涵蓋了 v1.0.37 或往後更新的版本，一部分的說明與舊版會有所不同。
 
 ## 目錄
 * [安裝方法](#安裝方法)
@@ -22,7 +22,7 @@
     * [遷移至 Text Mesh Pro](#遷移至-Text-Mesh-Pro)
 * [VizVid 的構造](#VizVid-的構造)
 	* [VVMW (Game Object)](#VVMW-Game-Object)
-	* [Builtin Module / AVPro Module](#Builtin-Module--AVPro-Module)
+	* [Builtin Module / AVPro Module / Image Module](#Builtin-Module--AVPro-Module--Image-Module)
 	* [Playlist Queue Handler](#Playlist-Queue-Handler)
 	* [Locale](#Locale)
 	* [Default Screen / Screen](#Default-Screen--Screen)
@@ -210,12 +210,12 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
 - **Realtime GI Update Interval**：即時全域光照的更新間隔。設定 0 即為停用。
   需要設定場景中的 Light Probe 和 Realtime GI 與螢幕渲染器，才能使用此功能。
 
-### Builtin Module / AVPro Module
-播放影片時使用的播放器模組。負責將後端的影片播放器，連接至 VizVid 核心的遊戲物件。
+### Builtin Module / AVPro Module / Image Module
+播放影片 / 圖片時使用的播放器 / 檢視器模組。負責將後端的影片播放器 / 圖片檢視器，連接至 VizVid 核心的遊戲物件。
 以下是可以調整的設定：
 
-- **Player Name**：顯示於 UI 上的播放器名稱。可以直接更改名稱，或是更改 **lang.json** 進行在地化翻譯。
-- **Materials**, **Texture Property Name**：通常不用更改設定。這裡是負責從播放器後端取得影片的畫面。
+- **Player Name**：顯示於 UI 上的播放器 / 檢視器名稱。可以直接更改名稱，或是更改 **lang.json** 進行在地化翻譯。
+- **Materials**, **Texture Property Name**：通常不用更改設定。這裡是負責從播放器 / 檢視器後端取得影片的畫面。
 - **Maximum Resolution**：載入影片的最高解析度 (如果可選)。數值是影片的高度。預設值為`1080`。
 - **Use Low Latency**：AVPro 限定選項。若要觀賞串流內容。此選項可降低觀看延遲。
 - **Primary Audio Source**：聲音會優先輸出的 Audio Source。
@@ -233,6 +233,10 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
 - **Core**：將元件指向至 VizVid 核心。若為留空，按「Find」即可解決。
 - **Enable Queue List**：若為啟用，影片播放期間，當其他使用者新增網址，將會加入播放佇列中。
   建議啟用，讓大家當個有禮貌的乖寶寶。
+- **History Size**：設定播放記錄的數量。
+  若設定比 0 大的數值，在播放佇列旁，會顯示播放記錄。當使用者輸入網址時，網址和輸入者的名字會加入此處，以便快速重新點播。
+  設定 0 即為停用
+  (播放清單的點播不會加入播放記錄)
 - **Edit Playlists...**：編輯播放清單的元件。  
   播放清單編輯視窗內，可做出以下調整：
     - **Reload**：取消變更，並將播放清單載回至 Inspector。
@@ -245,7 +249,7 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
         - **Title**：要顯示的影片標題。
         - **URL (PC)**：影片連結。支援 YouTube、Twitch、SoundCloud、RTMP、RTSP 等等連結。
         - **URL (Quest)**：對於 RTSPT / RTMP 等等 Quest / Android 平台不支援的連結，提供可用連結的替代方案 (留空即會沿用 PC 的連結)。
-        - **&lt;Builtin / AVPro Player&gt;**：選擇播放連結的模組。
+        - **&lt;Builtin / AVPro Player / Image Viewer&gt;**：選擇播放 / 檢視連結的模組。
         若播放連結為串流或 SoundCloud，請選擇 AVPro 模組。
         - **Load Playlist from YouTube**：將 YouTube 播放清單匯入至選擇的播放清單。
         - **Fetch Titles**：若 Title 欄為空，則可自動取得並匯入影片標題，目前僅支援 YouTube。
