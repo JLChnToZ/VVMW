@@ -192,7 +192,7 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
   建議不要將這個設定調太高或太低，可能會發生播放時間前前後後跳來跳去，
   或是時間錯位過於嚴重。
 - **Player Handlers**：播放時所使用的「模組」。
-  基本上不需更改。關於模組的說明，請見「Builtin Module」與「AVPro Module」。
+  基本上不需更改。關於模組的說明，請見 [Builtin Module / AVPro Module / Image Module](#Builtin-Module--AVPro-Module--Image-Module)。
 - **Default Texture**：選擇沒有播放內容時使用的預設貼圖。若想保持簡潔，使用預設值即可。
 - **Video Screen Target (數字)**：顯示影片貼圖的元件。可以在元件中，設定任何的材質、渲染器、UI Raw 圖片。
   收在三角形內的選項是進階設定。不使用第三方著色器接收影像的話，基本上不需要調整。
@@ -206,7 +206,7 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
   關閉此設定時，只要有控制面板，每個玩家就可以獨立控制播放器。
 - **Audio Link**：支援 [Audio Link](https://github.com/llealloo/vrc-udon-audio-link)。他會將聲音送至場景中安裝好的 Audio Link。
 - **Targets**：可以整合自訂腳本。針對設定在此的 Udon (sharp) 傳送事件資料。
-  我不會提關於原始碼的文字說明，若想整合自己的腳本，請自行研究原始碼並進行整合。
+  我不會提供關於原始碼的文字說明，若想整合自己的腳本，請自行研究原始碼並進行整合。
 - **Realtime GI Update Interval**：即時全域光照的更新間隔。設定 0 即為停用。
   需要設定場景中的 Light Probe 和 Realtime GI 與螢幕渲染器，才能使用此功能。
 

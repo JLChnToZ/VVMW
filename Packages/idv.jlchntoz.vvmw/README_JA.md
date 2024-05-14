@@ -28,6 +28,8 @@ VizVidはVRChatに向けて開発し、汎用的な動画プレイヤーのフ�
     - [Playlist Queue Handler](#Playlist-Queue-Handler)
     - [Locale](#Locale)
     - [Default Screen / Screen](#Default-Screen-Screen)
+    - [Default Audio Source](#Default-Audio-Source)
+    - [Default UI / Screen with Overlay](#Default-UI--Screen-with-Overlay)
 - [サードパーティーへ製品の対応](#サードパーティーへ製品の対応)
     - [Udon Auth](#Udon-Auth)
     - [Audio Link](#Audio-Link)
@@ -180,7 +182,7 @@ Unityハイアラーキにあるプレハブは、以下の通りになります
 * **Total Retry Time**：読み込み失敗の場合、再読み込み回数の上限設定。
 * **Retry Delay**：再読み込みの遅延設定。
 * **Time Drift Detect Threshold**：再生の時間ドリフトが設定値に超えた場合、オーナーの再生時間と再同期します。動画再生時間が前後に飛んだり、再生時間ドリフトが激しいなどの問題を防ぐため、設定値をあまり変えないようおすすめします。
-* **Player Handlers**：プレイヤーコンポーネントの「モジュール」です。未使用のモジュールを外す以外、基本的には改変の必要はありません。モジュールについては「Builtin Module」と「AVPro Module」をご参照ください。
+* **Player Handlers**：プレイヤー/ビューアコンポーネントの「モジュール」です。未使用のモジュールを外す以外、基本的には改変の必要はありません。モジュールについては[Builtin Module / AVPro Module / Image Module](#Builtin-Module--AVPro-Module--Image-Module)をご参照ください。
 * **Default Texture**：設定なしの場合、既定値のテクスチャが表示されます。任意のテクスチャの変更は自由ですが、シンプルにしたい場合、既定値のままにおすすめします。
 * **Video Screen Target (番号)**：映像テクスチャを表示するコンポーネントです。任意のマテリアル・レンダラー・UI Raw画像コンポーネントの使用が可能です。三角で格納しているオプションは高度な設定です。サードパーティーシェーダーで映像テクスチャを使用する場合除き、基本的に調整しなくても構いません。
 * **Add Video Screen Target**：追加映像画面ターゲットを使用するには、対応可能なコンポーネントをここにドラッグします。
@@ -207,27 +209,27 @@ Unityハイアラーキにあるプレハブは、以下の通りになります
 * **Core**：VVMWに接続用コンポーネントです。設定されていない場合、「Find」をクリックして設定を行います。
 * **Enable Queue List**：有効化にすると、動画再生の間に追加したURLは、キューリストに入れます。ある程度再生マナーを持ちたい方におすすめします。
 * **History Size**：再生履歴の数を設定します。
-  0より大きい値に設定すると、キューリストの側に、再生履歴が表示します。VizVidに入力したURLと入力者が再生履歴に記録され、再生履歴からURLを選択すると、素早く再キューイングすることができます。
-  値を0に設定すると無効化にされます。
+  0より大きい値に設定すると、キューリストの側に、再生履歴が表示されます。VizVidに入力したURLと入力者が再生履歴に記録され、再生履歴からURLを選択すると、素早く再キューイングすることができます。
+  値を0に設定すると無効化になります。
   (事前に組み込まれたプレイリストは記録されません。)
 * **Edit Playlists…**：事前に入れるプレイリスト編集用コンポーネントです。 \
 調整可能な項目は以下になります：
     * **Reload**：編集内容を破棄し、インスペクターにリロードします。
-    * **Save**：編集内容を保存します。**自動保存は行っていませんので、編集完了後、必ずクリックしてください。**
+    * **Save**：編集内容を保存します。**自動保存は行えませんので、編集完了後、必ずsaveをクリックしてください。**
     * **Export All**：すべてのプレイリストをJSON形式で書き出します。
     * **Export Selected**：選択したプレイリストをJSON形式で書き出します。
     * **Import from JSON**：前回保存したプレイリストのJSONファイルをインポートします。インポートする時点で、追加・上書きを選択するプロンプトウィンドウが表示されます。
     * **Playlists**：事前に組み込まれたプレイリストです。追加・消去・並べ替え・名前変更ができます。
     * **&lt;プレイリスト名>**：プレイリストを選択すると、以下の編集ができます：
         * **Title**：プレイヤーに表示するタイトルです。
-        * **URL (PC)**：動画のURL、YouTube・Twitch・SoundCloud・RTSP・RTMPなどの対応ができます。
+        * **URL (PC)**：動画のURLです。YouTube・Twitch・SoundCloud・RTSP・RTMPなどのURLに対応します。
         * **URL (Quest)**：Quest / Android ユーザー向けURLです。RTSPTなど、Androidプラットフォームに対応しないURLに対して、代用のURLを入れます。(入れない場合は、PC用URLを流用します。)
         * **&lt;Builtin / AVPro Player / Image Viewer>**：再生/表示するモジュールを事前に指定します。ライブ配信やSoundCloudなど、AVProが必須の場合に指定することができます。
         * **Load Playlist from YouTube**：YouTubeプレイリストを入力することで、選択するプレイリストに追加されます。
         * **Fetch Titles**：動画タイトルを取得します。現時点はYouTubeのみ対応します。
 * **Default Playlist**：ユーザーがJoinする時、デフォルト選択するプレイリストです。
 * **Auto Play**：有効化することで、ユーザーがJoinする時、設定したDefault Playlistを自動再生します。接近自動再生を使用する場合、この機能を無効化し、[こちらの説明](#ユーザー接近の自動再生設定)に従い行ってください。
-* **Auto Play Delay Time**：ワールドに入った時、自動再生URL読み込みの遅延設定。VizVidだけではなく、同一ワールドに、自動再生を掛けた、複数のプレイヤーが存在する場合、読み込みレート制限を掛からないよう、少なくとも、5の倍数を設定し、読込時間をずれしておいでください。
+* **Auto Play Delay Time**：ワールドに入った時、自動再生URL読み込みの遅延設定。VizVidだけではなく、同一ワールドに、自動再生を掛けた、複数のプレイヤーが存在する場合、読み込みレート制限を掛けないよう、少なくとも、5の倍数を設定し、読込時間をずらしておいでください。
 * **Default Loop**：事前にリピート再生を有効化に設定します(プレイヤーUIで変更できます)。VVMW (Core) の設定と違い、こちらの設定はプレイリスト・キューリストのリピート再生を入れます。
 * **Default Shuffle**：事前にランダム再生を有効化に設定します(プレイヤーUIで変更できます)。
 * **Locked**：事前にプレイヤーをロックします。[Udon Auth](https://xtl.booth.pm/items/3826907) (有料) や他互換性あるスクリプトに対応します。
@@ -242,6 +244,12 @@ Unityハイアラーキにあるプレハブは、以下の通りになります
 
 ### Default Screen / Screen<a name="default-screen-screen"></a>
 デフォルト画面です。詳しくは、[こちらのセクション](#複数画面の追加)をご参照ください。
+
+### Default Audio Source<a name="default-audio-source"></a>
+デフォルトオーディオソースです。詳しくは、[こちらのセクション](#複数オーディオソースの追加（サラウンド）)をご参照ください。
+
+### Default UI / Screen with Overlay<a name="default-ui--screen-with-overlay"></a>
+デフォルトUIです。詳しくは、[こちらのセクション](#新規操作パネルの追加)をご参照ください。
 
 ## サードパーティーへ製品の対応<a name="サードパーティーへ製品の対応"></a>
 ### Udon Auth<a name="udon-auth"></a>
