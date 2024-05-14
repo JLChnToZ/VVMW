@@ -211,8 +211,8 @@ This is the "brain" of the system, it controls and synchronizes the player (if e
 - **Realtime GI Update Interval**: The interval to update realtime GI, set to 0 to disable realtime GI update.
   This features requires setup the light probes and realtime GI in the scene and the screen renderers.
 
-### Builtin Module / AVPro Module
-These are the video player modules. The purpose of these game objects are interfaces from the undely video player components to the core.
+### Builtin Module / AVPro Module / Image Module
+These are the video player / image viewer modules. The purpose of these game objects are interfaces from the undely video player / image loader components to the core.
 The following are the options could be changed here:
 
 - **Player Name**: The video player name to be displayed in UI, you can put literal name or just a key mapped inside a file called **lang.json** for localized.
@@ -232,8 +232,11 @@ The following are the options could be changed here:
 This is an optional component that manages the queue of the playback. You can pre-define playlist and/or enabling player queue options here.
 
 - **Core**: Reference to the VVMW main component. If it is empty, you can click the "Find" button to resolve it.
-- **Enable Queue List**: If enabled, while user want to play a video and it is playing other video, the video url will be queued.
+- **Enable Queue List**: If enabled, while user want to play a video and it is playing other video, the video url will be queued.  
   Recommend as this is more polite to everyone.
+- **History Size**: How many recent user entered URL entries will be recorded.  
+  If this value is greater than `0`, a "Playback History" entry beside queue list and playlists will appeared. When the player plays a user-input URL, the URL and who entered will append here, allowing it to be quickly re-queued afterwards.  
+  Setting this value to `0` will entirely disable this feature.
 - **Edit Playlists...**: Edit the Playlists defined in this component.  
   The options below are in the Playlist editor window now:
     - **Reload**: Discard any changes to the playlist and reload to inspector.
@@ -246,7 +249,7 @@ This is an optional component that manages the queue of the playback. You can pr
         - **Title**: The title to be displayed.
         - **URL (PC)**: The url to the video, can be YouTube, Twitch, SoundCloud, RTSP, RTMP links.
         - **URL (Quest)**: The url to be loaded on Quest/Android clients, useful when RTSP/RTMP links won't work and need an alternative to those clients.
-        - **&lt;Builtin / AVPro Player&gt;**: The player module to play this link.
+        - **&lt;Builtin / AVPro Player / Image Viewer&gt;**: The player module to play / view this link.
         If it is a live stream or soundcloud, it is required to use AVPro player module.
         - **Load Playlist from YouTube**: You can enter the Playlist URL from YouTube to append it to current selected Playlist. It requires a selected Playlist to operate with.
         - **Fetch Titles**: Fetch titles automatically if not filled. Currently only supports YouTube.
