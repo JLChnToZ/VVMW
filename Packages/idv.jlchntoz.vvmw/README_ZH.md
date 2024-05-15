@@ -13,9 +13,9 @@
     * [新增額外 Audio Source](#新增額外-Audio-Source)
 	* [新增額外控制面板](#新增額外控制面板)
 	* [新增 / 匯入 / 匯出播放清單](#新增--匯入--匯出播放清單)
-	* [新增移動式螢幕](#新增移動式螢幕)
+	* [新增拾取螢幕](#新增拾取螢幕)
 	* [新增重疊控制面板](#新增重疊控制面板)
-	* [新增 Re-Sync 按鈕](#新增-Re-Sync-按鈕)
+	* [新增重新同步 (Re-Sync) 按鈕](#新增重新同步-Re-Sync-按鈕)
 	* [更改顏色](#更改顏色)
     * [設定使用者接近自動播放](#設定使用者接近自動播放)
     * [設定影片播放時背景音樂自動淡出](#設定影片播放時背景音樂自動淡出)
@@ -107,21 +107,21 @@ VizVid 可以透過「Playlist Queue Handler」物件，事先製作 VizVid 用�
 > [!NOTE]
 > 請注意，根據物件擺放位置的左右側，會出現不同的結果：左側會加入全新的播放清單。右側會根據目前選擇的播放清單的相容性進行新增。
 
-### 新增移動式螢幕
-本元件由[山の豚](https://yamabuta.booth.pm/items/4189997)原創製作，具有放大縮小功能的 Local 移動式螢幕。VizVid 為了對應此功能，重新進行了編寫。
+### 新增拾取螢幕
+本元件由[山の豚](https://yamabuta.booth.pm/items/4189997)原創製作，具有放大縮小功能的 Local 拾取螢幕。VizVid 為了對應此功能，重新進行了編寫。
 
 於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Pickupable Screen`以新增。  
 ![ ](.tutorial/add-controls-simple.png)
 
 ### 新增重疊控制面板
-根據遊玩模式，會針對房間內的每位玩家，顯示一個小型控制面板。VR 模式會顯示於手腕上，桌面模式則會顯示於螢幕角落。可以進行音量調整和 Re-Sync。
+根據遊玩模式，會針對房間內的每位玩家，顯示一個小型控制面板。VR 模式會顯示於手腕上，桌面模式則會顯示於螢幕角落。可以進行音量調整和重新同步 (Re-Sync)。
 
 ![ ](.tutorial/overlay-sample.png)
 
 於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Overlay Controls`以新增。  
 ![ ](.tutorial/add-controls-simple.png)
 
-### 新增 Re-Sync 按鈕
+### 新增重新同步 (Re-Sync) 按鈕
 此元件適合有串流內容的活動會場，讓觀眾可以重新同步串流內容，是重疊面板的替代方案。提供了`Re-Sync Button` 和 `Global Sync Button`兩種類型的按鈕。差異在於會觸發本機或全體的重新同步。
 
 於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Resync Button`或`Global Resync Button`以新增。  
@@ -228,13 +228,13 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
 - **Blit Material**：避免畫面閃爍的暫存材質。若沒必要不要動它。
 
 ### Playlist Queue Handler
-管理播放佇列，可選用的元件。可以管理播放清單，與啟用播放佇列。
+管理播放佇列，可選用的元件。可以管理播放清單，與啟用待播清單。
 
 - **Core**：將元件指向至 VizVid 核心。若為留空，按「Find」即可解決。
-- **Enable Queue List**：若為啟用，影片播放期間，當其他使用者新增網址，將會加入播放佇列中。
+- **Enable Queue List**：若為啟用，影片播放期間，當其他使用者新增網址，將會加入待播清單中。
   建議啟用，讓大家當個有禮貌的乖寶寶。
 - **History Size**：設定播放記錄的數量。
-  若設定比 0 大的數值，在播放佇列旁，會顯示播放記錄。當使用者輸入網址時，網址和輸入者的名字會加入此處，以便快速重新點播。
+  若設定比 0 大的數值，在待播清單旁，會顯示播放記錄。當使用者輸入網址時，網址和輸入者的名字會加入此處，以便快速重新點播。
   設定 0 即為停用
   (播放清單的點播不會加入播放記錄)
 - **Edit Playlists...**：編輯播放清單的元件。  
@@ -262,7 +262,7 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
   不僅限於 VizVid，若地圖中有播放器會自動播放，
   請務必將此數值設為`5`的倍數，錯開影片的載入時間。
 - **Default Loop**：可設定是否預設啟用重複播放 (事後可經由控制面板調整)。
-  跟 VVMW (Core) 的設定不同點在於，這會重複播放整個播放清單 / 佇列。
+  跟 VVMW (Core) 的設定不同點在於，這會重複播放整個播放清單 / 待播清單。
 - **Default Shuffle**：可設定是否預設啟用隨機播放 (事後可經由控制面板調整)。
 - **Locked**：可預設鎖定播放器。
   本功能是為 [Udon Auth](https://xtl.booth.pm/items/3826907) (付費內容) 或其他相容的腳本而設計。
