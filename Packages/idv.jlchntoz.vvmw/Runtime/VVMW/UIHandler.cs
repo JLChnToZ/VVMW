@@ -473,8 +473,8 @@ namespace JLChnToZ.VRC.VVMW {
                         case VideoError.RateLimited: SetLocalizedText(statusText, statusTMPro, "RateLimited"); break;
                         default: SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("Unknown"), (int)errorCode)); break;
                     }
-                    SetText(durationText, durationTMPro, "TimeIdleFormat");
-                    SetText(timeText, timeTMPro, "TimeIdleFormat");
+                    SetLocalizedText(durationText, durationTMPro, "TimeIdleFormat");
+                    SetLocalizedText(timeText, timeTMPro, "TimeIdleFormat");
                     canStop = unlocked;
                     break;
                 case 3: // Ready
