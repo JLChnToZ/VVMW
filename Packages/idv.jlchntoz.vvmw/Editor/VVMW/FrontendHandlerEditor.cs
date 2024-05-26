@@ -17,6 +17,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty autoPlayProperty;
         SerializedProperty autoPlayDelayProperty;
         SerializedProperty targetsProperty;
+        SerializedProperty seedRandomBeforeShuffleProperty;
         SerializedReorderableList targetsPropertyList;
         SerializedObject coreSerializedObject;
         string[] playListNames;
@@ -34,6 +35,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             autoPlayProperty = serializedObject.FindProperty("autoPlay");
             autoPlayDelayProperty = serializedObject.FindProperty("autoPlayDelay");
             targetsProperty = serializedObject.FindProperty("targets");
+            seedRandomBeforeShuffleProperty = serializedObject.FindProperty("seedRandomBeforeShuffle");
             targetsPropertyList = new SerializedReorderableList(targetsProperty);
             playListNames = null;
             PlayListEditorWindow.OnFrontendUpdated += OnFrontEndUpdated;
@@ -132,6 +134,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
             }
             EditorGUILayout.PropertyField(defaultShuffleProperty);
+            EditorGUILayout.PropertyField(seedRandomBeforeShuffleProperty);
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(lockedProperty);
             using (new EditorGUILayout.HorizontalScope()) {

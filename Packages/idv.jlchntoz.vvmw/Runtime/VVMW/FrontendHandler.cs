@@ -39,6 +39,8 @@ namespace JLChnToZ.VRC.VVMW {
             "If you have multiple video players (not limited to VizVid) which will auto plays in the same world, " +
             "you should set this to a value at least in multiple of 5 to stagger the loading time.")]
         [SerializeField] float autoPlayDelay = 0;
+        [Tooltip("Seed the random number generator before shuffling the playlist.")]
+        [SerializeField] bool seedRandomBeforeShuffle = true;
         [UdonSynced] VRCUrl[] queuedUrls;
         [UdonSynced] string queuedTitles;
         [UdonSynced] byte[] queuedPlayerIndex;
@@ -228,7 +230,10 @@ namespace JLChnToZ.VRC.VVMW {
         public void _AutoPlay() {
             core.Loop = RepeatOne;
             if (defaultLoop) localFlags |= REPEAT_ALL;
-            if (defaultShuffle) localFlags |= SHUFFLE;
+            if (defaultShuffle) {
+                localFlags |= SHUFFLE;
+                SeedRandomBeforeShuffle();
+            }
             localPlayListIndex = defaultPlayListIndex;
             int length = (localPlayListIndex == playListUrlOffsets.Length ?
                 playListUrls.Length : playListUrlOffsets[localPlayListIndex]
@@ -498,6 +503,7 @@ namespace JLChnToZ.VRC.VVMW {
             for (int i = 0; i < remainCount; i++)
                 localPlayListOrder[i] = (ushort)(currentOffset + (i + startIndex) % length);
             if (isShuffle) {
+                SeedRandomBeforeShuffle();
                 int startFrom = skipped ? 0 : 1;
                 for (int i = startFrom + 1; i < remainCount; i++) {
                     int j = UnityEngine.Random.Range(startFrom, remainCount);
@@ -506,6 +512,12 @@ namespace JLChnToZ.VRC.VVMW {
                     localPlayListOrder[j] = tmp;
                 }
             }
+        }
+
+        void SeedRandomBeforeShuffle() {
+            if (!seedRandomBeforeShuffle) return;
+            UnityEngine.Random.InitState((int)DateTime.Now.Ticks);
+            seedRandomBeforeShuffle = false;
         }
 
         void PlayPlayList(int index) {
