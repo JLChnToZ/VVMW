@@ -516,7 +516,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void SeedRandomBeforeShuffle() {
             if (!seedRandomBeforeShuffle) return;
-            UnityEngine.Random.InitState((int)DateTime.Now.Ticks);
+            UnityEngine.Random.InitState((int)(DateTime.Now.Ticks & int.MaxValue));
             seedRandomBeforeShuffle = false;
         }
 
