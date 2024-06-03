@@ -792,6 +792,7 @@ namespace JLChnToZ.VRC.VVMW {
             localUrl = url;
             if (shouldReload) LoadYTTL();
             if (activeHandler != null && activeHandler.IsReady) {
+                bool forceSyncTime = false;
                 int intState = state;
                 switch (intState) {
                     case IDLE:
@@ -802,11 +803,13 @@ namespace JLChnToZ.VRC.VVMW {
                         if (!activeHandler.IsPaused) activeHandler.Pause();
                         break;
                     case PLAYING:
-                        if (activeHandler.IsPaused || !activeHandler.IsPlaying)
+                        if (activeHandler.IsPaused || !activeHandler.IsPlaying) {
                             activeHandler.Play();
+                            forceSyncTime = true;
+                        }
                         break;
                 }
-                if (!isLocalReloading && !isLoading) SyncTime();
+                if (!isLocalReloading && !isLoading) SyncTime(forceSyncTime);
             }
         }
 
@@ -823,7 +826,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             #endif
             if (!synced) return;
-            SyncTime();
+            SyncTime(true);
             if (!isResyncTime) {
                 isResyncTime = true;
                 SendCustomEventDelayedSeconds(nameof(_AutoSyncTime), 0.5F);
@@ -841,7 +844,7 @@ namespace JLChnToZ.VRC.VVMW {
                 RequestSerialization();
                 return;
             }
-            SyncTime();
+            SyncTime(false);
             SendCustomEventDelayedSeconds(nameof(_AutoSyncTime), 0.5F);
         }
 
@@ -870,10 +873,10 @@ namespace JLChnToZ.VRC.VVMW {
             return videoTime;
         }
 
-        void SyncTime() {
+        void SyncTime(bool forced) {
             if (Networking.IsOwner(gameObject)) {
                 var newTime = CalcSyncTime();
-                if (Mathf.Abs((float)(newTime - time) / TimeSpan.TicksPerSecond) >= timeDriftDetectThreshold) {
+                if (forced || Mathf.Abs((float)(newTime - time) / TimeSpan.TicksPerSecond) >= timeDriftDetectThreshold) {
                     time = newTime;
                     RequestSerialization();
                 }
@@ -883,7 +886,7 @@ namespace JLChnToZ.VRC.VVMW {
                 float t = CalcVideoTime();
                 var t2 = activeHandler.Time;
                 if (loop) t2 = Mathf.Repeat(t2, duration);
-                if (Mathf.Abs(t2 - t) >= timeDriftDetectThreshold) {
+                if (forced || Mathf.Abs(t2 - t) >= timeDriftDetectThreshold) {
                     activeHandler.Time = t;
                     SendEvent("_OnTimeDrift");
                 }
