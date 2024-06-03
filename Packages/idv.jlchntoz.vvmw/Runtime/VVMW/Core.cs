@@ -884,9 +884,12 @@ namespace JLChnToZ.VRC.VVMW {
                 var duration = activeHandler.Duration;
                 if (duration <= 0 || float.IsInfinity(duration)) return;
                 float t = CalcVideoTime();
-                var t2 = activeHandler.Time;
-                if (loop) t2 = Mathf.Repeat(t2, duration);
-                if (forced || Mathf.Abs(t2 - t) >= timeDriftDetectThreshold) {
+                if (!forced) {
+                    var t2 = activeHandler.Time;
+                    if (loop) t2 = Mathf.Repeat(t2, duration);
+                    forced = Mathf.Abs(t2 - t) >= timeDriftDetectThreshold;
+                }
+                if (forced) {
                     activeHandler.Time = t;
                     SendEvent("_OnTimeDrift");
                 }
