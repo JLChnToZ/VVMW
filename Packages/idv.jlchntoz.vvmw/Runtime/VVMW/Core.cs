@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRC.SDKBase;
 using VRC.SDK3.Components.Video;
+using VRC.Udon.Common;
 using VRC.Udon.Common.Interfaces;
 using VVMW.ThirdParties.Yttl;
 
@@ -72,6 +73,7 @@ namespace JLChnToZ.VRC.VVMW {
         byte localActivePlayer, lastActivePlayer;
         // 0: Idle, 1: Loading, 2: Playing, 3: Paused
         [UdonSynced] byte state;
+        [UdonSynced] long ownerServerTime;
         [SerializeField, UdonSynced, FieldChangeCallback(nameof(Loop))]
         bool loop;
         [Locatable(
@@ -97,6 +99,7 @@ namespace JLChnToZ.VRC.VVMW {
         internal bool afterFirstRun;
         bool isOwnerSyncRequested;
         DateTime lastSyncTime, lastClickResyncTime;
+        float syncLatency;
 
         // Yttl Receivers
         [NonSerialized, FieldChangeCallback(nameof(URL))]
@@ -723,6 +726,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override void OnPreSerialization() {
             if (!synced || isLocalReloading) return;
             lastSyncTime = Networking.GetNetworkDateTime();
+            ownerServerTime = lastSyncTime.Ticks;
             if (activeHandler == null) {
                 activePlayer = 0;
                 state = IDLE;
@@ -751,9 +755,13 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public override void OnDeserialization() {
+        public override void OnDeserialization(DeserializationResult result) {
             if (!synced) return;
             ActivePlayer = activePlayer;
+            float sendTime = result.sendTime;
+            syncLatency = sendTime > 0 ? // if send time is negative, which means it was sent before join thus this is not valid.
+                (float)(ownerServerTime - Networking.GetNetworkDateTime().Ticks) / TimeSpan.TicksPerSecond +
+                UnityEngine.Time.realtimeSinceStartup - sendTime : 0;
             VRCUrl url = null;
             #if UNITY_ANDROID
             if (IsUrlValid(questUrl)) {
@@ -794,12 +802,8 @@ namespace JLChnToZ.VRC.VVMW {
                         if (!activeHandler.IsPaused) activeHandler.Pause();
                         break;
                     case PLAYING:
-                        if (activeHandler.IsPaused || !activeHandler.IsPlaying) {
+                        if (activeHandler.IsPaused || !activeHandler.IsPlaying)
                             activeHandler.Play();
-                            var duration = activeHandler.Duration;
-                            if (duration > 0 && !float.IsInfinity(duration))
-                                activeHandler.Time += UnityEngine.Time.realtimeSinceStartup - Networking.SimulationTime(Networking.GetOwner(gameObject));
-                        }
                         break;
                 }
                 if (!isLocalReloading && !isLoading) SyncTime();
@@ -808,6 +812,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public override void OnOwnershipTransferred(VRCPlayerApi player) {
             if (!player.isLocal) isLocalReloading = false;
+            syncLatency = 0;
         }
 
         void StartSyncTime() {
@@ -857,7 +862,7 @@ namespace JLChnToZ.VRC.VVMW {
             float videoTime;
             int intState = state;
             switch (intState) {
-                case PLAYING: videoTime = (float)(Networking.GetNetworkDateTime().Ticks - time) / TimeSpan.TicksPerSecond + syncOffset; break;
+                case PLAYING: videoTime = (float)(Networking.GetNetworkDateTime().Ticks - time) / TimeSpan.TicksPerSecond + syncOffset + syncLatency; break;
                 case PAUSED: videoTime = (float)time / TimeSpan.TicksPerSecond; break;
                 default: return 0;
             }
