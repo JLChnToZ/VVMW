@@ -943,7 +943,7 @@ namespace JLChnToZ.VRC.VVMW {
                 return;
             }
             ((AudioLink.AudioLink)audioLink).SetMediaTime(activeHandler.Time / duration);
-            SendCustomEventDelayedFrames(nameof(_SyncAudioLink), 0);
+            SendCustomEventDelayedSeconds(nameof(_SyncAudioLink), 0.25F);
         }
         #endif
 
