@@ -112,6 +112,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             using (new EditorGUI.DisabledGroupScope(selectedPlayList.entries == null || selectedPlayList.entries.Count == 0))
                                 if (GUILayout.Button("Fetch Titles", GUILayout.ExpandWidth(false)))
                                     FetchTitles().Forget();
+                            using (new EditorGUI.DisabledGroupScope(selectedPlayList.entries == null || selectedPlayList.entries.Count == 0))
+                                if (GUILayout.Button("Reverse Playlist", GUILayout.ExpandWidth(false)))
+                                    ReversePlaylist();
                         }
                     }
                 }
@@ -781,6 +784,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 entry.title = entries[i].title;
                 selectedPlayList.entries[i] = entry;
             }
+            isDirty = true;
+        }
+
+        void ReversePlaylist() {
+            if (selectedPlayList.entries == null || selectedPlayList.entries.Count == 0) return;
+            selectedPlayList.entries.Reverse();
             isDirty = true;
         }
 
