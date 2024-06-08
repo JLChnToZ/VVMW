@@ -40,11 +40,11 @@ VizVidはVRChatに向けて開発している、汎用的な動画プレイヤ�
 Unityヒエラルキーを右クリック、`Vizvid > Video Player`を選択。  
 ![ ](.tutorial/add-player-simple.png)
 
-いくつかのプレイヤーのバリエーションを紹介します：  
+プレイヤーにはいくつかのバリエーションが存在します：  
 ![ ](.tutorial/basic-install-type-1.png)  
 ![ ](.tutorial/basic-install-type-2.png)
 
-また、画像のように、分割されたプレイリストの移動・無効化することができます：  
+また、画像のように、分割されたプレイリストの移動・無効化をすることができます：  
 ![ ](.tutorial/basic-install-type-2-no-playlist.png)
 
 
@@ -113,7 +113,7 @@ Unityヒエラルキーにあるプレイヤーオブジェクトに右クリッ
 > 注意：ドロップ場所によって、異なる結果があります。左半分にドロップする場合、新規プレイリストとして作成されます。右半分にドロップする場合、選択しているプレイリストの適用性によって追加されます。
 
 ### ピックアップスクリーンの追加<a name="ピックアップスクリーンの追加"></a>
-このコンポーネントは[元々山の豚が作った](https://yamabuta.booth.pm/items/4189997)、ローカルで拡大・縮小機能を備えてピックアップスクリーンです。VizVidはこの機能を適用できるように、書き直して実装しています。
+このコンポーネントは[元々 山の豚 が作りました](https://yamabuta.booth.pm/items/4189997)、ローカルで拡大・縮小機能を備えてピックアップスクリーンです。VizVidはこの機能を適用できるように、書き直して実装しています。
 
 Unityヒエラルキーにあるプレイヤーオブジェクトを右クリック、`VizVid > Additional Controls > Pickupable Screen`を選択して、ピックアップスクリーンが追加されます。
 ![ ](.tutorial/add-controls-simple.png)
