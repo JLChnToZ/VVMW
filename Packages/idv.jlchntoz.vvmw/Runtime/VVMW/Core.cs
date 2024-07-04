@@ -54,6 +54,12 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] int[] screenTargetIndeces;
         [SerializeField] string[] screenTargetPropertyNames, avProPropertyNames;
         [SerializeField] Texture[] screenTargetDefaultTextures;
+        [Tooltip("Broadcast the screen texture to global shader property. " +
+            "This can let avatar materials to pick up the video screen.")]
+        [SerializeField] bool broadcastScreenTexture;
+        [Tooltip("The name of the global shader property to broadcast the screen texture. " +
+            "It is required to prefix with '_Udon_'.")]
+        [SerializeField] string broadcastScreenTextureName = "_Udon_VideoTex";
         [Tooltip("The interval to update realtime GI, set to 0 to disable realtime GI update.\n" +
             "This features requires setup the lignt probes and realtime GI in the scene and the screen renderers.")]
         [SerializeField, Range(0, 10)] float realtimeGIUpdateInterval = 0;
@@ -113,6 +119,7 @@ namespace JLChnToZ.VRC.VVMW {
         [NonSerialized, FieldChangeCallback(nameof(Description))]
         public string description = "";
         bool hasCustomTitle;
+        int broadcastTextureId;
 
         public string[] PlayerNames {
             get {
@@ -347,6 +354,11 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void OnEnable() {
+            if (broadcastScreenTexture) {
+                if (broadcastTextureId == 0) broadcastTextureId = VRCShader.PropertyToID(broadcastScreenTextureName);
+                var videoTexture = VideoTexture;
+                if (videoTexture != null) VRCShader.SetGlobalTexture(broadcastTextureId, videoTexture);
+            }
             if (afterFirstRun) return;
             url = VRCUrl.Empty;
             foreach (var handler in playerHandlers)
@@ -376,6 +388,10 @@ namespace JLChnToZ.VRC.VVMW {
             if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedSeconds(nameof(_PlayDefaultUrl), autoPlayDelay);
             else if (synced) SendCustomEventDelayedSeconds(nameof(_RequestOwnerSync), autoPlayDelay + 3);
             afterFirstRun = true;
+        }
+
+        void OnDisable() {
+            if (broadcastScreenTexture) VRCShader.SetGlobalTexture(broadcastTextureId, null);
         }
 
         public void _PlayDefaultUrl() {
@@ -683,6 +699,7 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                 }
             }
+            if (broadcastScreenTexture) VRCShader.SetGlobalTexture(broadcastTextureId, videoTexture);
             UpdateRealtimeGI();
             SendEvent("_OnTextureChanged");
         }

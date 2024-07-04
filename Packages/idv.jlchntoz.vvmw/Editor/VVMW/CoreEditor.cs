@@ -41,6 +41,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty screenTargetPropertyNamesProperty;
         SerializedProperty screenTargetDefaultTexturesProperty;
         SerializedProperty avProPropertyNamesProperty;
+        SerializedProperty broadcastScreenTextureProperty;
+        SerializedProperty broadcastScreenTextureNameProperty;
         SerializedProperty realtimeGIUpdateIntervalProperty;
         SerializedProperty timeDriftDetectThresholdProperty;
         SerializedReorderableList playerHandlersList, audioSourcesList, targetsList;
@@ -83,6 +85,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             screenTargetPropertyNamesProperty = serializedObject.FindProperty("screenTargetPropertyNames");
             screenTargetDefaultTexturesProperty = serializedObject.FindProperty("screenTargetDefaultTextures");
             avProPropertyNamesProperty = serializedObject.FindProperty("avProPropertyNames");
+            broadcastScreenTextureProperty = serializedObject.FindProperty("broadcastScreenTexture");
+            broadcastScreenTextureNameProperty = serializedObject.FindProperty("broadcastScreenTextureName");
             defaultTextureProperty = serializedObject.FindProperty("defaultTexture");
             realtimeGIUpdateIntervalProperty = serializedObject.FindProperty("realtimeGIUpdateInterval");
             timeDriftDetectThresholdProperty = serializedObject.FindProperty("timeDriftDetectThreshold");
@@ -109,6 +113,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (defaultTextureProperty.objectReferenceValue == null)
                 EditorGUILayout.HelpBox("It is required to set a default texture to display when no video is playing.", MessageType.Error);
             DrawScreenList();
+            EditorGUILayout.PropertyField(broadcastScreenTextureProperty);
+            if (broadcastScreenTextureProperty.boolValue)
+                EditorGUILayout.PropertyField(broadcastScreenTextureNameProperty);
             EditorGUILayout.PropertyField(realtimeGIUpdateIntervalProperty);
             EditorGUILayout.Space();
             audioSourcesList.DoLayoutList();
