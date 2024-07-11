@@ -12,7 +12,6 @@ namespace JLChnToZ.VRC.VVMW {
     [DefaultExecutionOrder(0)]
     public class ImageViewerHandler : AbstractMediaPlayerHandler {
         VRCImageDownloader loader;
-        VRCUrl currentUrl;
         bool loop, isPlaying;
 
         public override bool IsActive {
@@ -99,6 +98,22 @@ namespace JLChnToZ.VRC.VVMW {
             isReady = false;
             isPlaying = false;
             if (isActive) core.OnVideoEnd();
+        }
+
+        public override int IsSupported(string urlStr) {
+            int index = urlStr.IndexOf('#');
+            if (index < 0) {
+                index = urlStr.IndexOf('?');
+                if (index < 0) index = urlStr.Length;
+            }
+            index = urlStr.LastIndexOf('.', index - 1);
+            switch (urlStr.Substring(index + 1).ToLower()) {
+                case "png":
+                case "jpg":
+                case "jpeg":
+                    return 1;
+            }
+            return -1;
         }
     }
 }

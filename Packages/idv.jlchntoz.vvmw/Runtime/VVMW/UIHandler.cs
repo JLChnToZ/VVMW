@@ -20,17 +20,19 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
-        ), BindUdonSharpEvent] Core core;
+        ), BindUdonSharpEvent]
+        Core core;
         [Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
-        ), BindUdonSharpEvent] public FrontendHandler handler;
+        ), BindUdonSharpEvent]
+        public FrontendHandler handler;
         [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager languageManager;
 
         [Header("URL Input")]
         [BindEvent(nameof(VRCUrlInputField.onValueChanged), nameof(_OnURLChanged))]
         [BindEvent(nameof(VRCUrlInputField.onEndEdit), nameof(_OnURLEndEdit))]
-        [SerializeField] VRCUrlInputField urlInput; 
+        [SerializeField] VRCUrlInputField urlInput;
         [SerializeField] GameObject videoPlayerSelectButtonTemplate;
         [SerializeField] GameObject videoPlayerSelectRoot, videoPlayerSelectPanel;
         [BindEvent(nameof(Button.onClick), nameof(_VideoPlayerSelect))]
@@ -199,7 +201,7 @@ namespace JLChnToZ.VRC.VVMW {
                         playListNames = temp;
                     }
                 } else if (playListNames == null)
-                    playListNames = new [] { languageManager.GetLocale("QueueList") };
+                    playListNames = new[] { languageManager.GetLocale("QueueList") };
                 bool hasPlayList = playListNames.Length > 1;
                 playListScrollView.EventPrefix = "_OnPlayList";
                 playListScrollView.CanDelete = false;
@@ -229,7 +231,7 @@ namespace JLChnToZ.VRC.VVMW {
                     var buttonControl = button.GetComponent<ButtonEntry>();
                     buttonControl.LanguageManager = languageManager;
                     buttonControl.Key = videoPlayerNames[i];
-                    buttonControl.callbackTarget = this;    
+                    buttonControl.callbackTarget = this;
                     buttonControl.callbackEventName = nameof(_LoadPlayerClick);
                     buttonControl.callbackVariableName = nameof(loadWithIndex);
                     buttonControl.callbackUserData = (byte)(i + 1);
@@ -353,14 +355,22 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnURLChanged() {
-            bool isEmpty =  string.IsNullOrEmpty(urlInput.textComponent.text);
+            bool isEmpty = string.IsNullOrEmpty(urlInput.textComponent.text);
             if (otherObjectUnderUrlInput != null) otherObjectUnderUrlInput.SetActive(isEmpty);
             if (videoPlayerSelectPanel != null) videoPlayerSelectPanel.SetActive(!isEmpty);
         }
 
         public void _OnURLEndEdit() {
             _OnURLChanged();
-            if (urlInputConfirmButton == null) _InputConfirmClick();
+            if (urlInputConfirmButton == null) {
+                _InputConfirmClick();
+                return;
+            }
+            byte player = core.GetSuitablePlayerType(urlInput.GetUrl());
+            if (player > 0) {
+                loadWithIndex = player;
+                _LoadPlayerClick();
+            }
         }
 
         public void _InputConfirmClick() {
@@ -377,7 +387,7 @@ namespace JLChnToZ.VRC.VVMW {
                 _InputCancelClick();
             }
         }
-        
+
         public void _VideoPlayerSelect() {
             if (videoPlayerSelectRoot == null) return;
             videoPlayerSelectRoot.SetActive(!videoPlayerSelectRoot.activeSelf);
@@ -748,7 +758,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (text != null) text.text = content;
             if (tmp != null) tmp.text = content;
         }
-        
+
         void SetStatusEnabled(bool enabled) {
             if (timeContainer == null || (statusText == null && statusTMPro == null)) return;
             timeContainer.SetActive(!enabled);

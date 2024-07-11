@@ -19,7 +19,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static readonly Dictionary<Type, FieldInfo> controllableTypes = new Dictionary<Type, FieldInfo>();
         readonly Dictionary<Core, UdonSharpBehaviour> autoPlayControllers = new Dictionary<Core, UdonSharpBehaviour>();
         static readonly string[] materialModeOptions = new [] { "Property Block", "Shared Material", "Cloned Materal" };
-        SerializedProperty trustedUrlDomainsProperty;
         SerializedProperty playerHandlersProperty;
         SerializedProperty audioSourcesProperty;
         SerializedProperty defaultUrlProperty;
@@ -58,7 +57,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         protected override void OnEnable() {
             base.OnEnable();
-            trustedUrlDomainsProperty = serializedObject.FindProperty("trustedUrlDomains");
             playerHandlersProperty = serializedObject.FindProperty("playerHandlers");
             playerHandlersList = new SerializedReorderableList(playerHandlersProperty) {
                 drawHeaderCallback = DrawPlayerHandlersListHeader,
@@ -94,7 +92,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             screenTargetVisibilityState = new List<bool>();
             for (int i = 0, count = screenTargetsProperty.arraySize; i < count; i++)
                 screenTargetVisibilityState.Add(false);
-            TrustedUrlUtils.CopyTrustedUrlsToStringArray(trustedUrlDomainsProperty, TrustedUrlTypes.AVProDesktop);
+            VideoPlayerHandlerEditor.CopyTrustedUrlsToStringArray(target as Core);
             GetControlledTypesOnScene();
         }
 
@@ -143,12 +141,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     "The list of trusted URL domains from VRChat. This list is for display proper error message when the video URL is not trusted."
                 ), true);
                 if (GUILayout.Button("Update from VRChat", GUILayout.ExpandWidth(false)))
-                    TrustedUrlUtils.CopyTrustedUrlsToStringArray(trustedUrlDomainsProperty, TrustedUrlTypes.AVProDesktop);
+                    VideoPlayerHandlerEditor.CopyTrustedUrlsToStringArray(target as Core);
             }
-            if (showTrustUrlList)
-                using (new EditorGUILayout.VerticalScope(GUI.skin.box))
-                    for (int i = 0, count = trustedUrlDomainsProperty.arraySize; i < count; i++)
-                        EditorGUILayout.LabelField(trustedUrlDomainsProperty.GetArrayElementAtIndex(i).stringValue, EditorStyles.miniLabel);
             EditorGUILayout.Space();
             targetsList.DoLayoutList();
             serializedObject.ApplyModifiedProperties();

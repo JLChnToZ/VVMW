@@ -23,10 +23,9 @@ namespace JLChnToZ.VRC.VVMW {
         const long OWNER_SYNC_COOLDOWN_TICKS = 3 * TimeSpan.TicksPerSecond;
         const long DOUBLE_CLICK_THRESHOLD_TICKS = 500 * TimeSpan.TicksPerMillisecond;
         const byte IDLE = 0, LOADING = 1, PLAYING = 2, PAUSED = 3;
-        [HideInInspector, SerializeField] string[] trustedUrlDomains = new string[0]; // This list will be fetched on build, via VRChat SDK
         Vector4 normalST = new Vector4(1, 1, 0, 0), flippedST = new Vector4(1, -1, 0, 1);
         Rect normalRect = new Rect(0, 0, 1, 1), flippedRect = new Rect(0, 1, 1, -1);
-        [SerializeField] AbstractMediaPlayerHandler[] playerHandlers;
+        [SerializeField] internal AbstractMediaPlayerHandler[] playerHandlers;
         [Tooltip("Audio sources to link to video player, will be set to the primary audio source of the video player, " +
             "and volumes can be controlled by the video player.")]
         [SerializeField] AudioSource[] audioSources;
@@ -293,7 +292,7 @@ namespace JLChnToZ.VRC.VVMW {
         public bool IsTrusted {
             get {
                 if (!trustUpdated) {
-                    isTrusted = ValidateTrusted();
+                    isTrusted = activeHandler != null && activeHandler.IsCurrentUrlTrusted();
                     trustUpdated = true;
                 }
                 return isTrusted;
@@ -335,22 +334,6 @@ namespace JLChnToZ.VRC.VVMW {
                 if (hasCustomTitle || !url.Equals(localUrl)) return;
                 description = value;
             }
-        }
-
-        bool ValidateTrusted() {
-            if (!Utilities.IsValid(localUrl)) return false;
-            var url = localUrl.Get();
-            if (string.IsNullOrEmpty(url)) return false;
-            int domainStartIndex = url.IndexOf("://");
-            if (domainStartIndex < 0) return false;
-            domainStartIndex += 3;
-            int endIndex = url.IndexOf('/', domainStartIndex);
-            if (endIndex < 0) return false;
-            int startIndex = url.LastIndexOf('.', domainStartIndex, endIndex - domainStartIndex);
-            if (startIndex < 0) return false;
-            startIndex = url.LastIndexOf('.', domainStartIndex, startIndex - domainStartIndex);
-            if (startIndex < 0) startIndex = domainStartIndex;
-            return Array.IndexOf(trustedUrlDomains, url.Substring(startIndex + 1, endIndex - startIndex - 1)) >= 0;
         }
 
         void OnEnable() {
@@ -396,6 +379,23 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _PlayDefaultUrl() {
             if (IsUrlValid(defaultUrl)) PlayUrl(null, 0);
+        }
+
+        public byte GetSuitablePlayerType(VRCUrl url) {
+            if (!Utilities.IsValid(url)) return 0;
+            string urlStr = url.Get();
+            if (string.IsNullOrEmpty(urlStr)) return 0;
+            int largestSupport = int.MinValue, largestSupportIndex = -1;
+            for (int i = 0; i < playerHandlers.Length; i++) {
+                var handler = playerHandlers[i];
+                if (handler == null) continue;
+                var support = handler.IsSupported(urlStr);
+                if (support > largestSupport) {
+                    largestSupport = support;
+                    largestSupportIndex = i;
+                }
+            }
+            return (byte)(largestSupport <= 0 ? 0 : largestSupportIndex + 1);
         }
 
         public void PlayUrl(VRCUrl url, byte playerType) => PlayUrlMP(url, null, playerType);

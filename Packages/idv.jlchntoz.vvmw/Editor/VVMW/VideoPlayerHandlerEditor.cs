@@ -145,5 +145,25 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             component.hideFlags |= HideFlags.HideInInspector;
             EditorUtility.SetDirty(component);
         }
+
+        public static void CopyTrustedUrlsToStringArray(Core core) {
+            foreach (var playerHandler in core.playerHandlers) {
+                using (var so = new SerializedObject(playerHandler)) {
+                    if (playerHandler is VideoPlayerHandler) {
+                        TrustedUrlUtils.CopyTrustedUrlsToStringArray(
+                            so.FindProperty("trustedUrlDomains"),
+                            playerHandler.TryGetComponent(out VRCAVProVideoPlayer _) ?
+                                TrustedUrlTypes.AVProDesktop :
+                                TrustedUrlTypes.UnityVideo
+                        );
+                    } else if (playerHandler is ImageViewerHandler) {
+                        TrustedUrlUtils.CopyTrustedUrlsToStringArray(
+                            so.FindProperty("trustedUrlDomains"),
+                            TrustedUrlTypes.ImageUrl
+                        );
+                    }
+                }
+            }
+        }
     }
 }

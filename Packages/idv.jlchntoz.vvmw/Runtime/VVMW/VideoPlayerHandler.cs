@@ -5,6 +5,7 @@ using VRC.SDKBase;
 using VRC.SDK3.Components.Video;
 using VRC.SDK3.Video.Components.Base;
 using VRC.Udon.Common.Enums;
+using VRC.SDK3.Video.Components.AVPro;
 
 namespace JLChnToZ.VRC.VVMW {
 
@@ -25,13 +26,13 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] bool isAvPro;
         [Tooltip("This material will be used to blit the screen to a temporary render texture for the flickering workaround. Don't change it unless needed.")]
         [SerializeField] Material blitMaterial;
+        [SerializeField, HideInInspector] bool isLowLatency;
         RenderTexture bufferedTexture;
         bool isWaitingForTexture, isFlickerWorkaroundTextureRunning;
         BaseVRCVideoPlayer videoPlayer;
         new Renderer renderer;
         MaterialPropertyBlock propertyBlock;
         int texturePropertyID;
-        VRCUrl lastUrl;
         bool isRealTimeProtocol;
         bool afterFirstRun;
 
@@ -140,7 +141,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override void LoadUrl(VRCUrl url, bool reload) {
             if (videoPlayer.IsPlaying) videoPlayer.Stop();
             if (!isActive) return;
-            if (!reload && Utilities.IsValid(lastUrl) && lastUrl.Equals(url) && IsReady && videoPlayer.GetDuration() != 0 && !float.IsInfinity(videoPlayer.GetDuration())) {
+            if (!reload && Utilities.IsValid(currentUrl) && currentUrl.Equals(url) && IsReady && videoPlayer.GetDuration() != 0 && !float.IsInfinity(videoPlayer.GetDuration())) {
                 videoPlayer.SetTime(0);
                 SendCustomEventDelayedFrames("_onVideoReady", 0);
             } else {
@@ -148,7 +149,7 @@ namespace JLChnToZ.VRC.VVMW {
                 videoPlayer.LoadURL(url);
                 ClearTexture();
             }
-            lastUrl = url;
+            currentUrl = url;
             isRealTimeProtocol = IsRealTimeProtocol(url);
             isPaused = false;
         }
@@ -170,7 +171,7 @@ namespace JLChnToZ.VRC.VVMW {
             videoPlayer.Stop();
             if (isRealTimeProtocol) {
                 isRealTimeProtocol = false;
-                lastUrl = VRCUrl.Empty;
+                currentUrl = VRCUrl.Empty;
             }
             OnVideoEnd();
         }
@@ -235,9 +236,10 @@ namespace JLChnToZ.VRC.VVMW {
             core.OnVideoLoop();
         }
 
-        bool IsRealTimeProtocol(VRCUrl url) {
-            if (!Utilities.IsValid(url)) return false;
-            var urlStr = url.Get();
+        bool IsRealTimeProtocol(VRCUrl url) =>
+            TryGetUrl(url, out var urlStr) && IsRealTimeProtocolS(urlStr);
+
+        bool IsRealTimeProtocolS(string urlStr) {
             if (string.IsNullOrEmpty(urlStr) || urlStr.Length < 7) return false;
             int index = urlStr.IndexOf("://");
             if (index < 0 || index > 5) return false;
@@ -253,6 +255,60 @@ namespace JLChnToZ.VRC.VVMW {
                 bufferedTexture = null;
             }
             if (isActive) core._OnTextureChanged();
+        }
+
+        public override int IsSupported(string urlStr) {
+            if (!urlStr.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                return isAvPro && IsRealTimeProtocolS(urlStr) ? isLowLatency ? 2 : 1 : -1;
+            int index = urlStr.IndexOf("://");
+            if (index < 0) return -1;
+            urlStr = urlStr.Substring(index + 3);
+            index = urlStr.IndexOf('/');
+            var domain = index < 0 ? urlStr : urlStr.Substring(0, index);
+            index = urlStr.IndexOf('#');
+            if (index < 0) {
+                index = urlStr.IndexOf('?');
+                if (index < 0) index = urlStr.Length;
+            }
+            int domainLength = domain.Length;
+            if (domain.EndsWith("youtube.com", StringComparison.OrdinalIgnoreCase)) {
+                if (urlStr.IndexOf("/live", domainLength, index - domainLength, StringComparison.OrdinalIgnoreCase) >= 0)
+                    return isAvPro ? isLowLatency ? 2 : 1 : -1;
+                return 1;
+            }
+            if (domain.EndsWith("youtu.be", StringComparison.OrdinalIgnoreCase))
+                return 0;
+            if (domain.EndsWith("twitch.tv", StringComparison.OrdinalIgnoreCase))
+                return isAvPro ? 1 : 0;
+            if (domain.EndsWith("soundcloud.com", StringComparison.OrdinalIgnoreCase))
+                return isAvPro ? 1 : -1;
+            index = urlStr.LastIndexOf('.', index - 1);
+            if (index < 0) return 0;
+            switch (urlStr.Substring(index + 1).ToLower()) {
+                case "mp4":
+                case "mkv":
+                case "webm":
+                case "aac":
+                case "opus":
+                #if !UNITY_ANDROID
+                case "mov":
+                case "avi":
+                case "wav":
+                case "wma":
+                case "wmv":
+                #else
+                case "ogg":
+                #endif
+                    return 1;
+                case "flac":
+                case "ac3":
+                case "mp3":
+                case "m3u8":
+                case "mpd":
+                case "ism":
+                    if (isAvPro) return 1; break;
+            }
+            return 0;
         }
     }
 }
