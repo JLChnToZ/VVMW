@@ -27,6 +27,7 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 - Basic [LTCGI](https://ltcgi.dev/) integration, provided CustomRenderTexture for use.
 - Bundled a modified version of [YTTL](https://65536.booth.pm/items/4588619) to display video title from known sources.
 - Simple API for [your own udons] integration.
+- Privacy first - We guarantee we do not include features that requires dedicated server to work; Also, features requires external resources are not opt-in by default.
 
 ## Demo
 Please visit the [official demo world](https://vrchat.com/home/world/wrld_7239d09c-7b25-43a5-8ccd-502d986b016a)!
