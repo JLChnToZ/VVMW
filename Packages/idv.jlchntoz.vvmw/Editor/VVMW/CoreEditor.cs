@@ -48,7 +48,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         string[] playerNames;
         PlayerType[] playerTypes;
         List<bool> screenTargetVisibilityState;
-        bool showTrustUrlList;
 
         static CoreEditor() {
             AssemblyReloadEvents.afterAssemblyReload += GatherControlledTypes;
@@ -135,14 +134,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(syncedProperty);
             EditorGUILayout.PropertyField(audioLinkProperty);
             EditorGUILayout.PropertyField(yttlManagerProperty);
-            using (new EditorGUILayout.HorizontalScope()) {
-                showTrustUrlList = EditorGUILayout.Foldout(showTrustUrlList, Utils.GetTempContent(
-                    "Trusted URL List",
-                    "The list of trusted URL domains from VRChat. This list is for display proper error message when the video URL is not trusted."
-                ), true);
-                if (GUILayout.Button("Update from VRChat", GUILayout.ExpandWidth(false)))
-                    VideoPlayerHandlerEditor.CopyTrustedUrlsToStringArray(target as Core);
-            }
+            if (GUILayout.Button(Utils.GetTempContent(
+                "Update Trusted URL List from VRChat",
+                "This list is for display proper error message when the video URL is not trusted."
+            ))) VideoPlayerHandlerEditor.CopyTrustedUrlsToStringArray(target as Core);
             EditorGUILayout.Space();
             targetsList.DoLayoutList();
             serializedObject.ApplyModifiedProperties();

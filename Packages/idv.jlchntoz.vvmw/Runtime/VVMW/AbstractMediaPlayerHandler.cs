@@ -59,11 +59,13 @@ namespace JLChnToZ.VRC.VVMW {
             return Array.IndexOf(trustedUrlDomains, url.Substring(startIndex + 1, endIndex - startIndex - 1)) >= 0;
         }
 
-        public virtual int IsSupported(string urlStr) {
-            return 0;
-        }
+        public virtual int IsSupported(string urlStr) => 0;
 
         protected virtual bool TryGetUrl(VRCUrl url, out string urlStr) {
+            if (!Utilities.IsValid(url)) {
+                urlStr = null;
+                return false;
+            }
             urlStr = url.Get();
             return !string.IsNullOrEmpty(urlStr);
         }
