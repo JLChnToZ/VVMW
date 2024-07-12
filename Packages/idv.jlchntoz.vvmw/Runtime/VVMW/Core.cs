@@ -69,6 +69,8 @@ namespace JLChnToZ.VRC.VVMW {
         int[] screenTargetPropertyIds, avProPropertyIds;
         [FieldChangeCallback(nameof(SyncOffset))]
         float syncOffset = 0;
+        [FieldChangeCallback(nameof(Speed))]
+        float speed = 1;
         [UdonSynced] VRCUrl pcUrl, questUrl;
         VRCUrl localUrl, loadingUrl, lastUrl, altUrl;
         // When playing, it is the time when the video started playing;
@@ -79,6 +81,7 @@ namespace JLChnToZ.VRC.VVMW {
         // 0: Idle, 1: Loading, 2: Playing, 3: Paused
         [UdonSynced] byte state;
         [UdonSynced] long ownerServerTime;
+        [UdonSynced] float syncedSpeed = 1;
         [SerializeField, UdonSynced, FieldChangeCallback(nameof(Loop))]
         bool loop;
         [Locatable(
@@ -145,6 +148,8 @@ namespace JLChnToZ.VRC.VVMW {
                     if (i + 1 == value) {
                         handler.IsActive = true;
                         activeHandler = handler;
+                        if (activeHandler.SupportSpeedAdjustment)
+                            activeHandler.Speed = speed;
                     } else
                         handler.IsActive = false;
                 }
@@ -285,6 +290,17 @@ namespace JLChnToZ.VRC.VVMW {
                 var duration = activeHandler.Duration;
                 if (activeHandler.Duration <= 0 || float.IsInfinity(duration)) return;
                 activeHandler.Time = duration * value;
+                RequestSync();
+            }
+        }
+
+        public float Speed {
+            get => activeHandler != null && activeHandler.SupportSpeedAdjustment ? speed : 1;
+            set {
+                if (speed == value) return;
+                speed = Mathf.Max(value, 0.01F);
+                if (activeHandler != null && activeHandler.SupportSpeedAdjustment)
+                    activeHandler.Speed = speed;
                 RequestSync();
             }
         }
@@ -744,6 +760,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (!synced || isLocalReloading) return;
             lastSyncTime = Networking.GetNetworkDateTime();
             ownerServerTime = lastSyncTime.Ticks;
+            syncedSpeed = speed;
             if (activeHandler == null) {
                 activePlayer = 0;
                 state = IDLE;
@@ -779,6 +796,7 @@ namespace JLChnToZ.VRC.VVMW {
             syncLatency = sendTime > 0 ? // if send time is negative, which means it was sent before join thus this is not valid.
                 (float)(ownerServerTime - Networking.GetNetworkDateTime().Ticks) / TimeSpan.TicksPerSecond +
                 UnityEngine.Time.realtimeSinceStartup - sendTime : 0;
+            speed = syncedSpeed;
             VRCUrl url = null;
             #if UNITY_ANDROID
             if (IsUrlValid(questUrl)) {
@@ -869,8 +887,9 @@ namespace JLChnToZ.VRC.VVMW {
             if (activeHandler == null) return 0;
             var duration = activeHandler.Duration;
             if (duration <= 0 || float.IsInfinity(duration)) return 0;
+            float playbackSpeed = activeHandler.SupportSpeedAdjustment ? this.speed : 1;
             var videoTime = Mathf.Repeat(activeHandler.Time, duration);
-            var syncTime = (long)((videoTime - syncOffset) * TimeSpan.TicksPerSecond);
+            var syncTime = (long)((videoTime / playbackSpeed - syncOffset) * TimeSpan.TicksPerSecond);
             if (activeHandler.IsPlaying) syncTime = Networking.GetNetworkDateTime().Ticks - syncTime;
             return syncTime;
         }
@@ -879,10 +898,11 @@ namespace JLChnToZ.VRC.VVMW {
             if (activeHandler == null) return 0;
             var duration = activeHandler.Duration;
             if (duration <= 0 || float.IsInfinity(duration)) return 0;
+            float playbackSpeed = activeHandler.SupportSpeedAdjustment ? this.speed : 1;
             float videoTime;
             int intState = state;
             switch (intState) {
-                case PLAYING: videoTime = (float)(Networking.GetNetworkDateTime().Ticks - time) / TimeSpan.TicksPerSecond + syncOffset + syncLatency; break;
+                case PLAYING: videoTime = (float)(Networking.GetNetworkDateTime().Ticks - time) / TimeSpan.TicksPerSecond * playbackSpeed + syncOffset + syncLatency; break;
                 case PAUSED: videoTime = (float)time / TimeSpan.TicksPerSecond; break;
                 default: return 0;
             }

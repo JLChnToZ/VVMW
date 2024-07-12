@@ -21,9 +21,13 @@ namespace JLChnToZ.VRC.VVMW {
 
         public virtual bool IsPaused => isPaused;
 
+        public virtual bool SupportSpeedAdjustment => false;
+
         public virtual AudioSource PrimaryAudioSource => null;
 
         public virtual float Time { get => 0; set {} }
+
+        public virtual float Speed { get => 1; set {} }
 
         public virtual bool Loop { get => false; set {} }
 

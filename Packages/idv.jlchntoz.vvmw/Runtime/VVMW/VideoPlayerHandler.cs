@@ -5,7 +5,6 @@ using VRC.SDKBase;
 using VRC.SDK3.Components.Video;
 using VRC.SDK3.Video.Components.Base;
 using VRC.Udon.Common.Enums;
-using VRC.SDK3.Video.Components.AVPro;
 
 namespace JLChnToZ.VRC.VVMW {
 
