@@ -14,27 +14,23 @@ using UnityObject = UnityEngine.Object;
 using VRC.Udon;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
-    internal sealed class BindUdonSharpEventPreprocessor : BindEventPreprocessorBase {
+    internal sealed class BindUdonSharpEventPreprocessor : UdonSharpPreProcessor {
         readonly Dictionary<UdonSharpEventSender, List<UdonSharpBehaviour>> eventSenders = new Dictionary<UdonSharpEventSender, List<UdonSharpBehaviour>>();
+
+        protected override void ProcessEntry(Type type, UdonSharpBehaviour usharp, UdonBehaviour udon) {
+            var fieldInfos = GetFields<BindUdonSharpEventAttribute>(type);
+            foreach (var field in fieldInfos) {
+                var targetObj = field.GetValue(usharp);
+                if (targetObj is Array array)
+                    for (int i = 0, length = array.GetLength(0); i < length; i++)
+                        AddEntry(array.GetValue(i) as UnityObject, usharp);
+                else if (targetObj is UnityObject unityObject)
+                    AddEntry(unityObject, usharp);
+            }
+        }
         
         public override void OnProcessScene(Scene scene, BuildReport report) {
-            foreach (var usharp in scene.IterateAllComponents<UdonSharpBehaviour>()) {
-                var type = usharp.GetType();
-                var udon = UdonSharpEditorUtility.GetBackingUdonBehaviour(usharp);
-                if (udon == null) {
-                    Debug.LogError($"[BindUdonSharpEventPreprocessor] `{usharp.name}` is not correctly configured.", usharp);
-                    continue;
-                }
-                var fieldInfos = GetFields<BindUdonSharpEventAttribute>(type);
-                foreach (var field in fieldInfos) {
-                    var targetObj = field.GetValue(usharp);
-                    if (targetObj is Array array)
-                        for (int i = 0, length = array.GetLength(0); i < length; i++)
-                            AddEntry(array.GetValue(i) as UnityObject, usharp);
-                    else if (targetObj is UnityObject unityObject)
-                        AddEntry(unityObject, usharp);
-                }
-            }
+            base.OnProcessScene(scene, report);
             var remapped = new HashSet<UdonSharpBehaviour>();
             foreach (var kv in eventSenders) {
                 var sender = kv.Key;
