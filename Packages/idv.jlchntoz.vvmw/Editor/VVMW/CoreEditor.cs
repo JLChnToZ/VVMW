@@ -91,7 +91,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             screenTargetVisibilityState = new List<bool>();
             for (int i = 0, count = screenTargetsProperty.arraySize; i < count; i++)
                 screenTargetVisibilityState.Add(false);
-            VideoPlayerHandlerEditor.CopyTrustedUrlsToStringArray(target as Core);
             GetControlledTypesOnScene();
         }
 
@@ -134,10 +133,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(syncedProperty);
             EditorGUILayout.PropertyField(audioLinkProperty);
             EditorGUILayout.PropertyField(yttlManagerProperty);
-            if (GUILayout.Button(Utils.GetTempContent(
-                "Update Trusted URL List from VRChat",
-                "This list is for display proper error message when the video URL is not trusted."
-            ))) VideoPlayerHandlerEditor.CopyTrustedUrlsToStringArray(target as Core);
             EditorGUILayout.Space();
             targetsList.DoLayoutList();
             serializedObject.ApplyModifiedProperties();
@@ -513,13 +508,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             int size = property.arraySize;
             property.arraySize++;
             property.GetArrayElementAtIndex(size).intValue = value;
-        }
-
-        [MenuItem("Tools/VizVid/Update Trusted Url List")]
-        static void UpdateTrustedUrlList() {
-            var cores = new List<Core>(SceneManager.GetActiveScene().IterateAllComponents<Core>());
-            using (var so = new SerializedObject(cores.ToArray()))
-                TrustedUrlUtils.CopyTrustedUrlsToStringArray(so.FindProperty("trustedUrlDomains"), TrustedUrlTypes.AVProDesktop);
         }
 
         static void GatherControlledTypes() {

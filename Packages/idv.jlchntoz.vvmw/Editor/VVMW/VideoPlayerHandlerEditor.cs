@@ -10,7 +10,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
     public class VideoPlayerHandlerEditor : VVMWEditorBase {
 
         SerializedProperty texturePropertyNameProperty,
-            useSharedMaterialProperty,
             isAvProProperty,
             playerNameProperty,
             primaryAudioSourceProperty,
@@ -21,7 +20,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         protected override void OnEnable() {
             base.OnEnable();
             texturePropertyNameProperty = serializedObject.FindProperty("texturePropertyName");
-            useSharedMaterialProperty = serializedObject.FindProperty("useSharedMaterial");
             playerNameProperty = serializedObject.FindProperty("playerName");
             isAvProProperty = serializedObject.FindProperty("isAvPro");
             primaryAudioSourceProperty = serializedObject.FindProperty("primaryAudioSource");
@@ -73,61 +71,22 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 null, materials,
                 ShaderUtil.ShaderPropertyType.TexEnv
             );
-            var meshFilter = target.GetComponent<MeshFilter>();
-            HideControlledComponent(meshFilter);
             EditorGUILayout.Space();
             var controlledVideoPlayer = target.GetComponent<BaseVRCVideoPlayer>();
             if (controlledVideoPlayer is VRCUnityVideoPlayer unityVideoPlayer) {
                 EditorGUILayout.LabelField("Unity Video Player", EditorStyles.boldLabel);
-                isAvProProperty.boolValue = false;
-                if (useSharedMaterialProperty.boolValue) useSharedMaterialProperty.boolValue = false;
                 HideControlledComponent(unityVideoPlayer);
                 using (var so = new SerializedObject(unityVideoPlayer)) {
-                    so.FindProperty("autoPlay").boolValue = false;
-                    so.FindProperty("loop").boolValue = false;
-                    so.FindProperty("renderMode").intValue = 1;
-                    so.FindProperty("targetMaterialRenderer").objectReferenceValue = renderer;
-                    so.FindProperty("targetMaterialProperty").stringValue = texturePropertyNameProperty.stringValue;
-                    so.FindProperty("aspectRatio").intValue = 0;
                     EditorGUILayout.PropertyField(so.FindProperty("maximumResolution"), true);
-                    var primaryAudioSource = primaryAudioSourceProperty.objectReferenceValue as AudioSource;
-                    if (primaryAudioSource != null) {
-                        var prop = so.FindProperty("targetAudioSources");
-                        prop.arraySize = 1;
-                        prop.GetArrayElementAtIndex(0).objectReferenceValue = primaryAudioSource;
-                    }
                     so.ApplyModifiedProperties();
                 }
             } else if (controlledVideoPlayer is VRCAVProVideoPlayer avProVideoPlayer) {
                 EditorGUILayout.LabelField("AVPro Video Player", EditorStyles.boldLabel);
-                isAvProProperty.boolValue = true;
-                if (!useSharedMaterialProperty.boolValue) useSharedMaterialProperty.boolValue = true;
                 HideControlledComponent(avProVideoPlayer);
                 using (var so = new SerializedObject(avProVideoPlayer)) {
-                    so.FindProperty("autoPlay").boolValue = false;
-                    so.FindProperty("loop").boolValue = false;
                     EditorGUILayout.PropertyField(so.FindProperty("maximumResolution"), true);
                     EditorGUILayout.PropertyField(so.FindProperty("useLowLatency"), true);
                     so.ApplyModifiedProperties();
-                }
-                var controlledVideoScreen = target.GetComponent<VRCAVProVideoScreen>();
-                if (controlledVideoScreen == null) controlledVideoScreen = Undo.AddComponent<VRCAVProVideoScreen>(target.gameObject);
-                HideControlledComponent(controlledVideoScreen);
-                using (var so = new SerializedObject(controlledVideoScreen)) {
-                    so.FindProperty("videoPlayer").objectReferenceValue = avProVideoPlayer;
-                    so.FindProperty("materialIndex").intValue = 0;
-                    so.FindProperty("textureProperty").stringValue = texturePropertyNameProperty.stringValue;
-                    so.FindProperty("useSharedMaterial").boolValue = false;
-                    so.ApplyModifiedProperties();
-                }
-                var primaryAudioSource = primaryAudioSourceProperty.objectReferenceValue as AudioSource;
-                if (primaryAudioSource != null) {
-                    if (!primaryAudioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker))
-                        speaker = Undo.AddComponent<VRCAVProVideoSpeaker>(primaryAudioSource.gameObject);
-                    using (var so = new SerializedObject(speaker)) {
-                        so.FindProperty("videoPlayer").objectReferenceValue = avProVideoPlayer;
-                        so.ApplyModifiedProperties();
-                    }
                 }
             }
             EditorGUILayout.PropertyField(primaryAudioSourceProperty);
@@ -144,26 +103,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (component.hideFlags.HasFlag(HideFlags.HideInInspector)) return;
             component.hideFlags |= HideFlags.HideInInspector;
             EditorUtility.SetDirty(component);
-        }
-
-        public static void CopyTrustedUrlsToStringArray(Core core) {
-            foreach (var playerHandler in core.playerHandlers) {
-                using (var so = new SerializedObject(playerHandler)) {
-                    if (playerHandler is VideoPlayerHandler) {
-                        TrustedUrlUtils.CopyTrustedUrlsToStringArray(
-                            so.FindProperty("trustedUrlDomains"),
-                            playerHandler.TryGetComponent(out VRCAVProVideoPlayer _) ?
-                                TrustedUrlTypes.AVProDesktop :
-                                TrustedUrlTypes.UnityVideo
-                        );
-                    } else if (playerHandler is ImageViewerHandler) {
-                        TrustedUrlUtils.CopyTrustedUrlsToStringArray(
-                            so.FindProperty("trustedUrlDomains"),
-                            TrustedUrlTypes.ImageUrl
-                        );
-                    }
-                }
-            }
         }
     }
 }

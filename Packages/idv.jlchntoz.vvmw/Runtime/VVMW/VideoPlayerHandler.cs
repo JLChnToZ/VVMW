@@ -26,7 +26,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] bool isAvPro;
         [Tooltip("This material will be used to blit the screen to a temporary render texture for the flickering workaround. Don't change it unless needed.")]
         [SerializeField] Material blitMaterial;
-        [SerializeField, HideInInspector] bool isLowLatency;
+        [SerializeField] bool isLowLatency;
         RenderTexture bufferedTexture;
         bool isWaitingForTexture, isFlickerWorkaroundTextureRunning;
         BaseVRCVideoPlayer videoPlayer;

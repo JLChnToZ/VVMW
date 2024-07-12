@@ -5,10 +5,12 @@ using UnityEngine;
 using UnityEditor;
 using VRC.Core;
 using VRC.SDKBase;
+using VRC.SDK3.Editor;
 using UdonSharp;
 using UdonSharpEditor;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
+    [InitializeOnLoad]
     public sealed class TrustedUrlUtils {
         public static event Action OnTrustedUrlsReady;
         static readonly Dictionary<TrustedUrlTypes, TrustedUrlUtils> instances = new Dictionary<TrustedUrlTypes, TrustedUrlUtils>();
@@ -38,7 +40,25 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             instances[TrustedUrlTypes.AVProAndroid] = new TrustedUrlUtils(supportedProtocolsExo);
             instances[TrustedUrlTypes.ImageUrl] = new TrustedUrlUtils(supportedProtocolsCurl);
             instances[TrustedUrlTypes.StringUrl] = new TrustedUrlUtils(supportedProtocolsCurl);
+            if (EditorPrefs.HasKey("VRCSDK_videoHostUrlList")) {
+                var trustedUrls = new List<string>(EditorPrefs.GetString("VRCSDK_videoHostUrlList").Split('\n'));
+                instances[TrustedUrlTypes.UnityVideo].trustedUrls = trustedUrls;
+                instances[TrustedUrlTypes.AVProDesktop].trustedUrls = trustedUrls;
+                instances[TrustedUrlTypes.AVProAndroid].trustedUrls = trustedUrls;
+            }
+            if (EditorPrefs.HasKey("VRCSDK_imageHostUrlList"))
+                instances[TrustedUrlTypes.ImageUrl].trustedUrls = new List<string>(EditorPrefs.GetString("VRCSDK_imageHostUrlList").Split('\n'));
+            if (EditorPrefs.HasKey("VRCSDK_stringHostUrlList"))
+                instances[TrustedUrlTypes.StringUrl].trustedUrls = new List<string>(EditorPrefs.GetString("VRCSDK_stringHostUrlList").Split('\n'));
+            VRCSdkControlPanel.OnSdkPanelEnable += AddBuildHook;
         }
+
+        static void AddBuildHook(object sender, EventArgs e) {
+            if (VRCSdkControlPanel.TryGetBuilder(out IVRCSdkWorldBuilderApi builder))
+                builder.OnSdkBuildStart += OnBuildStarted;
+        }
+
+        static void OnBuildStarted(object sender, object target) => getTrustedUrlsTask.Task.Forget();
 
         static GUIContent GetWarningContent(string tooltip) {
             if (warningContent == null) {
@@ -71,11 +91,18 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 instances[TrustedUrlTypes.UnityVideo].trustedUrls = trustedUrls;
                 instances[TrustedUrlTypes.AVProDesktop].trustedUrls = trustedUrls;
                 instances[TrustedUrlTypes.AVProAndroid].trustedUrls = trustedUrls;
+                EditorPrefs.SetString("VRCSDK_videoHostUrlList", string.Join("\n", trustedUrls));
             }
-            if (vrcsdkConfig.HasKey("imageHostUrlList"))
-                instances[TrustedUrlTypes.ImageUrl].trustedUrls = vrcsdkConfig.GetList("imageHostUrlList");
-            if (vrcsdkConfig.HasKey("stringHostUrlList"))
-                instances[TrustedUrlTypes.StringUrl].trustedUrls = vrcsdkConfig.GetList("stringHostUrlList");
+            if (vrcsdkConfig.HasKey("imageHostUrlList")) {
+                var trustedUrls = vrcsdkConfig.GetList("imageHostUrlList");
+                instances[TrustedUrlTypes.ImageUrl].trustedUrls = trustedUrls;
+                EditorPrefs.SetString("VRCSDK_imageHostUrlList", string.Join("\n", trustedUrls));
+            }
+            if (vrcsdkConfig.HasKey("stringHostUrlList")) {
+                var trustedUrls = vrcsdkConfig.GetList("stringHostUrlList");
+                instances[TrustedUrlTypes.StringUrl].trustedUrls = trustedUrls;
+                EditorPrefs.SetString("VRCSDK_stringHostUrlList", string.Join("\n", trustedUrls));
+            }
             OnTrustedUrlsReady?.Invoke();
         }
 
@@ -84,13 +111,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         static async UniTask CopyTrustedUrlsToStringArrayAsync(SerializedProperty stringArray, TrustedUrlTypes urlType, bool applyChanges = true) {
             await getTrustedUrlsTask.Task;
-            var urlList = instances[urlType].trustedUrls;
-            stringArray.arraySize = urlList.Count;
-            for (int i = 0; i < urlList.Count; i++) {
-                var url = urlList[i];
-                if (url.StartsWith("*.")) url = url.Substring(2);
-                stringArray.GetArrayElementAtIndex(i).stringValue = url;
-            }
+            CopyTrustedUrlsToStringArrayUnchecked(stringArray, urlType);
             if (!applyChanges) return;
             var so = stringArray.serializedObject;
             so.ApplyModifiedProperties();
@@ -98,6 +119,18 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             foreach (var target in so.targetObjects)
                 if (target is UdonSharpBehaviour usharp)
                     UdonSharpEditorUtility.CopyProxyToUdon(usharp);
+        }
+
+        internal static bool CopyTrustedUrlsToStringArrayUnchecked(SerializedProperty stringArray, TrustedUrlTypes urlType) {
+            var urlList = instances[urlType].trustedUrls;
+            if (urlList == null || urlList.Count == 0) return false;
+            stringArray.arraySize = urlList.Count;
+            for (int i = 0; i < urlList.Count; i++) {
+                var url = urlList[i];
+                if (url.StartsWith("*.")) url = url.Substring(2);
+                stringArray.GetArrayElementAtIndex(i).stringValue = url;
+            }
+            return true;
         }
 
         public static void DrawUrlField(SerializedProperty urlProperty, TrustedUrlTypes urlType, params GUILayoutOption[] options) {

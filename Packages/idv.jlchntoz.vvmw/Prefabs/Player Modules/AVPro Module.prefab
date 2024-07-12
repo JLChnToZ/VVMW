@@ -9,11 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6236179273397461438}
-  - component: {fileID: 6236179273397461439}
-  - component: {fileID: 6236179273397461436}
-  - component: {fileID: 2738029053248897088}
-  - component: {fileID: 6236179273397461437}
   - component: {fileID: 6236179273397461378}
+  - component: {fileID: 6236179273397461439}
+  - component: {fileID: 6236179273397461437}
   - component: {fileID: 6236179273397461379}
   m_Layer: 0
   m_Name: AVPro Module
@@ -37,6 +35,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6236179273397461378
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6236179273397461376}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5ae1d8a96f097e4fbc66eba31d21fd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes: []
+  _udonSharpBackingUdonBehaviour: {fileID: 6236179273397461379}
+  playerName: AvProPlayer
+  trustedUrlDomains: []
+  texturePropertyName: _MainTex
+  useSharedMaterial: 1
+  primaryAudioSource: {fileID: 0}
+  useFlickerWorkaround: 1
+  isAvPro: 1
+  blitMaterial: {fileID: 2100000, guid: 5b5dbeef5a3594c488799aa48b7b7cb3, type: 2}
+  isLowLatency: 0
 --- !u!114 &6236179273397461439
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -56,30 +85,6 @@ MonoBehaviour:
   loop: 0
   maximumResolution: 1080
   useLowLatency: 0
---- !u!114 &6236179273397461436
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6236179273397461376}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1889044836, guid: 661092b4961be7145bfbe56e1e62337b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  videoPlayer: {fileID: 6236179273397461439}
-  materialIndex: 0
-  textureProperty: _MainTex
-  useSharedMaterial: 0
---- !u!33 &2738029053248897088
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6236179273397461376}
-  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &6236179273397461437
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -122,82 +127,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &6236179273397461378
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6236179273397461376}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5ae1d8a96f097e4fbc66eba31d21fd7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  serializationData:
-    SerializedFormat: 2
-    SerializedBytes: 
-    ReferencedUnityObjects: []
-    SerializedBytesString: 
-    Prefab: {fileID: 0}
-    PrefabModificationsReferencedUnityObjects: []
-    PrefabModifications: []
-    SerializationNodes: []
-  _udonSharpBackingUdonBehaviour: {fileID: 6236179273397461379}
-  playerName: AvProPlayer
-  trustedUrlDomains:
-  - facebook.com
-  - nicovideo.jp
-  - soundcloud.com
-  - twitch.tv
-  - vimeo.com
-  - youku.com
-  - youtube.com
-  - youtu.be
-  - assets.vrchat.com
-  - v-market.work
-  - music4.cdn.vket.com
-  - vrcdn.live
-  - vrcdn.video
-  - mixcloud.com
-  - twisteventsasia.com
-  - stream.broadcast.unity.com
-  - furality.online
-  - live.foxcdn.io
-  - xr-marketplace.com
-  - uroom.online
-  - vket.chat
-  - ciel.topaz.chat
-  - movie.vketcdn.com
-  - poly.jp
-  - vazar.jp
-  - catsudon.net
-  - redirect.vrchat.com
-  - fbcdn.net
-  - sndcdn.com
-  - ttvnw.net
-  - twitchcdn.net
-  - jtvnw.net
-  - googlevideo.com
-  - mixcloud.com
-  - vod-progressive.akamaized.net
-  - dqrpb9wgowsf5.cloudfront.net
-  - ds0h3roq6wcgc.cloudfront.net
-  - d2nvs31859zcd8.cloudfront.net
-  - virtualokinawa-on-demand.contents.work
-  - midcircuitcdn.com
-  - hyperbeam.com
-  - hyperbeam.dev
-  - hyperbeam.com
-  - hyperbeam.dev
-  - vr-static.anique.jp
-  texturePropertyName: _MainTex
-  useSharedMaterial: 1
-  primaryAudioSource: {fileID: 0}
-  useFlickerWorkaround: 1
-  isAvPro: 1
-  blitMaterial: {fileID: 2100000, guid: 5b5dbeef5a3594c488799aa48b7b7cb3, type: 2}
-  isLowLatency: 0
 --- !u!114 &6236179273397461379
 MonoBehaviour:
   m_ObjectHideFlags: 0
