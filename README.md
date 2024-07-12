@@ -43,6 +43,13 @@ You may use following methods:
   2. Go to [my package listings landing page](https://xtlcdn.github.io/vpm/), click "Add to VCC" button under the banner and follow instructions.
   3. You can then go to "Manage Project" of your own world project, click on the "+" button to add the player component.
   4. Enjoy!
+- Via Command Line:  
+  Alternatively, instead of VCC, if you are an advanced geek like to use command line, you may use a tool called [`vrc-get`](https://github.com/vrc-get/vrc-get):
+  ```powershell
+  cd path/to/your/world/project/folder
+  vrc-get repo add https://xtlcdn.github.io/vpm/index.json
+  vrc-get install idv.jlchntoz.vvmw
+  ```
 - Via Booth: [Click here](https://xtl.booth.pm/items/5056077).
 - Via GitHub Releases: [Click here](https://github.com/JLChnToZ/VVMW/releases/latest).
 
@@ -60,6 +67,7 @@ For any issues, please contact me on [Discord server](https://discord.gg/fkDueQM
 - **六森** - Advertisement Materials & Demo World
 - **水鳥waterbird** - Naming & Japanese Documentation Proofreading
 - **Kuriko** - Japanese Documentation
+- **[All GitHub Contributors](https://github.com/JLChnToZ/VVMW/graphs/contributors)**
 
 ## License
 [MIT](./Packages/idv.jlchntoz.vvmw/LICENSE)
