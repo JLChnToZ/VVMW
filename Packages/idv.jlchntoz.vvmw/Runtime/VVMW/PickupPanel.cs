@@ -18,6 +18,8 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
         [SerializeField] Transform scalingTarget;
         [BindEvent(nameof(Button.onClick), nameof(_LockButtonToggle))]
         [SerializeField] Button lockButton;
+        [BindEvent(nameof(Button.onClick), nameof(_MakeUpright))]
+        [SerializeField] Button uprightButton;
         [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager languageManager;
         VRC_Pickup pickup;
         [Header("Settings")]
@@ -99,6 +101,15 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
 
         public void _OnLanguageChanged() {
             if (pickup != null) pickup.InteractionText = languageManager.GetLocale("PickupScreen");
+        }
+
+        public void _MakeUpright() {
+            var head = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
+            // Quad's Forward vector is flipped
+            var toHead = (transform.position - head).normalized;
+            // Make it upright
+            toHead.y = 0;
+            transform.rotation = Quaternion.LookRotation(toHead, Vector3.up);
         }
     }
 }
