@@ -110,6 +110,74 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   colorIndex: 1
+--- !u!1 &497098651484848235
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6615604548988419501}
+  - component: {fileID: 8817355490306706146}
+  m_Layer: 0
+  m_Name: Delay Panel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6615604548988419501
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 497098651484848235}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2625357275718161524}
+  - {fileID: 6872898059277097018}
+  - {fileID: 8876582228532702595}
+  - {fileID: 7889697937100558001}
+  - {fileID: 2022275828666358824}
+  - {fileID: 8027217963486651648}
+  m_Father: {fileID: 2067180900594783623}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &8817355490306706146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 497098651484848235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 4
+  m_Spacing: 20
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 1
+  m_ChildControlHeight: 1
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &595893000427183864
 GameObject:
   m_ObjectHideFlags: 0
@@ -284,12 +352,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1493955612108611805}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2067180900594783623}
+  m_Father: {fileID: 6615604548988419501}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -439,12 +507,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1557179073428917017}
-  m_LocalRotation: {x: 0, y: 0, z: 1, w: 0}
+  m_LocalRotation: {x: -0, y: -0, z: 1, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2067180900594783623}
+  m_Father: {fileID: 6615604548988419501}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 180}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -2012,7 +2080,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2067180900594783623}
+  m_Father: {fileID: 6615604548988419501}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -2158,7 +2226,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 449426251411913997}
-  m_Father: {fileID: 2067180900594783623}
+  m_Father: {fileID: 6615604548988419501}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -2314,12 +2382,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3969820586296975557}
-  m_LocalRotation: {x: 0, y: 0, z: 1, w: 0}
+  m_LocalRotation: {x: -0, y: -0, z: 1, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2067180900594783623}
+  m_Father: {fileID: 6615604548988419501}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 180}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -2953,12 +3021,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4615651815857530587}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2067180900594783623}
+  m_Father: {fileID: 6615604548988419501}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -5164,12 +5232,7 @@ RectTransform:
   - {fileID: 1851727272790272118}
   - {fileID: 7901688609710394737}
   - {fileID: 8638428317084035882}
-  - {fileID: 2625357275718161524}
-  - {fileID: 6872898059277097018}
-  - {fileID: 8876582228532702595}
-  - {fileID: 7889697937100558001}
-  - {fileID: 2022275828666358824}
-  - {fileID: 8027217963486651648}
+  - {fileID: 6615604548988419501}
   m_Father: {fileID: 4093526257610442021}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
@@ -5624,13 +5687,22 @@ MonoBehaviour:
   selectedPlayListText: {fileID: 573662285814026412}
   selectedPlayListTMPro: {fileID: 0}
   currentPlayListButton: {fileID: 5065227983473882738}
-  shiftBack100msButton: {fileID: 2688631826079340242}
-  shiftBack50msButton: {fileID: 5644903411782385773}
-  shiftForward50msButton: {fileID: 1844821558039814214}
-  shiftForward100msButton: {fileID: 5215060939886370506}
+  shiftControlsRoot: {fileID: 497098651484848235}
+  shiftBackLButton: {fileID: 2688631826079340242}
+  shiftBackSButton: {fileID: 5644903411782385773}
+  shiftForwardSButton: {fileID: 1844821558039814214}
+  shiftForwardLButton: {fileID: 5215060939886370506}
   shiftResetButton: {fileID: 1953999595961846628}
   shiftOffsetText: {fileID: 3235232710273548969}
   shiftOffsetTMPro: {fileID: 0}
+  speedControlsRoot: {fileID: 0}
+  speedDownLButton: {fileID: 0}
+  speedDownSButton: {fileID: 0}
+  speedUpSButton: {fileID: 0}
+  speedUpLButton: {fileID: 0}
+  speedResetButton: {fileID: 0}
+  speedOffsetText: {fileID: 0}
+  speedOffsetTMPro: {fileID: 0}
 --- !u!114 &7315061199001338449
 MonoBehaviour:
   m_ObjectHideFlags: 0

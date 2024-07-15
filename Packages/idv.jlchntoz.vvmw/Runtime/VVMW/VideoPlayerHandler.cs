@@ -18,6 +18,7 @@ namespace JLChnToZ.VRC.VVMW {
     public class VideoPlayerHandler : AbstractMediaPlayerHandler {
         string[] realTimeProtocols = new string[] { "rtsp", "rtmp", "rtspt", "rtspu", "rtmps", "rtsps" };
         [SerializeField] string texturePropertyName = "_MainTex";
+        [SerializeField] string speedParameterName = "Speed";
         [SerializeField] bool useSharedMaterial = true;
         [SerializeField] AudioSource primaryAudioSource;
         [Tooltip("This option is only for AVPro video player.\nIt will use a workaround with a little performance cost to attempt to fix the screen flickering issue.")]
@@ -26,14 +27,16 @@ namespace JLChnToZ.VRC.VVMW {
         [Tooltip("This material will be used to blit the screen to a temporary render texture for the flickering workaround. Don't change it unless needed.")]
         [SerializeField] Material blitMaterial;
         [SerializeField] bool isLowLatency;
+        Animator animator;
         RenderTexture bufferedTexture;
         bool isWaitingForTexture, isFlickerWorkaroundTextureRunning;
         BaseVRCVideoPlayer videoPlayer;
         new Renderer renderer;
         MaterialPropertyBlock propertyBlock;
-        int texturePropertyID;
+        int texturePropertyID, speedParameterID;
         bool isRealTimeProtocol;
         bool afterFirstRun;
+        float playbackSpeed = 1;
 
         public override bool IsActive {
             get => isActive;
@@ -71,12 +74,32 @@ namespace JLChnToZ.VRC.VVMW {
 
         public override bool IsPaused => isPaused;
 
+        public override bool SupportSpeedAdjustment => animator && !isRealTimeProtocol;
+
+        public override float Speed {
+            get => playbackSpeed;
+            set {
+                if (!animator || Mathf.Approximately(playbackSpeed, value)) return;
+                playbackSpeed = value;
+                SetPlaybackSpeed();
+                if (isActive && isAvPro && !isRealTimeProtocol &&
+                    Utilities.IsValid(currentUrl) &&
+                    !string.IsNullOrEmpty(currentUrl.Get()))
+                    core.SendCustomEventDelayedSeconds(nameof(core.LocalSync), 0.5F);
+            }
+        }
+
         void OnEnable() {
             if (afterFirstRun) return;
             afterFirstRun = true;
+            animator = GetComponent<Animator>();
             videoPlayer = (BaseVRCVideoPlayer)GetComponent(typeof(BaseVRCVideoPlayer));
             renderer = (Renderer)GetComponent(typeof(Renderer));
             texturePropertyID = VRCShader.PropertyToID(texturePropertyName);
+            if (animator) {
+                speedParameterID = Animator.StringToHash(speedParameterName);
+                animator.Rebind();
+            }
             // This will actually instantiate a material clone,
             // and then the video screen output texture will be assigned to the clone instead of the original material.
             if (useSharedMaterial)
@@ -140,17 +163,24 @@ namespace JLChnToZ.VRC.VVMW {
         public override void LoadUrl(VRCUrl url, bool reload) {
             if (videoPlayer.IsPlaying) videoPlayer.Stop();
             if (!isActive) return;
-            if (!reload && Utilities.IsValid(currentUrl) && currentUrl.Equals(url) && IsReady && videoPlayer.GetDuration() != 0 && !float.IsInfinity(videoPlayer.GetDuration())) {
+            bool skip = !reload &&
+                Utilities.IsValid(currentUrl) &&
+                currentUrl.Equals(url) &&
+                IsReady &&
+                videoPlayer.GetDuration() != 0 &&
+                !float.IsInfinity(videoPlayer.GetDuration());
+            currentUrl = url;
+            isRealTimeProtocol = IsRealTimeProtocol(url);
+            isPaused = false;
+            if (skip) {
                 videoPlayer.SetTime(0);
                 SendCustomEventDelayedFrames("_onVideoReady", 0);
             } else {
+                SetPlaybackSpeed();
                 isReady = false;
                 videoPlayer.LoadURL(url);
                 ClearTexture();
             }
-            currentUrl = url;
-            isRealTimeProtocol = IsRealTimeProtocol(url);
-            isPaused = false;
         }
 
         public override void Play() {
@@ -244,6 +274,12 @@ namespace JLChnToZ.VRC.VVMW {
             if (index < 0 || index > 5) return false;
             var protocol = urlStr.Substring(0, index).ToLower();
             return Array.IndexOf(realTimeProtocols, protocol) >= 0;
+        }
+
+        void SetPlaybackSpeed() {
+            if (animator == null) return;
+            animator.SetFloat(speedParameterID, isRealTimeProtocol ? 1 : playbackSpeed);
+            animator.Update(0);
         }
 
         void ClearTexture() {

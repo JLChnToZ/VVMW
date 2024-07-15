@@ -113,19 +113,36 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Button currentPlayListButton;
 
         [Header("Sync Offset Controls")]
-        [BindEvent(nameof(Button.onClick), nameof(_ShiftBack100ms))]
-        [SerializeField] Button shiftBack100msButton;
-        [BindEvent(nameof(Button.onClick), nameof(_ShiftBack50ms))]
-        [SerializeField] Button shiftBack50msButton;
-        [BindEvent(nameof(Button.onClick), nameof(_ShiftForward50ms))]
-        [SerializeField] Button shiftForward50msButton;
-        [BindEvent(nameof(Button.onClick), nameof(_ShiftForward100ms))]
-        [SerializeField] Button shiftForward100msButton;
+        [SerializeField] GameObject shiftControlsRoot;
+        [BindEvent(nameof(Button.onClick), nameof(_ShiftBackL))]
+        [SerializeField, FormerlySerializedAs("shiftBack100msButton")] Button shiftBackLButton;
+        [BindEvent(nameof(Button.onClick), nameof(_ShiftBackS))]
+        [SerializeField, FormerlySerializedAs("shiftBack50msButton")] Button shiftBackSButton;
+        [BindEvent(nameof(Button.onClick), nameof(_ShiftForwardS))]
+        [SerializeField, FormerlySerializedAs("shiftForward50msButton")] Button shiftForwardSButton;
+        [BindEvent(nameof(Button.onClick), nameof(_ShiftForwardL))]
+        [SerializeField, FormerlySerializedAs("shiftForward100msButton")] Button shiftForwardLButton;
         [BindEvent(nameof(Button.onClick), nameof(_ShiftReset))]
         [SerializeField] Button shiftResetButton;
         [TMProMigratable(nameof(shiftOffsetTMPro))]
         [SerializeField] Text shiftOffsetText;
         [SerializeField] TextMeshProUGUI shiftOffsetTMPro;
+
+        [Header("Speed Adjustment Controls")]
+        [SerializeField] GameObject speedControlsRoot;
+        [BindEvent(nameof(Button.onClick), nameof(_SpeedDownL))]
+        [SerializeField] Button speedDownLButton;
+        [BindEvent(nameof(Button.onClick), nameof(_SpeedDownS))]
+        [SerializeField] Button speedDownSButton;
+        [BindEvent(nameof(Button.onClick), nameof(_SpeedUpS))]
+        [SerializeField] Button speedUpSButton;
+        [BindEvent(nameof(Button.onClick), nameof(_SpeedUpL))]
+        [SerializeField] Button speedUpLButton;
+        [BindEvent(nameof(Button.onClick), nameof(_SpeedReset))]
+        [SerializeField] Button speedResetButton;
+        [TMProMigratable(nameof(speedOffsetTMPro))]
+        [SerializeField] Text speedOffsetText;
+        [SerializeField] TextMeshProUGUI speedOffsetTMPro;
 
         string[] playListNames;
         ButtonEntry[] videoPlayerSelectButtons;
@@ -241,15 +258,19 @@ namespace JLChnToZ.VRC.VVMW {
             }
             if (playNextIndicator != null) playNextIndicator.SetActive(false);
             bool isSynced = core.IsSynced;
-            if (shiftBack100msButton != null) shiftBack100msButton.gameObject.SetActive(isSynced);
-            if (shiftBack50msButton != null) shiftBack50msButton.gameObject.SetActive(isSynced);
-            if (shiftForward50msButton != null) shiftForward50msButton.gameObject.SetActive(isSynced);
-            if (shiftForward100msButton != null) shiftForward100msButton.gameObject.SetActive(isSynced);
-            if (shiftResetButton != null) shiftResetButton.gameObject.SetActive(isSynced);
-            if (shiftOffsetText != null) shiftOffsetText.gameObject.SetActive(isSynced);
+            if (shiftControlsRoot != null) shiftControlsRoot.SetActive(isSynced);
+            else {
+                if (shiftBackLButton != null) shiftBackLButton.gameObject.SetActive(isSynced);
+                if (shiftBackSButton != null) shiftBackSButton.gameObject.SetActive(isSynced);
+                if (shiftForwardSButton != null) shiftForwardSButton.gameObject.SetActive(isSynced);
+                if (shiftForwardLButton != null) shiftForwardLButton.gameObject.SetActive(isSynced);
+                if (shiftResetButton != null) shiftResetButton.gameObject.SetActive(isSynced);
+                if (shiftOffsetText != null) shiftOffsetText.gameObject.SetActive(isSynced);
+            }
             _OnUIUpdate();
             _OnVolumeChange();
             _OnSyncOffsetChange();
+            _OnSpeedChange();
             UpdatePlayerText();
         }
 
@@ -564,11 +585,9 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(isShuffle);
                 UpdatePlayList();
-                SetText(queueModeText, queueModeTMPro,
-                    languageManager.GetLocale(
-                        handler.PlayListIndex == 0 && handler.HasQueueList && (core.IsReady || core.IsLoading || handler.QueueUrls.Length > 0) ?
-                        "QueueModeNext" : "QueueModeInstant"
-                    )
+                SetLocalizedText(queueModeText, queueModeTMPro,
+                    handler.PlayListIndex == 0 && handler.HasQueueList && (core.IsReady || core.IsLoading || handler.QueueUrls.Length > 0) ?
+                    "QueueModeNext" : "QueueModeInstant"
                 );
             } else {
                 bool isRepeatOne = core.Loop;
@@ -582,6 +601,12 @@ namespace JLChnToZ.VRC.VVMW {
                 if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(false);
                 SetLocalizedText(queueModeText, queueModeTMPro, "QueueModeInstant");
             }
+            bool canChangeSpeed = unlocked && core.SupportSpeedAdjustment;
+            if (speedDownLButton != null) speedDownLButton.interactable = canChangeSpeed;
+            if (speedDownSButton != null) speedDownSButton.interactable = canChangeSpeed;
+            if (speedUpSButton != null) speedUpSButton.interactable = canChangeSpeed;
+            if (speedUpLButton != null) speedUpLButton.interactable = canChangeSpeed;
+            if (speedResetButton != null) speedResetButton.interactable = canChangeSpeed;
         }
 
         public void _DeferUpdatePlayList() {
@@ -766,16 +791,16 @@ namespace JLChnToZ.VRC.VVMW {
             if (statusTMPro != null) statusTMPro.enabled = enabled;
         }
 
-        public void _ShiftBack100ms() {
+        public void _ShiftBackL() {
             core.SyncOffset -= 0.1F;
         }
-        public void _ShiftBack50ms() {
+        public void _ShiftBackS() {
             core.SyncOffset -= 0.05F;
         }
-        public void _ShiftForward50ms() {
+        public void _ShiftForwardS() {
             core.SyncOffset += 0.05F;
         }
-        public void _ShiftForward100ms() {
+        public void _ShiftForwardL() {
             core.SyncOffset += 0.1F;
         }
         public void _ShiftReset() {
@@ -784,6 +809,26 @@ namespace JLChnToZ.VRC.VVMW {
         public void _OnSyncOffsetChange() {
             if (!afterFirstRun) return;
             SetText(shiftOffsetText, shiftOffsetTMPro, string.Format(languageManager.GetLocale("TimeDrift"), core.SyncOffset));
+        }
+
+        public void _SpeedDownL() {
+            core.Speed -= 0.5F;
+        }
+        public void _SpeedDownS() {
+            core.Speed -= 0.1F;
+        }
+        public void _SpeedUpS() {
+            core.Speed += 0.1F;
+        }
+        public void _SpeedUpL() {
+            core.Speed += 0.5F;
+        }
+        public void _SpeedReset() {
+            core.Speed = 1;
+        }
+        public void _OnSpeedChange() {
+            if (!afterFirstRun) return;
+            SetText(speedOffsetText, speedOffsetTMPro, string.Format(languageManager.GetLocale("SpeedOffset"), core.Speed));
         }
 
         #region Core Callbacks

@@ -337,6 +337,8 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _OnSyncOffsetChange() => SendEvent("_OnSyncOffsetChange");
 
+        public void _OnSpeedChange() => SendEvent("_OnSpeedChange");
+
         public override void OnPreSerialization() {
             if (!synced) return;
             queuedUrls = localQueuedUrls == null ? new VRCUrl[0] : localQueuedUrls;

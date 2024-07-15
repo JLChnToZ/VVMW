@@ -2742,13 +2742,22 @@ MonoBehaviour:
   selectedPlayListText: {fileID: 1906736415800344448}
   selectedPlayListTMPro: {fileID: 0}
   currentPlayListButton: {fileID: 0}
-  shiftBack100msButton: {fileID: 7893048275672336846}
-  shiftBack50msButton: {fileID: 2497692468103134531}
-  shiftForward50msButton: {fileID: 3891899690567689624}
-  shiftForward100msButton: {fileID: 553968645604594544}
+  shiftControlsRoot: {fileID: 4801312545837762521}
+  shiftBackLButton: {fileID: 7893048275672336846}
+  shiftBackSButton: {fileID: 2497692468103134531}
+  shiftForwardSButton: {fileID: 3891899690567689624}
+  shiftForwardLButton: {fileID: 553968645604594544}
   shiftResetButton: {fileID: 3904133871135181308}
   shiftOffsetText: {fileID: 1856597698551737061}
   shiftOffsetTMPro: {fileID: 0}
+  speedControlsRoot: {fileID: 0}
+  speedDownLButton: {fileID: 0}
+  speedDownSButton: {fileID: 0}
+  speedUpSButton: {fileID: 0}
+  speedUpLButton: {fileID: 0}
+  speedResetButton: {fileID: 0}
+  speedOffsetText: {fileID: 0}
+  speedOffsetTMPro: {fileID: 0}
 --- !u!114 &6165191218252423545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5624,6 +5633,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &4801312545837762521 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5494023335470975630, guid: 9b28e1c622b69d54f8e5de0ba8ea3690,
+    type: 3}
+  m_PrefabInstance: {fileID: 1053562277115792727}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &6339032665224571791 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6442335291443504856, guid: 9b28e1c622b69d54f8e5de0ba8ea3690,

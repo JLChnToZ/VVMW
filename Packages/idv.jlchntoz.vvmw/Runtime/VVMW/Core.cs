@@ -148,8 +148,7 @@ namespace JLChnToZ.VRC.VVMW {
                     if (i + 1 == value) {
                         handler.IsActive = true;
                         activeHandler = handler;
-                        if (activeHandler.SupportSpeedAdjustment)
-                            activeHandler.Speed = speed;
+                        SyncSpeed();
                     } else
                         handler.IsActive = false;
                 }
@@ -294,13 +293,14 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        public bool SupportSpeedAdjustment => activeHandler != null && activeHandler.SupportSpeedAdjustment;
+
         public float Speed {
-            get => activeHandler != null && activeHandler.SupportSpeedAdjustment ? speed : 1;
+            get => speed;
             set {
                 if (speed == value) return;
-                speed = Mathf.Max(value, 0.01F);
-                if (activeHandler != null && activeHandler.SupportSpeedAdjustment)
-                    activeHandler.Speed = speed;
+                speed = Mathf.Clamp(value, 0.1F, 2);
+                SyncSpeed();
                 RequestSync();
             }
         }
@@ -529,8 +529,7 @@ namespace JLChnToZ.VRC.VVMW {
                 else
                 #endif
                     localUrl = pcUrl;
-            }
-            else if (!IsUrlValid(localUrl)) localUrl = defaultUrl;
+            } else if (!IsUrlValid(localUrl)) localUrl = defaultUrl;
             loadingUrl = localUrl;
             trustUpdated = false;
             if (!IsUrlValid(loadingUrl)) return;
@@ -796,7 +795,10 @@ namespace JLChnToZ.VRC.VVMW {
             syncLatency = sendTime > 0 ? // if send time is negative, which means it was sent before join thus this is not valid.
                 (float)(ownerServerTime - Networking.GetNetworkDateTime().Ticks) / TimeSpan.TicksPerSecond +
                 UnityEngine.Time.realtimeSinceStartup - sendTime : 0;
-            speed = syncedSpeed;
+            if (speed != syncedSpeed) {
+                speed = syncedSpeed;
+                SyncSpeed();
+            }
             VRCUrl url = null;
             #if UNITY_ANDROID
             if (IsUrlValid(questUrl)) {
@@ -931,6 +933,21 @@ namespace JLChnToZ.VRC.VVMW {
                     SendEvent("_OnTimeDrift");
                 }
             }
+        }
+
+        void SyncSpeed() {
+            float currentSpeed = speed;
+            if (activeHandler != null && activeHandler.SupportSpeedAdjustment)
+                activeHandler.Speed = speed;
+            else
+                currentSpeed = 1;
+            if (audioSources != null)
+                for (int i = 0; i < audioSources.Length; i++) {
+                    var audioSource = audioSources[i];
+                    if (audioSource == null) continue;
+                    audioSource.pitch = currentSpeed;
+                }
+            SendEvent("_OnSpeedChange");
         }
 
         bool IsUrlValid(VRCUrl url) => Utilities.IsValid(url) && !url.Equals(VRCUrl.Empty);
