@@ -105,8 +105,8 @@ namespace JLChnToZ.VRC.VVMW {
         AudioSource assignedAudioSource;
         bool isRealtimeGIUpdaterRunning;
         internal bool afterFirstRun;
-        bool isOwnerSyncRequested;
-        DateTime lastSyncTime, lastClickResyncTime;
+        bool isOwnerSyncRequested, isReloadRequested;
+        DateTime lastSyncTime, lastClickResyncTime, lastUrlLoadTime;
         float syncLatency;
 
         // Yttl Receivers
@@ -523,18 +523,36 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                     lastClickResyncTime = currentTime;
                 }
+            }
+            ReloadUrlCore();
+        }
+
+        void ReloadUrlCore() {
+            if (synced) {
                 #if UNITY_ANDROID
                 if (IsUrlValid(questUrl))
                     localUrl = questUrl;
                 else
                 #endif
                     localUrl = pcUrl;
-            } else if (!IsUrlValid(localUrl)) localUrl = defaultUrl;
+            } else if (!IsUrlValid(localUrl))
+                localUrl = defaultUrl;
             loadingUrl = localUrl;
             trustUpdated = false;
             if (!IsUrlValid(loadingUrl)) return;
             retryCount = 0;
             _ReloadUrl();
+        }
+
+        public void _RequestReloadUrl() {
+            if (isReloadRequested) return;
+            isReloadRequested = true;
+            SendCustomEventDelayedSeconds(nameof(_ReloadUrlCore), 1F);
+        }
+
+        public void _ReloadUrlCore() {
+            isReloadRequested = false;
+            if (enabled && gameObject.activeInHierarchy) ReloadUrlCore();
         }
 
         public void Play() {
@@ -969,6 +987,14 @@ namespace JLChnToZ.VRC.VVMW {
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             RequestSerialization();
             return true;
+        }
+
+        // The returned value is to prevent rate limit error (At least 5 seconds between each load URL request)
+        public float _GetSafeLoadUrlDelay() {
+            var now = DateTime.UtcNow;
+            var delay = 5.2F - (float)(now - lastUrlLoadTime).TotalSeconds;
+            lastUrlLoadTime = now;
+            return delay;
         }
 
         #if AUDIOLINK_V1

@@ -29,7 +29,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] bool isLowLatency;
         Animator animator;
         RenderTexture bufferedTexture;
-        bool isWaitingForTexture, isFlickerWorkaroundTextureRunning;
+        bool isWaitingForTexture, isFlickerWorkaroundTextureRunning, isLoadUrlRequested;
         BaseVRCVideoPlayer videoPlayer;
         new Renderer renderer;
         MaterialPropertyBlock propertyBlock;
@@ -85,7 +85,7 @@ namespace JLChnToZ.VRC.VVMW {
                 if (isActive && isAvPro && !isRealTimeProtocol &&
                     Utilities.IsValid(currentUrl) &&
                     !string.IsNullOrEmpty(currentUrl.Get()))
-                    core.SendCustomEventDelayedSeconds(nameof(core.LocalSync), 0.5F);
+                    core._RequestReloadUrl();
             }
         }
 
@@ -178,9 +178,22 @@ namespace JLChnToZ.VRC.VVMW {
             } else {
                 SetPlaybackSpeed();
                 isReady = false;
-                videoPlayer.LoadURL(url);
-                ClearTexture();
+                if (!isLoadUrlRequested) {
+                    isLoadUrlRequested = true;
+                    float delay = core._GetSafeLoadUrlDelay();
+                    if (delay > 0)
+                        SendCustomEventDelayedSeconds(nameof(_DoLoadUrl), delay);
+                    else
+                        _DoLoadUrl();
+                }
             }
+        }
+
+        public void _DoLoadUrl() {
+            isLoadUrlRequested = false;
+            if (!isActive) return;
+            videoPlayer.LoadURL(currentUrl);
+            ClearTexture();
         }
 
         public override void Play() {
