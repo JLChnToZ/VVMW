@@ -177,23 +177,24 @@ namespace JLChnToZ.VRC.VVMW {
                 SendCustomEventDelayedFrames("_onVideoReady", 0);
             } else {
                 SetPlaybackSpeed();
+                ClearTexture();
                 isReady = false;
                 if (!isLoadUrlRequested) {
-                    isLoadUrlRequested = true;
                     float delay = core._GetSafeLoadUrlDelay();
-                    if (delay > 0)
+                    if (delay > 0) {
+                        isLoadUrlRequested = true;
                         SendCustomEventDelayedSeconds(nameof(_DoLoadUrl), delay);
-                    else
-                        _DoLoadUrl();
+                    } else
+                        videoPlayer.LoadURL(currentUrl);
                 }
             }
         }
 
         public void _DoLoadUrl() {
             isLoadUrlRequested = false;
-            if (!isActive) return;
+            if (!isActive || !Utilities.IsValid(currentUrl) || string.IsNullOrEmpty(currentUrl.Get()))
+                return;
             videoPlayer.LoadURL(currentUrl);
-            ClearTexture();
         }
 
         public override void Play() {
