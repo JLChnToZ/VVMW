@@ -37,6 +37,7 @@ namespace JLChnToZ.VRC.VVMW {
         bool isRealTimeProtocol;
         bool afterFirstRun;
         float playbackSpeed = 1;
+        VRCUrl loadedUrl;
 
         public override bool IsActive {
             get => isActive;
@@ -184,8 +185,10 @@ namespace JLChnToZ.VRC.VVMW {
                     if (delay > 0) {
                         isLoadUrlRequested = true;
                         SendCustomEventDelayedSeconds(nameof(_DoLoadUrl), delay);
-                    } else
+                    } else {
+                        loadedUrl = currentUrl;
                         videoPlayer.LoadURL(currentUrl);
+                    }
                 }
             }
         }
@@ -194,6 +197,7 @@ namespace JLChnToZ.VRC.VVMW {
             isLoadUrlRequested = false;
             if (!isActive || !Utilities.IsValid(currentUrl) || string.IsNullOrEmpty(currentUrl.Get()))
                 return;
+            loadedUrl = currentUrl;
             videoPlayer.LoadURL(currentUrl);
         }
 
@@ -214,7 +218,7 @@ namespace JLChnToZ.VRC.VVMW {
             videoPlayer.Stop();
             if (isRealTimeProtocol) {
                 isRealTimeProtocol = false;
-                currentUrl = VRCUrl.Empty;
+                loadedUrl = currentUrl = VRCUrl.Empty;
             }
             OnVideoEnd();
         }
@@ -226,6 +230,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public override void OnVideoReady() {
+            if (!Utilities.IsValid(currentUrl) || !currentUrl.Equals(loadedUrl)) return;
             isPaused = false;
             isReady = true;
             if (isActive) core.OnVideoReady();
