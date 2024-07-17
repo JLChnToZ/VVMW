@@ -620,6 +620,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public override void OnVideoPlay() {
             SendEvent("OnVideoPlay");
+            SetAudioPitch();
             assignedAudioSource = activeHandler.PrimaryAudioSource;
             if (audioLink != null) {
                 if (assignedAudioSource != null)
@@ -954,18 +955,20 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void SyncSpeed() {
-            float currentSpeed = speed;
             if (activeHandler != null && activeHandler.SupportSpeedAdjustment)
                 activeHandler.Speed = speed;
-            else
-                currentSpeed = 1;
-            if (audioSources != null)
-                for (int i = 0; i < audioSources.Length; i++) {
-                    var audioSource = audioSources[i];
-                    if (audioSource == null) continue;
-                    audioSource.pitch = currentSpeed;
-                }
+            SetAudioPitch();
             SendEvent("_OnSpeedChange");
+        }
+
+        void SetAudioPitch() {
+            if (audioSources == null) return;
+            var speed = activeHandler.Speed;
+            for (int i = 0; i < audioSources.Length; i++) {
+                var audioSource = audioSources[i];
+                if (audioSource == null) continue;
+                audioSource.pitch = speed;
+            }
         }
 
         bool IsUrlValid(VRCUrl url) => Utilities.IsValid(url) && !url.Equals(VRCUrl.Empty);

@@ -78,7 +78,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override bool SupportSpeedAdjustment => animator && !isRealTimeProtocol;
 
         public override float Speed {
-            get => playbackSpeed;
+            get => SupportSpeedAdjustment ? playbackSpeed : 1;
             set {
                 if (!animator || Mathf.Approximately(playbackSpeed, value)) return;
                 playbackSpeed = value;
@@ -177,18 +177,22 @@ namespace JLChnToZ.VRC.VVMW {
                 videoPlayer.SetTime(0);
                 SendCustomEventDelayedFrames("_onVideoReady", 0);
             } else {
-                SetPlaybackSpeed();
                 ClearTexture();
-                isReady = false;
-                if (!isLoadUrlRequested) {
-                    float delay = core._GetSafeLoadUrlDelay();
-                    if (delay > 0) {
-                        isLoadUrlRequested = true;
-                        SendCustomEventDelayedSeconds(nameof(_DoLoadUrl), delay);
-                    } else {
-                        loadedUrl = currentUrl;
-                        videoPlayer.LoadURL(currentUrl);
-                    }
+                LoadUrl();
+            }
+        }
+
+        void LoadUrl() {
+            isReady = false;
+            SetPlaybackSpeed();
+            if (!isLoadUrlRequested) {
+                float delay = core._GetSafeLoadUrlDelay();
+                if (delay > 0) {
+                    isLoadUrlRequested = true;
+                    SendCustomEventDelayedSeconds(nameof(_DoLoadUrl), delay);
+                } else {
+                    loadedUrl = currentUrl;
+                    videoPlayer.LoadURL(currentUrl);
                 }
             }
         }
@@ -233,7 +237,18 @@ namespace JLChnToZ.VRC.VVMW {
             if (!Utilities.IsValid(currentUrl) || !currentUrl.Equals(loadedUrl)) return;
             isPaused = false;
             isReady = true;
-            if (isActive) core.OnVideoReady();
+            if (!isActive) return;
+            if (!isRealTimeProtocol) {
+                float duration = videoPlayer.GetDuration();
+                if (duration <= 0 || float.IsInfinity(duration)) {
+                    isRealTimeProtocol = true;
+                    if (isAvPro && playbackSpeed != 1) {
+                        LoadUrl();
+                        return;
+                    }
+                }
+            }
+            core.OnVideoReady();
         }
 
         public override void OnVideoStart() {
@@ -267,7 +282,7 @@ namespace JLChnToZ.VRC.VVMW {
             // 1. If it's real-time protocol,
             //    it doesn't mean the stream is ended,
             //    so we have to ignore this event.
-            if (isRealTimeProtocol) return;
+            if (isAvPro && isRealTimeProtocol) return;
             // 2. For video has measurable duration,
             //    its IsPlaying flag doesn't change to false even it reaches the end,
             //    so we have to stop it manually.
