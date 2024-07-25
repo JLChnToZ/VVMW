@@ -106,7 +106,7 @@ namespace JLChnToZ.VRC.VVMW {
         bool isRealtimeGIUpdaterRunning;
         internal bool afterFirstRun;
         bool isOwnerSyncRequested, isReloadRequested;
-        DateTime lastSyncTime, lastClickResyncTime, lastUrlLoadTime;
+        DateTime lastSyncTime, lastClickResyncTime;
         float syncLatency;
 
         // Yttl Receivers
@@ -990,14 +990,6 @@ namespace JLChnToZ.VRC.VVMW {
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             RequestSerialization();
             return true;
-        }
-
-        // The returned value is to prevent rate limit error (At least 5 seconds between each load URL request)
-        public float _GetSafeLoadUrlDelay() {
-            var now = DateTime.UtcNow;
-            var delay = 5.2F - (float)(now - lastUrlLoadTime).TotalSeconds;
-            lastUrlLoadTime = now;
-            return delay;
         }
 
         #if AUDIOLINK_V1

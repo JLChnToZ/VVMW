@@ -27,6 +27,7 @@ namespace JLChnToZ.VRC.VVMW {
         [Tooltip("This material will be used to blit the screen to a temporary render texture for the flickering workaround. Don't change it unless needed.")]
         [SerializeField] Material blitMaterial;
         [SerializeField] bool isLowLatency;
+        [SerializeField, HideInInspector] RateLimitResolver rateLimitResolver;
         Animator animator;
         RenderTexture bufferedTexture;
         bool isWaitingForTexture, isFlickerWorkaroundTextureRunning, isLoadUrlRequested;
@@ -186,7 +187,7 @@ namespace JLChnToZ.VRC.VVMW {
             isReady = false;
             SetPlaybackSpeed();
             if (!isLoadUrlRequested) {
-                float delay = core._GetSafeLoadUrlDelay();
+                float delay = rateLimitResolver != null ? rateLimitResolver._GetSafeLoadUrlDelay() : 0;
                 if (delay > 0) {
                     isLoadUrlRequested = true;
                     SendCustomEventDelayedSeconds(nameof(_DoLoadUrl), delay);

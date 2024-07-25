@@ -60,14 +60,22 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         protected virtual void ProcessEntry(Type type, UdonSharpBehaviour proxy, UdonBehaviour udon) {}
 
-        protected FieldInfo[] GetFields<T>(Type type) where T : Attribute {
+        protected FieldInfo[] GetFields<T>(Type type) {
             if (!filteredFields.TryGetValue(type, out var fieldInfos)) {
                 fieldInfos = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                    .Where(field => field.IsDefined(typeof(T), true)).ToArray();
+                    .Where(
+                        typeof(Attribute).IsAssignableFrom(typeof(T)) ?
+                        IsAttributeDefined<T> :
+                        IsAssignable<T>
+                    ).ToArray();
                 filteredFields[type] = fieldInfos;
             }
             return fieldInfos;
         }
+
+        static bool IsAttributeDefined<T>(FieldInfo field) => field.IsDefined(typeof(T), true);
+
+        static bool IsAssignable<T>(FieldInfo field) => typeof(T).IsAssignableFrom(field.FieldType);
 
         protected static UnityObject ResolvePath(string path, Type srcType, UnityObject source) {
             var pathElements = path.Split('/');
