@@ -152,6 +152,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
             languageManagers.Clear();
             jsonTexts.Clear();
             GatherAllLanguages(roots);
+            if (unifiedLanguageManager == null) return;
             CombineJsons();
             RemapLanguageManager(roots);
             RemoveLanguageManagers();
