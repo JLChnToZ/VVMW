@@ -17,7 +17,7 @@ Shader "Hidden/JLChnToZ/VideoBlit" {
             // Simple shader for blits platform dependent raw texture to else where.
             #pragma vertex vert
             #pragma fragment frag
-            #include "UnityCG.cginc"
+            #include "./VideoShaderCommon.cginc"
 
             sampler2D _MainTex;
 
@@ -33,12 +33,8 @@ Shader "Hidden/JLChnToZ/VideoBlit" {
                 return o;
             }
 
-            fixed4 frag (v2f i) : SV_Target {
-                #if UNITY_UV_STARTS_AT_TOP
-                i.uv.y = 1 - i.uv.y;
-                #endif
-                fixed4 col = tex2D(_MainTex, i.uv);
-                col.rgb = pow(col.rgb, 2.2);
+            half4 frag (v2f i) : SV_Target {
+                half4 col = readAVProTexture(_MainTex, i.uv);
                 col.a = 1;
                 return col;
             }

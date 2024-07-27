@@ -31,7 +31,7 @@
             float4 _StereoShift;
             float2 _StereoExtend;
 
-            float4 frag (v2f_customrendertexture i) : SV_Target {
+            half4 frag (v2f_customrendertexture i) : SV_Target {
                 return getVideoTexture(_MainTex, i.globalTexcoord.xy, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
             }
             ENDCG

@@ -54,7 +54,7 @@
         void surf (Input IN, inout SurfaceOutputStandard o) {
             float2 uv = IN.uv_MainTex;
             if (_IsMirror && _VRChatMirrorMode) uv.x = 1.0 - uv.x;
-            float3 videoColor = getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
+            half3 videoColor = getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
             o.Albedo = _Color.rgb + videoColor;
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;

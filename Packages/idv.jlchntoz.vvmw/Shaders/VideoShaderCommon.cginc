@@ -9,7 +9,24 @@
 #ifndef VIDEO_SHADER_COMMON_INCLUDED
 #define VIDEO_SHADER_COMMON_INCLUDED
 
-float4 getVideoTexture(sampler2D videoTex, float2 uv, float4 texelSize, bool avPro, int sizeMode, float aspectRatio, float4 stereoShift, float2 stereoExtend) {
+#include "UnityCG.cginc"
+
+inline half4 readVideoTexture(sampler2D videoTex, float2 uv) {
+    return tex2Dlod(videoTex, float4(uv, 0, 0));
+}
+
+inline half4 readAVProTexture(sampler2D videoTex, float2 uv) {
+    #if UNITY_UV_STARTS_AT_TOP
+    uv.y = 1 - uv.y;
+    #endif
+    half4 c = readVideoTexture(videoTex, uv);
+    #if !UNITY_COLORSPACE_GAMMA
+    c.rgb = GammaToLinearSpace(c.rgb);
+    #endif
+    return c;
+}
+
+half4 getVideoTexture(sampler2D videoTex, float2 uv, float4 texelSize, bool avPro, int sizeMode, float aspectRatio, float4 stereoShift, float2 stereoExtend) {
     if (sizeMode) {
         float srcAspectRatio = texelSize.y * texelSize.z * stereoExtend.x / stereoExtend.y;
         if (abs(srcAspectRatio - aspectRatio) > 0.001) {
@@ -28,15 +45,10 @@ float4 getVideoTexture(sampler2D videoTex, float2 uv, float4 texelSize, bool avP
     }
     if (any(uv < 0 || uv > 1)) return 0;
     uv = uv * stereoExtend + lerp(stereoShift.xy, stereoShift.zw, unity_StereoEyeIndex);
-    #if UNITY_UV_STARTS_AT_TOP
-    if (avPro) uv.y = 1 - uv.y;
-    #endif
-    float4 c = tex2Dlod(videoTex, float4(uv, 0, 0));
-    if (avPro) c.rgb = pow(c.rgb, 2.2);
-    return c;
+    return avPro ? readAVProTexture(videoTex, uv) : readVideoTexture(videoTex, uv);
 }
 
-float4 getVideoTexture(sampler2D videoTex, float2 uv, float4 texelSize, bool avPro, int sizeMode, float aspectRatio) {
+half4 getVideoTexture(sampler2D videoTex, float2 uv, float4 texelSize, bool avPro, int sizeMode, float aspectRatio) {
     return getVideoTexture(videoTex, uv, texelSize, avPro, sizeMode, aspectRatio, 0, 1);
 }
 
