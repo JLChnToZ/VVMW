@@ -7,7 +7,6 @@ using VRC.SDKBase;
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
 using System.Text;
 using System.Collections.Generic;
-using UnityEditor;
 using VVMW.ThirdParties.LitJson;
 #endif
 
@@ -214,6 +213,7 @@ namespace JLChnToZ.VRC.VVMW.I18N {
                 }
             return langMap;
         }
+
         internal static string WriteToJson(
             Dictionary<string, LanguageEntry> langMap,
             Dictionary<string, string> defaultLanguageMapping = null,
