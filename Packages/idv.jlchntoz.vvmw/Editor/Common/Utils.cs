@@ -11,6 +11,13 @@ namespace JLChnToZ.VRC.VVMW {
     public static class Utils {
         static GUIContent tempContent;
         static GUIStyle textFieldDropDownTextStyle, textFieldDropDownStyle;
+        static readonly GetFieldInfoAndStaticTypeFromPropertyDelegate getFieldInfoAndStaticTypeFromProperty = Delegate.CreateDelegate(
+            typeof(GetFieldInfoAndStaticTypeFromPropertyDelegate), Type
+            .GetType("UnityEditor.ScriptAttributeUtility, UnityEditor", false)?
+            .GetMethod("GetFieldInfoAndStaticTypeFromProperty", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+        ) as GetFieldInfoAndStaticTypeFromPropertyDelegate;
+
+        delegate FieldInfo GetFieldInfoAndStaticTypeFromPropertyDelegate(SerializedProperty property, out Type type);
 
         public static IEnumerable<T> IterateAllComponents<T>(this Scene scene, bool includeEditorOnly = false) where T : Component {
             var pending = new Stack<Transform>();
@@ -157,6 +164,14 @@ namespace JLChnToZ.VRC.VVMW {
                     }
             }
             return fallback ?? "_MainTex";
+        }
+
+        public static FieldInfo GetFieldInfoFromProperty(SerializedProperty property, out Type type) {
+            if (getFieldInfoAndStaticTypeFromProperty == null) {
+                type = null;
+                return null;
+            }
+            return getFieldInfoAndStaticTypeFromProperty(property, out type);
         }
 
 #if !NETSTANDARD2_1

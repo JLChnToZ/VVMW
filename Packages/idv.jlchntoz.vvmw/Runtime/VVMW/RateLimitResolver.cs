@@ -5,7 +5,7 @@ using UdonSharp;
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [AddComponentMenu("/VizVid/Components/Rate Limit Resolver")]
-    public class RateLimitResolver : UdonSharpBehaviour {
+    public partial class RateLimitResolver : UdonSharpBehaviour {
         const long TICKS_RATELIMIT = 5050 * TimeSpan.TicksPerMillisecond; // 5 seconds + 50ms (1 / 20fps) buffer.
         long lastUrlLoadTime;
 
@@ -20,4 +20,10 @@ namespace JLChnToZ.VRC.VVMW {
             return 0;
         }
     }
+
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+    public partial class RateLimitResolver : ISingleton<RateLimitResolver> {
+        void ISingleton<RateLimitResolver>.Merge(RateLimitResolver[] others) {} // Do Nothing.
+    }
+#endif
 }

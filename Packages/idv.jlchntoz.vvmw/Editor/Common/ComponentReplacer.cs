@@ -9,11 +9,6 @@ using static UnityEngine.Object;
 
 namespace JLChnToZ.VRC.VVMW {
     public class ComponentReplacer {
-        delegate FieldInfo GFIASTFP(SerializedProperty property, out Type type);
-        static readonly GFIASTFP getFieldInfoAndStaticTypeFromProperty = Delegate.CreateDelegate(
-            typeof(GFIASTFP), Type.GetType("UnityEditor.ScriptAttributeUtility, UnityEditor", false)?
-            .GetMethod("GetFieldInfoAndStaticTypeFromProperty", BindingFlags.NonPublic | BindingFlags.Static)
-        ) as GFIASTFP;
         static readonly Dictionary<Component, List<(Component, string)>> references = new Dictionary<Component, List<(Component, string)>>();
         static readonly HashSet<(Type, string)> blackListedPaths = new HashSet<(Type, string)>();
         static readonly Dictionary<Type, Type[]> dependents = new Dictionary<Type, Type[]>();
@@ -116,7 +111,7 @@ namespace JLChnToZ.VRC.VVMW {
                 using (var so = new SerializedObject(referencedBy)) {
                     var sp = so.FindProperty(path);
                     if (sp == null) continue;
-                    getFieldInfoAndStaticTypeFromProperty(sp, out var type);
+                    Utils.GetFieldInfoFromProperty(sp, out var type);
                     if (type != null && !type.IsAssignableFrom(replaceType)) return false;
                 }
             }

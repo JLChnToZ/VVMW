@@ -28,5 +28,28 @@ namespace JLChnToZ.VRC.VVMW {
             Debug.Log($"[{GetUdonTypeName()}] Send Event {name}");
             foreach (var ub in targets) if (ub != null) ub.SendCustomEvent(name);
         }
+
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+        protected static void MergeTargets(UdonSharpEventSender[] singletons) {
+            UdonSharpEventSender first = null;
+            int count = 0;
+            foreach (var singleton in singletons) {
+                if (singleton == null) continue;
+                if (singleton.targets == null) continue;
+                if (first == null) first = singleton;
+                count += singleton.targets.Length;
+            }
+            if (count < 1) return;
+            var targets = new UdonSharpBehaviour[count];
+            count = 0;
+            foreach (var singleton in singletons) {
+                if (singleton == null) continue;
+                if (singleton.targets == null) continue;
+                Array.Copy(singleton.targets, 0, targets, count, singleton.targets.Length);
+                count += singleton.targets.Length;
+            }
+            first.targets = targets;
+        }
+#endif
     }
 }

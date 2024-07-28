@@ -12,6 +12,8 @@ namespace JLChnToZ.VRC.VVMW {
 
         public InstaniatePrefabHierachyPosition InstaniatePrefabPosition { get; set; }
 
+        public bool ResolveOnBuild { get; set; }
+
         public LocatableAttribute() { }
 
         public LocatableAttribute(params string[] typeNames) {

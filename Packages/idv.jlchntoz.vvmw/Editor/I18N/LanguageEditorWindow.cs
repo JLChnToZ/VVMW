@@ -85,7 +85,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                 Load(so.FindProperty("languageJsonFiles"));
                 var additionalJson = so.FindProperty("languageJson");
                 if (!string.IsNullOrEmpty(additionalJson.stringValue))
-                    LanguageManagerUnifier.ParseFromJson(
+                    LanguageManager.ParseFromJson(
                         additionalJson.stringValue, null, null, allKeys, currentLanguageMap
                     );
             }
@@ -107,7 +107,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
             for (int i = 0, count = langPacks.arraySize; i < count; i++) {
                 var textAsset = langPacks.GetArrayElementAtIndex(i).objectReferenceValue as TextAsset;
                 if (textAsset != null)
-                    LanguageManagerUnifier.ParseFromJson(
+                    LanguageManager.ParseFromJson(
                         textAsset.text, keyStack, null, allKeys, defaultLanguageMap
                     );
             }
@@ -133,7 +133,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
             using (var so = new SerializedObject(LanguageManager)) {
                 var additionalJson = so.FindProperty("languageJson");
                 var keyStack = new List<object>();
-                additionalJson.stringValue = LanguageManagerUnifier.WriteToJson(currentLanguageMap, prettyPrint: true).Trim();
+                additionalJson.stringValue = LanguageManager.WriteToJson(currentLanguageMap, prettyPrint: true).Trim();
                 so.ApplyModifiedProperties();
             }
         }
