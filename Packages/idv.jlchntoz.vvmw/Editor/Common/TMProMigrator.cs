@@ -5,6 +5,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
 using TMPro;
+using Cysharp.Threading.Tasks;
+
+using UnityObject = UnityEngine.Object;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     public static class TMProMigratator {
@@ -42,7 +45,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
         }
 
-        public static void Migrate(GameObject root) {
+        public static void Migrate(GameObject root) => MigrateAsync(root).Forget();
+
+        public static async UniTask MigrateAsync(GameObject root) {
             var migratableTypes = new Dictionary<Type, bool>();
             var migratableFields = new Dictionary<Type, Dictionary<FieldInfo, FieldInfo>>();
             var newCreated = new Dictionary<FieldInfo, TextMeshProUGUI>();
@@ -69,10 +74,18 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     newCreated.Clear();
                     foreach (var kv in mapping) {
                         var sourceField = kv.Key;
-                        var sourceValue = sourceField.GetValue(monoBehaviour);
-                        if (!(sourceValue is Text sourceText) ||
-                            kv.Value.GetValue(monoBehaviour) != null)
-                            continue;
+                        var sourceText = sourceField.GetValue(monoBehaviour) as Text;
+                        if (kv.Value.GetValue(monoBehaviour) as UnityObject != null) continue;
+                        if (sourceText == null) {
+                            using (var so = new SerializedObject(monoBehaviour)) {
+                                var prop = so.FindProperty(sourceField.Name);
+                                if (prop == null || !prop.prefabOverride) continue;
+                                PrefabUtility.RevertPropertyOverride(prop, InteractionMode.AutomatedAction);
+                            }
+                            await UniTask.Yield(); // Revert property override is asynchronous so we have to wait for it to finish.
+                            sourceText = sourceField.GetValue(monoBehaviour) as Text;
+                            if (sourceText == null) continue;
+                        }
                         var targetText = Migrate(sourceText);
                         if (targetText == null) continue;
                         newCreated[sourceField] = targetText;
