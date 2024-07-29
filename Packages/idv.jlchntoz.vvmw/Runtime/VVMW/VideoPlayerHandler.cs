@@ -9,8 +9,7 @@ using VRC.Udon.Common.Enums;
 namespace JLChnToZ.VRC.VVMW {
 
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
-    [RequireComponent(typeof(BaseVRCVideoPlayer))]
-    [RequireComponent(typeof(Renderer))]
+    [RequireComponent(typeof(BaseVRCVideoPlayer), typeof(Renderer))]
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Components/Video Player Handler")]
     [DefaultExecutionOrder(0)]

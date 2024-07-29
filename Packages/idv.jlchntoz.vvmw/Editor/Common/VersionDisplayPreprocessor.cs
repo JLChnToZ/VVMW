@@ -2,17 +2,15 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEditor;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 using UnityEngine.SceneManagement;
 
 using PackageManagerPackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
-    internal sealed class VersionDisplayPreprocesser : IProcessSceneWithReport {
-        public int callbackOrder => -1;
+    internal sealed class VersionDisplayPreprocesser : IPreprocessor {
+        public int CallbackOrder => -1;
 
-        public void OnProcessScene(Scene scene, BuildReport report) {
+        public void OnPreprocess(Scene scene) {
             var packageInfo = PackageManagerPackageInfo.FindForAssembly(typeof(VersionDisplay).Assembly);
             if (packageInfo == null) {
                 Debug.LogWarning("[VersionDisplay] Cannot find package info.");

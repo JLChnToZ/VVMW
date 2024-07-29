@@ -30,8 +30,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 using UnityEditor;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 
 using UdonSharp;
 using UdonSharpEditor;
@@ -40,13 +38,13 @@ using UnityObject = UnityEngine.Object;
 using VRC.Udon;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
-    internal abstract class UdonSharpPreProcessor : IProcessSceneWithReport {
+    internal abstract class UdonSharpPreProcessor : IPreprocessor {
         protected static readonly Dictionary<Type, MonoScript> scriptMap = new Dictionary<Type, MonoScript>();
         readonly Dictionary<Type, FieldInfo[]> filteredFields = new Dictionary<Type, FieldInfo[]>();
 
-        public virtual int callbackOrder => 0;
+        public virtual int CallbackOrder => 0;
 
-        public virtual void OnProcessScene(Scene scene, BuildReport report) {
+        public virtual void OnPreprocess(Scene scene) {
             foreach (var usharp in scene.IterateAllComponents<UdonSharpBehaviour>()) {
                 var type = usharp.GetType();
                 var udon = UdonSharpEditorUtility.GetBackingUdonBehaviour(usharp);

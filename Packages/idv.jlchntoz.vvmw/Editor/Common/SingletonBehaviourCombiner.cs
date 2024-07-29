@@ -11,26 +11,30 @@ using UdonSharp;
 using UdonSharpEditor;
 
 using static UnityEngine.Object;
+using JLChnToZ.VRC.VVMW.Editors;
+using UnityEditor.SceneManagement;
 
 namespace JLChnToZ.VRC.VVMW.I18N.Editors {
-    public class SingletonBehviourCombiner : IProcessSceneWithReport {
+    public class SingletonBehviourCombiner : IPreprocessor {
         readonly Dictionary<Type, (MethodInfo method, HashSet<UdonSharpBehaviour> insts)> insts = new Dictionary<Type, (MethodInfo, HashSet<UdonSharpBehaviour>)>();
         readonly HashSet<UdonSharpBehaviour> firsts = new HashSet<UdonSharpBehaviour>();
         readonly Dictionary<UdonSharpBehaviour, UdonSharpBehaviour> masterMap = new Dictionary<UdonSharpBehaviour, UdonSharpBehaviour>();
         readonly Dictionary<(Type, string), UdonSharpBehaviour> fieldMap = new Dictionary<(Type, string), UdonSharpBehaviour>();
 
-        public int callbackOrder => 0;
+        public int CallbackOrder => 0;
         
-        public void OnProcessScene(Scene scene, BuildReport report) {
+        public void OnPreprocess(Scene scene) {
             try {
                 GatherTypes(scene);
                 InvokePreMerge();
                 RerouteTypes(scene);
                 RemoveDuplicates();
+                EditorSceneManager.MarkSceneDirty(scene);
             } finally {
                 insts.Clear();
                 firsts.Clear();
                 masterMap.Clear();
+                fieldMap.Clear();
             }
         }
 
@@ -59,7 +63,6 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                 }
                 insts[type] = value;
             }
-            Debug.Log($"Gathered {insts.Count} types");
         }
 
         void InvokePreMerge() {

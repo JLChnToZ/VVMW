@@ -5,17 +5,15 @@ using UnityEngine.SceneManagement;
 using UnityEditor.Build;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
-using VRC.SDKBase.Editor;
 using VRC.SDK3.Video.Components;
 using VRC.SDK3.Video.Components.AVPro;
 using VRC.SDK3.Video.Components.Base;
-using VRC.SDK3.Editor;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
-    public class MediaPlayerHandlerPreprocessor : IProcessSceneWithReport {
-        public int callbackOrder => 0;
+    public class MediaPlayerHandlerPreprocessor : IPreprocessor {
+        public int CallbackOrder => 0;
 
-        public void OnProcessScene(Scene scene, BuildReport report) {
+        public void OnPreprocess(Scene scene) {
             foreach (var handler in scene.IterateAllComponents<AbstractMediaPlayerHandler>())
                 using (var handlerSo = new SerializedObject(handler)) {
                     TrustedUrlTypes urlType = default;

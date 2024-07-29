@@ -1,16 +1,15 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 using UnityEditor.Events;
 using UdonSharpEditor;
+using JLChnToZ.VRC.VVMW.Editors;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
-    internal sealed class ResyncButtonPreprocessor : IProcessSceneWithReport {
-        public int callbackOrder => -1;
+    internal sealed class ResyncButtonPreprocessor : IPreprocessor {
+        public int CallbackOrder => -1;
 
-        public void OnProcessScene(Scene scene, BuildReport report) {
+        public void OnPreprocess(Scene scene) {
             foreach (var entry in scene.IterateAllComponents<ResyncButtonConfigurator>()) {
                 if (!entry.TryGetComponent(out Button button)) {
                     Debug.LogWarning($"[ResyncButton] No button component in {entry.name}. This should not happen.", entry);

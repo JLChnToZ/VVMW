@@ -280,7 +280,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 10, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8538642654900895035
 CanvasRenderer:
@@ -2866,6 +2866,8 @@ MonoBehaviour:
   speedResetButton: {fileID: 7938037038445694196}
   speedOffsetText: {fileID: 6472316862103766329}
   speedOffsetTMPro: {fileID: 0}
+  luminanceSlider: {fileID: 5658685158410146877}
+  luminancePropertyName: _EmissionIntensity
 --- !u!114 &6165191218252423545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6063,6 +6065,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5658685158410146877 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4618636463992658282, guid: 9b28e1c622b69d54f8e5de0ba8ea3690,
+    type: 3}
+  m_PrefabInstance: {fileID: 1053562277115792727}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &5798492823202812226 stripped

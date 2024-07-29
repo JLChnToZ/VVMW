@@ -8,11 +8,11 @@ using UnityEditor.Build.Reporting;
 
 using static UnityEngine.Object;
 
-namespace JLChnToZ.VRC.VVMW {
-    public class EditorOnlyAttributePreprocessor : IProcessSceneWithReport {
-        public int callbackOrder => 0;
+namespace JLChnToZ.VRC.VVMW.Editors {
+    public class EditorOnlyAttributePreprocessor : IPreprocessor {
+        public int CallbackOrder => 0;
 
-        public void OnProcessScene(Scene scene, BuildReport report) {
+        public void OnPreprocess(Scene scene) {
             var hasAttributeCache = new Dictionary<Type, bool>();
             foreach (var behaviour in scene.IterateAllComponents<MonoBehaviour>()) {
                 var type = behaviour.GetType();

@@ -7,6 +7,8 @@ using VRC.SDK3.Components.Video;
 using VRC.Udon.Common;
 using VRC.Udon.Common.Interfaces;
 using VVMW.ThirdParties.Yttl;
+using VRC.SDK3.Data;
+
 
 #if AUDIOLINK_V1
 using AudioLink;
@@ -122,6 +124,7 @@ namespace JLChnToZ.VRC.VVMW {
         public string description = "";
         bool hasCustomTitle;
         int broadcastTextureId;
+        DataDictionary screenSharedProperties;
 
         public string[] PlayerNames {
             get {
@@ -382,7 +385,6 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                 }
             }
-            screenTargetPropertyBlock = new MaterialPropertyBlock();
             UpdateVolume();
             if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedSeconds(nameof(_PlayDefaultUrl), autoPlayDelay);
             else if (synced) SendCustomEventDelayedSeconds(nameof(_RequestOwnerSync), autoPlayDelay + 3);
@@ -691,6 +693,7 @@ namespace JLChnToZ.VRC.VVMW {
                     case 1: { // Renderer (Property Block)
                         var renderer = (Renderer)screenTargets[i];
                         int index = screenTargetIndeces[i];
+                        if (screenTargetPropertyBlock == null) screenTargetPropertyBlock = new MaterialPropertyBlock();
                         if (index < 0) renderer.GetPropertyBlock(screenTargetPropertyBlock);
                         else renderer.GetPropertyBlock(screenTargetPropertyBlock, index);
                         if (screenTargetPropertyIds[i] != 0)
@@ -736,6 +739,107 @@ namespace JLChnToZ.VRC.VVMW {
             if (broadcastScreenTexture) VRCShader.SetGlobalTexture(broadcastTextureId, videoTexture);
             UpdateRealtimeGI();
             SendEvent("_OnTextureChanged");
+        }
+
+        public float GetScreenFloatExtra(int id) {
+            if (screenSharedProperties != null && screenSharedProperties.TryGetValue(id, TokenType.Float, out var value))
+                return value.Float;
+            float v = 0;
+            for (int i = 0, length = screenTargets.Length; i < length; i++) {
+                if (screenTargets[i] == null) continue;
+                switch (screenTargetModes[i] & 0x7) {
+                    case 0: { // Material
+                        v = ((Material)screenTargets[i]).GetFloat(id);
+                        break;
+                    }
+                    case 1: { // Renderer (Property Block)
+                        var renderer = (Renderer)screenTargets[i];
+                        int index = screenTargetIndeces[i];
+                        if (screenTargetPropertyBlock == null) screenTargetPropertyBlock = new MaterialPropertyBlock();
+                        if (index < 0) {
+                            renderer.GetPropertyBlock(screenTargetPropertyBlock);
+                            if (screenTargetPropertyBlock.HasFloat(id)) {
+                                v = screenTargetPropertyBlock.GetFloat(id);
+                                break;
+                            }
+                            foreach (var m in renderer.sharedMaterials)
+                                if (m.HasProperty(id)) {
+                                    v = m.GetFloat(id);
+                                    break;
+                                }
+                            break;
+                        }
+                        renderer.GetPropertyBlock(screenTargetPropertyBlock, index);
+                        if (screenTargetPropertyBlock.HasFloat(id)) {
+                            v = screenTargetPropertyBlock.GetFloat(id);
+                            break;
+                        }
+                        var material = renderer.sharedMaterials[index];
+                        if (material.HasProperty(id)) {
+                            v = material.GetFloat(id);
+                            break;
+                        }
+                        break;
+                    }
+                    case 2: { // Renderer (Shared Material)
+                        var renderer = (Renderer)screenTargets[i];
+                        int index = screenTargetIndeces[i];
+                        var material = index < 0 ? renderer.sharedMaterial : renderer.sharedMaterials[index];
+                        v = material.GetFloat(id);
+                        break;
+                    }
+                    case 3: { // Renderer (Cloned Material)
+                        var renderer = (Renderer)screenTargets[i];
+                        int index = screenTargetIndeces[i];
+                        var material = index < 0 ? renderer.material : renderer.materials[index];
+                        v = material.GetFloat(id);
+                        break;
+                    }
+                }
+            }
+            if (screenSharedProperties == null) screenSharedProperties = new DataDictionary();
+            screenSharedProperties[id] = v;
+            return v;
+        }
+
+        public void SetScreenFloatExtra(int id, float value) {
+            if (screenSharedProperties == null) screenSharedProperties = new DataDictionary();
+            screenSharedProperties[id] = value;
+            for (int i = 0, length = screenTargets.Length; i < length; i++) {
+                if (screenTargets[i] == null) continue;
+                switch (screenTargetModes[i] & 0x7) {
+                    case 0: { // Material
+                        ((Material)screenTargets[i]).SetFloat(id, value);
+                        break;
+                    }
+                    case 1: { // Renderer (Property Block)
+                        var renderer = (Renderer)screenTargets[i];
+                        int index = screenTargetIndeces[i];
+                        if (screenTargetPropertyBlock == null) screenTargetPropertyBlock = new MaterialPropertyBlock();
+                        if (index < 0) renderer.GetPropertyBlock(screenTargetPropertyBlock);
+                        else renderer.GetPropertyBlock(screenTargetPropertyBlock, index);
+                        screenTargetPropertyBlock.SetFloat(id, value);
+                        if (index < 0) renderer.SetPropertyBlock(screenTargetPropertyBlock);
+                        else renderer.SetPropertyBlock(screenTargetPropertyBlock, index);
+                        break;
+                    }
+                    case 2: { // Renderer (Shared Material)
+                        var renderer = (Renderer)screenTargets[i];
+                        int index = screenTargetIndeces[i];
+                        var material = index < 0 ? renderer.sharedMaterial : renderer.sharedMaterials[index];
+                        material.SetFloat(id, value);
+                        break;
+                    }
+                    case 3: { // Renderer (Cloned Material)
+                        var renderer = (Renderer)screenTargets[i];
+                        int index = screenTargetIndeces[i];
+                        var material = index < 0 ? renderer.material : renderer.materials[index];
+                        material.SetFloat(id, value);
+                        break;
+                    }
+                }
+            }
+            SendEvent("_OnScreenSharedPropertiesChanged");
         }
 
         void SetTextureToMaterial(Texture texture, Material material, int i, bool isAvPro) {

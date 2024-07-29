@@ -339,6 +339,8 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _OnSpeedChange() => SendEvent("_OnSpeedChange");
 
+        public void _OnScreenSharedPropertiesChanged() => SendEvent("_OnScreenSharedPropertiesChanged");
+
         public override void OnPreSerialization() {
             if (!synced) return;
             queuedUrls = localQueuedUrls == null ? new VRCUrl[0] : localQueuedUrls;

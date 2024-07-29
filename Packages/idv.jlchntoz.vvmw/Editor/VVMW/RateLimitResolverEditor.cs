@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
-using UnityEditor.Build.Reporting;
 using VRC.Udon;
 using UdonSharp;
 using UdonSharpEditor;
@@ -27,7 +26,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
     internal class RateLimitResolverPreprocessor : UdonSharpPreProcessor {
         RateLimitResolver unifiedResolver;
 
-        public override void OnProcessScene(Scene scene, BuildReport report) {
+        public override void OnPreprocess(Scene scene) {
             var resolvers = new List<RateLimitResolver>(scene.IterateAllComponents<RateLimitResolver>());
             unifiedResolver = null;
             if (resolvers.Count == 0) return;
@@ -44,7 +43,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 DestroyImmediate(resolver);
                 if (go.GetComponents<Component>().Length <= 1) DestroyImmediate(go);
             }
-            base.OnProcessScene(scene, report);
+            base.OnPreprocess(scene);
         }
 
         protected override void ProcessEntry(Type type, UdonSharpBehaviour usharp, UdonBehaviour udon) {

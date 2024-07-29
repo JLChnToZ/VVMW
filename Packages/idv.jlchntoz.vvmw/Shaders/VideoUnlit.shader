@@ -9,6 +9,8 @@
         _StereoExtend ("Stereo Extend (XY)", Vector) = (1, 1, 0, 0)
         _AspectRatio ("Target Aspect Ratio", Float) = 1.777778
         [Toggle(_)] _IsMirror ("Mirror Flip", Int) = 1
+        [Toggle(_HAS_EMISSION_INTENSITY)] _HasEmission ("Enable Emission Intensity", Int) = 0
+        _EmissionIntensity ("Emission Intensity", Range(0, 10)) = 1.0
     }
     SubShader {
         Tags { "RenderType" = "Opaque" }
@@ -20,6 +22,8 @@
 
             #include "UnityCG.cginc"
             #include "./VideoShaderCommon.cginc"
+
+            #pragma multi_compile_local __ _HAS_EMISSION_INTENSITY
 
             struct appdata {
                 float4 vertex : POSITION;
@@ -43,6 +47,9 @@
             float4 _MainTex_TexelSize;
             float4 _StereoShift;
             float2 _StereoExtend;
+            #ifdef _HAS_EMISSION_INTENSITY
+            float _EmissionIntensity;
+            #endif
 
             v2f vert (appdata v) {
                 v2f o;
@@ -54,11 +61,15 @@
                 return o;
             }
 
-            float4 frag (v2f i) : SV_Target {
+            half4 frag (v2f i) : SV_Target {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 float2 uv = i.uv;
                 if (_IsMirror && _VRChatMirrorMode) uv.x = 1.0 - uv.x;
-                return getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
+                half4 c = getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
+                #ifdef _HAS_EMISSION_INTENSITY
+                c.rgb *= _EmissionIntensity;
+                #endif
+                return c * _Color;
             }
             ENDCG
         }

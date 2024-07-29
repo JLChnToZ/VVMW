@@ -29,8 +29,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
         }
         
-        public override void OnProcessScene(Scene scene, BuildReport report) {
-            base.OnProcessScene(scene, report);
+        public override void OnPreprocess(Scene scene) {
+            base.OnPreprocess(scene);
             var remapped = new HashSet<UdonSharpBehaviour>();
             foreach (var kv in eventSenders) {
                 var sender = kv.Key;

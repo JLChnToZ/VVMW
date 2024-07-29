@@ -144,6 +144,13 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Text speedOffsetText;
         [SerializeField] TextMeshProUGUI speedOffsetTMPro;
 
+        [Header("Screen Controls")]
+        [BindEvent(nameof(Slider.onValueChanged), nameof(_OnLuminanceSliderChanged))]
+        [SerializeField] Slider luminanceSlider;
+        [Tooltip("The property name of the shader to control the luminance of the screen")]
+        [SerializeField] string luminancePropertyName = "_EmissionIntensity";
+        int luminancePropertyId;
+
         string[] playListNames;
         ButtonEntry[] videoPlayerSelectButtons;
         [NonSerialized] public byte loadWithIndex;
@@ -193,6 +200,10 @@ namespace JLChnToZ.VRC.VVMW {
             joinTime = DateTime.UtcNow;
             var hasHandler = Utilities.IsValid(handler);
             if (hasHandler) core = handler.core;
+            if (luminanceSlider != null && !string.IsNullOrEmpty(luminancePropertyName)) {
+                luminancePropertyId = VRCShader.PropertyToID(luminancePropertyName);
+                _OnScreenSharedPropertiesChanged();
+            }
             if (enqueueCountText != null) {
                 enqueueCountFormat = enqueueCountText.text;
                 enqueueCountText.text = string.Format(enqueueCountFormat, 0);
@@ -812,7 +823,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _SpeedDownL() {
-            core.Speed -= 0.5F;
+            core.Speed -= 0.25F;
         }
         public void _SpeedDownS() {
             core.Speed -= 0.1F;
@@ -821,7 +832,7 @@ namespace JLChnToZ.VRC.VVMW {
             core.Speed += 0.1F;
         }
         public void _SpeedUpL() {
-            core.Speed += 0.5F;
+            core.Speed += 0.25F;
         }
         public void _SpeedReset() {
             core.Speed = 1;
@@ -829,6 +840,13 @@ namespace JLChnToZ.VRC.VVMW {
         public void _OnSpeedChange() {
             if (!afterFirstRun) return;
             SetText(speedOffsetText, speedOffsetTMPro, string.Format(languageManager.GetLocale("SpeedOffset"), core.Speed));
+        }
+
+        public void _OnLuminanceSliderChanged() => core.SetScreenFloatExtra(luminancePropertyId, luminanceSlider.value);
+
+        public void _OnScreenSharedPropertiesChanged() {
+            if (luminanceSlider == null) return;
+            luminanceSlider.SetValueWithoutNotify(core.GetScreenFloatExtra(luminancePropertyId));
         }
 
         #region Core Callbacks
