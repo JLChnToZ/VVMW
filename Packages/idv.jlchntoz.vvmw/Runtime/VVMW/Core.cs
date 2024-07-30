@@ -73,6 +73,7 @@ namespace JLChnToZ.VRC.VVMW {
         float syncOffset = 0;
         [FieldChangeCallback(nameof(Speed))]
         float speed = 1;
+        float actualSpeed = 1;
         [UdonSynced] VRCUrl pcUrl, questUrl;
         VRCUrl localUrl, loadingUrl, lastUrl, altUrl;
         // When playing, it is the time when the video started playing;
@@ -83,7 +84,7 @@ namespace JLChnToZ.VRC.VVMW {
         // 0: Idle, 1: Loading, 2: Playing, 3: Paused
         [UdonSynced] byte state;
         [UdonSynced] long ownerServerTime;
-        [UdonSynced] float syncedSpeed = 1;
+        [UdonSynced] float syncedSpeed = 1, syncedActualSpeed = 1;
         [SerializeField, UdonSynced, FieldChangeCallback(nameof(Loop))]
         bool loop;
         [Locatable(
@@ -903,12 +904,14 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 if (activeHandler.IsReady) {
                     state = activeHandler.IsPlaying ? PLAYING : PAUSED;
-                    time = CalcSyncTime();
+                    time = CalcSyncTime(out actualSpeed);
                 } else {
                     state = IsUrlValid(localUrl) ? LOADING : IDLE;
                     time = 0;
+                    actualSpeed = 1;
                 }
             }
+            syncedActualSpeed = actualSpeed;
         }
 
         public override void OnDeserialization(DeserializationResult result) {
@@ -918,6 +921,7 @@ namespace JLChnToZ.VRC.VVMW {
             syncLatency = sendTime > 0 ? // if send time is negative, which means it was sent before join thus this is not valid.
                 (float)(ownerServerTime - Networking.GetNetworkDateTime().Ticks) / TimeSpan.TicksPerSecond +
                 UnityEngine.Time.realtimeSinceStartup - sendTime : 0;
+            actualSpeed = syncedActualSpeed;
             if (speed != syncedSpeed) {
                 speed = syncedSpeed;
                 SyncSpeed();
@@ -1008,14 +1012,18 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomEventDelayedSeconds(nameof(_AutoSyncTime), 0.5F);
         }
 
-        long CalcSyncTime() {
-            if (activeHandler == null) return 0;
+        long CalcSyncTime(out float actualSpeed) {
+            if (activeHandler == null) {
+                actualSpeed = 1;
+                return 0;
+            }
+            actualSpeed = activeHandler.Speed;
             var duration = activeHandler.Duration;
             if (duration <= 0 || float.IsInfinity(duration)) return 0;
-            float playbackSpeed = activeHandler.SupportSpeedAdjustment ? this.speed : 1;
             var videoTime = Mathf.Repeat(activeHandler.Time, duration);
-            var syncTime = (long)((videoTime / playbackSpeed - syncOffset) * TimeSpan.TicksPerSecond);
+            var syncTime = (long)((videoTime / actualSpeed - syncOffset) * TimeSpan.TicksPerSecond);
             if (activeHandler.IsPlaying) syncTime = Networking.GetNetworkDateTime().Ticks - syncTime;
+            if (synced) syncedActualSpeed = actualSpeed;
             return syncTime;
         }
 
@@ -1023,11 +1031,10 @@ namespace JLChnToZ.VRC.VVMW {
             if (activeHandler == null) return 0;
             var duration = activeHandler.Duration;
             if (duration <= 0 || float.IsInfinity(duration)) return 0;
-            float playbackSpeed = activeHandler.SupportSpeedAdjustment ? this.speed : 1;
             float videoTime;
             int intState = state;
             switch (intState) {
-                case PLAYING: videoTime = (float)(Networking.GetNetworkDateTime().Ticks - time) / TimeSpan.TicksPerSecond * playbackSpeed + syncOffset + syncLatency; break;
+                case PLAYING: videoTime = (float)(Networking.GetNetworkDateTime().Ticks - time) / TimeSpan.TicksPerSecond * actualSpeed + syncOffset + syncLatency; break;
                 case PAUSED: videoTime = (float)time / TimeSpan.TicksPerSecond; break;
                 default: return 0;
             }
@@ -1037,9 +1044,10 @@ namespace JLChnToZ.VRC.VVMW {
 
         void SyncTime(bool forced) {
             if (Networking.IsOwner(gameObject)) {
-                var newTime = CalcSyncTime();
+                var newTime = CalcSyncTime(out float speed);
                 if (forced || Mathf.Abs((float)(newTime - time) / TimeSpan.TicksPerSecond) >= timeDriftDetectThreshold) {
                     time = newTime;
+                    actualSpeed = speed;
                     RequestSerialization();
                 }
             } else {

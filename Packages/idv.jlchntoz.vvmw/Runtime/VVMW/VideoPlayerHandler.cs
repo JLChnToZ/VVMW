@@ -36,7 +36,7 @@ namespace JLChnToZ.VRC.VVMW {
         int texturePropertyID, speedParameterID;
         bool isRealTimeProtocol;
         bool afterFirstRun;
-        float playbackSpeed = 1;
+        float playbackSpeed = 1, actualPlaybackSpeed = 1;
         VRCUrl loadedUrl;
 
         public override bool IsActive {
@@ -78,7 +78,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override bool SupportSpeedAdjustment => animator && !isRealTimeProtocol;
 
         public override float Speed {
-            get => SupportSpeedAdjustment ? playbackSpeed : 1;
+            get => SupportSpeedAdjustment ? actualPlaybackSpeed : 1;
             set {
                 if (!animator || Mathf.Approximately(playbackSpeed, value)) return;
                 playbackSpeed = value;
@@ -234,6 +234,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public override void OnVideoReady() {
+            actualPlaybackSpeed = playbackSpeed;
             if (!Utilities.IsValid(currentUrl) || !currentUrl.Equals(loadedUrl)) return;
             isPaused = false;
             isReady = true;
@@ -314,6 +315,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (animator == null) return;
             animator.SetFloat(speedParameterID, isRealTimeProtocol ? 1 : playbackSpeed);
             animator.Update(0);
+            if (!isAvPro) actualPlaybackSpeed = playbackSpeed;
         }
 
         void ClearTexture() {
