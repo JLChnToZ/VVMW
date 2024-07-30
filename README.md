@@ -11,8 +11,8 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 - Quest (Android) client specific URLs (only available on pre-defined URLs, play lists and API)
 - PNG/JPEG Image Viewer (since v1.0.37)
 - Low latency mode, (tested with RTSP/RTMP streams)
-- Playback speed adjustment (since v1.0.42)
-- Auto avoids rate limit errors (since v1.0.42)
+- Playback speed adjustment (since v1.1.0)
+- Smart request handling, debounces switch video requests to avoid rate limit errors (since v1.1.0)
 - Local mode (toggleable syncing with other users within instance before uploading)
 - Modulized screen, audio & UI architecture, support multiple instances
 - Both on-screen & separated interfaces available
@@ -23,6 +23,7 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 - Auto plays when local user steps into specific region
 - Auto fades out background music when video is playing
 - Custom shader with various display modes built-in (Stretch, Contain, Cover, Stereographic Video Source), can be configurated on material options
+- Luminance adjustment for screens using built-in materials (sice v1.1.0)
 - Localization system with auto language detection (English, Chinese, Japanese & Korean)
 - Locked UI with [Udon Auth](https://xtl.booth.pm/items/3826907).
 - Basic [Audio Link](https://github.com/llealloo/vrc-udon-audio-link) support, which will auto switch audio source when playing, also reports player state (playback progress, volume, loop, shuffle, etc.) on newer version (1.0.0+).
