@@ -29,6 +29,22 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 Migrate(gameObject);
         }
 
+        [MenuItem("Tools/VizVid/Fix TMPro Visibility")]
+        static void FixVisibility() {
+            var temp = new List<TextMeshProUGUI>();
+            foreach (var gameObject in Selection.gameObjects) {
+                gameObject.GetComponentsInChildren(true, temp);
+                foreach (var text in temp) {
+                    if (text.enableAutoSizing) continue;
+                    Undo.RecordObject(text, "Fix TMPro Visibility");
+                    text.enableAutoSizing = true;
+                    text.fontSizeMin = text.fontSize - 2;
+                    text.fontSizeMax = text.fontSize;
+                }
+            }
+            Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
+        }
+
         public static void LoadFontMapping() {
             fontAssetMapping.Clear();
             foreach (var guid in AssetDatabase.FindAssets("t:TMP_FontAsset", new[] { "Assets", "Packages" })) {
@@ -115,6 +131,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                 if (!isRequired) Migrate(text);
             }
+            FixVisibility();
         }
 
         public static TextMeshProUGUI Migrate(Text textComponent) {
@@ -166,9 +183,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             tmpComponent.richText = richText;
             tmpComponent.overflowMode = vertOverflow == VerticalWrapMode.Truncate ? TextOverflowModes.Truncate : TextOverflowModes.Overflow;
             tmpComponent.enableWordWrapping = horzOverflow == HorizontalWrapMode.Wrap;
-            tmpComponent.enableAutoSizing = bestFit;
-            tmpComponent.fontSizeMin = minSize;
-            tmpComponent.fontSizeMax = maxSize;
+            tmpComponent.enableAutoSizing = true;
+            if (bestFit) {
+                tmpComponent.fontSizeMin = minSize;
+                tmpComponent.fontSizeMax = maxSize;
+            } else {
+                tmpComponent.fontSizeMin = fontSize - 2;
+                tmpComponent.fontSizeMax = fontSize;
+            }
             tmpComponent.raycastTarget = raycastTarget;
             return tmpComponent;
         }
