@@ -38,7 +38,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     if (text.enableAutoSizing) continue;
                     Undo.RecordObject(text, "Fix TMPro Visibility");
                     text.enableAutoSizing = true;
-                    text.fontSizeMin = text.fontSize - 2;
+                    text.fontSizeMin = Mathf.Max(text.fontSize - 5, 0);
                     text.fontSizeMax = text.fontSize;
                 }
             }
@@ -188,7 +188,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 tmpComponent.fontSizeMin = minSize;
                 tmpComponent.fontSizeMax = maxSize;
             } else {
-                tmpComponent.fontSizeMin = fontSize - 2;
+                tmpComponent.fontSizeMin = Mathf.Max(fontSize - 5, 0);
                 tmpComponent.fontSizeMax = fontSize;
             }
             tmpComponent.raycastTarget = raycastTarget;
