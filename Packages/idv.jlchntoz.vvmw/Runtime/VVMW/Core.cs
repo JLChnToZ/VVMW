@@ -9,7 +9,6 @@ using VRC.Udon.Common.Interfaces;
 using VVMW.ThirdParties.Yttl;
 using VRC.SDK3.Data;
 
-
 #if AUDIOLINK_V1
 using AudioLink;
 #endif
@@ -91,8 +90,12 @@ namespace JLChnToZ.VRC.VVMW {
             "AudioLink.AudioLink, AudioLink", "VRCAudioLink.AudioLink, AudioLink",
             InstaniatePrefabPath = "Packages/com.llealloo.audiolink/Runtime/AudioLink.prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.First
-        )]
-        [SerializeField] UdonSharpBehaviour audioLink;
+        ), SerializeField]
+        #if AUDIOLINK_V1
+        AudioLink.AudioLink audioLink;
+        #else
+        UdonSharpBehaviour audioLink;
+        #endif
         [Tooltip("YTTL (Video title viewer) integration")]
         [SerializeField, Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/Prefabs/Third-Parties/YTTL/YTTL Manager.prefab",
@@ -189,10 +192,8 @@ namespace JLChnToZ.VRC.VVMW {
             get {
                 #if AUDIOLINK_V1
                 if (!IsAudioLinked()) return null;
-                return (AudioLink.AudioLink)audioLink;
-                #else
-                return audioLink;
                 #endif
+                return audioLink;
             }
         }
 
@@ -210,7 +211,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void UpdateAudioLinkVolume() {
             #if AUDIOLINK_V1
-            if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaVolume(defaultVolume);
+            if (IsAudioLinked()) audioLink.SetMediaVolume(defaultVolume);
             #endif
         }
 
@@ -223,7 +224,7 @@ namespace JLChnToZ.VRC.VVMW {
                 if (synced && wasLoop != value && Networking.IsOwner(gameObject))
                     RequestSerialization();
                 #if AUDIOLINK_V1
-                if (IsAudioLinked()) ((AudioLink.AudioLink)audioLink).SetMediaLoop(value ? MediaLoop.LoopOne : MediaLoop.None);
+                if (IsAudioLinked()) audioLink.SetMediaLoop(value ? MediaLoop.LoopOne : MediaLoop.None);
                 #endif
             }
         }
@@ -627,11 +628,13 @@ namespace JLChnToZ.VRC.VVMW {
             assignedAudioSource = activeHandler.PrimaryAudioSource;
             if (audioLink != null) {
                 if (assignedAudioSource != null)
-                    audioLink.SetProgramVariable("audioSource", assignedAudioSource);
                 #if AUDIOLINK_V1
+                    audioLink.audioSource = assignedAudioSource;
                 float duration = activeHandler.Duration;
                 SetAudioLinkPlayBackState(duration <= 0 || float.IsInfinity(duration) ? MediaPlaying.Streaming : MediaPlaying.Playing);
                 UpdateAudioLinkVolume();
+                #else
+                    audioLink.SetProgramVariable("audioSource", assignedAudioSource);
                 #endif
             }
             if (!synced || !Networking.IsOwner(gameObject) || isLocalReloading) return;
@@ -658,7 +661,7 @@ namespace JLChnToZ.VRC.VVMW {
             trustUpdated = false;
             SendEvent("_onVideoEnd");
             #if AUDIOLINK_V1
-            if (audioLink != null) ((AudioLink.AudioLink)audioLink).SetMediaPlaying(MediaPlaying.Stopped);
+            if (audioLink != null) audioLink.SetMediaPlaying(MediaPlaying.Stopped);
             #endif
             _OnTextureChanged();
             if (!synced || !Networking.IsOwner(gameObject)) return;
@@ -1107,14 +1110,14 @@ namespace JLChnToZ.VRC.VVMW {
         #if AUDIOLINK_V1
         bool IsAudioLinked() {
             if (audioLink == null) return false;
-            var settedAudioSource = ((AudioLink.AudioLink)audioLink).audioSource;
+            var settedAudioSource = audioLink.audioSource;
             return settedAudioSource == null || settedAudioSource == assignedAudioSource;
         }
 
         void SetAudioLinkPlayBackState(MediaPlaying state) {
             if (IsAudioLinked()) {
-                ((AudioLink.AudioLink)audioLink).autoSetMediaState = false;
-                ((AudioLink.AudioLink)audioLink).SetMediaPlaying(state);
+                audioLink.autoSetMediaState = false;
+                audioLink.SetMediaPlaying(state);
             }
         }
 
@@ -1125,11 +1128,11 @@ namespace JLChnToZ.VRC.VVMW {
             }
             var duration = activeHandler.Duration;
             if (duration <= 0 || float.IsInfinity(duration)) {
-                ((AudioLink.AudioLink)audioLink).SetMediaTime(0);
+                audioLink.SetMediaTime(0);
                 isSyncAudioLink = false;
                 return;
             }
-            ((AudioLink.AudioLink)audioLink).SetMediaTime(activeHandler.Time / duration);
+            audioLink.SetMediaTime(activeHandler.Time / duration);
             SendCustomEventDelayedSeconds(nameof(_SyncAudioLink), 0.25F);
         }
         #endif
