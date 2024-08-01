@@ -638,7 +638,6 @@ namespace JLChnToZ.VRC.VVMW {
         string UnescapeUrl(VRCUrl url) {
             if (VRCUrl.IsNullOrEmpty(url)) return "";
             var title = url.Get();
-            if (string.IsNullOrEmpty(title)) return "";
             string result;
             int index = title.IndexOf("://");
             if (index >= 0) {

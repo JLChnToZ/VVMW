@@ -404,7 +404,6 @@ namespace JLChnToZ.VRC.VVMW {
         public byte GetSuitablePlayerType(VRCUrl url) {
             if (VRCUrl.IsNullOrEmpty(url)) return 0;
             string urlStr = url.Get();
-            if (string.IsNullOrEmpty(urlStr)) return 0;
             int largestSupport = int.MinValue, largestSupportIndex = -1;
             for (int i = 0; i < playerHandlers.Length; i++) {
                 var handler = playerHandlers[i];

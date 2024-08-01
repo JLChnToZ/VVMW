@@ -70,7 +70,7 @@ namespace JLChnToZ.VRC.VVMW {
                 return false;
             }
             urlStr = url.Get();
-            return !string.IsNullOrEmpty(urlStr);
+            return true;
         }
     }
 }
