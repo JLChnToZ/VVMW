@@ -388,7 +388,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void PlayUrl(VRCUrl url, byte index) {
-            if (!Utilities.IsValid(url)) return;
+            if (VRCUrl.IsNullOrEmpty(url)) return;
             bool shouldRequestSync = false;
             if (localPlayListIndex > 0) {
                 localPlayListIndex = 0;
@@ -636,7 +636,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         #region URL Parsing
         string UnescapeUrl(VRCUrl url) {
-            if (!Utilities.IsValid(url)) return "";
+            if (VRCUrl.IsNullOrEmpty(url)) return "";
             var title = url.Get();
             if (string.IsNullOrEmpty(title)) return "";
             string result;

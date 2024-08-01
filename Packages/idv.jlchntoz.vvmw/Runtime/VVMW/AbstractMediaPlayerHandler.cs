@@ -48,9 +48,8 @@ namespace JLChnToZ.VRC.VVMW {
         public virtual void Stop() {}
 
         public bool IsCurrentUrlTrusted() {
-            if (!Utilities.IsValid(currentUrl)) return false;
+            if (VRCUrl.IsNullOrEmpty(currentUrl)) return false;
             var url = currentUrl.Get();
-            if (string.IsNullOrEmpty(url)) return false;
             int domainStartIndex = url.IndexOf("://");
             if (domainStartIndex < 0) return false;
             domainStartIndex += 3;
@@ -66,7 +65,7 @@ namespace JLChnToZ.VRC.VVMW {
         public virtual int IsSupported(string urlStr) => 0;
 
         protected virtual bool TryGetUrl(VRCUrl url, out string urlStr) {
-            if (!Utilities.IsValid(url)) {
+            if (VRCUrl.IsNullOrEmpty(url)) {
                 urlStr = null;
                 return false;
             }

@@ -407,7 +407,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _InputConfirmClick() {
             var url = urlInput.GetUrl();
-            if (Utilities.IsValid(url) && !string.IsNullOrEmpty(url.Get())) {
+            if (!VRCUrl.IsNullOrEmpty(url)) {
                 playListLastInteractTime = joinTime;
                 if (Utilities.IsValid(handler)) {
                     handler.PlayUrl(url, selectedPlayer);
@@ -548,7 +548,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             if (reloadButton != null) {
                 var localUrl = core.Url;
-                canLocalSync = Utilities.IsValid(localUrl) && !localUrl.Equals(VRCUrl.Empty);
+                canLocalSync = !VRCUrl.IsNullOrEmpty(localUrl);
             }
             if (playButton != null) playButton.gameObject.SetActive(canPlay);
             if (pauseButton != null) pauseButton.gameObject.SetActive(canPause);

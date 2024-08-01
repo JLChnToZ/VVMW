@@ -84,8 +84,7 @@ namespace JLChnToZ.VRC.VVMW {
                 playbackSpeed = value;
                 SetPlaybackSpeed();
                 if (isActive && isAvPro && !isRealTimeProtocol &&
-                    Utilities.IsValid(currentUrl) &&
-                    !string.IsNullOrEmpty(currentUrl.Get()))
+                    !VRCUrl.IsNullOrEmpty(currentUrl))
                     core._RequestReloadUrl();
             }
         }
@@ -165,7 +164,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (videoPlayer.IsPlaying) videoPlayer.Stop();
             if (!isActive) return;
             bool skip = !reload &&
-                Utilities.IsValid(currentUrl) &&
+                !VRCUrl.IsNullOrEmpty(currentUrl) &&
                 currentUrl.Equals(url) &&
                 IsReady &&
                 videoPlayer.GetDuration() != 0 &&
@@ -199,7 +198,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _DoLoadUrl() {
             isLoadUrlRequested = false;
-            if (!isActive || !Utilities.IsValid(currentUrl) || string.IsNullOrEmpty(currentUrl.Get()))
+            if (!isActive || VRCUrl.IsNullOrEmpty(currentUrl))
                 return;
             loadedUrl = currentUrl;
             videoPlayer.LoadURL(currentUrl);
@@ -235,7 +234,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public override void OnVideoReady() {
             actualPlaybackSpeed = playbackSpeed;
-            if (!Utilities.IsValid(currentUrl) || !currentUrl.Equals(loadedUrl)) return;
+            if (VRCUrl.IsNullOrEmpty(currentUrl) || !currentUrl.Equals(loadedUrl)) return;
             isPaused = false;
             isReady = true;
             if (!isActive) return;
