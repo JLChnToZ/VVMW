@@ -1,18 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 using VRC.Udon;
 using UdonSharp;
 using UdonSharpEditor;
+using JLChnToZ.VRC.VVMW.Editors;
 
 using static UnityEngine.Object;
-using JLChnToZ.VRC.VVMW.Editors;
-using UnityEditor.SceneManagement;
 
 namespace JLChnToZ.VRC.VVMW.I18N.Editors {
     public class SingletonBehviourCombiner : IPreprocessor {
@@ -29,7 +25,6 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                 InvokePreMerge();
                 RerouteTypes(scene);
                 RemoveDuplicates();
-                EditorSceneManager.MarkSceneDirty(scene);
             } finally {
                 insts.Clear();
                 firsts.Clear();
@@ -52,8 +47,8 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                     continue;
                 }
                 foreach (var interfaceType in type.GetInterfaces()) {
-                    if (!interfaceType.IsGenericType) continue;
-                    if (interfaceType.GetGenericTypeDefinition() != singletonType) continue;
+                    if (!interfaceType.IsGenericType ||
+                        interfaceType.GetGenericTypeDefinition() != singletonType) continue;
                     var resolvedType = interfaceType.GetGenericArguments()[0];
                     if (resolvedType.IsAssignableFrom(type)) {
                         value = (interfaceType.GetMethod("Merge"), new HashSet<UdonSharpBehaviour>());
@@ -134,17 +129,14 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
         
         bool RerouteEmptyField(SerializedProperty iterator, (Type type, string name) key) {
             var field = Utils.GetFieldInfoFromProperty(iterator, out var _);
-            if (field != null) {
-                var fieldType = field.FieldType;
-                foreach (var kv in insts)
-                    if (kv.Value.method != null && fieldType.IsAssignableFrom(kv.Key))
-                        foreach (var instance in kv.Value.insts)
-                            if (firsts.Contains(instance)) {
-                                fieldMap[key] = instance;
-                                iterator.objectReferenceValue = instance;
-                                return true;
-                            }
-            }
+            if (field != null)
+                if (insts.TryGetValue(field.FieldType, out var value) && value.method != null)
+                    foreach (var instance in value.insts)
+                        if (firsts.Contains(instance)) {
+                            fieldMap[key] = instance;
+                            iterator.objectReferenceValue = instance;
+                            return true;
+                        }
             fieldMap[key] = null;
             return false;
         }
