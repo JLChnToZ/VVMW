@@ -17,8 +17,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         [Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.NextSibling
-        )] Core core;
-        bool globalSync;
+        ), SerializeField] Core core;
+        [SerializeField] bool globalSync;
     }
 
     #if UNITY_EDITOR
