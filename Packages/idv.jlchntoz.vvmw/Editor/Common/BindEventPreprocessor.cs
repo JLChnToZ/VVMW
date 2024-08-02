@@ -29,14 +29,11 @@ using System.Reflection;
 
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.SceneManagement;
 using UnityEditor.Events;
-using UnityEditor.Build.Reporting;
 using UnityEditor.Callbacks;
 
 using VRC.Udon.Editor;
 using UdonSharp;
-using UdonSharpEditor;
 
 using UnityObject = UnityEngine.Object;
 using VRC.Udon;

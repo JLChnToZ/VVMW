@@ -4,7 +4,7 @@ using VRC.SDKBase;
 using UdonSharp;
 
 namespace JLChnToZ.VRC.VVMW {
-    public abstract class AbstractMediaPlayerHandler : VizVidBehaviour {
+    public abstract partial class AbstractMediaPlayerHandler : VizVidBehaviour {
         [NonSerialized] public Core core;
         [Tooltip("The name of current video player. Can be the key mapped in language pack JSON.")]
         public string playerName = "";
@@ -73,4 +73,16 @@ namespace JLChnToZ.VRC.VVMW {
             return true;
         }
     }
+
+    #if UNITY_EDITOR && !COMPILER_UDONSHARP
+    public abstract partial class AbstractMediaPlayerHandler : ISelfPreProcess {
+        internal static ApplyTurstedUrl applyTurstedUrl; // Actual method is in TrustedUrlUtls
+
+        void ISelfPreProcess.PreProcess() => PreProcess();
+
+        protected virtual void PreProcess() {}
+    }
+
+    internal delegate void ApplyTurstedUrl(TrustedUrlTypes type, ref string[] trustedUrlDomains);
+    #endif
 }

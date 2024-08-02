@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 
 using static UnityEngine.Object;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     public class EditorOnlyAttributePreprocessor : IPreprocessor {
-        public int CallbackOrder => 0;
+        public int CallbackOrder => 100;
 
         public void OnPreprocess(Scene scene) {
             var hasAttributeCache = new Dictionary<Type, bool>();

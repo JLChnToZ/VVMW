@@ -106,31 +106,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             OnTrustedUrlsReady?.Invoke();
         }
 
-        public static void CopyTrustedUrlsToStringArray(SerializedProperty stringArray, TrustedUrlTypes urlType) =>
-            CopyTrustedUrlsToStringArrayAsync(stringArray, urlType, true).Forget();
-
-        static async UniTask CopyTrustedUrlsToStringArrayAsync(SerializedProperty stringArray, TrustedUrlTypes urlType, bool applyChanges = true) {
-            await getTrustedUrlsTask.Task;
-            CopyTrustedUrlsToStringArrayUnchecked(stringArray, urlType);
-            if (!applyChanges) return;
-            var so = stringArray.serializedObject;
-            so.ApplyModifiedProperties();
-            so.Update();
-            foreach (var target in so.targetObjects)
-                if (target is UdonSharpBehaviour usharp)
-                    UdonSharpEditorUtility.CopyProxyToUdon(usharp);
-        }
-
-        internal static bool CopyTrustedUrlsToStringArrayUnchecked(SerializedProperty stringArray, TrustedUrlTypes urlType) {
+        public static void CopyTrustedUrls(TrustedUrlTypes urlType, ref string[] trustedUrls) {
             var urlList = instances[urlType].trustedUrls;
-            if (urlList == null || urlList.Count == 0) return false;
-            stringArray.arraySize = urlList.Count;
-            for (int i = 0; i < urlList.Count; i++) {
-                var url = urlList[i];
-                if (url.StartsWith("*.")) url = url.Substring(2);
-                stringArray.GetArrayElementAtIndex(i).stringValue = url;
-            }
-            return true;
+            if (urlList == null) return;
+            if (trustedUrls == null || trustedUrls.Length != urlList.Count)
+                trustedUrls = new string[urlList.Count];
+            urlList.CopyTo(trustedUrls);
         }
 
         public static void DrawUrlField(SerializedProperty urlProperty, TrustedUrlTypes urlType, params GUILayoutOption[] options) {

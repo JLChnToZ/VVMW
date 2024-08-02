@@ -115,5 +115,11 @@ namespace JLChnToZ.VRC.VVMW {
             }
             return -1;
         }
+
+        #if UNITY_EDITOR && !COMPILER_UDONSHARP
+        protected override void PreProcess() {
+            if (applyTurstedUrl != null) applyTurstedUrl(TrustedUrlTypes.ImageUrl, ref trustedUrlDomains);
+        }
+        #endif
     }
 }

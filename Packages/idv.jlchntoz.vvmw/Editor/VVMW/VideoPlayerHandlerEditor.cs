@@ -17,6 +17,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             blitMaterialProperty;
         Material[] materials;
 
+        [InitializeOnLoadMethod]
+        static void RegisterTrustedUrlDelegate() {
+            AbstractMediaPlayerHandler.applyTurstedUrl = TrustedUrlUtils.CopyTrustedUrls;
+        }
+
         protected override void OnEnable() {
             base.OnEnable();
             texturePropertyNameProperty = serializedObject.FindProperty("texturePropertyName");

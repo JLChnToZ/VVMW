@@ -6,8 +6,14 @@ using VRC.SDK3.Components.Video;
 using VRC.SDK3.Video.Components.Base;
 using VRC.Udon.Common.Enums;
 
-namespace JLChnToZ.VRC.VVMW {
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+using UnityEngine.Rendering;
+using UnityEditor;
+using VRC.SDK3.Video.Components;
+using VRC.SDK3.Video.Components.AVPro;
+#endif
 
+namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [RequireComponent(typeof(BaseVRCVideoPlayer), typeof(Renderer))]
     [DisallowMultipleComponent]
@@ -380,5 +386,60 @@ namespace JLChnToZ.VRC.VVMW {
             }
             return 0;
         }
+
+        #if UNITY_EDITOR && !COMPILER_UDONSHARP
+        protected override void PreProcess() {
+            TrustedUrlTypes urlType = default;
+            if (!TryGetComponent(out BaseVRCVideoPlayer videoPlayer)) return;
+            if (!TryGetComponent(out Renderer renderer)) renderer = gameObject.AddComponent<MeshRenderer>();
+            renderer.enabled = false;
+            renderer.lightProbeUsage = LightProbeUsage.Off;
+            renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            renderer.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
+            renderer.allowOcclusionWhenDynamic = false;
+            using (var videoPlayerSo = new SerializedObject(videoPlayer)) {
+                videoPlayerSo.FindProperty("autoPlay").boolValue = false;
+                videoPlayerSo.FindProperty("loop").boolValue = false;
+                if (videoPlayer is VRCAVProVideoPlayer) {
+                    urlType = TrustedUrlTypes.AVProDesktop;
+                    isLowLatency = videoPlayerSo.FindProperty("useLowLatency").boolValue;
+                    if (!videoPlayer.TryGetComponent(out VRCAVProVideoScreen screen))
+                        screen = gameObject.AddComponent<VRCAVProVideoScreen>();
+                    using (var screenSo = new SerializedObject(screen)) {
+                        screenSo.FindProperty("videoPlayer").objectReferenceValue = videoPlayer;
+                        screenSo.FindProperty("materialIndex").intValue = 0;
+                        screenSo.FindProperty("textureProperty").stringValue = texturePropertyName;
+                        screenSo.FindProperty("useSharedMaterial").boolValue = false;
+                        screenSo.ApplyModifiedPropertiesWithoutUndo();
+                    }
+                    if (primaryAudioSource != null) {
+                        if (!primaryAudioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker))
+                            speaker = primaryAudioSource.gameObject.AddComponent<VRCAVProVideoSpeaker>();
+                        using (var speakerSo = new SerializedObject(speaker)) {
+                            speakerSo.FindProperty("videoPlayer").objectReferenceValue = videoPlayer;
+                            speakerSo.ApplyModifiedPropertiesWithoutUndo();
+                        }
+                    }
+                } else if (videoPlayer is VRCUnityVideoPlayer) {
+                    urlType = TrustedUrlTypes.UnityVideo;
+                    videoPlayerSo.FindProperty("renderMode").intValue = 1;
+                    videoPlayerSo.FindProperty("targetMaterialRenderer").objectReferenceValue = renderer;
+                    videoPlayerSo.FindProperty("targetMaterialProperty").stringValue = texturePropertyName;
+                    videoPlayerSo.FindProperty("aspectRatio").intValue = 0;
+                    if (primaryAudioSource != null) {
+                        var targetAudioSources = videoPlayerSo.FindProperty("targetAudioSources");
+                        targetAudioSources.arraySize = 1;
+                        targetAudioSources.GetArrayElementAtIndex(0).objectReferenceValue = primaryAudioSource;
+                    }
+                }
+                videoPlayerSo.ApplyModifiedPropertiesWithoutUndo();
+            }
+            isAvPro = urlType == TrustedUrlTypes.AVProDesktop;
+            useSharedMaterial = isAvPro;
+            if (applyTurstedUrl != null) applyTurstedUrl(urlType, ref trustedUrlDomains);
+        }
+        #endif
     }
 }
