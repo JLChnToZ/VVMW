@@ -6,11 +6,10 @@ using UnityEditor;
 using VRC.Udon;
 using UdonSharp;
 using UdonSharpEditor;
-using JLChnToZ.VRC.VVMW.Editors;
 
 using static UnityEngine.Object;
 
-namespace JLChnToZ.VRC.VVMW.I18N.Editors {
+namespace JLChnToZ.VRC.VVMW.Editors {
     public class SingletonBehviourCombiner : IPreprocessor {
         readonly Dictionary<Type, (MethodInfo method, HashSet<UdonSharpBehaviour> insts)> insts = new Dictionary<Type, (MethodInfo, HashSet<UdonSharpBehaviour>)>();
         readonly HashSet<UdonSharpBehaviour> firsts = new HashSet<UdonSharpBehaviour>();

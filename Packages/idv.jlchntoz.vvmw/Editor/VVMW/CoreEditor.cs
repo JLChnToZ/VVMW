@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
@@ -11,7 +12,6 @@ using VRC.SDK3.Video.Components;
 using VRC.SDK3.Video.Components.AVPro;
 
 using UnityObject = UnityEngine.Object;
-using System.Reflection;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(Core))]

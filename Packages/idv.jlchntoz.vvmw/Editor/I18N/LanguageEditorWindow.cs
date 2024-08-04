@@ -1,8 +1,8 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
-using System;
 
 namespace JLChnToZ.VRC.VVMW.I18N.Editors {
     public class LanguageEditorWindow : EditorWindow {

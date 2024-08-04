@@ -1,9 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UdonSharp;
-using JLChnToZ.VRC.VVMW.Editors;
 
-namespace JLChnToZ.VRC.VVMW.I18N.Editors {
+namespace JLChnToZ.VRC.VVMW.Editors {
     public class SelfPreprocessor : IPreprocessor {
         public int CallbackOrder => -10;
         

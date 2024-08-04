@@ -11,7 +11,6 @@ using VRC.SDKBase;
 using VVMW.ThirdParties.LitJson;
 
 using UnityObject = UnityEngine.Object;
-using System.Collections;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
 
@@ -82,6 +81,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         ExportPlayListToJson(false);
                 if (GUILayout.Button("Import from JSON", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
                     ImportPlayListFromJson();
+                EditorGUILayout.Space();
+                if (GUILayout.Button("Download/Update YT-DLP", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                    YtdlpResolver.DownLoadYtDlp().Forget();
             }
             var evt = Event.current;
             using (new EditorGUILayout.HorizontalScope()) {

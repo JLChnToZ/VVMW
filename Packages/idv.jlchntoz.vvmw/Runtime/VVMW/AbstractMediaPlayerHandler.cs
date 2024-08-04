@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using VRC.SDKBase;
-using UdonSharp;
 
 namespace JLChnToZ.VRC.VVMW {
     public abstract partial class AbstractMediaPlayerHandler : VizVidBehaviour {

@@ -17,21 +17,31 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         #elif UNITY_EDITOR_LINUX
         const string YTDLP_DOWNLOAD_PATH = YTDLP_DOWNLOAD_PATH_BASE + "yt-dlp_linux";
         #endif
-        static string ytdlpPath = "";
+        static string ytdlpPath;
         static bool hasYtdlp = false;
+
+        static string YtdlpPath {
+            get {
+                if (string.IsNullOrEmpty(ytdlpPath))
+                    ytdlpPath = Path.Combine(Application.persistentDataPath, "yt-dlp.exe");
+                return ytdlpPath;
+            }
+        }
 
         public static bool HasYtDlp() {
             if (hasYtdlp) return true;
-            if (string.IsNullOrEmpty(ytdlpPath))
-                ytdlpPath = Path.Combine(Application.persistentDataPath, "yt-dlp.exe");
-            hasYtdlp = File.Exists(ytdlpPath);
+            hasYtdlp = File.Exists(YtdlpPath);
             return hasYtdlp;
         }
 
-        public static async UniTask DownLoadYtDlpIfNotExists() {
-            if (HasYtDlp()) return;
+        public static UniTask DownLoadYtDlpIfNotExists() {
+            if (HasYtDlp()) return UniTask.CompletedTask;
             if (!EditorUtility.DisplayDialog("Download yt-dlp", $"yt-dlp not found, do you want to download it from {YTDLP_DOWNLOAD_PATH}?", "Yes", "No"))
-                return;
+                return UniTask.CompletedTask;
+            return DownLoadYtDlp();
+        }
+
+        public static async UniTask DownLoadYtDlp() {
             var request = new UnityWebRequest(YTDLP_DOWNLOAD_PATH, "GET");
             var path = Path.GetTempFileName();
             var handler = new DownloadHandlerFile(path) { removeFileOnAbort = true };
@@ -54,6 +64,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             ) {
                 if (File.Exists(path)) File.Delete(path);
             } else {
+                var ytdlpPath = YtdlpPath;
+                if (File.Exists(ytdlpPath)) File.Delete(ytdlpPath);
                 File.Move(path, ytdlpPath);
                 #if !UNITY_EDITOR_WIN
                 var process = Process.Start(new ProcessStartInfo("chmod", $"+x {ytdlpPath}") {
@@ -105,7 +117,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         static async UniTask<List<YtdlpPlayListEntry>> Fetch(string url) {
             var results = new List<YtdlpPlayListEntry>();
-            var startInfo = new ProcessStartInfo(ytdlpPath, $"--flat-playlist --no-write-playlist-metafiles --no-exec -sijo - {url}") {
+            var startInfo = new ProcessStartInfo(YtdlpPath, $"--flat-playlist --no-write-playlist-metafiles --no-exec -sijo - {url}") {
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

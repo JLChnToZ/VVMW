@@ -6,8 +6,6 @@ using UnityEditor;
 using VRC.Core;
 using VRC.SDKBase;
 using VRC.SDK3.Editor;
-using UdonSharp;
-using UdonSharpEditor;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     [InitializeOnLoad]

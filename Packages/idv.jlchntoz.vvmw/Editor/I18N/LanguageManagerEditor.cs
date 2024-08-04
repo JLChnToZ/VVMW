@@ -1,8 +1,8 @@
+using System;
 using UnityEngine;
 using UnityEditor;
 using UdonSharpEditor;
 using JLChnToZ.VRC.VVMW.Editors;
-using System;
 
 namespace JLChnToZ.VRC.VVMW.I18N.Editors {
     [CustomEditor(typeof(LanguageManager))]

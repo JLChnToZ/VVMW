@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
     public interface IColorAutoConfigurator {
