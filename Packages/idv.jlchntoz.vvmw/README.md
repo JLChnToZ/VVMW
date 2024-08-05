@@ -288,11 +288,11 @@ On tutorial on how to add playlist, plese see [How to Add a New Playlist?](#how-
 ### Locale
 The locale manager. You can add/modify the texts in it with the language editor.
 
+Also for advanced usage, it is capable to use without the VizVid player. You may use the `Language Receiver` with any text components to make your own localized interface.
+
 ### Rate Limit Resolver
 This module is for reducing rate limit errors by debouncing (on holds and wait for certain time) video switching requests across VizVid instances.
 There is no adjustable options for this module.
-
-Also for advanced usage, it is capable to use without the VizVid player. You may use the `Language Receiver` with any text components to make your own localized interface.
 
 ### Default Screen / Screen
 This is the default screen, you can resize and move it to anywhere you want. For details and guides, please see [How to Add Extra Screen](#how-to-add-extra-screen) section above.
