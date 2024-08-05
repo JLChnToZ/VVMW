@@ -11,6 +11,7 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 
 ## Table of Contents
 * [How to install?](#how-to-install)
+	* [How to Make Playback Speed Option Working?](#how-to-makke-playback-speed-option-working)
 	* [How to Add Extra Screen?](#how-to-add-extra-screen)
 	* [How to Add Extra Audio Source?](#how-to-add-extra-audio-source)
 	* [How to Add Extra Controllers?](#how-to-add-extra-controllers)
@@ -35,6 +36,7 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 	* [Audio Link](#audio-link)
 	* [LTCGI](#ltcgi)
 	* [YTTL](#yttl)
+	* [Topaz Chat / VRCDN (And Other Streaming Service)](#topaz-chat--vrcdn--and-other-streaming-service)
 
 ## How to install?
 You may just right-click anywhere in hierarchy, and select `VizVid > Video Player`.  
@@ -46,6 +48,16 @@ Here is a glance of the difference between the variants:
 
 Alternatively, the playlist attached on separated controls can be moved or disabled like this:  
 ![ ](.tutorial/basic-install-type-2-no-playlist.png)
+
+### How to Make Playback Speed Option Working?
+VizVid supports adjust playback speed for non-live videos, but it requies AVPro or a "stub program" (a minimal piece of code that make sures the things properly wired up) to be imported.
+
+You have these options:
+- Install the stub program to your project (only require doing this once)
+  ![ ](.tutorial/install-avpro-stubs.png)
+- Import [AVPro trial version](https://github.com/RenderHeads/UnityPlugin-AVProVideo/releases)
+- Import [AVPro paid version](https://assetstore.unity.com/packages/tools/video/avpro-video-v3-core-edition-278893) if you have purchased one.  
+  (The plugin itself is not cheap, I don't recommend you to spend money just for this feature to work.)
 
 ### How to Add Extra Screen?
 You may just right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Screen`.  
@@ -88,6 +100,7 @@ To add them, right-click on the player object in hierarchy, and select one of th
 Playlists are pre-defined lists that the player will plays. All playlists associated to a video player instance are defined and controlled in a "Playlist Queue Handler" game object, unlike how some other video player designs, whatever amount of controllers you added for a player, you are still interacting with the same list of the queued videos. Here is how you can manipulate Playlists:
 1. Select "Play List Queue Handler" game object in hierarchy.
 2. Click "Edit Playlists..." button.
+   ![ ](.tutorial/add-playlist-1.png)
 3. In the new popup window, you can:
     a. Create/remove a Playlist
     b. Import Playlist from other video players and YouTube
@@ -325,3 +338,35 @@ This player provides basic integration to [LTCGI](https://ltcgi.dev/). To use wi
 ### YTTL
 [YTTL (Video title viewer)](https://65536.booth.pm/items/4588619) is an addon for providing ability to display titles from several known sources (e.g. YouTube, Twitch, SoundCloud) in video players, it was created by ureishi and it is licensed with CC0. However, installing it on video players that are not originally supported, including VizVid, can be a bit tricky if you're not familiar with the technical side of things. To make it easier, we've included a modified version of YTTL, but you'll still need to follow a few steps to enable it:
 Right-click on the player object in hierarchy, and select `VizVid > YTTL`.
+
+### Topaz Chat / VRCDN (And Other Streaming Service)
+VizVid is capable to stream from Topaz Chat (and other streaming service).
+We don't recommend to make multiple video player switches for "live stream mode" as this will make your world performance heavier and might bring more synchronizing bugs.
+To properly setup for Topaz Chat, you can follow the following instructions:
+
+1. Make sure you have enabled "Use low latency" option in the AVPro module.
+   ![ ](.tutorial/topaz-1.png)
+2. Select "Play List Queue Handler" game object in hierarchy.
+3. Click "Edit Playlists..." button.
+   ![ ](.tutorial/add-playlist-1.png)
+4. Click the '+' on the left hand side
+5. Enter the playlist name you like
+6. Click the '+' on the right hand side
+7. Fill in the blanks
+   - **Title**: Enter anything you want, if you want the others know your stream key, you can paste it here.
+   - **URL for Topaz Chat**: Replace `<Key>` to your stream key
+     - **URL (PC)**: `rtspt://topaz.chat/live/<Key>`
+     - **URL (Quest)**: `rtsp://topaz.chat/live/<Key>`
+        It is differ from PC version, as Quest (or other Android clients) don't support RTSPT protocol.
+   - **URL for VRCDN**: Replace `<Key>` to the public key provided by VRCDN.
+     - **URL (PC)**: `rtspt://stream.vrcdn.live/live/<Key>` (RTSP URL provided by VRCDN)
+     - **URL (Quest)**: `https://stream.vrcdn.live/live/<Key>.live.ts` (MPEG-TS URL provided by VRCDN)
+8. Click save button on the menu.
+   ![ ](.tutorial/add-playlist-2.png)
+
+> [!NOTE]
+> Please read the streaming providers' documentations as we can't guarantee above endpoint are valid all the time.
+> - [Topaz Chat](https://booth.pm/ja/items/1752066)
+> - [VRCDN](https://wiki.vrcdn.live/en/stream/Getting-Started)
+
+When user want to live stream in your world, they can use the stream key you provided and select the entry in the playlist to get started.
