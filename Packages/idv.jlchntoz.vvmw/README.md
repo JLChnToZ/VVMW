@@ -25,9 +25,10 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
     * [How to Upgrade to Text Mesh Pro?](#how-to-upgrade-to-text-mesh-pro)
 * [Details in the Bundle](#details-in-the-bundle)
 	* [VVMW (Game Object)](#vvmw-game-object)
-	* [Builtin Module / AVPro Module](#builtin-module--av-pro-module)
+	* [Builtin Module / AVPro Module / Image Module](#builtin-module--avpro-module--image-module)
 	* [Playlist Queue Handler](#playlist-queue-handler)
 	* [Locale](#locale)
+	* [Rate Limit Resolver](#rate-limit-resolver)
 	* [Default Screen / Screen](#default-screen--screen)
 	* [Default Audio Source](#default-audio-source)
 	* [Default UI / Screen with Overlay](#default-ui--screen-with-overlay)
@@ -197,9 +198,9 @@ This is the "brain" of the system, it controls and synchronizes the player (if e
   - **Auto Play Player Type**: The "module" to use to play the above URL.
   - **Loop**: Is default the player loops (can be toggled via UI)
 - **Auto Play Delay Time**: The delay to start playing the default video when the scene is loaded.
-  This is to prevent rate limit between video players in same instance.
-  If you have multiple video players (not limited to VizVid) which will auto plays in the same world
-  you should set this to a value at least in multiple of `5` to stagger the loading time.
+  This is to prevent rate limit between video players in same instance.  
+  You can leave this value as-is if VizVid is the only video player(s) in your world,
+  as [Rate Limit Resolver](#rate-limit-resolver) will gracefully handle the requests.
 - **Total Retry Count**: How many times should retry when video failed to load.
 - **Retry Delay**: Delay to retry when video failed to load.
 - **Time Drift Detect Threshold**: The player will adjust the time to sync with the owner's time when the time drift is greater than this value.
@@ -286,6 +287,10 @@ On tutorial on how to add playlist, plese see [How to Add a New Playlist?](#how-
 
 ### Locale
 The locale manager. You can add/modify the texts in it with the language editor.
+
+### Rate Limit Resolver
+This module is for reducing rate limit errors by debouncing (on holds and wait for certain time) video switching requests across VizVid instances.
+There is no adjustable options for this module.
 
 Also for advanced usage, it is capable to use without the VizVid player. You may use the `Language Receiver` with any text components to make your own localized interface.
 
