@@ -11,7 +11,7 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 
 ## Table of Contents
 * [How to install?](#how-to-install)
-	* [How to Make Playback Speed Option Working?](#how-to-makke-playback-speed-option-working)
+	* [How to Make Playback Speed Option Working?](#how-to-make-playback-speed-option-working)
 	* [How to Add Extra Screen?](#how-to-add-extra-screen)
 	* [How to Add Extra Audio Source?](#how-to-add-extra-audio-source)
 	* [How to Add Extra Controllers?](#how-to-add-extra-controllers)
@@ -36,7 +36,7 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 	* [Audio Link](#audio-link)
 	* [LTCGI](#ltcgi)
 	* [YTTL](#yttl)
-	* [Topaz Chat / VRCDN (And Other Streaming Service)](#topaz-chat--vrcdn--and-other-streaming-service)
+	* [Topaz Chat / VRCDN (And Other Streaming Service)](#topaz-chat--vrcdn-and-other-streaming-service)
 
 ## How to install?
 You may just right-click anywhere in hierarchy, and select `VizVid > Video Player`.  
