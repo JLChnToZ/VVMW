@@ -241,6 +241,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override void OnVideoReady() {
             actualPlaybackSpeed = playbackSpeed;
             if (VRCUrl.IsNullOrEmpty(currentUrl) || !currentUrl.Equals(loadedUrl)) return;
+            UpdatePrimaryAudioSourcePitch();
             isPaused = false;
             isReady = true;
             if (!isActive) return;
@@ -320,7 +321,14 @@ namespace JLChnToZ.VRC.VVMW {
             if (animator == null) return;
             animator.SetFloat(speedParameterID, isRealTimeProtocol ? 1 : playbackSpeed);
             animator.Update(0);
-            if (!isAvPro) actualPlaybackSpeed = playbackSpeed;
+            if (!isAvPro) {
+                actualPlaybackSpeed = playbackSpeed;
+                UpdatePrimaryAudioSourcePitch();
+            }
+        }
+
+        void UpdatePrimaryAudioSourcePitch() {
+            if (primaryAudioSource != null) primaryAudioSource.pitch = actualPlaybackSpeed;
         }
 
         void ClearTexture() {
