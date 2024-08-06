@@ -440,12 +440,15 @@ namespace JLChnToZ.VRC.VVMW {
                 playerType = (byte)autoPlayPlayerType;
             }
             #if UNITY_ANDROID
-            localUrl = questUrl;
-            altUrl = pcUrl;
-            #else
-            localUrl = pcUrl;
-            altUrl = questUrl;
+            if (!VRCUrl.IsNullOrEmpty(questUrl)) {
+                localUrl = questUrl;
+                altUrl = pcUrl;
+            } else
             #endif
+            {
+                localUrl = pcUrl;
+                altUrl = questUrl;
+            }
             time = 0;
             ActivePlayer = playerType;
             loadingUrl = null;
