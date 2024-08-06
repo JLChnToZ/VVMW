@@ -16,6 +16,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
         protected override void ConfigurateCore(ColorConfig colorConfig) {
             if (TryGetComponent(out Selectable selectable)) {
+                #if UNITY_EDITOR
+                if (!Application.isPlaying) Undo.RecordObject(selectable, "Color Tint Auto Configurator");
+                #endif
                 var colorBlock = selectable.colors;
                 if (normalColorIndex >= 0 && normalColorIndex < colorConfig.colors.Length)
                     colorBlock.normalColor = colorConfig.colors[normalColorIndex];

@@ -5,6 +5,7 @@ using UdonSharp;
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [AddComponentMenu("/VizVid/Components/Rate Limit Resolver")]
+    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#rate-limit-resolver")]
     public partial class RateLimitResolver : UdonSharpBehaviour {
         const long TICKS_RATELIMIT = 5050 * TimeSpan.TicksPerMillisecond; // 5 seconds + 50ms (1 / 20fps) buffer.
         long lastUrlLoadTime;

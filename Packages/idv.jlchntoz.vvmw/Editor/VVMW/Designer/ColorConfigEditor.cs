@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEditor;
 using JLChnToZ.VRC.VVMW.Editors;
 
@@ -52,6 +53,40 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     }
                 }
             }
+        }
+
+        [InitializeOnLoadMethod]
+        static void OnInitialize() {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            AutoConfigurate();
+        }
+
+        static void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
+            if (!Application.isPlaying) AutoConfigurate(scene);
+        }
+
+        static void AutoConfigurate() {
+            #if UNITY_2022_2_OR_NEWER
+            int count = SceneManager.loadedSceneCount;
+            #else
+            int count = SceneManager.sceneCount;
+            #endif
+            for (int i = 0; i < count; i++) AutoConfigurate(SceneManager.GetSceneAt(i));
+        }
+
+        static void AutoConfigurate(Scene scene) {
+            foreach (var colorConfig in scene.IterateAllComponents<ColorConfig>(true))
+                colorConfig.CheckAndConfigurateColors();
+            Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
+        }
+
+        sealed class ImportPostprocessor : AssetPostprocessor {
+            static void OnPostprocessAllAssets(
+                string[] importedAssets,
+                string[] deletedAssets,
+                string[] movedAssets,
+                string[] movedFromAssetPaths
+            ) => AutoConfigurate();
         }
     }
 }

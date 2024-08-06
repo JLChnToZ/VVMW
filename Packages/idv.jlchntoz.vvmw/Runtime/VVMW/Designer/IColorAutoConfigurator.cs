@@ -1,12 +1,8 @@
 ﻿using UnityEngine;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
-    public interface IColorAutoConfigurator {
-        void ConfigurateColor();
-    }
-
     [EditorOnly, ExecuteInEditMode]
-    public abstract class AbstractAutoConfigurator : MonoBehaviour, IColorAutoConfigurator {
+    public abstract class AbstractAutoConfigurator : MonoBehaviour {
         ColorConfig colorConfig;
         protected virtual void Awake() => FindColorConfig();
         protected virtual void OnTransformParentChanged() => FindColorConfig();

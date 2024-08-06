@@ -12,6 +12,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
         protected override void ConfigurateCore(ColorConfig colorConfig) {
             if (TryGetComponent(out Graphic graphic) && colorIndex >= 0 && colorIndex < colorConfig.colors.Length) {
+                #if UNITY_EDITOR
+                if (!Application.isPlaying) Undo.RecordObject(graphic, "Graphic Auto Configurator");
+                #endif
                 graphic.color = colorConfig.colors[colorIndex];
                 #if UNITY_EDITOR
                 if (!Application.isPlaying) EditorUtility.SetDirty(graphic);
