@@ -11,6 +11,7 @@ VizVidはVRChatに向けて開発している、汎用的な動画プレイヤ�
 
 ## 目次<a name="目次"></a>
 - [導入方法](#導入方法)
+    - [再生速度制御の有効化](#再生速度制御の有効化)
     - [画面の追加](#画面の追加)
     - [オーディオソースの追加（サラウンド）](#オーディオソースの追加（サラウンド）)
     - [新規操作パネルの追加](#新規操作パネルの追加)
@@ -35,6 +36,7 @@ VizVidはVRChatに向けて開発している、汎用的な動画プレイヤ�
     - [Audio Link](#Audio-Link)
     - [LTCGI](#LTCHI)
     - [YTTL](#YTTL)
+    - [Topaz Chat / VRCDN (他のストリーミングサービス)](#Topaz-Chat--VRCDN-他のストリーミングサービス)
 
 ## 導入方法<a name="導入方法"></a>
 Unityヒエラルキーを右クリック、`Vizvid > Video Player`を選択。  
@@ -47,6 +49,15 @@ Unityヒエラルキーを右クリック、`Vizvid > Video Player`を選択。
 また、画像のように、分割されたプレイリストの移動・無効化をすることができます：  
 ![ ](.tutorial/basic-install-type-2-no-playlist.png)
 
+### 再生速度制御の有効化
+VizVidは再生速度の制御ができます。この機能を有効化するには、AVProや、その「[スタブ](https://ja.wikipedia.org/wiki/%E3%82%B9%E3%82%BF%E3%83%96)」を事前に導入が必要です。
+
+以下の方法から一つを選べます：
+- スタブをプロジェクトにインポートします (一回だけでOKです。)
+  ![ ](.tutorial/install-avpro-stubs.png)
+- [AVProトライアル版](https://github.com/RenderHeads/UnityPlugin-AVProVideo/releases)をインポートします。
+- [AVPro有料版](https://assetstore.unity.com/packages/tools/video/avpro-video-v3-core-edition-278893)をインポートします。
+(安くないプラグインなので、この機能を有効化するだけなら、強めに**おすすめしません**。)
 
 ### 画面の追加<a name="画面の追加"></a>
 Unityヒエラルキーにあるプレイヤーオブジェクトを右クリック、`VizVid > Additional Controls > Screen`を選択すると、画面が追加されます。
@@ -91,11 +102,12 @@ Unityヒエラルキーにあるプレイヤーオブジェクトに右クリッ
 プレイリストは事前に組み込まれ、「Playlist Queue Handler」ゲームオブジェクトで管理してます。他のプレイヤーと異なって、複数の操作パネルが入っても、同一キューのプレイリストを操作ができます。プレイリストの管理方法は以下の通りです：
 1. ヒエラルキーにある「Play List Queue」オブジェクトを選択します。
 2. 「Edit Playlists」ボタンをクリック。
-3. 表示する編集ウィンドウに、以下の操作ができます：
+   ![ ](.tutorial/add-playlist-1.png)
+4. 表示する編集ウィンドウに、以下の操作ができます：
     1. プレイリストの作成・消去
     2. 他の動画プレイヤー・YouTubeからのプレイリストをインポート
     3. JSONファイル経由で、プレイリストをインポート・エクスポート
-4. 編集終わったら、「save」ボタン押して、編集ウィンドウを閉じると完成です。
+5. 編集終わったら、「save」ボタン押して、編集ウィンドウを閉じると完成です。
 
 現在プレイリストのインポートを対応しているプレイヤー：
 * VizVid (そうです！同じワールドに実装した複数VizVidプレイヤーは、プレイリストの相互インポートができます！)
@@ -288,3 +300,31 @@ VizVidは[LTCGI](https://ltcgi.dev/)と基本的な統合に対応していま�
 
 ### YTTL<a name="yttl"></a>
 [YTTL (動画タイトル表示)](https://65536.booth.pm/items/4588619) はureishi様が製作し、CC0ライセンスで使用させて頂いており、有名なサイト (YouTube・Twitch・ニコニコ動画・SoundCloud) からタイトルを取得し、プレイヤーに表示するプラグインです。VizVidは公認対応版のYTTLをご用意しましたが、有効化するには、いくつかの手順が必要となります：Unityヒエラルキーにあるプレイヤーオブジェクトを右クリック、`VizVid > YTTL`を選択します。
+
+### Topaz Chat / VRCDN (他のストリーミングサービス)
+VizVidはTopaz Chat、VRCDNなど、様々なストリーミングサービスに対応していますが、別々のプレイヤー同時に配信視聴モードに入っていくと、ワールドのパフォーマンスが低下になってしまい、同期関連の問題も発生しやすくになりますので、以下の手順に従い設定を行ってください：
+
+1. AVProモジュールに「Use Low Latency」を有効化。
+   ![ ](.tutorial/topaz-1.png)
+2. ヒエラルキーにあるプレイヤーオブジェクトを選択。
+3. 「Edit Playlists...」ボタンをクリック。
+   ![ ](.tutorial/add-playlist-1.png)
+4. 左側の「+」ボタンをクリック
+5. プレイリスト名を入力
+6. 右側の「+」ボタンをクリック
+7. 以下の情報を入力：
+   - **Title**：タイトル情報を入力。(ストリーミングキーを共有したい場合、こちらに入力することがおすすめします。)
+   - **Topaz Chat用URL**：`<Key>` 情報をストリーミングキーに置き換えます。
+     - **URL (PC)**: `rtspt://topaz.chat/live/<Key>`
+     - **URL (Quest)**: `rtsp://topaz.chat/live/<Key>` PC用リンクと違い、Quest版 (また他のAndroidクライアント)はRTSPTプロトコルに対応しないの対策です。
+   - **VRCDN用URL**: `<Key>`情報をVRCDNから提供したストリーミングキーに置き換えます。
+     - **URL (PC)**: `rtspt://stream.vrcdn.live/live/<Key>` (VRCDNから提供したRTSPT URL)
+     - **URL (Quest)**: `https://stream.vrcdn.live/live/<Key>.live.ts` (VRCDNから提供したMPEG-TS URL)
+8. メニューから「Save」をクリック。
+   ![ ](.tutorial/add-playlist-2.png)
+
+> [!NOTE]
+> この方法VizVidから永久の保証はできませんので、ストリーミングサービス業者の説明書を事前に読んでいてください。
+> - [Topaz Chat](https://booth.pm/ja/items/1752066)
+> - [VRCDN](https://wiki.vrcdn.live/en/stream/Getting-Started)
+ワールドにいるユーザーが配信を行いたい場合、プレイリストにあるストリーミングキーを使って、配信することができます。

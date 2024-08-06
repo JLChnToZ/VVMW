@@ -9,6 +9,7 @@
 
 ## 目錄
 * [安裝方法](#安裝方法)
+    * [啟用播放速度控制](#啟用播放速度控制)
 	* [新增額外螢幕](#新增額外螢幕)
     * [新增額外 Audio Source](#新增額外-Audio-Source)
 	* [新增額外控制面板](#新增額外控制面板)
@@ -33,6 +34,7 @@
 	* [Audio Link](#Audio-Link)
 	* [LTCGI](#LTGCI)
 	* [YTTL](#YTTL)
+	* [Topaz Chat / VRCDN (和其他串流服務)](#Topaz-Chat--VRCDN-和其他串流服務)
 
 ## 安裝方法
 於 Hierarchy 空白處按下滑鼠右鍵，選擇`VizVid > Video Player`。  
@@ -44,6 +46,16 @@
 
 另外，如圖片所示，分割出來的播放清單也可以移動或停用：  
 ![ ](.tutorial/basic-install-type-2-no-playlist.png)
+
+### 啟用播放速度控制
+VizVid 支援影片播放速度控制，但須先匯入 AVPro 或它的「[Stub](https://zh.wikipedia.org/zh-tw/%E6%A1%A9_(%E8%AE%A1%E7%AE%97%E6%9C%BA))」 (一段可以讓東西互相連接起來的小程式) 以啟用這項功能。
+
+以下方法擇一即可：
+- 安裝 Stub 軟體至專案當中 (只需做一次即可)
+  ![ ](.tutorial/install-avpro-stubs.png)
+- 匯入 [AVPro 試用版](https://github.com/RenderHeads/UnityPlugin-AVProVideo/releases)
+- 如果你買過，也可以匯入 [AVPro 付費版](https://assetstore.unity.com/packages/tools/video/avpro-video-v3-core-edition-278893) 
+(這東西並不便宜，如果只為了讓這功能動起來，真的不必花這筆錢。)
 
 ### 新增額外螢幕
 於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > Additional Controls > Screen`以新增。  
@@ -86,10 +98,11 @@ VizVid 是以高靈活性為前提進行製作，控制面板也是如此。針�
 VizVid 可以透過「Playlist Queue Handler」物件，事先製作 VizVid 用的播放清單，並進行管理。跟其他播放器不同，即使有多個控制面板，還是可以同一個待播清單進行操作。以下為管理播方清單的方法：
 1. 於 Hierarchy 中，選擇「Play List Queue Handler」物件。
 2. 點選「Edit Playlists」。
-3. 跳出的編輯視窗中，你可以：
-    a. 新增 / 移除播放清單
-    b. 從其他播放器或 YouTube 匯入播放清單
-    c. 從 JSON 檔案匯入 / 匯出播放清單
+   ![ ](.tutorial/add-playlist-1.png)
+4. 跳出的編輯視窗中，你可以：
+    1. 新增 / 移除播放清單
+    2. 從其他播放器或 YouTube 匯入播放清單
+    3. 從 JSON 檔案匯入 / 匯出播放清單
 4. 完成編輯後，記得按下視窗上方的「save」按鈕，儲存播放清單。
 
 以下是目前支援匯入播放清單的播放器：
@@ -322,3 +335,31 @@ VizVid 支援對 [LTCGI](https://ltcgi.dev/) 的基本整合。跟 LTGCI 控制�
 ### YTTL
 [YTTL (Video title viewer)](https://65536.booth.pm/items/4588619) (由 ureishi 製作，遵循創用 CC0 授權方式) 可以從知名影片網站 (YouTube、Twitch、niconico 動畫、SoundCloud) 取得標題，並顯示於播放器上。VizVid 雖然內建官方認證相容版的 YTTL，但需要遵循以下步驟啟用：
 於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > YTTL`以啟用。
+
+### Topaz Chat / VRCDN (和其他串流服務)
+VizVid 支援 Topaz Chat、VRCDN 等等串流服務的播放。但在同個世界中，如果讓多個播放器同時進入串流模式，可能會導致世界的效能降低，並發生更多同步問題。要正確設定 Topaz Chat 與 VRCDN，請依照以下說明操作：
+
+1. 在 AVPro 模組中啟用「Use Low Latency」。
+   ![ ](.tutorial/topaz-1.png)
+2. 於 Hierarchy 中，選擇播放器物件。
+3. 點選「Edit Playlists...」按鈕。
+   ![ ](.tutorial/add-playlist-1.png)
+4. 點選左邊的「+」鈕
+5. 輸入你要的播放清單名稱
+6. 點選右邊的「+」鈕
+7. 填寫以下欄位
+   - **Title**：輸入標題名稱，如果要讓其他人知道串流金鑰，也可以打在上面。
+   - **Topaz Chat 的 URL**：將 `<Key>` 換成你的串流金鑰
+     - **URL (PC)**: `rtspt://topaz.chat/live/<Key>`
+     - **URL (Quest)**: `rtsp://topaz.chat/live/<Key>` 與 PC 連結不同，Quest (或其他 Android 客戶端) 並不支援 RTSPT 協定。
+   - **VRCDN 的 URL**: 將 `<Key>` 更換成由 VRCDN 提供的公開金鑰。
+     - **URL (PC)**: `rtspt://stream.vrcdn.live/live/<Key>` (由 VRCDN 提供的 RTSPT 網址)
+     - **URL (Quest)**: `https://stream.vrcdn.live/live/<Key>.live.ts` (由 VRCDN 提供的 MPEG-TS 網址)
+8. 在選單中點選「Save」。
+   ![ ](.tutorial/add-playlist-2.png)
+
+> [!NOTE]
+> 請詳讀串流服務提供者的說明文件，VizVid 並不保證上述連結長遠的有效性。
+> - [Topaz Chat](https://booth.pm/ja/items/1752066)
+> - [VRCDN](https://wiki.vrcdn.live/en/stream/Getting-Started)
+如果有玩家要在你的世界進行直播，可以使用在播放清單中提供的串流金鑰並開始串流。
