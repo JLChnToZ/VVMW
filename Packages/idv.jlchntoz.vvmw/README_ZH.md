@@ -28,6 +28,7 @@
 	* [Builtin Module / AVPro Module / Image Module](#Builtin-Module--AVPro-Module--Image-Module)
 	* [Playlist Queue Handler](#Playlist-Queue-Handler)
 	* [Locale](#Locale)
+	* [Rate Limit Resolver](#Rate-Limit-Resolver)
 	* [Default Screen / Screen](#Default-Screen--Screen)
 	* [Default Audio Source](#Default-Audio-Source)
 	* [Default UI / Screen with Overlay](#Default-UI--Screen-with-Overlay)
@@ -199,8 +200,8 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
   - **Loop**：可設定是否預設啟用重複播放 (事後可經由控制面板調整)。
 - **Auto Play Delay Time**：場景載入完成後的延遲播放時間。
   可避免多個播放器同時播放時，發生請求過於頻繁的問題。
-  不僅限於 VizVid，若地圖中有播放器會自動播放，
-  請務必將此數值設為 5 的倍數，錯開影片的載入時間。
+  如果場景內的播放器只有 VizVid，請保留此數值不動，
+  [Rate Limit Resolver](#Rate-Limit-Resolver) 會幫你搞定一切。
 - **Total Retry Count**：載入失敗時，重試次數的上限。
 - **Retry Delay**：載入失敗時，重試的間隔時間。
 - **Time Drift Detect Threshold**：若播放時間錯位高於這個數值，播放器會自動向主持人重新同步時間。
@@ -290,6 +291,10 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
 
 另個進階用法，它可以在沒有 VizVid 的前提下使用。能透過`Language Receiver`配合其他的文字元件，自行製作在地化翻譯。
 
+### Rate Limit Resolver
+透過防抖手法 (在一定時間處於不動狀態)，減少請求次數過高發生的機會。
+該模組沒有調整選項。
+
 ### Default Screen / Screen
 預設畫面。可自由進行縮放、移動。相關使用細節，請參考[新增額外螢幕](#新增額外螢幕)環節。
 
@@ -352,11 +357,11 @@ VizVid 支援 Topaz Chat、VRCDN 等等串流服務的播放。但在同個世�
 7. 填寫以下欄位
    - **Title**：輸入標題名稱，如果要讓其他人知道串流金鑰，也可以打在上面。
    - **Topaz Chat 的 URL**：將 `<Key>` 換成你的串流金鑰
-     - **URL (PC)**: `rtspt://topaz.chat/live/<Key>`
-     - **URL (Quest)**: `rtsp://topaz.chat/live/<Key>` 與 PC 連結不同，Quest (或其他 Android 客戶端) 並不支援 RTSPT 協定。
-   - **VRCDN 的 URL**: 將 `<Key>` 更換成由 VRCDN 提供的公開金鑰。
-     - **URL (PC)**: `rtspt://stream.vrcdn.live/live/<Key>` (由 VRCDN 提供的 RTSPT 網址)
-     - **URL (Quest)**: `https://stream.vrcdn.live/live/<Key>.live.ts` (由 VRCDN 提供的 MPEG-TS 網址)
+     - **URL (PC)**：`rtspt://topaz.chat/live/<Key>`
+     - **URL (Quest)**：`rtsp://topaz.chat/live/<Key>` 與 PC 連結不同，Quest (或其他 Android 客戶端) 並不支援 RTSPT 協定。
+   - **VRCDN 的 URL**：將 `<Key>` 更換成由 VRCDN 提供的公開金鑰。
+     - **URL (PC)**：`rtspt://stream.vrcdn.live/live/<Key>` (由 VRCDN 提供的 RTSPT 網址)
+     - **URL (Quest)**：`https://stream.vrcdn.live/live/<Key>.live.ts` (由 VRCDN 提供的 MPEG-TS 網址)
 8. 在選單中點選「Save」。
    ![ ](.tutorial/add-playlist-2.png)
 

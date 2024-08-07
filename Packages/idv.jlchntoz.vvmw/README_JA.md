@@ -30,6 +30,7 @@ VizVidはVRChatに向けて開発している、汎用的な動画プレイヤ�
     - [Builtin Module / AVPro Module / Image Module](#Builtin-Module--AVPro-Module--Image-Module)
     - [Playlist Queue Handler](#Playlist-Queue-Handler)
     - [Locale](#Locale)
+    - [Rate Limit Resolver](#Rate-Limit-Resolver)
     - [Default Screen / Screen](#Default-Screen-Screen)
     - [Default Audio Source](#Default-Audio-Source)
     - [Default UI / Screen with Overlay](#Default-UI--Screen-with-Overlay)
@@ -192,7 +193,7 @@ Unityヒエラルキーにあるプレハブは、以下の通りになります
     * **Default Quest URL**：Quest/Androidユーザー向け、代わりに再生されるURLです。入力しない場合、Default URLが再生されます。
     * **Auto Play Player Type**：自動再生URLを読み込む「モジュール」です。
     * **Loop**：リピート再生の有効化を選択します (プレイヤーUIで変更できる)。
-* **Auto Play Delay Time**：ワールドに入った時、自動再生URL読み込みの遅延設定。VizVidだけではなく、同じワールドに自動再生を掛けた、複数のプレイヤーが存在する場合、読み込みレート制限を掛けないように、5の倍数を設定して、読込時間をずらしておいてください。
+* **Auto Play Delay Time**：ワールドに入った時、自動再生URL読み込みの遅延設定。複数のプレイヤーが存在する場合、読み込みレート制限を掛けないように設定です。もしシーンに存在するプレイヤーはVizVidのみ場合、数値をそのままにして大丈夫です。[Rate Limit Resolver](#Rate-Limit-Resolver) がリクエストを適切に処理します。
 * **Total Retry Time**：読み込み失敗の場合、再読み込み回数の上限設定。
 * **Retry Delay**：再読み込みの遅延設定。
 * **Time Drift Detect Threshold**：再生の時間ドリフトが設定値に超えた場合、オーナーの再生時間と再同期します。動画再生時間が前後に飛んだり、再生時間ドリフトが激しいなど問題を防ぐため、設定値をあまり変えないようをおすすめします。
@@ -256,6 +257,10 @@ Unityヒエラルキーにあるプレハブは、以下の通りになります
 
 また、高度な使い方に関しては、VizVidを抜いた状態でも使えます。Language Reciverを使って、他のテキストコンポーネントと合わせて、自分のロケールインターフェイスを作れます。
 
+### Rate Limit Resolver
+デバウンス (一定の時間に待機) で、レート制限対策用モジュールです。
+調整オプションはありません。
+
 ### Default Screen / Screen<a name="default-screen-screen"></a>
 デフォルトの画面です。詳しくは、[こちらのセクション](#画面の追加)をご参照ください。
 
@@ -317,11 +322,11 @@ VizVidはTopaz Chat、VRCDNなど、様々なストリーミングサービス�
 7. 以下の情報を入力：
    - **Title**：タイトル情報を入力。(ストリーミングキーを共有したい場合、こちらに入力することがおすすめします。)
    - **Topaz Chat用URL**：`<Key>` 情報をストリーミングキーに置き換えます。
-     - **URL (PC)**: `rtspt://topaz.chat/live/<Key>`
-     - **URL (Quest)**: `rtsp://topaz.chat/live/<Key>` PC用リンクと違い、Quest版 (また他のAndroidクライアント)はRTSPTプロトコルに対応しないの対策です。
-   - **VRCDN用URL**: `<Key>`情報をVRCDNから提供したストリーミングキーに置き換えます。
-     - **URL (PC)**: `rtspt://stream.vrcdn.live/live/<Key>` (VRCDNから提供したRTSPT URL)
-     - **URL (Quest)**: `https://stream.vrcdn.live/live/<Key>.live.ts` (VRCDNから提供したMPEG-TS URL)
+     - **URL (PC)**：`rtspt://topaz.chat/live/<Key>`
+     - **URL (Quest)**：`rtsp://topaz.chat/live/<Key>` PC用リンクと違い、Quest版 (また他のAndroidクライアント)はRTSPTプロトコルに対応しないの対策です。
+   - **VRCDN用URL**：`<Key>`情報をVRCDNから提供したストリーミングキーに置き換えます。
+     - **URL (PC)**：`rtspt://stream.vrcdn.live/live/<Key>` (VRCDNから提供したRTSPT URL)
+     - **URL (Quest)**：`https://stream.vrcdn.live/live/<Key>.live.ts` (VRCDNから提供したMPEG-TS URL)
 8. メニューから「Save」をクリック。
    ![ ](.tutorial/add-playlist-2.png)
 
