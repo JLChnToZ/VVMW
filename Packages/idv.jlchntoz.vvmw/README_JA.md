@@ -2,12 +2,14 @@
 
 ![Banner](.tutorial/cover.png)
 
+[English Documentation](./README.md) · [中文說明文件](./README_ZH.md)
+
 VizVidの使用をご検討いただき、誠にありがとうございます！
 
 VizVidはVRChatに向けて開発している、汎用的な動画プレイヤーのフロントエンドです。ラウンジで皆で楽しんでいただける動画/ライブ配信プレイヤーだけではなく、大規模イベント、さらに展示会やショーケース・ブースにも対応する、汎用性が満載の動画プレイヤーになります。柔軟に構築されたガジェットのように、裏蓋を開けたら簡単に調整可能で、ユーザーの必要に応じて簡単に改変できます。
 
 > [!NOTE]
-> このマニュアルは v1.0.37 以降に対応しており、一部の内容は古いバージョンと異なります。
+> このマニュアルは v1.1.0 以降に対応しており、一部の内容は古いバージョンと異なります。
 
 ## 目次<a name="目次"></a>
 - [導入方法](#導入方法)
@@ -50,9 +52,9 @@ Unityヒエラルキーを右クリック、`Vizvid > Video Player`を選択。
 ![ ](.tutorial/basic-install-type-2-no-playlist.png)
 
 ### 再生速度制御の有効化
-VizVidは再生速度の制御ができます。この機能を有効化するには、AVProや、その「[スタブ](https://ja.wikipedia.org/wiki/%E3%82%B9%E3%82%BF%E3%83%96)」を事前に導入が必要です。
+VizVidは再生速度の制御ができます。この機能を有効化するには、AVProや、その「[スタブ](https://ja.wikipedia.org/wiki/%E3%82%B9%E3%82%BF%E3%83%96) (再生速度機能を連動させるプログラム)」を事前に導入が必要です。
 
-以下の方法から一つを選べます：
+以下の方法から一つを選んでください：
 - スタブをプロジェクトにインポートします (一回だけでOKです。)
   ![ ](.tutorial/install-avpro-stubs.png)
 - [AVProトライアル版](https://github.com/RenderHeads/UnityPlugin-AVProVideo/releases)をインポートします。
@@ -324,7 +326,8 @@ VizVidはTopaz Chat、VRCDNなど、様々なストリーミングサービス�
    ![ ](.tutorial/add-playlist-2.png)
 
 > [!NOTE]
-> この方法VizVidから永久の保証はできませんので、ストリーミングサービス業者の説明書を事前に読んでいてください。
+> この方法VizVidから永久の保証はできませんので、ストリーミングサービス業者のマニュアルを事前に読んでください。
 > - [Topaz Chat](https://booth.pm/ja/items/1752066)
 > - [VRCDN](https://wiki.vrcdn.live/en/stream/Getting-Started)
+
 ワールドにいるユーザーが配信を行いたい場合、プレイリストにあるストリーミングキーを使って、配信することができます。
