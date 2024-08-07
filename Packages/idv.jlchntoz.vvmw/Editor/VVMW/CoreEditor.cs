@@ -146,9 +146,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             int autoPlayPlayerType = autoPlayPlayerTypeProperty.intValue - 1;
             var playerType = playerTypes != null && autoPlayPlayerType >= 0 && autoPlayPlayerType < playerTypes.Length ? playerTypes[autoPlayPlayerType] : PlayerType.Unknown;
-            TrustedUrlUtils.DrawUrlField(defaultUrlProperty, playerType.ToTrustUrlType(false));
+            TrustedUrlUtils.DrawUrlField(defaultUrlProperty, playerType.ToTrustUrlType(BuildTarget.StandaloneWindows64));
             if (!string.IsNullOrEmpty(defaultUrlProperty.FindPropertyRelative("url").stringValue)) {
-                TrustedUrlUtils.DrawUrlField(defaultQuestUrlProperty, playerType.ToTrustUrlType(true));
+                TrustedUrlUtils.DrawUrlField(defaultQuestUrlProperty, playerType.ToTrustUrlType(BuildTarget.Android));
                 if (playerNames == null || playerNames.Length != playerHandlersProperty.arraySize)
                     playerNames = new string[playerHandlersProperty.arraySize];
                 if (playerTypes == null || playerTypes.Length != playerHandlersProperty.arraySize)

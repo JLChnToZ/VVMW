@@ -5,6 +5,7 @@ namespace JLChnToZ.VRC.VVMW {
         UnityVideo,
         AVProDesktop,
         AVProAndroid,
+        AVProIOS,
         ImageUrl,
         StringUrl,
     }

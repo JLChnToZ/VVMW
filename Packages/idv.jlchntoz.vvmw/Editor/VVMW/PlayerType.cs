@@ -1,3 +1,5 @@
+using UnityEditor;
+
 namespace JLChnToZ.VRC.VVMW.Editors {
     public enum PlayerType : byte {
         Unknown,
@@ -7,10 +9,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
     }
 
     public static class PlayerTypeExtensions {
-        public static TrustedUrlTypes ToTrustUrlType(this PlayerType playerType, bool isAndroid) {
+        public static TrustedUrlTypes ToTrustUrlType(this PlayerType playerType, BuildTarget buildTarget = BuildTarget.NoTarget) {
             switch (playerType) {
                 case PlayerType.AVPro:
-                    return isAndroid ? TrustedUrlTypes.AVProAndroid : TrustedUrlTypes.AVProDesktop;
+                    switch (buildTarget) {
+                        case BuildTarget.Android: return TrustedUrlTypes.AVProAndroid;
+                        case BuildTarget.iOS: return TrustedUrlTypes.AVProIOS;
+                        default: return TrustedUrlTypes.AVProDesktop;
+                    }
                 case PlayerType.Image:
                     return TrustedUrlTypes.ImageUrl;
                 default:

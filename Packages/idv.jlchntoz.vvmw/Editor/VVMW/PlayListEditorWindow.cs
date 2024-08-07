@@ -223,7 +223,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             urlRect.height = EditorGUIUtility.singleLineHeight;
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 urlRect = EditorGUI.PrefixLabel(urlRect, Utils.GetTempContent("URL (PC)"));
-                var newUrl = TrustedUrlUtils.DrawUrlField(entry.url, playerType.ToTrustUrlType(false), urlRect, "");
+                var newUrl = TrustedUrlUtils.DrawUrlField(entry.url, playerType.ToTrustUrlType(BuildTarget.StandaloneWindows64), urlRect, "");
                 if (changed.changed) {
                     entry.url = newUrl;
                     selectedPlayList.entries[index] = entry;
@@ -236,7 +236,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 urlQuestRect = EditorGUI.PrefixLabel(urlQuestRect, Utils.GetTempContent("URL (Quest)"));
                 var newUrl = string.IsNullOrEmpty(entry.urlForQuest) ? entry.url : entry.urlForQuest;
-                newUrl = TrustedUrlUtils.DrawUrlField(newUrl, playerType.ToTrustUrlType(true), urlQuestRect, "");
+                newUrl = TrustedUrlUtils.DrawUrlField(newUrl, playerType.ToTrustUrlType(BuildTarget.Android), urlQuestRect, "");
                 if (changed.changed) {
                     entry.urlForQuest = newUrl == entry.url ? string.Empty : newUrl;
                     selectedPlayList.entries[index] = entry;

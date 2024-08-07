@@ -36,6 +36,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             instances[TrustedUrlTypes.UnityVideo] = new TrustedUrlUtils(supportedProtocolsCurl);
             instances[TrustedUrlTypes.AVProDesktop] = new TrustedUrlUtils(supportedProtocolsMF);
             instances[TrustedUrlTypes.AVProAndroid] = new TrustedUrlUtils(supportedProtocolsExo);
+            instances[TrustedUrlTypes.AVProIOS] = new TrustedUrlUtils(supportedProtocolsCurl);
             instances[TrustedUrlTypes.ImageUrl] = new TrustedUrlUtils(supportedProtocolsCurl);
             instances[TrustedUrlTypes.StringUrl] = new TrustedUrlUtils(supportedProtocolsCurl);
             if (EditorPrefs.HasKey("VRCSDK_videoHostUrlList")) {
@@ -43,6 +44,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 instances[TrustedUrlTypes.UnityVideo].trustedUrls = trustedUrls;
                 instances[TrustedUrlTypes.AVProDesktop].trustedUrls = trustedUrls;
                 instances[TrustedUrlTypes.AVProAndroid].trustedUrls = trustedUrls;
+                instances[TrustedUrlTypes.AVProIOS].trustedUrls = trustedUrls;
             }
             if (EditorPrefs.HasKey("VRCSDK_imageHostUrlList"))
                 instances[TrustedUrlTypes.ImageUrl].trustedUrls = new List<string>(EditorPrefs.GetString("VRCSDK_imageHostUrlList").Split('\n'));
@@ -54,6 +56,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static void AddBuildHook(object sender, EventArgs e) {
             if (VRCSdkControlPanel.TryGetBuilder(out IVRCSdkWorldBuilderApi builder))
                 builder.OnSdkBuildStart += OnBuildStarted;
+            getTrustedUrlsTask.Task.Forget();
         }
 
         static void OnBuildStarted(object sender, object target) => getTrustedUrlsTask.Task.Forget();
@@ -89,6 +92,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 instances[TrustedUrlTypes.UnityVideo].trustedUrls = trustedUrls;
                 instances[TrustedUrlTypes.AVProDesktop].trustedUrls = trustedUrls;
                 instances[TrustedUrlTypes.AVProAndroid].trustedUrls = trustedUrls;
+                instances[TrustedUrlTypes.AVProIOS].trustedUrls = trustedUrls;
                 EditorPrefs.SetString("VRCSDK_videoHostUrlList", string.Join("\n", trustedUrls));
             }
             if (vrcsdkConfig.HasKey("imageHostUrlList")) {

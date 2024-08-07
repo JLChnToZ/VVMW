@@ -422,7 +422,7 @@ namespace JLChnToZ.VRC.VVMW {
         public void PlayUrlMP(VRCUrl pcUrl, VRCUrl questUrl, byte playerType) {
             isError = false;
             VRCUrl url;
-            #if UNITY_ANDROID
+            #if UNITY_ANDROID || UNITY_IOS
             url = questUrl;
             if (VRCUrl.IsNullOrEmpty(url))
             #endif
@@ -432,14 +432,14 @@ namespace JLChnToZ.VRC.VVMW {
                     pcUrl = defaultUrl;
                     questUrl = defaultQuestUrl;
                 } else return;
-                #if UNITY_ANDROID
+                #if UNITY_ANDROID || UNITY_IOS
                 url = questUrl;
                 if (VRCUrl.IsNullOrEmpty(url))
                 #endif
                     url = pcUrl;
                 playerType = (byte)autoPlayPlayerType;
             }
-            #if UNITY_ANDROID
+            #if UNITY_ANDROID || UNITY_IOS
             if (!VRCUrl.IsNullOrEmpty(questUrl)) {
                 localUrl = questUrl;
                 altUrl = pcUrl;
@@ -535,7 +535,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void ReloadUrlCore() {
             if (synced) {
-                #if UNITY_ANDROID
+                #if UNITY_ANDROID || UNITY_IOS
                 if (!VRCUrl.IsNullOrEmpty(questUrl))
                     localUrl = questUrl;
                 else
@@ -897,7 +897,7 @@ namespace JLChnToZ.VRC.VVMW {
                 questUrl = null;
             } else {
                 activePlayer = localActivePlayer;
-                #if UNITY_ANDROID
+                #if UNITY_ANDROID || UNITY_IOS
                 if (!VRCUrl.IsNullOrEmpty(altUrl)) {
                     pcUrl = altUrl;
                     questUrl = localUrl;
@@ -932,7 +932,7 @@ namespace JLChnToZ.VRC.VVMW {
                 SyncSpeed();
             }
             VRCUrl url = null;
-            #if UNITY_ANDROID
+            #if UNITY_ANDROID || UNITY_IOS
             if (!VRCUrl.IsNullOrEmpty(questUrl)) {
                 url = questUrl;
                 altUrl = pcUrl;

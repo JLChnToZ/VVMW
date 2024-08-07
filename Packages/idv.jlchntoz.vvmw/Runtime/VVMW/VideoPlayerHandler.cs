@@ -374,16 +374,14 @@ namespace JLChnToZ.VRC.VVMW {
                 case "webm":
                 case "aac":
                 case "opus":
-                #if !UNITY_ANDROID
                 case "mov":
                 case "avi":
                 case "wav":
                 case "wma":
                 case "wmv":
-                #else
                 case "ogg":
-                #endif
                     return 1;
+                case "fla":
                 case "flac":
                 case "ac3":
                 case "mp3":
