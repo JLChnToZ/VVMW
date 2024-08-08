@@ -32,7 +32,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
             if (!hasInit) OnEnable();
             base.OnInspectorGUI();
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, drawScript: false)) return;
-            if (GUILayout.Button("Open Language Editor")) {
+            if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.I18N.LanguageManager.openLanguageEditor"))) {
                 if (openedWindow != null) openedWindow.Focus();
                 else openedWindow = LanguageEditorWindow.Open(target as LanguageManager);
             }
@@ -43,7 +43,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                 if (changed.changed && openedWindow != null) openedWindow.RefreshJsonLists();
             }
             if (openedWindow == null || openedWindow.LanguageManager != target) openedWindow = null;
-            if (showJson = EditorGUILayout.Foldout(showJson, languageJson.displayName, true)) {
+            if (showJson = EditorGUILayout.Foldout(showJson, LocalizedLabelAttributeDrawer.Resolve(languageJson), true)) {
                 textContent.text = languageJson.stringValue;
                 var height = wrappedTextAreaStyle.CalcHeight(textContent, EditorGUIUtility.currentViewWidth);
                 var rect = EditorGUILayout.GetControlRect(false, height);

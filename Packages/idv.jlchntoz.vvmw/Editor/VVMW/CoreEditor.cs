@@ -18,7 +18,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
     public class CoreEditor : VVMWEditorBase {
         static readonly Dictionary<Type, FieldInfo> controllableTypes = new Dictionary<Type, FieldInfo>();
         readonly Dictionary<Core, UdonSharpBehaviour> autoPlayControllers = new Dictionary<Core, UdonSharpBehaviour>();
-        static readonly string[] materialModeOptions = new [] { "Property Block", "Shared Material", "Cloned Materal" };
+        static readonly string[] materialModeOptions = new string[3];
         SerializedProperty playerHandlersProperty;
         SerializedProperty audioSourcesProperty;
         SerializedProperty defaultUrlProperty;
@@ -107,7 +107,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(defaultTextureProperty);
             if (defaultTextureProperty.objectReferenceValue == null)
-                EditorGUILayout.HelpBox("It is required to set a default texture to display when no video is playing.", MessageType.Error);
+                EditorGUILayout.HelpBox(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.Core.defaultTexture:empty_message"), MessageType.Error);
             DrawScreenList();
             EditorGUILayout.PropertyField(broadcastScreenTextureProperty);
             if (broadcastScreenTextureProperty.boolValue)
@@ -115,7 +115,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(realtimeGIUpdateIntervalProperty);
             EditorGUILayout.Space();
             audioSourcesList.DoLayoutList();
-            var newAudioSource = EditorGUILayout.ObjectField("Add Audio Source", null, typeof(AudioSource), true) as AudioSource;
+            var newAudioSource = EditorGUILayout.ObjectField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.audioSources:add"), null, typeof(AudioSource), true) as AudioSource;
             if (newAudioSource != null) {
                 bool hasExisting = false;
                 for (int i = 0, count = audioSourcesProperty.arraySize; i < count; i++)
@@ -140,7 +140,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         void DrawAutoPlayField() {
             if (autoPlayControllers.TryGetValue(target as Core, out var controller)) {
-                if (GUILayout.Button($"Edit URLs in {controller.name}"))
+                if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.EditUrlsIn", controller.name)))
                     Selection.activeGameObject = controller.gameObject;
                 return;
             }
@@ -177,12 +177,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void DrawPlayerHandlersListHeader(Rect rect) {
-            var tempContent = Utils.GetTempContent("Auto Find");
+            var tempContent = i18n.GetLocalizedContent("VVMW.AutoFind");
             var miniButtonStyle = EditorStyles.miniButton;
             var size = miniButtonStyle.CalcSize(tempContent);
             var buttonRect = new Rect(rect.xMax - size.x, rect.y, size.x, rect.height);
             rect.width -= size.x;
-            EditorGUI.LabelField(rect, "Video Player Handlers");
+            EditorGUI.LabelField(rect, i18n.GetOrDefault("JLChnToZ.VRC.VVMW.Core.playerHandlers"));
             if (GUI.Button(buttonRect, tempContent, miniButtonStyle)) {
                 var handlers = (target as Core).GetComponentsInChildren<AbstractMediaPlayerHandler>(true);
                 playerHandlersProperty.arraySize = handlers.Length;
@@ -192,12 +192,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void DrawAudioSourcesListHeader(Rect rect) {
-            var tempContent = Utils.GetTempContent("Setup Speakers");
+            var tempContent = i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.setupSpeakers");
             var miniButtonStyle = EditorStyles.miniButton;
             var size = miniButtonStyle.CalcSize(tempContent);
             var buttonRect = new Rect(rect.xMax - size.x, rect.y, size.x, rect.height);
             rect.width -= size.x;
-            EditorGUI.LabelField(rect, "Audio Sources");
+            EditorGUI.LabelField(rect, i18n.GetOrDefault("JLChnToZ.VRC.VVMW.Core.audioSources"));
             if (GUI.Button(buttonRect, tempContent, miniButtonStyle)) {
                 Undo.IncrementCurrentGroup();
                 int undoGroup = Undo.GetCurrentGroup();
@@ -215,7 +215,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         hasMultipleAvProPlayerHandler = true;
                 }
                 if (audioSourcesProperty.arraySize > 1)
-                    EditorUtility.DisplayDialog("Info", "Multiple audio source attached, therefore only the first one will consider primary and apply to Unity (built-in) video player.", "OK");
+                    i18n.DisplayLocalizedDialog1("JLChnToZ.VRC.VVMW.Core.audioSources:multiple_source_message");
                 var primaryAudioSource = audioSourcesProperty.arraySize > 0 ? audioSourcesProperty.GetArrayElementAtIndex(0).objectReferenceValue : null;
                 foreach (var handler in builtinPlayerHandlers) {
                     using (var so = new SerializedObject(handler)) {
@@ -231,7 +231,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         }
                 }
                 if (hasMultipleAvProPlayerHandler)
-                    EditorUtility.DisplayDialog("Info", "Multiple AVPro video players attached, therefore you will need to manually setup the speakers.", "OK");
+                    i18n.DisplayLocalizedDialog1("JLChnToZ.VRC.VVMW.Core.audioSources:multiple_players_message");
                 else if (avProPlayerHandler != null) {
                     bool hasAppliedPrimaryAudioSource = false;
                     var actualPlayer = avProPlayerHandler.GetComponent<VRCAVProVideoPlayer>();
@@ -251,7 +251,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         }
                     }
                 }
-                Undo.SetCurrentGroupName("Setup Speakers");
+                Undo.SetCurrentGroupName(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.Core.setupSpeakers"));
                 Undo.CollapseUndoOperations(undoGroup);
             }
         }
@@ -276,7 +276,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 EditorGUIUtility.labelWidth -= 16;
                 using (new EditorGUILayout.HorizontalScope()) {
                     screenTargetVisibilityState[i] = EditorGUILayout.Toggle(screenTargetVisibilityState[i], EditorStyles.foldout, GUILayout.Width(13));
-                    EditorGUILayout.PropertyField(targetProperty, Utils.GetTempContent($"Video Screen Target {i + 1}"));
+                    EditorGUILayout.PropertyField(targetProperty, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.videoScreenTarget", i + 1));
                     var value = targetProperty.objectReferenceValue;
                     if (value is GameObject gameObject) {
                         if (gameObject.TryGetComponent(out Renderer renderer))
@@ -290,7 +290,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     else if (value is Material) {}
                     else if (value is RawImage) {}
                     else targetProperty.objectReferenceValue = null;
-                    if (GUILayout.Button("Remove", GUILayout.ExpandWidth(false))) {
+                    if (GUILayout.Button(i18n.GetLocalizedContent("VVMW.Remove"), GUILayout.ExpandWidth(false))) {
                         Utils.DeleteElement(screenTargetsProperty, i);
                         Utils.DeleteElement(screenTargetModesProperty, i);
                         Utils.DeleteElement(screenTargetIndecesProperty, i);
@@ -303,6 +303,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                 }
                 EditorGUIUtility.labelWidth += 16;
+                materialModeOptions[0] = i18n.GetOrDefault("VVMW.Material.PropertyBlock");
+                materialModeOptions[1] = i18n.GetOrDefault("VVMW.Material.SharedMaterial");
+                materialModeOptions[2] = i18n.GetOrDefault("VVMW.Material.ClonedMaterial");
                 if (i >= 0 && screenTargetVisibilityState[i])
                     using (new EditorGUI.IndentLevelScope())
                     using (new EditorGUILayout.VerticalScope(GUI.skin.box)) {
@@ -318,17 +321,17 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         } else if (targetProperty.objectReferenceValue is Renderer renderer) {
                             var indexProperty = screenTargetIndecesProperty.GetArrayElementAtIndex(i);
                             if (mode != 1 && mode != 2 && mode != 3) mode = 1;
-                            mode = EditorGUILayout.Popup("Mode", mode - 1, materialModeOptions) + 1;
+                            mode = EditorGUILayout.Popup(i18n.GetLocalizedContent("VVMW.Mode"), mode - 1, materialModeOptions) + 1;
                             materials = renderer.sharedMaterials;
                             string[] indexNames = new string[materials.Length + 1];
-                            indexNames[0] = "All";
+                            indexNames[0] = i18n.GetOrDefault("VVMW.All");
                             for (int j = 0; j < materials.Length; j++)
                                 if (materials[j] != null)
                                     indexNames[j + 1] = $"({j}) {materials[j].name} ({materials[j].shader.name.Replace("/", ".")})";
                                 else
                                     indexNames[j + 1] = $"({j}) null";
                             int selectedIndex = indexProperty.intValue + 1;
-                            selectedIndex = EditorGUILayout.Popup("Material", selectedIndex, indexNames) - 1;
+                            selectedIndex = EditorGUILayout.Popup(i18n.GetLocalizedContent("VVMW.Material"), selectedIndex, indexNames) - 1;
                             indexProperty.intValue = selectedIndex;
                             selectedShader = selectedIndex >= 0 && selectedIndex <= materials.Length ? materials[selectedIndex].shader : null;
                             showMaterialOptions = true;
@@ -350,20 +353,20 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             var nameProperty = screenTargetPropertyNamesProperty.GetArrayElementAtIndex(i);
                             var avProProperty = avProPropertyNamesProperty.GetArrayElementAtIndex(i);
                             Utils.DrawShaderPropertiesField(
-                                nameProperty, Utils.GetTempContent("Video Texture Property Name", "The name of the property in material to set the video texture."),
+                                nameProperty, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.screenTargetPropertyNames"),
                                 selectedShader, materials, ShaderUtil.ShaderPropertyType.TexEnv
                             );
                             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                                useST = EditorGUILayout.Toggle(Utils.GetTempContent("Use Scale Offset", "Will use scale offset (_Texture_ST) to adjust the texture if it is flipped upside-down."), useST);
+                                useST = EditorGUILayout.Toggle(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.useST"), useST);
                                 if (!useST) Utils.DrawShaderPropertiesField(
-                                    avProProperty, Utils.GetTempContent("AVPro Flag Property Name", "If it is using AVPro player, this property value will set to 1, otherwise 0."),
+                                    avProProperty, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.avProPropertyNames"),
                                     selectedShader, materials, ShaderUtil.ShaderPropertyType.Float
                                 );
                             }
                         }
                         var textureProperty = screenTargetDefaultTexturesProperty.GetArrayElementAtIndex(i);
                         var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
-                        var label = Utils.GetTempContent("Default Texture", "The texture to display when no video is playing. Will use the global default texture if it is null.");
+                        var label = i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.screenTargetDefaultTextures");
                         using (new EditorGUI.PropertyScope(rect, label, textureProperty))
                         using (var changed = new EditorGUI.ChangeCheckScope()) {
                             var texture = textureProperty.objectReferenceValue;
@@ -375,7 +378,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
             }
             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                var newTarget = EditorGUILayout.ObjectField(Utils.GetTempContent("Add Video Screen Target", "Drag renderers, materials, custom render textures, UI raw images here to receive video texture."), null, typeof(UnityObject), true);
+                var newTarget = EditorGUILayout.ObjectField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.videoScreenTarget:add"), null, typeof(UnityObject), true);
                 if (changed.changed && newTarget != null) {
                     if (AppendScreen(
                         newTarget,

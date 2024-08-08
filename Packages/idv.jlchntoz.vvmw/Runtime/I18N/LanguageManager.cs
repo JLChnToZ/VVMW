@@ -17,8 +17,8 @@ namespace JLChnToZ.VRC.VVMW.I18N {
     [DefaultExecutionOrder(0)]
     [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#locale")]
     public partial class LanguageManager : UdonSharpEventSender {
-        [SerializeField] TextAsset[] languageJsonFiles;
-        [SerializeField, Multiline] string languageJson;
+        [SerializeField, LocalizedLabel] TextAsset[] languageJsonFiles;
+        [SerializeField, Multiline, LocalizedLabel] string languageJson;
         DataDictionary languages, currentLanguage;
 
         [FieldChangeCallback(nameof(LanguageKey))]

@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEditor;
+using JLChnToZ.VRC.VVMW.I18N;
+using JLChnToZ.VRC.VVMW.I18N.Editors;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     public abstract class VVMWEditorBase : Editor {
@@ -11,6 +13,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static PackageSelfUpdater selfUpdater;
         static Font font;
         static GUIStyle versionLabelStyle;
+        protected static EditorI18N i18n;
 
         protected virtual void OnEnable() {
             if (selfUpdater == null) {
@@ -28,6 +31,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             #if VPM_RESOLVER_INCLUDED
             selfUpdater.OnVersionRefreshed += Repaint;
             #endif
+            i18n = EditorI18N.Instance;
         }
 
         protected virtual void OnDisable() {
@@ -60,6 +64,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 GUI.Label(new Rect(bannerRect.xMax - versionSize.x, bannerRect.yMin, versionSize.x, versionSize.y), tempContent, versionLabelStyle);
             }
             selfUpdater.DrawUpdateNotifier();
+            EditorGUILayout.Space();
+            EditorI18NEditor.DrawLocaleField();
             EditorGUILayout.Space();
         }
     }

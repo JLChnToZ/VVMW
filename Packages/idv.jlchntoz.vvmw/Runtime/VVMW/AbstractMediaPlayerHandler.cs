@@ -1,12 +1,12 @@
 using System;
 using UnityEngine;
 using VRC.SDKBase;
+using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     public abstract partial class AbstractMediaPlayerHandler : VizVidBehaviour {
         [NonSerialized] public Core core;
-        [Tooltip("The name of current video player. Can be the key mapped in language pack JSON.")]
-        public string playerName = "";
+        [LocalizedLabel] public string playerName = "";
         protected bool isActive, isReady, isPaused;
         protected Texture texture;
         protected VRCUrl currentUrl;

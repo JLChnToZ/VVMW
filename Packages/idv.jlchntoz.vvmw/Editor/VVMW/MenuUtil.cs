@@ -9,6 +9,7 @@ using JLChnToZ.VRC.VVMW.Editors;
 using VVMW.ThirdParties.Yttl;
 
 using static UnityEngine.Object;
+using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     public static class MenuUtil {
@@ -133,11 +134,8 @@ namespace JLChnToZ.VRC.VVMW {
 
         [MenuItem(createMenuRoot + "Additional Controls/Overlay Controls", false, 49)]
         static void CreateOverlayControls() {
-            if (FindObjectOfType<OverlayControl>() != null && !EditorUtility.DisplayDialog(
-                "Warning",
-                "You already have an Overlay Control in scene, adding another one may cause unexpected behavior, are you sure to continue?",
-                "Yes", "No"
-            )) return;
+            if (FindObjectOfType<OverlayControl>() != null &&
+                !EditorI18N.Instance.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.Pickups.PickupPanel.multiple_message")) return;
             SpawnPrefab(prefabRoot + "Overlay Control.prefab");
         }
 

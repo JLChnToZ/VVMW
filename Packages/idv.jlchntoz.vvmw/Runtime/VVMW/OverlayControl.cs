@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRC.SDKBase;
 using VRC.Udon;
+using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
 
@@ -16,49 +17,48 @@ namespace JLChnToZ.VRC.VVMW {
         Quaternion leftHandRotation = Quaternion.Euler(-90, -45, 0);
         Quaternion rightHandRotation = Quaternion.Euler(90, -45, 180);
         Vector3 offsetDirection = new Vector3(0, 1, -1);
-        [Header("References")]
+        [LocalizedHeader("HEADER:Main_Reference")]
         [SerializeField, Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
-        ), BindUdonSharpEvent] Core core;
-        [Header("References (For use with non-VizVid players)")]
-        [SerializeField] AudioSource[] audioSources;
-        [SerializeField] GameObject[] resyncTargets;
-        [SerializeField, Range(0, 1)] float volume = 1;
-        [Header("Options")]
-        [SerializeField] KeyCode reloadKey = KeyCode.F9;
-        [SerializeField] KeyCode volumeUpKey = KeyCode.F11;
-        [SerializeField] KeyCode volumeDownKey = KeyCode.F10;
-        [Tooltip("Disable hand controls in VR mode at start")]
-        [SerializeField] bool disableHandControls;
-        [Header("UI References")]
-        [SerializeField] GameObject desktopModeCanvas;
-        [SerializeField] GameObject vrModeCanvas;
+        ), BindUdonSharpEvent, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")] Core core;
+        [LocalizedHeader("HEADER:Non_VizVid_References")]
+        [SerializeField, LocalizedLabel] AudioSource[] audioSources;
+        [SerializeField, LocalizedLabel] GameObject[] resyncTargets;
+        [SerializeField, LocalizedLabel, Range(0, 1)] float volume = 1;
+        [LocalizedHeader("HEADER:Options")]
+        [SerializeField, LocalizedLabel] KeyCode reloadKey = KeyCode.F9;
+        [SerializeField, LocalizedLabel] KeyCode volumeUpKey = KeyCode.F11;
+        [SerializeField, LocalizedLabel] KeyCode volumeDownKey = KeyCode.F10;
+        [SerializeField, LocalizedLabel] bool disableHandControls;
+        [LocalizedHeader("HEADER:UI_References")]
+        [SerializeField, LocalizedLabel] GameObject desktopModeCanvas;
+        [SerializeField, LocalizedLabel] GameObject vrModeCanvas;
         Transform vrModeCanvasTransform;
-        [SerializeField] GameObject vrModeOptionsCanvas, desktopModeOptionsCanvas;
+        [SerializeField, LocalizedLabel] GameObject vrModeOptionsCanvas, desktopModeOptionsCanvas;
         [BindEvent(nameof(Button.onClick), nameof(_OnReload))]
-        [SerializeField] Button reloadButton;
+        [SerializeField, LocalizedLabel] Button reloadButton;
         [BindEvent(nameof(Toggle.onValueChanged), nameof(_OnHandToggle))]
-        [SerializeField] Toggle leftHandToggle, rightHandToggle;
+        [SerializeField, LocalizedLabel] Toggle leftHandToggle, rightHandToggle;
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnOffsetChange))]
-        [SerializeField] Slider offsetSliderVR;
+        [SerializeField, LocalizedLabel] Slider offsetSliderVR;
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnVolumeSliderChanged))]
-        [SerializeField] Slider volumeSliderVR;
-        [SerializeField] RectTransform volumeSliderDesktop;
+        [SerializeField, LocalizedLabel] Slider volumeSliderVR;
+        [SerializeField, LocalizedLabel] RectTransform volumeSliderDesktop;
         [TMProMigratable(nameof(desktopHintsReloadButtonKeyTMPro))]
-        [SerializeField] Text desktopHintsReloadButtonKey;
+        [SerializeField, LocalizedLabel] Text desktopHintsReloadButtonKey;
         [TMProMigratable(nameof(desktopHintsVolumeUpKeyTMPro))]
-        [SerializeField] Text desktopHintsVolumeUpKey;
+        [SerializeField, LocalizedLabel] Text desktopHintsVolumeUpKey;
         [TMProMigratable(nameof(desktopHintsVolumeDownKeyTMPro))]
-        [SerializeField] Text desktopHintsVolumeDownKey;
+        [SerializeField, LocalizedLabel] Text desktopHintsVolumeDownKey;
         [TMProMigratable(nameof(desktopHintsReloadButtonKey2TMPro))]
-        [SerializeField] Text desktopHintsReloadButtonKey2;
+        [SerializeField, LocalizedLabel] Text desktopHintsReloadButtonKey2;
         [TMProMigratable(nameof(desktopHintsVolumeUpKey2TMPro))]
-        [SerializeField] Text desktopHintsVolumeUpKey2;
+        [SerializeField, LocalizedLabel] Text desktopHintsVolumeUpKey2;
         [TMProMigratable(nameof(desktopHintsVolumeDownKey2TMPro))]
-        [SerializeField] Text desktopHintsVolumeDownKey2;
-        [SerializeField] TextMeshProUGUI desktopHintsReloadButtonKeyTMPro, desktopHintsVolumeUpKeyTMPro, desktopHintsVolumeDownKeyTMPro;
-        [SerializeField] TextMeshProUGUI desktopHintsReloadButtonKey2TMPro, desktopHintsVolumeUpKey2TMPro, desktopHintsVolumeDownKey2TMPro;
+        [SerializeField, LocalizedLabel] Text desktopHintsVolumeDownKey2;
+        [SerializeField, LocalizedLabel] TextMeshProUGUI desktopHintsReloadButtonKeyTMPro, desktopHintsVolumeUpKeyTMPro, desktopHintsVolumeDownKeyTMPro;
+        [SerializeField, LocalizedLabel] TextMeshProUGUI desktopHintsReloadButtonKey2TMPro, desktopHintsVolumeUpKey2TMPro, desktopHintsVolumeDownKey2TMPro;
         Animator desktopModeAnim;
         bool vrMode, afterFirstRun;
         VRCPlayerApi localPlayer;

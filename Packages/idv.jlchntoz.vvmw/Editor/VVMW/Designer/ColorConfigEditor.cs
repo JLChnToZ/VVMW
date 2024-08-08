@@ -16,32 +16,30 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
         public override void OnInspectorGUI() {
             serializedObject.Update();
-            EditorGUILayout.LabelField("Color Palette", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorPalette"), EditorStyles.boldLabel);
             for (int i = 0; i < colorsProperty.arraySize; i++) {
                 var colorProperty = colorsProperty.GetArrayElementAtIndex(i);
-                EditorGUILayout.PropertyField(colorProperty, new GUIContent($"Color {i}"));
+                EditorGUILayout.PropertyField(colorProperty, new GUIContent(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorN", i + 1)));
             }
-            addRemoveFoldout = EditorGUILayout.Foldout(addRemoveFoldout, "Advanced");
+            addRemoveFoldout = EditorGUILayout.Foldout(addRemoveFoldout, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.advanced"));
             if (addRemoveFoldout)
                 using (new EditorGUILayout.HorizontalScope()) {
-                    if (GUILayout.Button("Add Color Palette")) {
+                    if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.addPalette"))) {
                         colorsProperty.InsertArrayElementAtIndex(colorsProperty.arraySize);
                         var colorProperty = colorsProperty.GetArrayElementAtIndex(colorsProperty.arraySize - 1);
                         colorProperty.colorValue = Color.white;
                     }
                     using (new EditorGUI.DisabledScope(colorsProperty.arraySize <= 0))
-                        if (GUILayout.Button("Remove"))
+                        if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.removePalette")))
                             Utils.DeleteElement(colorsProperty, colorsProperty.arraySize - 1);
                 }
             serializedObject.ApplyModifiedProperties();
             EditorGUILayout.Space();
             using (new EditorGUILayout.HorizontalScope()) {
-                if (GUILayout.Button("Apply"))
+                if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply")))
                     (target as ColorConfig).ConfigurateColors();
-                if (GUILayout.Button("Apply to All") && EditorUtility.DisplayDialog(
-                    "Apply to All",
-                    "Are you sure to apply this color palette to all Color Config in this scene?",
-                    "Yes", "No")) {
+                if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply_all")) &&
+                    i18n.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply_all")) {
                     var colorConfigs = FindObjectsOfType<ColorConfig>();
                     foreach (var colorConfig in colorConfigs) {
                         if (colorConfig != target)

@@ -5,6 +5,7 @@ using VRC.SDKBase;
 using VRC.SDK3.Components.Video;
 using VRC.SDK3.Video.Components.Base;
 using VRC.Udon.Common.Enums;
+using JLChnToZ.VRC.VVMW.I18N;
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
 using UnityEngine.Rendering;
@@ -22,16 +23,14 @@ namespace JLChnToZ.VRC.VVMW {
     [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#builtin-module--avpro-module")]
     public class VideoPlayerHandler : AbstractMediaPlayerHandler {
         string[] realTimeProtocols = new string[] { "rtsp", "rtmp", "rtspt", "rtspu", "rtmps", "rtsps" };
-        [SerializeField] string texturePropertyName = "_MainTex";
-        [SerializeField] string speedParameterName = "Speed";
-        [SerializeField] bool useSharedMaterial = true;
-        [SerializeField] AudioSource primaryAudioSource;
-        [Tooltip("This option is only for AVPro video player.\nIt will use a workaround with a little performance cost to attempt to fix the screen flickering issue.")]
-        [SerializeField] bool useFlickerWorkaround = true;
+        [SerializeField, LocalizedLabel] string texturePropertyName = "_MainTex";
+        [SerializeField, LocalizedLabel] string speedParameterName = "Speed";
+        [SerializeField, LocalizedLabel] bool useSharedMaterial = true;
+        [SerializeField, LocalizedLabel] AudioSource primaryAudioSource;
+        [SerializeField, LocalizedLabel] bool useFlickerWorkaround = true;
         [SerializeField] bool isAvPro;
-        [Tooltip("This material will be used to blit the screen to a temporary render texture for the flickering workaround. Don't change it unless needed.")]
-        [SerializeField] Material blitMaterial;
-        [SerializeField] bool isLowLatency;
+        [SerializeField, LocalizedLabel] Material blitMaterial;
+        [SerializeField, LocalizedLabel] bool isLowLatency;
         [SerializeField, HideInInspector] RateLimitResolver rateLimitResolver;
         Animator animator;
         RenderTexture bufferedTexture;

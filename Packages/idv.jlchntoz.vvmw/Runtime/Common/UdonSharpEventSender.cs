@@ -1,14 +1,14 @@
 ﻿using System;
 using UnityEngine;
 using UdonSharp;
+using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     [AttributeUsage(AttributeTargets.Field)]
     public class BindUdonSharpEventAttribute : Attribute {}
 
     public abstract class UdonSharpEventSender : UdonSharpBehaviour {
-        [Tooltip("UdonSharpBehavior that will receive the event from this object.")]
-        [SerializeField] protected UdonSharpBehaviour[] targets;
+        [SerializeField, LocalizedLabel] protected UdonSharpBehaviour[] targets;
 
         public void _AddListener(UdonSharpBehaviour callback) {
             if (callback == null) return;

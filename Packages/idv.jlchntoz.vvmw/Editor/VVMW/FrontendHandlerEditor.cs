@@ -6,6 +6,7 @@ using UdonSharpEditor;
 namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(FrontendHandler))]
     public class FrontendHandlerEditor : VVMWEditorBase {
+        static string[] loopModeNames = new string[3];
         SerializedProperty coreProperty;
         SerializedProperty lockedProperty;
         SerializedProperty defaultLoopProperty;
@@ -55,7 +56,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, false, false)) return;
             serializedObject.Update();
             EditorGUILayout.PropertyField(coreProperty);
-            if (coreProperty.objectReferenceValue == null) EditorGUILayout.HelpBox("Core is not assigned.", MessageType.Error);
+            if (coreProperty.objectReferenceValue == null) EditorGUILayout.HelpBox(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.Core:empty_message"), MessageType.Error);
             if (coreSerializedObject == null || coreSerializedObject.targetObject != coreProperty.objectReferenceValue) {
                 coreSerializedObject?.Dispose();
                 coreSerializedObject = coreProperty.objectReferenceValue != null ? new SerializedObject(coreProperty.objectReferenceValue) : null;
@@ -74,10 +75,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             if (playListNames == null || playListNames.Length != playListTitlesProperty.arraySize + (enableQueueListProperty.boolValue ? 1 : 0))
                 UpdatePlayListNames();
-            if (GUILayout.Button("Edit Playlists..."))
+            if (GUILayout.Button(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.editPlaylist")))
                 PlayListEditorWindow.StartEditPlayList(target as FrontendHandler);
             var rect = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight);
-            var tempContent = Utils.GetTempContent("Default Playlist");
+            var tempContent = Utils.GetTempContent(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.defaultPlaylist"));
             using (new EditorGUI.DisabledScope(playListNames.Length == 0))
             using (new EditorGUI.PropertyScope(rect, tempContent, defaultPlayListIndexProperty))
             using (var changed = new EditorGUI.ChangeCheckScope()) {
@@ -98,10 +99,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (coreSerializedObject != null && defaultPlayListIndexProperty.intValue > 0) {
                 var url = coreSerializedObject.FindProperty("defaultUrl.url");
                 if (url != null && !string.IsNullOrEmpty(url.stringValue)) {
-                    EditorGUILayout.HelpBox("You cannot set default URL in core and mark a playlist to be autoplayed at the same time.", MessageType.Warning);
+                    EditorGUILayout.HelpBox(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.default_url_conflict_message"), MessageType.Warning);
                     using (new EditorGUILayout.HorizontalScope()) {
                         GUILayout.FlexibleSpace();
-                        if (GUILayout.Button("Clear Default URL", EditorStyles.miniButton, GUILayout.ExpandWidth(false))) {
+                        if (GUILayout.Button(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.default_url_conflict_message:confrim"), EditorStyles.miniButton, GUILayout.ExpandWidth(false))) {
                             url.stringValue = string.Empty;
                             coreSerializedObject.ApplyModifiedProperties();
                         }
@@ -123,7 +124,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             if (defaultLoopProperty.boolValue) loopMode = LoopMode.RepeatAll;
             using (var changeCheck = new EditorGUI.ChangeCheckScope()) {
-                loopMode = (LoopMode)EditorGUILayout.EnumPopup("Default Repeat Mode", loopMode);
+                loopModeNames[0] = i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.loopMode.none");
+                loopModeNames[1] = i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.loopMode.singleLoop");
+                loopModeNames[2] = i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.loopMode.repeatAll");
+                loopMode = (LoopMode)EditorGUILayout.Popup(
+                    i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.loopMode"),
+                    (int)loopMode, loopModeNames
+                );
                 if (changeCheck.changed || (hasLoopOne && loopMode == LoopMode.RepeatAll)) {
                     if (core != null)
                         using (var so = new SerializedObject(core)) {
@@ -138,8 +145,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(lockedProperty);
             using (new EditorGUILayout.HorizontalScope()) {
-                GUILayout.Label("This function designed to work with Udon Auth,", GUILayout.ExpandWidth(false));
-                if (GUILayout.Button("Learn more", EditorStyles.linkLabel, GUILayout.ExpandWidth(false)))
+                GUILayout.Label(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.locked:hint"), GUILayout.ExpandWidth(false));
+                if (GUILayout.Button(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.locked:hint_link"), EditorStyles.linkLabel, GUILayout.ExpandWidth(false)))
                     Application.OpenURL("https://xtl.booth.pm/items/3826907");
             }
             EditorGUILayout.Space();
@@ -157,7 +164,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             int requiredSize = playListTitlesProperty.arraySize + queueListOffset;
             if (playListNames == null || playListNames.Length != requiredSize)
                 playListNames = new string[requiredSize];
-            if (queueListOffset > 0) playListNames[0] = "<Queue List>";
+            if (queueListOffset > 0) playListNames[0] = i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.queueList");
             for (int i = queueListOffset; i < requiredSize; i++)
                 playListNames[i] = playListTitlesProperty.GetArrayElementAtIndex(i - queueListOffset).stringValue;
         }

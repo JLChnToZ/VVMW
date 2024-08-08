@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor;
+using JLChnToZ.VRC.VVMW.I18N;
 
 using UnityObject = UnityEngine.Object;
 
@@ -9,10 +10,10 @@ namespace JLChnToZ.VRC.VVMW {
     using static LocatableAttribute;
     [CustomPropertyDrawer(typeof(LocatableAttribute))]
     public class LocatableAttributeDrawer : PropertyDrawer {
-        GUIContent findButtonContent = new GUIContent("Find");
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
             var so = property.serializedObject;
             var targetComponent = so.targetObject as Component;
+            var findButtonContent = EditorI18N.Instance.GetLocalizedContent("VVMW.AutoFind");
             using (new EditorGUI.PropertyScope(position, label, property))
                 if (targetComponent != null &&
                     property.propertyType == SerializedPropertyType.ObjectReference &&

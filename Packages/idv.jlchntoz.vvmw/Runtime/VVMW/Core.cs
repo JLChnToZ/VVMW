@@ -4,10 +4,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRC.SDKBase;
 using VRC.SDK3.Components.Video;
+using VRC.SDK3.Data;
 using VRC.Udon.Common;
 using VRC.Udon.Common.Interfaces;
 using VVMW.ThirdParties.Yttl;
-using VRC.SDK3.Data;
+using JLChnToZ.VRC.VVMW.I18N;
 
 #if AUDIOLINK_V1
 using AudioLink;
@@ -26,47 +27,29 @@ namespace JLChnToZ.VRC.VVMW {
         const byte IDLE = 0, LOADING = 1, PLAYING = 2, PAUSED = 3;
         Vector4 normalST = new Vector4(1, 1, 0, 0), flippedST = new Vector4(1, -1, 0, 1);
         Rect normalRect = new Rect(0, 0, 1, 1), flippedRect = new Rect(0, 1, 1, -1);
-        [SerializeField] internal AbstractMediaPlayerHandler[] playerHandlers;
-        [Tooltip("Audio sources to link to video player, will be set to the primary audio source of the video player, " +
-            "and volumes can be controlled by the video player.")]
-        [SerializeField] AudioSource[] audioSources;
-        [SerializeField] VRCUrl defaultUrl;
-        [Tooltip("The default url to use when playing on Quest. Leave empty to use the same url as PC.")]
-        [SerializeField] VRCUrl defaultQuestUrl;
-        [SerializeField, Range(0, 255)] int autoPlayPlayerType = 1;
-        [SerializeField] bool synced = true;
-        [SerializeField] int totalRetryCount = 3;
-        [SerializeField, Range(5, 20)] float retryDelay = 5.5F;
-        [Tooltip("The delay to start playing the default video when the scene is loaded.\n" +
-            "This is to prevent rate limit between video players in same instance.\n" +
-            "If you have multiple video players (not limited to VizVid) which will auto plays in the same world, " +
-            "you should set this to a value at least in multiple of 5 to stagger the loading time.")]
-        [SerializeField] float autoPlayDelay = 0;
-        [SerializeField, Range(0, 1), FieldChangeCallback(nameof(Volume))]
+        [SerializeField, LocalizedLabel] internal AbstractMediaPlayerHandler[] playerHandlers;
+        [SerializeField, LocalizedLabel] AudioSource[] audioSources;
+        [SerializeField, LocalizedLabel] VRCUrl defaultUrl;
+        [SerializeField, LocalizedLabel] VRCUrl defaultQuestUrl;
+        [SerializeField, LocalizedLabel, Range(0, 255)] int autoPlayPlayerType = 1;
+        [SerializeField, LocalizedLabel] bool synced = true;
+        [SerializeField, LocalizedLabel] int totalRetryCount = 3;
+        [SerializeField, LocalizedLabel, Range(5, 20)] float retryDelay = 5.5F;
+        [SerializeField, LocalizedLabel] float autoPlayDelay = 0;
+        [SerializeField, LocalizedLabel, Range(0, 1), FieldChangeCallback(nameof(Volume))]
         float defaultVolume = 1;
-        [SerializeField, FieldChangeCallback(nameof(Muted))]
+        [SerializeField, LocalizedLabel, FieldChangeCallback(nameof(Muted))]
         bool defaultMuted = false;
-        [Tooltip("The default texture to use when video is not ready or error occurred. " +
-            "It is required to have a texture when use with property block mode.")]
-        [SerializeField] Texture defaultTexture;
+        [SerializeField, LocalizedLabel] Texture defaultTexture;
         [SerializeField] UnityEngine.Object[] screenTargets;
         [SerializeField] int[] screenTargetModes;
         [SerializeField] int[] screenTargetIndeces;
         [SerializeField] string[] screenTargetPropertyNames, avProPropertyNames;
         [SerializeField] Texture[] screenTargetDefaultTextures;
-        [Tooltip("Broadcast the screen texture to global shader property. " +
-            "This can let avatar materials to pick up the video screen.")]
-        [SerializeField] bool broadcastScreenTexture;
-        [Tooltip("The name of the global shader property to broadcast the screen texture. " +
-            "It is required to prefix with '_Udon_'.")]
-        [SerializeField] string broadcastScreenTextureName = "_Udon_VideoTex";
-        [Tooltip("The interval to update realtime GI, set to 0 to disable realtime GI update.\n" +
-            "This features requires setup the lignt probes and realtime GI in the scene and the screen renderers.")]
-        [SerializeField, Range(0, 10)] float realtimeGIUpdateInterval = 0;
-        [Tooltip("The player will adjust the time to sync with the owner's time when the time drift is greater than this value.\n" +
-            "Recommend keep this value not too low or too high, as it may cause the video to jump back and forth, " +
-            "or timing between players may drift too far.")]
-        [SerializeField, Range(0, 5)] float timeDriftDetectThreshold = 0.9F;
+        [SerializeField, LocalizedLabel] bool broadcastScreenTexture;
+        [SerializeField, LocalizedLabel] string broadcastScreenTextureName = "_Udon_VideoTex";
+        [SerializeField, LocalizedLabel, Range(0, 10)] float realtimeGIUpdateInterval = 0;
+        [SerializeField, LocalizedLabel, Range(0, 5)] float timeDriftDetectThreshold = 0.9F;
         int[] screenTargetPropertyIds, avProPropertyIds;
         [FieldChangeCallback(nameof(SyncOffset))]
         float syncOffset = 0;
@@ -90,17 +73,16 @@ namespace JLChnToZ.VRC.VVMW {
             "AudioLink.AudioLink, AudioLink", "VRCAudioLink.AudioLink, AudioLink",
             InstaniatePrefabPath = "Packages/com.llealloo.audiolink/Runtime/AudioLink.prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.First
-        ), SerializeField]
+        ), SerializeField, LocalizedLabel]
         #if AUDIOLINK_V1
         AudioLink.AudioLink audioLink;
         #else
         UdonSharpBehaviour audioLink;
         #endif
-        [Tooltip("YTTL (Video title viewer) integration")]
-        [SerializeField, Locatable(
+        [Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/Prefabs/Third-Parties/YTTL/YTTL Manager.prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.First
-        )] YttlManager yttl;
+        ), SerializeField, LocalizedLabel] YttlManager yttl;
         AbstractMediaPlayerHandler activeHandler;
         int retryCount = 0;
         bool isLoading, isLocalReloading, isResyncTime, isError, isSyncAudioLink;

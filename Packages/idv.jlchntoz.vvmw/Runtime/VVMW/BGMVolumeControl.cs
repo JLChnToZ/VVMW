@@ -1,5 +1,6 @@
 ﻿using UdonSharp;
 using UnityEngine;
+using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
@@ -8,10 +9,11 @@ namespace JLChnToZ.VRC.VVMW {
     [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-make-background-music-fade-out-when-video-is-playing")]
     public class BGMVolumeControl : VizVidBehaviour {
         AudioSource audioSource;
+        [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
         [SerializeField, Locatable, BindUdonSharpEvent] Core core;
-        [Range(0, 1)] public float volume = 1;
-        public bool isMuted;
-        [SerializeField, Range(0, 10)] float fadeTime = 1;
+        [Range(0, 1), LocalizedLabel] public float volume = 1;
+        [LocalizedLabel] public bool isMuted;
+        [SerializeField, LocalizedLabel, Range(0, 10)] float fadeTime = 1;
         bool isVideoPlaying;
 
         void Start() {

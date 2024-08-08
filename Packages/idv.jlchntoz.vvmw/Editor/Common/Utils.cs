@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
 using UnityEditor;
+using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     public static class Utils {
@@ -82,6 +83,60 @@ namespace JLChnToZ.VRC.VVMW {
             tempContent.image = image;
             return tempContent;
         }
+
+        public static GUIContent GetLocalizedContent(this EditorI18N i18n, string key) =>
+            GetTempContent(i18n.GetOrDefault(key), i18n[$"{key}:tooltip"]);
+
+        public static GUIContent GetLocalizedContent(this EditorI18N i18n, string key, params object[] format) =>
+            GetTempContent(string.Format(i18n.GetOrDefault(key), format), i18n[$"{key}:tooltip"]);
+        
+        public static void DisplayLocalizedDialog1(this EditorI18N i18n, string key) =>
+            EditorUtility.DisplayDialog(
+                i18n.GetOrDefault($"{key}:title"),
+                i18n.GetOrDefault($"{key}:content"),
+                i18n.GetOrDefault($"{key}:positive")
+            );
+
+        public static void DisplayLocalizedDialog1(this EditorI18N i18n, string key, params object[] args) =>
+            EditorUtility.DisplayDialog(
+                string.Format(i18n.GetOrDefault($"{key}:title"), args),
+                string.Format(i18n.GetOrDefault($"{key}:content"), args),
+                string.Format(i18n.GetOrDefault($"{key}:positive"), args)
+            );
+
+        public static bool DisplayLocalizedDialog2(this EditorI18N i18n, string key) =>
+            EditorUtility.DisplayDialog(
+                i18n.GetOrDefault($"{key}:title"),
+                i18n.GetOrDefault($"{key}:content"),
+                i18n.GetOrDefault($"{key}:positive"),
+                i18n.GetOrDefault($"{key}:negative")
+            );
+
+        public static bool DisplayLocalizedDialog2(this EditorI18N i18n, string key, params object[] args) =>
+            EditorUtility.DisplayDialog(
+                string.Format(i18n.GetOrDefault($"{key}:title"), args),
+                string.Format(i18n.GetOrDefault($"{key}:content"), args),
+                string.Format(i18n.GetOrDefault($"{key}:positive"), args),
+                string.Format(i18n.GetOrDefault($"{key}:negative"), args)
+            );
+
+        public static int DisplayLocalizedDialog3(this EditorI18N i18n, string key) =>
+            EditorUtility.DisplayDialogComplex(
+                i18n.GetOrDefault($"{key}:title"),
+                i18n.GetOrDefault($"{key}:content"),
+                i18n.GetOrDefault($"{key}:positive"),
+                i18n.GetOrDefault($"{key}:negative"),
+                i18n.GetOrDefault($"{key}:alt")
+            );
+        
+        public static int DisplayLocalizedDialog3(this EditorI18N i18n, string key, params object[] args) =>
+            EditorUtility.DisplayDialogComplex(
+                string.Format(i18n.GetOrDefault($"{key}:title"), args),
+                string.Format(i18n.GetOrDefault($"{key}:content"), args),
+                string.Format(i18n.GetOrDefault($"{key}:positive"), args),
+                string.Format(i18n.GetOrDefault($"{key}:negative"), args),
+                string.Format(i18n.GetOrDefault($"{key}:alt"), args)
+            );
 
         public static void DrawShaderPropertiesField(
             SerializedProperty property,

@@ -6,6 +6,7 @@ using UnityEditorInternal;
 
 namespace JLChnToZ.VRC.VVMW.I18N.Editors {
     public class LanguageEditorWindow : EditorWindow {
+        static EditorI18N i18n;
         public LanguageManager LanguageManager { get; private set; }
         readonly Dictionary<string, LanguageEntry>
             defaultLanguageMap = new Dictionary<string, LanguageEntry>(),
@@ -28,13 +29,14 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
             if (languageManager == null) return null;
             var window = GetWindow<LanguageEditorWindow>();
             window.LanguageManager = languageManager;
-            window.titleContent = new GUIContent("Language Editor");
+            window.titleContent = new GUIContent(EditorI18N.Instance.GetOrDefault("LanguageEditor.title"));
             window.Show();
             window.RefreshAll();
             return window;
         }
 
         void OnEnable() {
+            if (i18n == null) i18n = EditorI18N.Instance;
             if (hasInit) return;
             hasInit = true;
             textContent = new GUIContent();
@@ -144,14 +146,14 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                     LanguageManager = EditorGUILayout.ObjectField(LanguageManager, typeof(LanguageManager), true) as LanguageManager;
                     if (changed.changed) RefreshAll();
                 }
-                if (GUILayout.Button("Reload", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false))) RefreshAll();
-                if (GUILayout.Button("Save", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false))) Save();
+                if (GUILayout.Button(i18n.GetLocalizedContent("LanguageEditor.reload"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false))) RefreshAll();
+                if (GUILayout.Button(i18n.GetLocalizedContent("LanguageEditor.save"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false))) Save();
                 GUILayout.FlexibleSpace();
             }
             using (new EditorGUILayout.HorizontalScope()) {
                 using (var vert = new EditorGUILayout.VerticalScope(GUILayout.MaxWidth(Mathf.Min(400, position.width / 2)))) {
                     if (LanguageManager == null)
-                        EditorGUILayout.HelpBox("Please select a Language Handler first.", MessageType.Info);
+                        EditorGUILayout.HelpBox(i18n.GetOrDefault("LanguageEditor.select_handler_message"), MessageType.Info);
                     else {
                         using (var scroll = new EditorGUILayout.ScrollViewScope(langViewPosition, GUI.skin.box)) {
                             langViewPosition = scroll.scrollPosition;
@@ -159,11 +161,11 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                             GUILayout.FlexibleSpace();
                         }
                         using (new EditorGUILayout.HorizontalScope()) {
-                            addLanguageTempString = EditorGUILayout.TextField("Add Language", addLanguageTempString);
+                            addLanguageTempString = EditorGUILayout.TextField(i18n.GetLocalizedContent("LanguageEditor.add"), addLanguageTempString);
                             using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(addLanguageTempString)))
                                 if (GUILayout.Button(plusIconContent, EditorStyles.miniLabel, GUILayout.ExpandWidth(false))) {
                                     if (currentLanguageMap.ContainsKey(addLanguageTempString))
-                                        EditorUtility.DisplayDialog("Error", "Language already exists.", "OK");
+                                        i18n.DisplayLocalizedDialog1("LanguageEditor.language_exists_message");
                                     else {
                                         currentLanguageMap.Add(addLanguageTempString, selectedEntry = new LanguageEntry());
                                         langList.Add(addLanguageTempString);
@@ -176,18 +178,18 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                 }
                 using (var vert = new EditorGUILayout.VerticalScope()) {
                     if (selectedEntry == null && selectedDefaultEntry == null)
-                        EditorGUILayout.HelpBox("Please select a language first.", MessageType.Info);
+                        EditorGUILayout.HelpBox(i18n.GetOrDefault("LanguageEditor.select_language_message"), MessageType.Info);
                     else {
                         using (var scroll = new EditorGUILayout.ScrollViewScope(langKeyPosition, GUI.skin.box)) {
                             langKeyPosition = scroll.scrollPosition;
                             var name = selectedEntry?.name ?? selectedDefaultEntry?.name;
                             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                                name = EditorGUILayout.TextField("Native Language Name", name);
+                                name = EditorGUILayout.TextField(i18n.GetLocalizedContent("LanguageEditor.native_name"), name);
                                 if (changed.changed) GetOrCreateLanguageEntry().name = name;
                             }
                             var vrcName = selectedEntry?.vrcName ?? selectedDefaultEntry?.vrcName;
                             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                                vrcName = EditorGUILayout.TextField("VRChat Language Name", vrcName);
+                                vrcName = EditorGUILayout.TextField(i18n.GetLocalizedContent("LanguageEditor.vrc_name"), vrcName);
                                 if (changed.changed) GetOrCreateLanguageEntry().vrcName = vrcName;
                             }
                             DrawTimeZones();
@@ -202,7 +204,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                             using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(addLanguageKeyTempString)))
                                 if (GUILayout.Button(plusIconContent, EditorStyles.miniLabel, GUILayout.ExpandWidth(false))) {
                                     if (selectedEntry != null && selectedEntry.languages.ContainsKey(addLanguageKeyTempString))
-                                        EditorUtility.DisplayDialog("Error", "Key already exists.", "OK");
+                                        i18n.DisplayLocalizedDialog1("LanguageEditor.key_exists_message");
                                     else {
                                         GetOrCreateLanguageEntry().languages.Add(addLanguageKeyTempString, addLanguageTempValueString);
                                         allKeys.Add(addLanguageKeyTempString);
@@ -273,7 +275,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
 
         void DrawTimeZones() {
             using (new EditorGUILayout.HorizontalScope()) {
-                EditorGUILayout.LabelField("Time Zones", GUILayout.Width(EditorGUIUtility.labelWidth));
+                EditorGUILayout.LabelField(i18n.GetLocalizedContent("LanguageEditor.timezone"), GUILayout.Width(EditorGUIUtility.labelWidth));
                 foreach (var tz in allTimeZones)
                     using (new EditorGUI.DisabledScope(defaultTimeZones.Contains(tz))) {
                         textContent.text = tz;
@@ -288,7 +290,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                 addTimeZoneTempString = EditorGUILayout.TextField(addTimeZoneTempString, GUILayout.ExpandWidth(false));
                 if (GUILayout.Button(plusIconContent, EditorStyles.miniLabel, GUILayout.ExpandWidth(false))) {
                     if (!allTimeZones.Add(addTimeZoneTempString))
-                        EditorUtility.DisplayDialog("Error", "Time Zone already exists.", "OK");
+                        i18n.DisplayLocalizedDialog1("LanguageEditor.tz_exists_message");
                     else {
                         GetOrCreateLanguageEntry().timezones.Add(addTimeZoneTempString);
                         addTimeZoneTempString = "";
@@ -308,7 +310,7 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                 if (changed.changed) {
                     if (selectedEntry != null) {
                         if (selectedEntry.languages.ContainsKey(newKey))
-                            EditorUtility.DisplayDialog("Error", "Key already exists.", "OK");
+                            i18n.DisplayLocalizedDialog1("LanguageEditor.key_exists_message");
                         else {
                             selectedEntry.languages.Remove(key);
                             selectedEntry.languages.Add(newKey, value);

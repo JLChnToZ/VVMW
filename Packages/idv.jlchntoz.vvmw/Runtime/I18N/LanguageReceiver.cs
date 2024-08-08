@@ -11,7 +11,7 @@ namespace JLChnToZ.VRC.VVMW.I18N {
     [DefaultExecutionOrder(1)]
     public class LanguageReceiver : UdonSharpBehaviour {
         [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager manager;
-        [SerializeField] string key;
+        [SerializeField, LocalizedLabel] string key;
         object[] args;
         Text text;
         TextMeshProUGUI textMeshPro;

@@ -4,6 +4,7 @@ using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using UnityEngine.Serialization;
+using JLChnToZ.VRC.VVMW.I18N;
 
 #if AUDIOLINK_V1
 using AudioLink;
@@ -17,30 +18,21 @@ namespace JLChnToZ.VRC.VVMW {
     [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#playlist-queue-handler")]
     public class FrontendHandler : UdonSharpEventSender {
         protected const byte NONE = 0, REPEAT_ONE = 0x1, REPEAT_ALL = 0x2, SHUFFLE = 0x4;
-        [SerializeField, Locatable, BindUdonSharpEvent, SingletonCoreControl] public Core core;
-        [Tooltip("If enabled, while user want to play a video and it is playing other video, the video will be queued. Recommend as this is more polite to everyone.")]
-        [SerializeField] bool enableQueueList = true;
-        [Tooltip("This will records playback history from user input. Set to 0 to disable.")]
-        [SerializeField] int historySize = 5;
-        [Tooltip("Locks the player frontend by default, this option must be used with other scripts to control the player.")]
+        [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core"), Locatable, BindUdonSharpEvent, SingletonCoreControl] public Core core;
+        [SerializeField, LocalizedLabel] bool enableQueueList = true;
+        [SerializeField, LocalizedLabel] int historySize = 5;
         [FieldChangeCallback(nameof(Locked))]
-        [SerializeField] bool locked = false;
-        [SerializeField] bool defaultLoop, defaultShuffle;
+        [SerializeField, LocalizedLabel] bool locked = false;
+        [SerializeField, LocalizedLabel] bool defaultLoop, defaultShuffle;
         [SerializeField] string[] playListTitles;
         [SerializeField] int[] playListUrlOffsets;
         [SerializeField] VRCUrl[] playListUrls, playListUrlsQuest;
         [SerializeField] string[] playListEntryTitles;
         [SerializeField] byte[] playListPlayerIndex;
         [SerializeField, FormerlySerializedAs("localPlayListIndex")] int defaultPlayListIndex;
-        [Tooltip("Automatically play the default play list when the player is ready.")]
-        [SerializeField] bool autoPlay = true;
-        [Tooltip("The delay to start playing the default video when the scene is loaded.\n" +
-            "This is to prevent rate limit between video players in same instance.\n" +
-            "If you have multiple video players (not limited to VizVid) which will auto plays in the same world, " +
-            "you should set this to a value at least in multiple of 5 to stagger the loading time.")]
-        [SerializeField] float autoPlayDelay = 0;
-        [Tooltip("Seed the random number generator before shuffling the playlist.")]
-        [SerializeField] bool seedRandomBeforeShuffle = true;
+        [SerializeField, LocalizedLabel] bool autoPlay = true;
+        [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core.autoPlayDelay")] float autoPlayDelay = 0;
+        [SerializeField, LocalizedLabel] bool seedRandomBeforeShuffle = true;
         [UdonSynced] VRCUrl[] queuedUrls;
         [UdonSynced] string queuedTitles;
         [UdonSynced] byte[] queuedPlayerIndex;

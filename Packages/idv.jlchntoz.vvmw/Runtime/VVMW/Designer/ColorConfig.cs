@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-#if UNITY_EDITOR
 using System.Collections.Generic;
+#if UNITY_EDITOR
 using UnityEditor;
 #endif
 

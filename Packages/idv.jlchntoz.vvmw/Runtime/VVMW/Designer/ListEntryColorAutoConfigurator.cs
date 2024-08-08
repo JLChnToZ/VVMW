@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using JLChnToZ.VRC.VVMW.I18N;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -6,7 +8,9 @@ using UnityEditor;
 namespace JLChnToZ.VRC.VVMW.Designer {
     [AddComponentMenu("VizVid/Color Configurator/List Entry")]
     public class ListEntryColorAutoConfigurator : AbstractAutoConfigurator {
+        [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.normalColorIndex")]
         [SerializeField] int normalColorIndex = -1;
+        [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.selectedColorIndex")]
         [SerializeField] int selectedColorIndex = -1;
         protected override void ConfigurateCore(ColorConfig colorConfig) {
             if (TryGetComponent(out ListEntry listEntry)) {

@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityEditorInternal;
 using Cysharp.Threading.Tasks;
 using VRC.SDKBase;
+using JLChnToZ.VRC.VVMW.I18N;
 using VVMW.ThirdParties.LitJson;
 
 using UnityObject = UnityEngine.Object;
@@ -15,6 +16,7 @@ using UnityObject = UnityEngine.Object;
 namespace JLChnToZ.VRC.VVMW.Editors {
 
     public class PlayListEditorWindow : EditorWindow {
+        static EditorI18N i18n;
         FrontendHandler frontendHandler;
         Core loadedCore;
         string[] playerHandlerNames;
@@ -40,11 +42,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         public static void StartEditPlayList(FrontendHandler handler) {
-            var window = GetWindow<PlayListEditorWindow>("Playlist Editor");
+            var window = GetWindow<PlayListEditorWindow>(EditorI18N.Instance.GetOrDefault("PlaylistEditor.title"));
             window.FrontendHandler = handler;
         }
 
         void OnEnable() {
+            if (i18n == null) i18n = EditorI18N.Instance;
             if (playListView == null) playListView = new ReorderableList(playLists, typeof(PlayList), true, true, true, true) {
                 drawHeaderCallback = DrawPlayListHeader,
                 drawElementCallback = DrawPlayList,
@@ -66,23 +69,23 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         void OnGUI() {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar)) {
                 FrontendHandler = EditorGUILayout.ObjectField(FrontendHandler, typeof(FrontendHandler), true) as FrontendHandler;
-                if (GUILayout.Button("Reload", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)) &&
-                    EditorUtility.DisplayDialog("Reload", "Are you sure you want to reload the Playlist?", "Yes", "No"))
+                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.reload"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)) &&
+                    i18n.DisplayLocalizedDialog2("PlaylistEditor.reload"))
                     DeserializePlayList();
                 using (new EditorGUI.DisabledGroupScope(!isDirty))
-                    if (GUILayout.Button("Save", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.save"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
                         SerializePlayList();
                 GUILayout.FlexibleSpace();
                 using (new EditorGUI.DisabledGroupScope(playLists.Count == 0))
-                    if (GUILayout.Button("Export All", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.exportAll"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
                         ExportPlayListToJson(true);
                 using (new EditorGUI.DisabledGroupScope(selectedPlayList.entries == null))
-                    if (GUILayout.Button("Export Selected", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.exportSelected"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
                         ExportPlayListToJson(false);
-                if (GUILayout.Button("Import from JSON", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.import"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
                     ImportPlayListFromJson();
                 EditorGUILayout.Space();
-                if (GUILayout.Button("Download/Update YT-DLP", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.updateYTDLP"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
                     YtdlpResolver.DownLoadYtDlp().Forget();
             }
             var evt = Event.current;
@@ -91,7 +94,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 using (var vert = new EditorGUILayout.VerticalScope(GUILayout.MaxWidth(Mathf.Min(400, position.width / 2)))) {
                     playListRect = vert.rect;
                     using (var scroll = new EditorGUILayout.ScrollViewScope(playListViewScrollPosition, GUI.skin.box)) {
-                        if (frontendHandler == null) EditorGUILayout.HelpBox("Please select a Frontend Handler first.", MessageType.Info);
+                        if (frontendHandler == null) EditorGUILayout.HelpBox(i18n.GetOrDefault("PlaylistEditor.select_frontend_message"), MessageType.Info);
                         else playListView?.DoLayoutList();
                         GUILayout.FlexibleSpace();
                         playListViewScrollPosition = scroll.scrollPosition;
@@ -107,15 +110,15 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     if (playListEntryView != null) {
                         using (new EditorGUILayout.HorizontalScope()) {
                             ytPlaylistUrl = EditorGUILayout.TextField(ytPlaylistUrl);
-                            if (GUILayout.Button("Load Playlist from Youtube", GUILayout.ExpandWidth(false))) {
+                            if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.loadFromYoutube"), GUILayout.ExpandWidth(false))) {
                                 FetchPlayList(ytPlaylistUrl).Forget();
                                 ytPlaylistUrl = string.Empty;
                             }
                             using (new EditorGUI.DisabledGroupScope(selectedPlayList.entries == null || selectedPlayList.entries.Count == 0))
-                                if (GUILayout.Button("Fetch Titles", GUILayout.ExpandWidth(false)))
+                                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.fetchTitles"), GUILayout.ExpandWidth(false)))
                                     FetchTitles().Forget();
                             using (new EditorGUI.DisabledGroupScope(selectedPlayList.entries == null || selectedPlayList.entries.Count == 0))
-                                if (GUILayout.Button("Reverse Playlist", GUILayout.ExpandWidth(false)))
+                                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.reverse"), GUILayout.ExpandWidth(false)))
                                     ReversePlaylist();
                         }
                     }
@@ -139,10 +142,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         break;
                 }
             }
-            EditorGUILayout.HelpBox("Hint: You can drag the Playlist game objects from other video players to here to import them.", MessageType.Info);
+            EditorGUILayout.HelpBox(i18n.GetOrDefault("PlaylistEditor.hint"), MessageType.Info);
         }
 
-        void DrawPlayListHeader(Rect rect) => EditorGUI.LabelField(rect, "Playlists", EditorStyles.boldLabel);
+        void DrawPlayListHeader(Rect rect) => EditorGUI.LabelField(rect, i18n.GetOrDefault("PlaylistEditor.playLists"), EditorStyles.boldLabel);
 
         void DrawPlayList(Rect rect, int index, bool isActive, bool isFocused) {
             var playList = playLists[index];
@@ -195,7 +198,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             titleRect.xMax = titleRect.width - playerRectWidth - 10;
             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                titleRect = EditorGUI.PrefixLabel(titleRect, Utils.GetTempContent("Title"));
+                titleRect = EditorGUI.PrefixLabel(titleRect, i18n.GetLocalizedContent("PlaylistEditor.entryTitle"));
                 var newTitle = EditorGUI.TextField(titleRect, entry.title);
                 if (changed.changed) {
                     entry.title = newTitle;
@@ -222,7 +225,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             urlRect.yMin = titleRect.yMax + EditorGUIUtility.standardVerticalSpacing;
             urlRect.height = EditorGUIUtility.singleLineHeight;
             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                urlRect = EditorGUI.PrefixLabel(urlRect, Utils.GetTempContent("URL (PC)"));
+                urlRect = EditorGUI.PrefixLabel(urlRect, i18n.GetLocalizedContent("PlaylistEditor.url"));
                 var newUrl = TrustedUrlUtils.DrawUrlField(entry.url, playerType.ToTrustUrlType(BuildTarget.StandaloneWindows64), urlRect, "");
                 if (changed.changed) {
                     entry.url = newUrl;
@@ -234,7 +237,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             urlQuestRect.yMin = urlRect.yMax + EditorGUIUtility.standardVerticalSpacing;
             urlQuestRect.height = EditorGUIUtility.singleLineHeight;
             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                urlQuestRect = EditorGUI.PrefixLabel(urlQuestRect, Utils.GetTempContent("URL (Quest)"));
+                urlQuestRect = EditorGUI.PrefixLabel(urlQuestRect, i18n.GetLocalizedContent("PlaylistEditor.urlQuest"));
                 var newUrl = string.IsNullOrEmpty(entry.urlForQuest) ? entry.url : entry.urlForQuest;
                 newUrl = TrustedUrlUtils.DrawUrlField(newUrl, playerType.ToTrustUrlType(BuildTarget.Android), urlQuestRect, "");
                 if (changed.changed) {
@@ -334,7 +337,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void SaveIfRequired() {
-            if (isDirty && EditorUtility.DisplayDialog("Unsaved Changes", "There are unsaved changes, do you want to save them?", "Yes", "No"))
+            if (isDirty && i18n.DisplayLocalizedDialog2("PlaylistEditor.unsave_confirm"))
                 SerializePlayList();
         }
 
@@ -389,7 +392,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 for (int i = 0; i < handlersCount; i++) {
                     var handler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as AbstractMediaPlayerHandler;
                     if (handler == null) {
-                        playerHandlerNames[i] = $"Player {i + 1}";
+                        playerHandlerNames[i] = string.Format(i18n.GetOrDefault("PlaylistEditor.playerN"), i + 1);
                         continue;
                     }
                     playerHandlerNames[i] = string.IsNullOrEmpty(handler.playerName) ? handler.name : handler.playerName;
@@ -648,7 +651,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
 #region Playlist Exporters
         void ExportPlayListToJson(bool saveAll) {
-            var path = EditorUtility.SaveFilePanel("Save Playlist", Application.dataPath, "playList.json", "json");
+            var path = EditorUtility.SaveFilePanel(i18n.GetOrDefault("PlaylistEditor.exportTitle"), Application.dataPath, "playList.json", "json");
             if (string.IsNullOrEmpty(path)) return;
             var jsonWriter = new JsonWriter {
                 PrettyPrint = true,
@@ -691,17 +694,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void ImportPlayListFromJson() {
-            var path = EditorUtility.OpenFilePanel("Load Playlist", Application.dataPath, "json");
+            var path = EditorUtility.OpenFilePanel(i18n.GetOrDefault("PlaylistEditor.importTitle"), Application.dataPath, "json");
             if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
             var jsonData = JsonMapper.ToObject(File.ReadAllText(path));
             switch (jsonData.GetJsonType()) {
                 case JsonType.Array:
-                    if (playLists.Count > 0 && !EditorUtility.DisplayDialog(
-                        "Load Playlist",
-                        "Where do you want to load all Playlists to?",
-                        "Keep Current (Append)",
-                        "Replace All"
-                    )) {
+                    if (playLists.Count > 0 && !i18n.DisplayLocalizedDialog2("PlaylistEditor.import_array")) {
                         playLists.Clear();
                         isDirty = true;
                     }
@@ -709,13 +707,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     break;
                 case JsonType.Object:
                     if (selectedPlayList.entries != null)
-                        switch (EditorUtility.DisplayDialogComplex(
-                            "Load Playlist",
-                            "Where do you want to load this Playlist to?",
-                            "Keep Current (Append)",
-                            "Replace Current",
-                            "New Playlist"
-                        )) {
+                        switch (i18n.DisplayLocalizedDialog3("PlaylistEditor.import_object")) {
                             case 1: selectedPlayList.entries.Clear(); isDirty = true; break;
                             case 2: selectedPlayList = GetOrCreatePlayList(jsonData["title"].ToString(), true); break;
                         }

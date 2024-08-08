@@ -6,6 +6,7 @@ using UnityEditor;
 using VRC.Core;
 using VRC.SDKBase;
 using VRC.SDK3.Editor;
+using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     [InitializeOnLoad]
@@ -163,10 +164,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         string GetValidateMessage(string url) {
             if (url == null) return "";
             if (!messageCache.TryGetValue(url, out var invalidMessage)) {
+                var i18n = EditorI18N.Instance;
                 invalidMessage = "";
                 if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) {
                     if (!supportedProtocols.Contains(uri.Scheme))
-                        invalidMessage = $"{uri.Scheme} is not a supported protocol.";
+                        invalidMessage = i18n.GetOrDefault("TrustedUrlUtils.scheme_not_supported", uri.Scheme);
                     else if (trustedUrls == null)
                         getTrustedUrlsTask.Task.Forget(); // Force to fetch trusted urls.
                     else { // Check domains.
@@ -185,10 +187,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                                 }
                             trustedDomains[domainName] = trusted;
                         }
-                        if (!trusted) invalidMessage = "This domain is not trusted by VRChat clients.\nUsers will not be able to access this URL without enabling \"Allow Untrusted URLs\".";
+                        if (!trusted) invalidMessage = i18n.GetOrDefault("TrustedUrlUtils.url_not_trusted");
                     }
                 } else if (!string.IsNullOrEmpty(url))
-                    invalidMessage = "This URL is invalid.";
+                    invalidMessage = i18n.GetOrDefault("TrustedUrlUtils.url_invalid");
                 messageCache[url] = invalidMessage;
             }
             return invalidMessage;

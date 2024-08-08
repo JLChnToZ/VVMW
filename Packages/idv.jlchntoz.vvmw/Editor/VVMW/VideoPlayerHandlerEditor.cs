@@ -37,19 +37,19 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             base.OnInspectorGUI();
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(this.target, false, false)) return;
             if (PrefabUtility.IsPartOfPrefabAsset(this.target)) {
-                EditorGUILayout.HelpBox("Please use the prefab instance in scene to edit.", MessageType.Info);
+                EditorGUILayout.HelpBox(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.VideoPlayerHandler:no_prefab"), MessageType.Info);
                 DrawDefaultInspector();
                 return;
             }
             if (Application.isPlaying) {
-                EditorGUILayout.HelpBox("Please exit play mode to edit.", MessageType.Info);
+                EditorGUILayout.HelpBox(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.VideoPlayerHandler:no_play_mode"), MessageType.Info);
                 DrawDefaultInspector();
                 return;
             }
             serializedObject.Update();
             var target = this.target as VideoPlayerHandler;
             EditorGUILayout.PropertyField(playerNameProperty);
-            EditorGUILayout.LabelField("Mesh Renderer (Don't change it unless needed)", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(i18n.GetLocalizedContent("HEADER:MeshRenderer"), EditorStyles.boldLabel);
             var renderer = target.GetComponent<Renderer>();
             if (renderer == null) renderer = Undo.AddComponent<MeshRenderer>(target.gameObject);
             HideControlledComponent(renderer);
@@ -58,7 +58,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 var materialsProperty = so.FindProperty("m_Materials");
                 bool isChanged = false;
                 using (var changed = new EditorGUI.ChangeCheckScope()) {
-                    EditorGUILayout.PropertyField(materialsProperty, true);
+                    EditorGUILayout.PropertyField(materialsProperty, i18n.GetLocalizedContent("VVMW.Material"), true);
                     isChanged = changed.changed;
                 }
                 if (materials == null || materials.Length != materialsProperty.arraySize) {
@@ -72,25 +72,25 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             Utils.DrawShaderPropertiesField(
                 texturePropertyNameProperty,
-                Utils.GetTempContent(texturePropertyNameProperty.displayName, texturePropertyNameProperty.tooltip),
+                i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.VideoPlayerHandler.texturePropertyName"),
                 null, materials,
                 ShaderUtil.ShaderPropertyType.TexEnv
             );
             EditorGUILayout.Space();
             var controlledVideoPlayer = target.GetComponent<BaseVRCVideoPlayer>();
             if (controlledVideoPlayer is VRCUnityVideoPlayer unityVideoPlayer) {
-                EditorGUILayout.LabelField("Unity Video Player", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(i18n.GetLocalizedContent("HEADER:UnityVideoPlayer"), EditorStyles.boldLabel);
                 HideControlledComponent(unityVideoPlayer);
                 using (var so = new SerializedObject(unityVideoPlayer)) {
-                    EditorGUILayout.PropertyField(so.FindProperty("maximumResolution"), true);
+                    EditorGUILayout.PropertyField(so.FindProperty("maximumResolution"), i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.VideoPlayerHandler.maxResolution"), true);
                     so.ApplyModifiedProperties();
                 }
             } else if (controlledVideoPlayer is VRCAVProVideoPlayer avProVideoPlayer) {
-                EditorGUILayout.LabelField("AVPro Video Player", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(i18n.GetLocalizedContent("HEADER:AVProVideoPlayer"), EditorStyles.boldLabel);
                 HideControlledComponent(avProVideoPlayer);
                 using (var so = new SerializedObject(avProVideoPlayer)) {
-                    EditorGUILayout.PropertyField(so.FindProperty("maximumResolution"), true);
-                    EditorGUILayout.PropertyField(so.FindProperty("useLowLatency"), true);
+                    EditorGUILayout.PropertyField(so.FindProperty("maximumResolution"), i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.VideoPlayerHandler.maxResolution"), true);
+                    EditorGUILayout.PropertyField(so.FindProperty("useLowLatency"), i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.VideoPlayerHandler.isLowLatency"), true);
                     so.ApplyModifiedProperties();
                 }
             }

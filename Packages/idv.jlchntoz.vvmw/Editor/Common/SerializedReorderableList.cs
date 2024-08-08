@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
+using JLChnToZ.VRC.VVMW.I18N.Editors;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     public class SerializedReorderableList : ReorderableList {
@@ -40,6 +41,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (headerContent == null) headerContent = new GUIContent();
             headerContent.text = serializedProperty.displayName;
             headerContent.tooltip = serializedProperty.tooltip;
+            LocalizedLabelAttributeDrawer.Resolve(null, serializedProperty, headerContent);
             EditorGUI.LabelField(rect, headerContent, EditorStyles.boldLabel);
         }
 

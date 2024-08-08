@@ -16,8 +16,8 @@ namespace JLChnToZ.VRC.VVMW {
     [DefaultExecutionOrder(2)]
     [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#default-ui--screen-with-overlay")]
     public class UIHandler : VizVidBehaviour {
-        [Header("Main Reference")]
-        [SerializeField, Locatable(
+        [LocalizedHeader("HEADER:Main_Reference")]
+        [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core"), Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
         ), BindUdonSharpEvent]
@@ -25,130 +25,129 @@ namespace JLChnToZ.VRC.VVMW {
         [Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
-        ), BindUdonSharpEvent]
+        ), LocalizedLabel(Key = "VVMW.Handler"), BindUdonSharpEvent]
         public FrontendHandler handler;
         [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager languageManager;
 
-        [Header("URL Input")]
+        [LocalizedHeader("HEADER:URL_Input")]
         [BindEvent(nameof(VRCUrlInputField.onValueChanged), nameof(_OnURLChanged))]
         [BindEvent(nameof(VRCUrlInputField.onEndEdit), nameof(_OnURLEndEdit))]
-        [SerializeField] VRCUrlInputField urlInput;
-        [SerializeField] GameObject videoPlayerSelectButtonTemplate;
-        [SerializeField] GameObject videoPlayerSelectRoot, videoPlayerSelectPanel;
+        [SerializeField, LocalizedLabel] VRCUrlInputField urlInput;
+        [SerializeField, LocalizedLabel] GameObject videoPlayerSelectButtonTemplate;
+        [SerializeField, LocalizedLabel] GameObject videoPlayerSelectRoot, videoPlayerSelectPanel;
         [BindEvent(nameof(Button.onClick), nameof(_VideoPlayerSelect))]
-        [SerializeField] Button videoPlayerSelectButton;
+        [SerializeField, LocalizedLabel] Button videoPlayerSelectButton;
         [BindEvent(nameof(Button.onClick), nameof(_InputCancelClick))]
-        [SerializeField] Button cancelButton;
+        [SerializeField, LocalizedLabel] Button cancelButton;
         [BindEvent(nameof(Button.onClick), nameof(_InputConfirmClick))]
-        [SerializeField] Button urlInputConfirmButton;
+        [SerializeField, LocalizedLabel] Button urlInputConfirmButton;
         [TMProMigratable(nameof(selectdPlayerTMPro))]
-        [SerializeField] Text selectdPlayerText;
-        [SerializeField] TextMeshProUGUI selectdPlayerTMPro;
+        [SerializeField, LocalizedLabel] Text selectdPlayerText;
+        [SerializeField, LocalizedLabel] TextMeshProUGUI selectdPlayerTMPro;
         [TMProMigratable(nameof(queueModeTMPro))]
-        [SerializeField] Text queueModeText;
-        [SerializeField] TextMeshProUGUI queueModeTMPro;
-        [SerializeField] GameObject otherObjectUnderUrlInput;
+        [SerializeField, LocalizedLabel] Text queueModeText;
+        [SerializeField, LocalizedLabel] TextMeshProUGUI queueModeTMPro;
+        [SerializeField, LocalizedLabel] GameObject otherObjectUnderUrlInput;
 
-        [Header("Playback Controls")]
-        [SerializeField] Animator playbackControlsAnimator;
+        [LocalizedHeader("HEADER:Playback_Controls")]
+        [SerializeField, LocalizedLabel] Animator playbackControlsAnimator;
         [BindEvent(nameof(Button.onClick), nameof(_Play))]
-        [SerializeField] Button playButton;
+        [SerializeField, LocalizedLabel] Button playButton;
         [BindEvent(nameof(Button.onClick), nameof(_Pause))]
-        [SerializeField] Button pauseButton;
+        [SerializeField, LocalizedLabel] Button pauseButton;
         [BindEvent(nameof(Button.onClick), nameof(_Stop))]
-        [SerializeField] Button stopButton;
+        [SerializeField, LocalizedLabel] Button stopButton;
         [BindEvent(nameof(Button.onClick), nameof(_LocalSync))]
-        [SerializeField] Button reloadButton;
+        [SerializeField, LocalizedLabel] Button reloadButton;
         [BindEvent(nameof(Button.onClick), nameof(_GlobalSync))]
-        [SerializeField] Button globalReloadButton;
+        [SerializeField, LocalizedLabel] Button globalReloadButton;
         [BindEvent(nameof(Button.onClick), nameof(_Skip))]
-        [SerializeField] Button playNextButton;
+        [SerializeField, LocalizedLabel] Button playNextButton;
         [TMProMigratable(nameof(enqueueCountTMPro))]
-        [SerializeField] Text enqueueCountText;
-        [SerializeField] TextMeshProUGUI enqueueCountTMPro;
+        [SerializeField, LocalizedLabel] Text enqueueCountText;
+        [SerializeField, LocalizedLabel] TextMeshProUGUI enqueueCountTMPro;
         [BindEvent(nameof(Button.onClick), nameof(_RepeatOne))]
-        [SerializeField] Button repeatOffButton;
+        [SerializeField, LocalizedLabel] Button repeatOffButton;
         [BindEvent(nameof(Button.onClick), nameof(_RepeatAll))]
-        [SerializeField] Button repeatOneButton;
+        [SerializeField, LocalizedLabel] Button repeatOneButton;
         [BindEvent(nameof(Button.onClick), nameof(_RepeatOff))]
         [FormerlySerializedAs("RepeatAllButton")]
-        [SerializeField] Button repeatAllButton;
+        [SerializeField, LocalizedLabel] Button repeatAllButton;
         [BindEvent(nameof(Button.onClick), nameof(_ShuffleOn))]
-        [SerializeField] Button shuffleOffButton;
+        [SerializeField, LocalizedLabel] Button shuffleOffButton;
         [BindEvent(nameof(Button.onClick), nameof(_ShuffleOff))]
-        [SerializeField] Button shuffleOnButton;
+        [SerializeField, LocalizedLabel] Button shuffleOnButton;
         [BindEvent(nameof(Toggle.onValueChanged), nameof(_PlayListToggle))]
-        [SerializeField] Toggle playlistToggle;
+        [SerializeField, LocalizedLabel] Toggle playlistToggle;
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnSeek))]
-        [SerializeField] Slider progressSlider;
+        [SerializeField, LocalizedLabel] Slider progressSlider;
         [TMProMigratable(nameof(statusTMPro))]
-        [SerializeField] Text statusText;
+        [SerializeField, LocalizedLabel] Text statusText;
         [TMProMigratable(nameof(timeTMPro))]
-        [SerializeField] Text timeText;
+        [SerializeField, LocalizedLabel] Text timeText;
         [TMProMigratable(nameof(durationTMPro))]
-        [SerializeField] Text durationText;
-        [SerializeField] TextMeshProUGUI statusTMPro, timeTMPro, durationTMPro;
-        [SerializeField] GameObject timeContainer;
+        [SerializeField, LocalizedLabel] Text durationText;
+        [SerializeField, LocalizedLabel] TextMeshProUGUI statusTMPro, timeTMPro, durationTMPro;
+        [SerializeField, LocalizedLabel] GameObject timeContainer;
 
-        [Header("Volume Control")]
+        [LocalizedHeader("HEADER:Volume_Control")]
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnVolumeSlide))]
-        [SerializeField] Slider volumeSlider;
+        [SerializeField, LocalizedLabel] Slider volumeSlider;
         [BindEvent(nameof(Button.onClick), nameof(_OnMute))]
-        [SerializeField] Button muteButton, unmuteButton;
+        [SerializeField, LocalizedLabel] Button muteButton, unmuteButton;
 
-        [Header("Idle Screen")]
-        [SerializeField] GameObject idleScreenRoot;
+        [LocalizedHeader("HEADER:Idle_Screen")]
+        [SerializeField, LocalizedLabel] GameObject idleScreenRoot;
 
-        [Header("Queue List / Play List")]
-        [SerializeField] GameObject playListPanelRoot;
-        [SerializeField, BindUdonSharpEvent] PooledScrollView playListScrollView;
+        [LocalizedHeader("HEADEAR:Queue_List_PlayList")]
+        [SerializeField, LocalizedLabel] GameObject playListPanelRoot;
+        [SerializeField, LocalizedLabel, BindUdonSharpEvent] PooledScrollView playListScrollView;
         [BindEvent(nameof(Button.onClick), nameof(_PlayListTogglePanel))]
-        [SerializeField] Button playListTogglePanelButton;
-        [SerializeField, BindUdonSharpEvent] PooledScrollView queueListScrollView;
-        [SerializeField] GameObject playNextIndicator;
+        [SerializeField, LocalizedLabel] Button playListTogglePanelButton;
+        [SerializeField, LocalizedLabel, BindUdonSharpEvent] PooledScrollView queueListScrollView;
+        [SerializeField, LocalizedLabel] GameObject playNextIndicator;
         [TMProMigratable(nameof(selectedPlayListTMPro))]
-        [SerializeField] Text selectedPlayListText;
-        [SerializeField] TextMeshProUGUI selectedPlayListTMPro;
+        [SerializeField, LocalizedLabel] Text selectedPlayListText;
+        [SerializeField, LocalizedLabel] TextMeshProUGUI selectedPlayListTMPro;
         [BindEvent(nameof(Button.onClick), nameof(_OnCurrentPlayListSelectClick))]
-        [SerializeField] Button currentPlayListButton;
+        [SerializeField, LocalizedLabel] Button currentPlayListButton;
 
-        [Header("Sync Offset Controls")]
-        [SerializeField] GameObject shiftControlsRoot;
+        [LocalizedHeader("HEADER:Sync_Offset_Controls")]
+        [SerializeField, LocalizedLabel] GameObject shiftControlsRoot;
         [BindEvent(nameof(Button.onClick), nameof(_ShiftBackL))]
-        [SerializeField, FormerlySerializedAs("shiftBack100msButton")] Button shiftBackLButton;
+        [SerializeField, LocalizedLabel, FormerlySerializedAs("shiftBack100msButton")] Button shiftBackLButton;
         [BindEvent(nameof(Button.onClick), nameof(_ShiftBackS))]
-        [SerializeField, FormerlySerializedAs("shiftBack50msButton")] Button shiftBackSButton;
+        [SerializeField, LocalizedLabel, FormerlySerializedAs("shiftBack50msButton")] Button shiftBackSButton;
         [BindEvent(nameof(Button.onClick), nameof(_ShiftForwardS))]
-        [SerializeField, FormerlySerializedAs("shiftForward50msButton")] Button shiftForwardSButton;
+        [SerializeField, LocalizedLabel, FormerlySerializedAs("shiftForward50msButton")] Button shiftForwardSButton;
         [BindEvent(nameof(Button.onClick), nameof(_ShiftForwardL))]
-        [SerializeField, FormerlySerializedAs("shiftForward100msButton")] Button shiftForwardLButton;
+        [SerializeField, LocalizedLabel, FormerlySerializedAs("shiftForward100msButton")] Button shiftForwardLButton;
         [BindEvent(nameof(Button.onClick), nameof(_ShiftReset))]
-        [SerializeField] Button shiftResetButton;
+        [SerializeField, LocalizedLabel] Button shiftResetButton;
         [TMProMigratable(nameof(shiftOffsetTMPro))]
-        [SerializeField] Text shiftOffsetText;
-        [SerializeField] TextMeshProUGUI shiftOffsetTMPro;
+        [SerializeField, LocalizedLabel] Text shiftOffsetText;
+        [SerializeField, LocalizedLabel] TextMeshProUGUI shiftOffsetTMPro;
 
-        [Header("Speed Adjustment Controls")]
-        [SerializeField] GameObject speedControlsRoot;
+        [LocalizedHeader("HEADER:Speed_Adjustment_Controls")]
+        [SerializeField, LocalizedLabel] GameObject speedControlsRoot;
         [BindEvent(nameof(Button.onClick), nameof(_SpeedDownL))]
-        [SerializeField] Button speedDownLButton;
+        [SerializeField, LocalizedLabel] Button speedDownLButton;
         [BindEvent(nameof(Button.onClick), nameof(_SpeedDownS))]
-        [SerializeField] Button speedDownSButton;
+        [SerializeField, LocalizedLabel] Button speedDownSButton;
         [BindEvent(nameof(Button.onClick), nameof(_SpeedUpS))]
-        [SerializeField] Button speedUpSButton;
+        [SerializeField, LocalizedLabel] Button speedUpSButton;
         [BindEvent(nameof(Button.onClick), nameof(_SpeedUpL))]
-        [SerializeField] Button speedUpLButton;
+        [SerializeField, LocalizedLabel] Button speedUpLButton;
         [BindEvent(nameof(Button.onClick), nameof(_SpeedReset))]
-        [SerializeField] Button speedResetButton;
+        [SerializeField, LocalizedLabel] Button speedResetButton;
         [TMProMigratable(nameof(speedOffsetTMPro))]
-        [SerializeField] Text speedOffsetText;
-        [SerializeField] TextMeshProUGUI speedOffsetTMPro;
+        [SerializeField, LocalizedLabel] Text speedOffsetText;
+        [SerializeField, LocalizedLabel] TextMeshProUGUI speedOffsetTMPro;
 
-        [Header("Screen Controls")]
+        [LocalizedHeader("HEADER:Screen_Controls")]
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnLuminanceSliderChanged))]
-        [SerializeField] Slider luminanceSlider;
-        [Tooltip("The property name of the shader to control the luminance of the screen")]
-        [SerializeField] string luminancePropertyName = "_EmissionIntensity";
+        [SerializeField, LocalizedLabel] Slider luminanceSlider;
+        [SerializeField, LocalizedLabel] string luminancePropertyName = "_EmissionIntensity";
         int luminancePropertyId;
 
         string[] playListNames;

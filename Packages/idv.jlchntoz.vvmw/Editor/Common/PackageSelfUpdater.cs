@@ -1,6 +1,7 @@
 using System.Reflection;
 using UnityEngine;
 using UnityEditor;
+using JLChnToZ.VRC.VVMW.I18N;
 
 #if VPM_RESOLVER_INCLUDED
 using System;
@@ -19,6 +20,7 @@ using PackageManagerPackageInfo = UnityEditor.PackageManager.PackageInfo;
 namespace JLChnToZ.VRC.VVMW.Editors {
     public class PackageSelfUpdater {
         static GUIContent infoContent;
+        static EditorI18N i18n;
         readonly string listingsID, listingsURL;
         readonly string packageName, packageDisplayName, packageVersion;
         string availableVersion;
@@ -40,6 +42,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             this(PackageManagerPackageInfo.FindForAssembly(assembly), listingsID, listingsURL) { }
 
         public PackageSelfUpdater(PackageManagerPackageInfo packageInfo, string listingsID, string listingsURL) {
+            if (i18n == null) i18n = EditorI18N.Instance;
             if (packageInfo != null) {
                 packageName = packageInfo.name;
                 packageDisplayName = packageInfo.displayName;
@@ -107,18 +110,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             var vrcPackage = Repos.GetPackageWithVersionMatch(packageName, version);
             var dependencies = Resolver.GetAffectedPackageList(vrcPackage);
             var sb = new StringBuilder();
-            sb.AppendLine("The following packages will be updated:");
             foreach (var dependency in dependencies)
                 sb.AppendLine($"- {dependency}");
-            if (EditorUtility.DisplayDialog("Update Package", sb.ToString(), "Update", "Cancel"))
+            if (i18n.DisplayLocalizedDialog2("PackageSelfUpdater.update_confirm", sb))
                 UpdateUnchecked(vrcPackage).Forget();
             #else
-            switch (EditorUtility.DisplayDialogComplex(
-                "Unable to Update Package",
-                "It seems your project is not managed by VRChat Creator Companion (VCC).\n" +
-                "You need to migrate your project to Creator Companion to get automatic updates.",
-                "Close", "What is Creator Companion?", "How to migrate?"
-            )) {
+            switch (i18n.DisplayLocalizedDialog3("PackageSelfUpdater.update_message_no_vcc")) {
                 case 1: Application.OpenURL("https://vcc.docs.vrchat.com/"); break;
                 case 2: Application.OpenURL("https://vcc.docs.vrchat.com/vpm/migrating"); break;
             }
@@ -130,18 +127,18 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (isInstalledManually) {
                 EditorGUILayout.Space();
                 using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox)) {
-                    var infoContent = GetInfoContent($"Consider install {packageDisplayName} via Creator Companion to get automatic updates.");
+                    var infoContent = GetInfoContent("PackageSelfUpdater.update_message", packageDisplayName);
                     EditorGUILayout.LabelField(infoContent, EditorStyles.wordWrappedLabel);
-                    if (GUILayout.Button("Resolve", GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(i18n.GetLocalizedContent("PackageSelfUpdater.update_message:confirm"), GUILayout.ExpandWidth(false)))
                         ResolveInstallation();
                 }
             }
             if (!string.IsNullOrEmpty(availableVersion)) {
                 EditorGUILayout.Space();
                 using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox)) {
-                    var infoContent = GetInfoContent($"New Version Available! (v{availableVersion})");
+                    var infoContent = GetInfoContent("PackageSelfUpdater.update_available", availableVersion);
                     EditorGUILayout.LabelField(infoContent, EditorStyles.wordWrappedLabel);
-                    if (GUILayout.Button("Update", GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(i18n.GetLocalizedContent("PackageSelfUpdater.update_available:confirm"), GUILayout.ExpandWidth(false)))
                         ConfirmAndUpdate();
                 }
             }
@@ -152,7 +149,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             await UniTask.Delay(500);
             Resolver.ForceRefresh();
             try {
-                EditorUtility.DisplayProgressBar("Updating Package", $"Updating {package.Id}", 0);
+                EditorUtility.DisplayProgressBar(
+                    i18n.GetOrDefault("PackageSelfUpdater.update_progress:title"),
+                    string.Format(i18n.GetOrDefault("PackageSelfUpdater.update_progress:content"), package.Id),
+                    0
+                );
                 new UnityProject(Resolver.ProjectDir).UpdateVPMPackage(package);
             } finally {
                 EditorUtility.ClearProgressBar();
@@ -161,13 +162,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
         #endif
 
-        static GUIContent GetInfoContent(string text) {
-            if (infoContent == null) {
-                var temp = EditorGUIUtility.IconContent("console.infoicon");
-                infoContent = new GUIContent(temp.image);
-            }
-            infoContent.text = text;
-            return infoContent;
+        static GUIContent GetInfoContent(string text, params object[] args) {
+            if (infoContent == null) infoContent = EditorGUIUtility.IconContent("console.infoicon");
+            var content = i18n.GetLocalizedContent(text, args);
+            content.image = infoContent.image;
+            return content;
         }
     }
 }

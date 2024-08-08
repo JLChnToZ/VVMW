@@ -13,8 +13,8 @@ namespace JLChnToZ.VRC.VVMW {
     [DefaultExecutionOrder(3)]
     public class ButtonEntry : UdonSharpBehaviour {
         LanguageManager manager;
-        [SerializeField] Text buttonText;
-        [SerializeField] TextMeshProUGUI buttonTMPro;
+        [SerializeField, LocalizedLabel] Text buttonText;
+        [SerializeField, LocalizedLabel] TextMeshProUGUI buttonTMPro;
         object[] args;
         string key;
         public UdonSharpBehaviour callbackTarget;

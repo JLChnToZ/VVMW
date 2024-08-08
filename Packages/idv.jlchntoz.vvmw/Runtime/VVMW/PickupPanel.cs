@@ -14,24 +14,24 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
     [AddComponentMenu("VizVid/Components/Pickup Panel")]
     [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-add-a-pickupable-screen")]
     public class PickupPanel : UdonSharpBehaviour {
-        [Header("References")]
-        [SerializeField] Transform scalingTarget;
+        [LocalizedHeader("HEADER:PickupPanel.References")]
+        [SerializeField, LocalizedLabel] Transform scalingTarget;
         [BindEvent(nameof(Button.onClick), nameof(_LockButtonToggle))]
-        [SerializeField] Button lockButton;
+        [SerializeField, LocalizedLabel] Button lockButton;
         [BindEvent(nameof(Button.onClick), nameof(_MakeUpright))]
-        [SerializeField] Button uprightButton;
+        [SerializeField, LocalizedLabel] Button uprightButton;
         [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager languageManager;
         VRC_Pickup pickup;
-        [Header("Settings")]
-        [SerializeField] float scaleSpeed = 1F;
-        [SerializeField] float minScale = 0.2F, maxScale = 5F;
-        [SerializeField] KeyCode smallerKey = KeyCode.Q, biggerKey = KeyCode.E;
-        [SerializeField] float vrAnalogThreshold = 0.5F;
+        [LocalizedHeader("HEADER:PickupPanel.Settings")]
+        [SerializeField, LocalizedLabel] float scaleSpeed = 1F;
+        [SerializeField, LocalizedLabel] float minScale = 0.2F, maxScale = 5F;
+        [SerializeField, LocalizedLabel] KeyCode smallerKey = KeyCode.Q, biggerKey = KeyCode.E;
+        [SerializeField, LocalizedLabel] float vrAnalogThreshold = 0.5F;
         [FieldChangeCallback(nameof(Locked))] bool locked;
-        [Header("Display")]
-        [SerializeField] Renderer instructionRenderer;
-        [SerializeField] Material vrInstructionMaterial, pcInstructionMaterial;
-        [SerializeField] GameObject lockOnIcon, lockOffIcon;
+        [LocalizedHeader("HEADER:PickupPanel.Display")]
+        [SerializeField, LocalizedLabel] Renderer instructionRenderer;
+        [SerializeField, LocalizedLabel] Material vrInstructionMaterial, pcInstructionMaterial;
+        [SerializeField, LocalizedLabel] GameObject lockOnIcon, lockOffIcon;
         bool isVR;
         [FieldChangeCallback(nameof(Scale))] float scale = 1F;
 

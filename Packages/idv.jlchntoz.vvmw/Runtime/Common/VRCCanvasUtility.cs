@@ -1,11 +1,12 @@
 using UnityEngine;
+using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     [ExecuteInEditMode, EditorOnly]
     [RequireComponent(typeof(RectTransform), typeof(BoxCollider))]
     [AddComponentMenu("VizVid/Common/VRC Canvas Utility")]
     public class VRCCanvasUtility : MonoBehaviour {
-        [SerializeField] float canvasScale = 0;
+        [SerializeField, LocalizedLabel] float canvasScale = 0;
         new RectTransform transform;
         new BoxCollider collider;
         bool hasInit;

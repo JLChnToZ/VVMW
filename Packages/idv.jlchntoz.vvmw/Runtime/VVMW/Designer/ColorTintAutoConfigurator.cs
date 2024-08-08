@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using JLChnToZ.VRC.VVMW.I18N;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -8,10 +10,15 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     [RequireComponent(typeof(Selectable))]
     [AddComponentMenu("VizVid/Color Configurator/Color Tint")]
     public class ColorTintAutoConfigurator : AbstractAutoConfigurator {
+        [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.normalColorIndex")]
         [SerializeField] int normalColorIndex = -1;
+        [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.highlightedColorIndex")]
         [SerializeField] int highlightedColorIndex = -1;
+        [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.pressedColorIndex")]
         [SerializeField] int pressedColorIndex = -1;
+        [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.selectedColorIndex")]
         [SerializeField] int selectedColorIndex = -1;
+        [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.disabledColorIndex")]
         [SerializeField] int disabledColorIndex = -1;
 
         protected override void ConfigurateCore(ColorConfig colorConfig) {

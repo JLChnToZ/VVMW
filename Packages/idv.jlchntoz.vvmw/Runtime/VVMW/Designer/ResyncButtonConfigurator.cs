@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using JLChnToZ.VRC.VVMW.I18N;
+
 
 #if UNITY_EDITOR
 using System;
@@ -17,8 +19,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         [Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.NextSibling
-        ), SerializeField] Core core;
-        [SerializeField] bool globalSync;
+        ), SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")] Core core;
+        [SerializeField, LocalizedLabel] bool globalSync;
     }
 
     #if UNITY_EDITOR
