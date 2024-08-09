@@ -16,7 +16,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         readonly Dictionary<UdonSharpBehaviour, UdonSharpBehaviour> masterMap = new Dictionary<UdonSharpBehaviour, UdonSharpBehaviour>();
         readonly Dictionary<(Type, string), UdonSharpBehaviour> fieldMap = new Dictionary<(Type, string), UdonSharpBehaviour>();
 
-        public int CallbackOrder => 0;
+        public int CallbackOrder => -1;
         
         public void OnPreprocess(Scene scene) {
             try {
