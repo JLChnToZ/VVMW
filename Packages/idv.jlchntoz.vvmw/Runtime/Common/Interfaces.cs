@@ -5,7 +5,11 @@ namespace JLChnToZ.VRC.VVMW {
         void Merge(T[] others);
     }
 
-    public interface ISelfPreProcess {
+    public interface IPrioritizedPreProcessor {
+        int Priority { get; }
+    }
+
+    public interface ISelfPreProcess : IPrioritizedPreProcessor {
         void PreProcess();
     }
 }

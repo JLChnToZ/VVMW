@@ -18,6 +18,9 @@ namespace JLChnToZ.VRC.VVMW {
     #if UNITY_EDITOR
     public partial class VersionDisplay : ISelfPreProcess {
         static PackageManagerPackageInfo packageInfo;
+
+        int IPrioritizedPreProcessor.Priority => -10;
+
         void ISelfPreProcess.PreProcess() {
             if (packageInfo == null) {
                 packageInfo = PackageManagerPackageInfo.FindForAssembly(GetType().Assembly);

@@ -42,7 +42,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         protected static readonly Dictionary<Type, MonoScript> scriptMap = new Dictionary<Type, MonoScript>();
         readonly Dictionary<Type, FieldInfo[]> filteredFields = new Dictionary<Type, FieldInfo[]>();
 
-        public virtual int CallbackOrder => 0;
+        public virtual int Priority => 0;
 
         public virtual void OnPreprocess(Scene scene) {
             foreach (var usharp in scene.IterateAllComponents<UdonSharpBehaviour>()) {

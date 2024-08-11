@@ -63,9 +63,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 var versionSize = versionLabelStyle.CalcSize(tempContent);
                 GUI.Label(new Rect(bannerRect.xMax - versionSize.x, bannerRect.yMin, versionSize.x, versionSize.y), tempContent, versionLabelStyle);
             }
-            selfUpdater.DrawUpdateNotifier();
             EditorGUILayout.Space();
             EditorI18NEditor.DrawLocaleField();
+            selfUpdater.DrawUpdateNotifier();
             EditorGUILayout.Space();
         }
     }

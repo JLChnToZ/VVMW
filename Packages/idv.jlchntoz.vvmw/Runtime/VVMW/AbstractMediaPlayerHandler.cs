@@ -77,6 +77,8 @@ namespace JLChnToZ.VRC.VVMW {
     public abstract partial class AbstractMediaPlayerHandler : ISelfPreProcess {
         internal static ApplyTurstedUrl applyTurstedUrl; // Actual method is in TrustedUrlUtls
 
+        int IPrioritizedPreProcessor.Priority => -10;
+
         void ISelfPreProcess.PreProcess() => PreProcess();
 
         protected virtual void PreProcess() {}

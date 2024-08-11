@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
 using VRC.Udon;
@@ -16,7 +17,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         readonly Dictionary<UdonSharpBehaviour, UdonSharpBehaviour> masterMap = new Dictionary<UdonSharpBehaviour, UdonSharpBehaviour>();
         readonly Dictionary<(Type, string), UdonSharpBehaviour> fieldMap = new Dictionary<(Type, string), UdonSharpBehaviour>();
 
-        public int CallbackOrder => -1;
+        public int Priority => -1;
         
         public void OnPreprocess(Scene scene) {
             try {
@@ -162,6 +163,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         void RemoveDuplicates() {
             var list = new List<UdonSharpBehaviour>();
+            var tempComponents = new List<Component>();
             foreach (var (method, sameTypes) in insts.Values)
                 if (method != null && sameTypes.Count > 0)
                     try {
@@ -171,7 +173,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                                 instance.transform.SetParent(null, false);
                                 continue;
                             }
-                            DestroyImmediate(instance);
+                            var gameObject = instance.gameObject;
+                            UdonSharpEditorUtility.DestroyImmediate(instance);
+                            if (gameObject.transform.childCount < 1) {
+                                gameObject.GetComponents(tempComponents);
+                                if (tempComponents.Count < 2) DestroyImmediate(gameObject);
+                            }
                         }
                     } finally {
                         list.Clear();

@@ -13,14 +13,15 @@ namespace JLChnToZ.VRC.VVMW {
     [DefaultExecutionOrder(3)]
     public class ButtonEntry : UdonSharpBehaviour {
         LanguageManager manager;
+        [TMProMigratable(nameof(buttonTMPro))]
         [SerializeField, LocalizedLabel] Text buttonText;
         [SerializeField, LocalizedLabel] TextMeshProUGUI buttonTMPro;
         object[] args;
         string key;
-        public UdonSharpBehaviour callbackTarget;
-        public string callbackEventName;
-        public string callbackVariableName;
-        public object callbackUserData;
+        [LocalizedLabel] public UdonSharpBehaviour callbackTarget;
+        [LocalizedLabel] public string callbackEventName;
+        [LocalizedLabel] public string callbackVariableName;
+        [LocalizedLabel] public object callbackUserData;
 
         public object[] Args {
             get => args;

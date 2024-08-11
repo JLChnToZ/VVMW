@@ -8,7 +8,7 @@ using static UnityEngine.Object;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     public class EditorOnlyAttributePreprocessor : IPreprocessor {
-        public int CallbackOrder => 100;
+        public int Priority => 100;
 
         public void OnPreprocess(Scene scene) {
             var hasAttributeCache = new Dictionary<Type, bool>();

@@ -27,6 +27,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     public partial class ResyncButtonConfigurator : ISelfPreProcess {
         internal static Func<UdonSharpBehaviour, UdonBehaviour> getBackingUdonBehaviour;
 
+        int IPrioritizedPreProcessor.Priority => -10;
+
         void ISelfPreProcess.PreProcess() {
             if (!TryGetComponent(out Button button)) {
                 Debug.LogWarning($"[ResyncButton] No button component in {name}. This should not happen.", this);

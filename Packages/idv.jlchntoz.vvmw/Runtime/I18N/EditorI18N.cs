@@ -103,11 +103,21 @@ namespace JLChnToZ.VRC.VVMW.I18N {
                 #if UNITY_EDITOR
                 currentLanguage = EditorPrefs.GetString(PREF_KEY, currentLanguage);
                 #endif
-                if (alias.TryGetValue(currentLanguage, out var aliasLang))
-                    currentLanguage = aliasLang;
-                if (!i18nDict.ContainsKey(currentLanguage))
-                    currentLanguage = DEFAULT_LANGUAGE;
             }
+            if (i18nDict.ContainsKey(currentLanguage)) return;
+            if (alias.TryGetValue(currentLanguage, out var aliasLang) &&
+                i18nDict.ContainsKey(aliasLang)) {
+                currentLanguage = aliasLang;
+                return;
+            }
+            if (currentLanguage.Length >= 2) {
+                var regionless = currentLanguage.Substring(0, 2);
+                if (i18nDict.ContainsKey(regionless)) {
+                    currentLanguage = regionless;
+                    return;
+                }
+            }
+            currentLanguage = DEFAULT_LANGUAGE;
         }
     }
 }

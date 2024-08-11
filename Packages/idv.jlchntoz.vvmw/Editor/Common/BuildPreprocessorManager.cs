@@ -7,11 +7,13 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 
+using UnityObject = UnityEngine.Object;
+
 namespace JLChnToZ.VRC.VVMW.Editors {
     [InitializeOnLoad]
     public class BuildPreprocessorManager : IProcessSceneWithReport {
         static readonly HashSet<Type> preprocessorTypes;
-        List<IPreprocessor> preprocessors;
+        List<IPrioritizedPreProcessor> preprocessors;
         public int callbackOrder => -100;
 
         static BuildPreprocessorManager() {
@@ -40,9 +42,19 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         void StartProcess(Scene scene) {
             InitInstances();
+            var preprocessors = new List<IPrioritizedPreProcessor>(this.preprocessors);
+            foreach (var mb in scene.IterateAllComponents<MonoBehaviour>())
+                if (mb is IPrioritizedPreProcessor processor)
+                    preprocessors.Add(processor);
+            preprocessors.Sort(SortCallbackOrder);
             foreach (var preprocessor in preprocessors)
                 try {
-                    preprocessor.OnPreprocess(scene);
+                    if (preprocessor is UnityObject unityObj && !unityObj)
+                        continue;
+                    if (preprocessor is IPreprocessor processor)
+                        processor.OnPreprocess(scene);
+                    else if (preprocessor is ISelfPreProcess selfProcessor)
+                        selfProcessor.PreProcess();
                 } catch (Exception e) {
                     Debug.LogError($"Error while processing scene with {preprocessor.GetType().Name}: {e.Message}");
                 }
@@ -50,20 +62,17 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         void InitInstances() {
             if (preprocessors != null) return;
-            preprocessors = new List<IPreprocessor>();
-            foreach (var type in preprocessorTypes) {
-                if (Activator.CreateInstance(type) is IPreprocessor preprocessor)
+            preprocessors = new List<IPrioritizedPreProcessor>();
+            foreach (var type in preprocessorTypes)
+                if (Activator.CreateInstance(type) is IPrioritizedPreProcessor preprocessor)
                     preprocessors.Add(preprocessor);
-            }
-            preprocessors.Sort(SortCallbackOrder);
         }
 
-        static int SortCallbackOrder(IPreprocessor a, IPreprocessor b) =>
-            a.CallbackOrder.CompareTo(b.CallbackOrder);
+        static int SortCallbackOrder(IPrioritizedPreProcessor a, IPrioritizedPreProcessor b) =>
+            a.Priority.CompareTo(b.Priority);
     }
 
-    public interface IPreprocessor {
-        int CallbackOrder { get; }
+    public interface IPreprocessor : IPrioritizedPreProcessor {
         void OnPreprocess(Scene scene);
     }
 }
