@@ -5,7 +5,8 @@ using JLChnToZ.VRC.VVMW.I18N.Editors;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     public abstract class VVMWEditorBase : Editor {
-        const string bannerTextureUUID = "e8354bc2ac14e86498c0983daf484661";
+        const string bannerTextureGUID = "e8354bc2ac14e86498c0983daf484661";
+        const string iconGUID = "a24ecd1d23cca9e46871bc17dfe3bd46";
         const string fontGUID = "088cf7162d0a81c46ad54028cfdcb382";
         const string listingsID = "idv.jlchntoz.xtlcdn-listing";
         const string listingsURL = "https://xtlcdn.github.io/vpm/index.json";
@@ -15,13 +16,24 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static GUIStyle versionLabelStyle;
         protected static EditorI18N i18n;
 
+        public static void UpdateTitle(GUIContent titleContent, string languageKey, bool unsaved = false) {
+            var iconPath = AssetDatabase.GUIDToAssetPath(iconGUID);
+            if (iconPath != null) {
+                var icon = AssetDatabase.LoadAssetAtPath<Texture>(iconPath);
+                titleContent.image = icon;
+            }
+            var text = i18n.GetOrDefault(languageKey);
+            if (unsaved) text += "*";
+            titleContent.text = text;
+        }
+
         protected virtual void OnEnable() {
             if (selfUpdater == null) {
                 selfUpdater = new PackageSelfUpdater(GetType().Assembly, listingsID, listingsURL);
                 selfUpdater.CheckInstallationInBackground();
             }
             if (bannerTexture == null) {
-                var assetPath = AssetDatabase.GUIDToAssetPath(bannerTextureUUID);
+                var assetPath = AssetDatabase.GUIDToAssetPath(bannerTextureGUID);
                 if (!string.IsNullOrEmpty(assetPath)) bannerTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
             }
             if (font == null) {

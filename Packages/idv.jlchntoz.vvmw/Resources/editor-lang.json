@@ -1,24 +1,19 @@
 {
     "en": {
         "_name": "English",
-
         "Language": "Editor Language",
         "VVMW.AutoFind": "Auto Find",
         "VVMW.Remove": "Remove",
         "VVMW.Mode": "Mode",
         "VVMW.All": "All",
         "VVMW.Material": "Material",
-
         "JLChnToZ.VRC.VVMW.UdonSharpEventSender.targets": "Event Targets",
         "JLChnToZ.VRC.VVMW.UdonSharpEventSender.targets:tooltip": "UdonSharpBehavior that will receive the event from this object.",
-
         "JLChnToZ.VRC.VVMW.VRCCanvasUtility.canvasScale": "Canvas Scale",
-
         "HEADER:Main_Reference": "Main Reference",
         "JLChnToZ.VRC.VVMW.Core": "Core",
         "JLChnToZ.VRC.VVMW.Core:empty_message": "Core is not assigned.",
         "VVMW.handler": "Playlist Queue Handler",
-
         "JLChnToZ.VRC.VVMW.Core.playerHandlers": "Player Handlers",
         "JLChnToZ.VRC.VVMW.Core.audioSources": "Audio Sources",
         "JLChnToZ.VRC.VVMW.Core.audioSources:tooltip": "Audio sources to link to video player, will be set to the primary audio source of the video player, and volumes can be controlled by the video player.",
@@ -47,7 +42,6 @@
         "JLChnToZ.VRC.VVMW.Core.screenTargetPropertyNames:tooltip": "The name of the property in material to set the video texture.",
         "JLChnToZ.VRC.VVMW.Core.useST": "Use Scale Offset",
         "JLChnToZ.VRC.VVMW.Core.useST:tooltip": "Will use scale offset (_Texture_ST) to adjust the texture if it is flipped upside-down.",
-
         "JLChnToZ.VRC.VVMW.Core.avProPropertyNames": "AVPro Flag Property Name",
         "JLChnToZ.VRC.VVMW.Core.avProPropertyNames:tooltip": "If it is using AVPro player, this property value will set to 1, otherwise 0.",
         "JLChnToZ.VRC.VVMW.Core.screenTargetDefaultTextures": "Default Texture",
@@ -62,7 +56,6 @@
         "JLChnToZ.VRC.VVMW.Core.timeDriftDetectThreshold:tooltip": "The player will adjust the time to sync with the owner's time when the time drift is greater than this value.\nRecommend keep this value not too low or too high, as it may cause the video to jump back and forth, or timing between players may drift too far.",
         "JLChnToZ.VRC.VVMW.Core.audioLink": "Audio Link",
         "JLChnToZ.VRC.VVMW.Core.yttl": "Video Title Viewer (YTTL)",
-
         "JLChnToZ.VRC.VVMW.Core.editUrlsIn": "Edit URLs in {0}",
         "JLChnToZ.VRC.VVMW.Core.setupSpeakers": "Setup Speakers",
         "JLChnToZ.VRC.VVMW.Core.videoScreenTarget": "Video Screen Target {0}",
@@ -71,7 +64,6 @@
         "VVMW.Material.PropertyBlock": "Property Block",
         "VVMW.Material.SharedMaterial": "Shared Material",
         "VVMW.Material.ClonedMaterial": "Cloned Materal",
-
         "JLChnToZ.VRC.VVMW.AbstractMediaPlayerHandler.playerName": "Video Player Backend Name",
         "JLChnToZ.VRC.VVMW.AbstractMediaPlayerHandler.playerName:tooltip": "The name of current video player backend. Can be the key mapped in language pack JSON.",
         "HEADER:MeshRenderer": "Mesh Renderer (Do not change unless necessary)",
@@ -89,7 +81,6 @@
         "JLChnToZ.VRC.VVMW.VideoPlayerHandler.blitMaterial:tooltip": "This material will be used to blit the screen to a temporary render texture for the flickering workaround. Don't change it unless needed.",
         "JLChnToZ.VRC.VVMW.VideoPlayerHandler.maxResolution": "Max Resolution",
         "JLChnToZ.VRC.VVMW.VideoPlayerHandler.isLowLatency": "Is Low Latency",
-
         "JLChnToZ.VRC.VVMW.FrontendHandler.enableQueueList": "Enable Queue List",
         "JLChnToZ.VRC.VVMW.FrontendHandler.enableQueueList:tooltip": "If enabled, while user want to play a video and it is playing other video, the video will be queued. Recommend as this is more polite to everyone.",
         "JLChnToZ.VRC.VVMW.FrontendHandler.historySize": "History Size",
@@ -112,7 +103,6 @@
         "JLChnToZ.VRC.VVMW.FrontendHandler.loopMode.none": "None",
         "JLChnToZ.VRC.VVMW.FrontendHandler.loopMode.singleLoop": "Repeat One",
         "JLChnToZ.VRC.VVMW.FrontendHandler.loopMode.repeatAll": "Repeat All",
-
         "PlaylistEditor.title": "Playlist Editor",
         "PlaylistEditor.reload": "Reload",
         "PlaylistEditor.reload_confirm:title": "Reload",
@@ -149,14 +139,11 @@
         "PlaylistEditor.import_object:positive": "Keep Current (Append)",
         "PlaylistEditor.import_object:negative": "Replace Current",
         "PlaylistEditor.import_object:alt": "New Playlist",
-
         "JLChnToZ.VRC.VVMW.RateLimitResolver.message": "This module is for reducing rate limit errors by debouncing (on holds and wait for certain time) video switching requests across VizVid instances.",
-
         "JLChnToZ.VRC.VVMW.I18N.LanguageManager.languageJsonFiles": "Language JSON Files",
         "JLChnToZ.VRC.VVMW.I18N.LanguageManager.languageJson": "Language JSON Data",
         "JLChnToZ.VRC.VVMW.I18N.LanguageManager.openLanguageEditor": "Open Language Editor",
         "JLChnToZ.VRC.VVMW.I18N.LanguageReceiver.key": "Language Key",
-
         "LanguageEditor.title": "Language Editor",
         "LanguageEditor.save": "Save",
         "LanguageEditor.reload": "Reload",
@@ -175,11 +162,9 @@
         "LanguageEditor.tz_exists_message:title": "Error",
         "LanguageEditor.tz_exists_message:content": "The timezone already exists.",
         "LanguageEditor.tz_exists_message:positive": "OK",
-
         "TrustedUrlUtils.scheme_not_supported": "{0} is not a supported protocol.",
         "TrustedUrlUtils.url_not_trusted": "This domain is not trusted by VRChat clients.\nUsers will not be able to access this URL without enabling \"Allow Untrusted URLs\".",
         "TrustedUrlUtils.url_invalid": "This URL is invalid.",
-
         "PackageSelfUpdater.update_confirm:title": "Update Package",
         "PackageSelfUpdater.update_confirm:content": "The following packages will be updated:\n{0}",
         "PackageSelfUpdater.update_confirm:positive": "Update",
@@ -195,7 +180,6 @@
         "PackageSelfUpdater.update_available:confirm": "Update",
         "PackageSelfUpdater.update_progress:title": "Updating Package",
         "PackageSelfUpdater.update_progress:content": "Updating {0}...",
-
         "HEADER:URL_Input": "URL Input",
         "JLChnToZ.VRC.VVMW.UIHandler.urlInput": "URL Input",
         "JLChnToZ.VRC.VVMW.UIHandler.videoPlayerSelectButtonTemplate": "Video Player Select Button Template",
@@ -209,7 +193,6 @@
         "JLChnToZ.VRC.VVMW.UIHandler.queueModeText": "Queue Mode Text (Legacy)",
         "JLChnToZ.VRC.VVMW.UIHandler.queueModeTMPro": "Queue Mode Text (Text Mesh Pro)",
         "JLChnToZ.VRC.VVMW.UIHandler.otherObjectUnderUrlInput": "Other Object Under URL Input",
-
         "HEADER:Playback_Controls": "Playback Controls",
         "JLChnToZ.VRC.VVMW.UIHandler.playbackControlsAnimator": "Playback Controls Animator",
         "JLChnToZ.VRC.VVMW.UIHandler.playButton": "Play Button",
@@ -234,15 +217,12 @@
         "JLChnToZ.VRC.VVMW.UIHandler.durationText": "Duration Text (Legacy)",
         "JLChnToZ.VRC.VVMW.UIHandler.durationTMPro": "Duration Text (Text Mesh Pro)",
         "JLChnToZ.VRC.VVMW.UIHandler.timeContainer": "Time Container",
-
         "HEADER:Volume_Control": "Volume Control",
         "JLChnToZ.VRC.VVMW.UIHandler.volumeSlider": "Volume Slider",
         "JLChnToZ.VRC.VVMW.UIHandler.muteButton": "Mute Button",
         "JLChnToZ.VRC.VVMW.UIHandler.unmuteButton": "Unmute Button",
-
         "HEADER:Idle_Screen": "Idle Screen",
         "JLChnToZ.VRC.VVMW.UIHandler.idleScreenRoot": "Idle Screen Root",
-
         "HEADEAR:Queue_List_PlayList": "Queue List & PlayList",
         "JLChnToZ.VRC.VVMW.UIHandler.playListPanelRoot": "Play List Panel Root",
         "JLChnToZ.VRC.VVMW.UIHandler.playListScrollView": "Play List Scroll View",
@@ -252,7 +232,6 @@
         "JLChnToZ.VRC.VVMW.UIHandler.selectedPlayListText": "Selected Play List Text (Legacy)",
         "JLChnToZ.VRC.VVMW.UIHandler.selectedPlayListTMPro": "Selected Play List Text (Text Mesh Pro)",
         "JLChnToZ.VRC.VVMW.UIHandler.currentPlayListButton": "Current Play List Button",
-
         "HEADER:Sync_Offset_Controls": "Sync Offset Controls",
         "JLChnToZ.VRC.VVMW.UIHandler.shiftBackLButton": "Shift Back (More) Button",
         "JLChnToZ.VRC.VVMW.UIHandler.shiftBackSButton": "Shift Back (Small) Button",
@@ -261,7 +240,6 @@
         "JLChnToZ.VRC.VVMW.UIHandler.shiftResetButton": "Shift Reset Button",
         "JLChnToZ.VRC.VVMW.UIHandler.shiftOffsetText": "Shift Offset Text (Legacy)",
         "JLChnToZ.VRC.VVMW.UIHandler.shiftOffsetTMPro": "Shift Offset Text (Text Mesh Pro)",
-
         "HEADER:Speed_Adjustment_Controls": "Speed Adjustment Controls",
         "JLChnToZ.VRC.VVMW.UIHandler.speedControlsRoot": "Speed Controls Root",
         "JLChnToZ.VRC.VVMW.UIHandler.speedDownLButton": "Speed Down (More) Button",
@@ -271,12 +249,10 @@
         "JLChnToZ.VRC.VVMW.UIHandler.speedResetButton": "Speed Reset Button",
         "JLChnToZ.VRC.VVMW.UIHandler.speedOffsetText": "Speed Offset Text (Legacy)",
         "JLChnToZ.VRC.VVMW.UIHandler.speedOffsetTMPro": "Speed Offset Text (Text Mesh Pro)",
-
         "HEADER:Screen_Controls": "Screen Controls",
         "JLChnToZ.VRC.VVMW.UIHandler.luminanceSlider": "Luminance Slider",
         "JLChnToZ.VRC.VVMW.UIHandler.luminancePropertyName": "Luminance Property Name",
         "JLChnToZ.VRC.VVMW.UIHandler.luminancePropertyName:tooltip": "The property name of the shader to control the luminance of the screen",
-
         "JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorPalette": "Color Palette",
         "JLChnToZ.VRC.VVMW.Designer.ColorConfig.advanced": "Advanced",
         "JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorN": "Color {0}",
@@ -288,7 +264,6 @@
         "JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply_all:content": "Are you sure to apply this color palette to all Color Config in this scene?",
         "JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply_all:positive": "Yes",
         "JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply_all:negative": "No",
-
         "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.colorIndex": "Color Index",
         "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.normalColorIndex": "Normal Color Index",
         "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.highlightedColorIndex": "Highlighted Color Index",
@@ -296,7 +271,6 @@
         "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.selectedColorIndex": "Selected Color Index",
         "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.disabledColorIndex": "Disabled Color Index",
         "JLChnToZ.VRC.VVMW.Designer.ResyncButtonConfigurator.globalSync": "Is Global Sync",
-
         "HEADER:PickupPanel.References": "References",
         "JLChnToZ.VRC.VVMW.Pickups.PickupPanel.scalingTarget": "Scaling Target",
         "JLChnToZ.VRC.VVMW.Pickups.PickupPanel.lockButton": "Lock Button",
@@ -369,24 +343,19 @@
     "zh-hant": {
         "_alias": ["zh-tw", "zh-hk", "zh-mo"],
         "_name": "繁體中文",
-
         "Language": "編輯器語言",
         "VVMW.AutoFind": "自動搜尋",
         "VVMW.Remove": "移除",
         "VVMW.Mode": "模式",
         "VVMW.All": "全部",
         "VVMW.Material": "材質",
-
         "JLChnToZ.VRC.VVMW.UdonSharpEventSender.targets": "事件目標",
         "JLChnToZ.VRC.VVMW.UdonSharpEventSender.targets:tooltip": "將從此物件接收事件的 UdonSharpBehavior。",
-
         "JLChnToZ.VRC.VVMW.VRCCanvasUtility.canvasScale": "畫布縮放",
-
         "HEADER:Main_Reference": "主要參考",
         "JLChnToZ.VRC.VVMW.Core": "播放器核心",
         "JLChnToZ.VRC.VVMW.Core:empty_message": "播放器核心不能為空。",
         "VVMW.handler": "播放及待播清單處理器",
-
         "JLChnToZ.VRC.VVMW.Core.playerHandlers": "播放器處理器",
         "JLChnToZ.VRC.VVMW.Core.audioSources": "音源",
         "JLChnToZ.VRC.VVMW.Core.audioSources:tooltip": "要連結到影片播放器的音源，將設置為影片播放器的主要音源，音量可以由影片播放器控制。",
@@ -429,7 +398,6 @@
         "JLChnToZ.VRC.VVMW.Core.timeDriftDetectThreshold:tooltip": "當時間漂移大於此值時，播放器將調整時間以與擁有者的時間同步。\n建議保持此值不要太低或太高，因為這可能會導致影片來回跳動，或播放器之間的時間可能漂移太遠。",
         "JLChnToZ.VRC.VVMW.Core.audioLink": "Audio Link",
         "JLChnToZ.VRC.VVMW.Core.yttl": "影片標題查看器 (YTTL)",
-
         "JLChnToZ.VRC.VVMW.Core.editUrlsIn": "在 {0} 中編輯 URL",
         "JLChnToZ.VRC.VVMW.Core.setupSpeakers": "自動搜尋和設置",
         "JLChnToZ.VRC.VVMW.Core.videoScreenTarget": "影片螢幕目標 {0}",
@@ -438,7 +406,6 @@
         "VVMW.Material.PropertyBlock": "屬性塊",
         "VVMW.Material.SharedMaterial": "共享材質",
         "VVMW.Material.ClonedMaterial": "複製材質",
-
         "JLChnToZ.VRC.VVMW.AbstractMediaPlayerHandler.playerName": "影片播放器後端名稱",
         "JLChnToZ.VRC.VVMW.AbstractMediaPlayerHandler.playerName:tooltip": "當前影片播放器後端的名稱。可以是語言包 JSON 中映射的鍵。",
         "HEADER:MeshRenderer": "網格渲染器 (如非必要，請勿更改)",
@@ -456,7 +423,6 @@
         "JLChnToZ.VRC.VVMW.VideoPlayerHandler.blitMaterial:tooltip": "此材質將用於將屏幕複製到臨時渲染材質以進行閃爍解決方案。除非需要，否則不要更改它。",
         "JLChnToZ.VRC.VVMW.VideoPlayerHandler.maxResolution": "最大解析度",
         "JLChnToZ.VRC.VVMW.VideoPlayerHandler.isLowLatency": "低延遲",
-
         "JLChnToZ.VRC.VVMW.FrontendHandler.enableQueueList": "啟用待播清單",
         "JLChnToZ.VRC.VVMW.FrontendHandler.enableQueueList:tooltip": "如果啟用，當用戶想播放影片並且正在播放其他影片時，該影片將被排隊。建議啟用，因為這樣對每個人都更有禮貌。",
         "JLChnToZ.VRC.VVMW.FrontendHandler.historySize": "歷史記錄大小",
@@ -479,7 +445,6 @@
         "JLChnToZ.VRC.VVMW.FrontendHandler.loopMode.none": "無",
         "JLChnToZ.VRC.VVMW.FrontendHandler.loopMode.singleLoop": "重複一次",
         "JLChnToZ.VRC.VVMW.FrontendHandler.loopMode.repeatAll": "重複全部",
-
         "PlaylistEditor.title": "播放清單編輯器",
         "PlaylistEditor.reload": "重新載入",
         "PlaylistEditor.reload_confirm:title": "重新載入",
@@ -516,14 +481,11 @@
         "PlaylistEditor.import_object:positive": "保留當前 (附加)",
         "PlaylistEditor.import_object:negative": "替換當前",
         "PlaylistEditor.import_object:alt": "取消",
-
         "JLChnToZ.VRC.VVMW.RateLimitResolver.message": "此組件用於透過防抖手法 (在一定時間處於不動狀態)，減少請求次數過高發生的機會。",
-
         "JLChnToZ.VRC.VVMW.I18N.LanguageManager.languageJsonFiles": "語言 JSON 檔案",
         "JLChnToZ.VRC.VVMW.I18N.LanguageManager.languageJson": "語言 JSON",
         "JLChnToZ.VRC.VVMW.I18N.LanguageManager.openLanguageEditor": "打開語言包編輯器",
         "JLChnToZ.VRC.VVMW.I18N.LanguageReceiver.key": "語言鍵",
-
         "LanguageEditor.title": "語言包編輯器",
         "LanguageEditor.reload": "重新載入",
         "LanguageEditor.save": "保存",
@@ -546,11 +508,9 @@
         "LanguageEditor.tz_exists_message:title": "錯誤",
         "LanguageEditor.tz_exists_message:content": "時區已存在。",
         "LanguageEditor.tz_exists_message:positive": "確定",
-
         "TrustedUrlUtils.scheme_not_supported": "{0} 不是支援的協議。",
         "TrustedUrlUtils.url_not_trusted": "此域名不在 VRChat 信任網域名單中。\n除非啟用「允許不受信任的網址」，用戶將無法訪問此網址。",
         "TrustedUrlUtils.url_invalid": "此網址無效。",
-
         "PackageSelfUpdater.update_confirm:title": "更新套件",
         "PackageSelfUpdater.update_confirm:content": "將更新以下套件：\n{0}",
         "PackageSelfUpdater.update_confirm:positive": "更新",
@@ -566,7 +526,6 @@
         "PackageSelfUpdater.update_available:confirm": "更新",
         "PackageSelfUpdater.update_progress:title": "正在更新套件",
         "PackageSelfUpdater.update_progress:content": "正在更新 {0}...",
-
         "HEADER:URL_Input": "網址輸入",
         "JLChnToZ.VRC.VVMW.UIHandler.urlInput": "網址輸入",
         "JLChnToZ.VRC.VVMW.UIHandler.videoPlayerSelectButtonTemplate": "影片播放器選擇按鈕模板",
@@ -580,7 +539,6 @@
         "JLChnToZ.VRC.VVMW.UIHandler.queueModeText": "待播模式文字 (舊版)",
         "JLChnToZ.VRC.VVMW.UIHandler.queueModeTMPro": "待播模式文字 (Text Mesh Pro)",
         "JLChnToZ.VRC.VVMW.UIHandler.otherObjectUnderUrlInput": "網址輸入下方的其他物件",
-
         "HEADER:Playback_Controls": "播放控制",
         "JLChnToZ.VRC.VVMW.UIHandler.playbackControlsAnimator": "播放控制動畫控制器",
         "JLChnToZ.VRC.VVMW.UIHandler.playButton": "播放按鈕",
@@ -605,15 +563,12 @@
         "JLChnToZ.VRC.VVMW.UIHandler.durationText": "持續時間文字 (舊版)",
         "JLChnToZ.VRC.VVMW.UIHandler.durationTMPro": "持續時間文字 (Text Mesh Pro)",
         "JLChnToZ.VRC.VVMW.UIHandler.timeContainer": "時間容器",
-
         "HEADER:Volume_Control": "音量控制",
         "JLChnToZ.VRC.VVMW.UIHandler.volumeSlider": "音量滑桿",
         "JLChnToZ.VRC.VVMW.UIHandler.muteButton": "靜音按鈕",
         "JLChnToZ.VRC.VVMW.UIHandler.unmuteButton": "取消靜音按鈕",
-
         "HEADER:Idle_Screen": "待機畫面",
         "JLChnToZ.VRC.VVMW.UIHandler.idleScreenRoot": "待機畫面根物件",
-
         "HEADEAR:Queue_List_PlayList": "待播清單與播放清單",
         "JLChnToZ.VRC.VVMW.UIHandler.playListPanelRoot": "播放清單面板根物件",
         "JLChnToZ.VRC.VVMW.UIHandler.playListScrollView": "播放清單捲動視圖",
@@ -623,7 +578,6 @@
         "JLChnToZ.VRC.VVMW.UIHandler.selectedPlayListText": "已選擇播放清單文字 (舊版)",
         "JLChnToZ.VRC.VVMW.UIHandler.selectedPlayListTMPro": "已選擇播放清單文字 (Text Mesh Pro)",
         "JLChnToZ.VRC.VVMW.UIHandler.currentPlayListButton": "目前播放清單按鈕",
-
         "HEADER:Sync_Offset_Controls": "同步偏移控制",
         "JLChnToZ.VRC.VVMW.UIHandler.shiftBackLButton": "向後移動 (多) 按鈕",
         "JLChnToZ.VRC.VVMW.UIHandler.shiftBackSButton": "向後移動 (少) 按鈕",
@@ -632,7 +586,6 @@
         "JLChnToZ.VRC.VVMW.UIHandler.shiftResetButton": "移動重設按鈕",
         "JLChnToZ.VRC.VVMW.UIHandler.shiftOffsetText": "移動偏移文字 (舊版)",
         "JLChnToZ.VRC.VVMW.UIHandler.shiftOffsetTMPro": "移動偏移文字 (Text Mesh Pro)",
-
         "HEADER:Speed_Adjustment_Controls": "速度調整控制",
         "JLChnToZ.VRC.VVMW.UIHandler.speedControlsRoot": "速度控制根物件",
         "JLChnToZ.VRC.VVMW.UIHandler.speedDownLButton": "速度降低 (多) 按鈕",
@@ -642,12 +595,10 @@
         "JLChnToZ.VRC.VVMW.UIHandler.speedResetButton": "速度重設按鈕",
         "JLChnToZ.VRC.VVMW.UIHandler.speedOffsetText": "速度偏移文字 (舊版)",
         "JLChnToZ.VRC.VVMW.UIHandler.speedOffsetTMPro": "速度偏移文字 (Text Mesh Pro)",
-
         "HEADER:Screen_Controls": "螢幕控制",
         "JLChnToZ.VRC.VVMW.UIHandler.luminanceSlider": "亮度滑桿",
         "JLChnToZ.VRC.VVMW.UIHandler.luminancePropertyName": "亮度屬性名稱",
         "JLChnToZ.VRC.VVMW.UIHandler.luminancePropertyName:tooltip": "控制螢幕亮度的著色器屬性名稱",
-
         "JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorPalette": "顏色調色板",
         "JLChnToZ.VRC.VVMW.Designer.ColorConfig.advanced": "進階",
         "JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorN": "顏色 {0}",
@@ -659,7 +610,6 @@
         "JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply_all:content": "您確定要套用這些顏色到全部影片播放器嗎？",
         "JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply_all:positive": "是",
         "JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply_all:negative": "否",
-
         "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.colorIndex": "顏色索引",
         "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.normalColorIndex": "正常顏色索引",
         "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.highlightedColorIndex": "高亮顏色索引",
@@ -689,7 +639,6 @@
         "JLChnToZ.VRC.VVMW.Pickups.PickupPanel.multiple_message:content": "您已經在場景中擁有一個覆蓋控制器，添加另一個可能會導致意外行為，您確定要繼續嗎？",
         "JLChnToZ.VRC.VVMW.Pickups.PickupPanel.multiple_message:positive": "是",
         "JLChnToZ.VRC.VVMW.Pickups.PickupPanel.multiple_message:negative": "否",
-
         "JLChnToZ.VRC.VVMW.Pickups.PickupReset.pickupPanel": "拾取螢幕控制器",
         "JLChnToZ.VRC.VVMW.Pickups.PickupReset.interactKey": "互動提示鍵",
         "JLChnToZ.VRC.VVMW.BGMVolumeControl.volume": "音量",

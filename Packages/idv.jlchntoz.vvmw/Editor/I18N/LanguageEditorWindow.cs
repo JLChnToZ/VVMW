@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
+using JLChnToZ.VRC.VVMW.Editors;
 
 namespace JLChnToZ.VRC.VVMW.I18N.Editors {
     public class LanguageEditorWindow : EditorWindow {
@@ -29,7 +30,6 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
             if (languageManager == null) return null;
             var window = GetWindow<LanguageEditorWindow>();
             window.LanguageManager = languageManager;
-            window.titleContent = new GUIContent(EditorI18N.Instance.GetOrDefault("LanguageEditor.title"));
             window.Show();
             window.RefreshAll();
             return window;
@@ -37,6 +37,8 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
 
         void OnEnable() {
             if (i18n == null) i18n = EditorI18N.Instance;
+            VVMWEditorBase.UpdateTitle(titleContent, "LanguageEditor.title");
+            titleContent = titleContent; // Trigger update title
             if (hasInit) return;
             hasInit = true;
             textContent = new GUIContent();
@@ -214,6 +216,13 @@ namespace JLChnToZ.VRC.VVMW.I18N.Editors {
                                 }
                         }
                     }
+                }
+            }
+            var evt = Event.current;
+            if (evt.type == EventType.KeyUp) {
+                switch (evt.keyCode) {
+                    case KeyCode.S: if (evt.control) { Save(); evt.Use(); } break;
+                    case KeyCode.R: if (evt.control) { RefreshAll(); evt.Use(); } break;
                 }
             }
         }

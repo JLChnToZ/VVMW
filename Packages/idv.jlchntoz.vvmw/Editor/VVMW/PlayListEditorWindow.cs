@@ -42,12 +42,24 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         public static void StartEditPlayList(FrontendHandler handler) {
-            var window = GetWindow<PlayListEditorWindow>(EditorI18N.Instance.GetOrDefault("PlaylistEditor.title"));
+            var window = GetWindow<PlayListEditorWindow>();
             window.FrontendHandler = handler;
+        }
+
+        void UpdateTitle() {
+            VVMWEditorBase.UpdateTitle(titleContent, "PlaylistEditor.title", isDirty);
+            titleContent = titleContent; // Trigger update title
+        }
+
+        void SetDirty(bool isDirty) {
+            if (this.isDirty == isDirty) return;
+            this.isDirty = isDirty;
+            UpdateTitle();
         }
 
         void OnEnable() {
             if (i18n == null) i18n = EditorI18N.Instance;
+            UpdateTitle();
             if (playListView == null) playListView = new ReorderableList(playLists, typeof(PlayList), true, true, true, true) {
                 drawHeaderCallback = DrawPlayListHeader,
                 drawElementCallback = DrawPlayList,
@@ -70,7 +82,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar)) {
                 FrontendHandler = EditorGUILayout.ObjectField(FrontendHandler, typeof(FrontendHandler), true) as FrontendHandler;
                 if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.reload"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)) &&
-                    i18n.DisplayLocalizedDialog2("PlaylistEditor.reload"))
+                    i18n.DisplayLocalizedDialog2("PlaylistEditor.reload_confirm"))
                     DeserializePlayList();
                 using (new EditorGUI.DisabledGroupScope(!isDirty))
                     if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.save"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
@@ -140,6 +152,33 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             }
                         }
                         break;
+                    case EventType.KeyUp:
+                        switch (evt.keyCode) {
+                            case KeyCode.S:
+                                if (evt.control) {
+                                    if (!evt.shift) {
+                                        SerializePlayList();
+                                        evt.Use();
+                                    } else if (playLists.Count > 0) {
+                                        ExportPlayListToJson(true);
+                                        evt.Use();
+                                    }
+                                }
+                                break;
+                            case KeyCode.O:
+                                if (evt.control) {
+                                    ImportPlayListFromJson();
+                                    evt.Use();
+                                }
+                                break;
+                            case KeyCode.R:
+                                if (evt.control) {
+                                    DeserializePlayList();
+                                    evt.Use();
+                                }
+                                break;
+                        }
+                        break;
                 }
             }
             EditorGUILayout.HelpBox(i18n.GetOrDefault("PlaylistEditor.hint"), MessageType.Info);
@@ -157,7 +196,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (changed.changed) {
                     playList.title = newTitle;
                     playLists[index] = playList;
-                    isDirty = true;
+                    SetDirty(true);
                 }
             }
         }
@@ -203,7 +242,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (changed.changed) {
                     entry.title = newTitle;
                     selectedPlayList.entries[index] = entry;
-                    isDirty = true;
+                    SetDirty(true);
                 }
             }
             if (playerHandlerNames != null) {
@@ -216,7 +255,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     if (changed.changed) {
                         entry.playerIndex = (byte)newPlayerIndex;
                         selectedPlayList.entries[index] = entry;
-                        isDirty = true;
+                        SetDirty(true);
                     }
                 }
             }
@@ -230,7 +269,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (changed.changed) {
                     entry.url = newUrl;
                     selectedPlayList.entries[index] = entry;
-                    isDirty = true;
+                    SetDirty(true);
                 }
             }
             var urlQuestRect = rect;
@@ -243,7 +282,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (changed.changed) {
                     entry.urlForQuest = newUrl == entry.url ? string.Empty : newUrl;
                     selectedPlayList.entries[index] = entry;
-                    isDirty = true;
+                    SetDirty(true);
                 }
             }
             EditorGUIUtility.labelWidth = labelSize;
@@ -256,13 +295,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 firstAvProPlayerIndex = -1;
                 loadedCore = null;
                 playLists.Clear();
-                isDirty = false;
+                SetDirty(false);
                 return;
             }
             UpdatePlayerHandlerInfos();
             playLists.Clear();
             AppendPlaylist(frontendHandler);
-            isDirty = false;
+            SetDirty(false);
             if (playListView != null) {
                 playListView.index = -1;
                 PlayListSelected(playListView);
@@ -295,7 +334,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     playLists.Add(playList);
                 }
             }
-            isDirty = true;
+            SetDirty(true);
         }
 
         void SerializePlayList() {
@@ -332,7 +371,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
                 serializedObject.ApplyModifiedProperties();
             }
-            isDirty = false;
+            SetDirty(false);
             OnFrontendUpdated?.Invoke(frontendHandler);
         }
 
@@ -347,34 +386,34 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 entries = new List<PlayListEntry>(),
             });
             list.index = playLists.Count - 1;
-            isDirty = true;
+            SetDirty(true);
             PlayListSelected(list);
         }
 
         void RemovePlayList(ReorderableList list) {
             playLists.RemoveAt(list.index);
             list.index = Mathf.Clamp(playListView.index, 0, playLists.Count - 1);
-            isDirty = true;
+            SetDirty(true);
             PlayListSelected(list);
         }
 
         void ReorderPlayList(ReorderableList list) {
             PlayListSelected(list);
-            isDirty = true;
+            SetDirty(true);
         }
 
         void AddPlayListEntry(ReorderableList list) {
             ReorderableList.defaultBehaviours.DoAddButton(list);
-            isDirty = true;
+            SetDirty(true);
         }
 
         void RemovePlayListEntry(ReorderableList list) {
             ReorderableList.defaultBehaviours.DoRemoveButton(list);
-            isDirty = true;
+            SetDirty(true);
         }
 
         void ReorderPlayListEntry(ReorderableList list) {
-            isDirty = true;
+            SetDirty(true);
         }
 
         void UpdatePlayerHandlerInfos() {
@@ -475,7 +514,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             playLists.Add(playList);
             playListView.index = playLists.Count - 1;
             PlayListSelected(playListView);
-            isDirty = true;
+            SetDirty(true);
             return playList;
         }
 
@@ -492,7 +531,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         urlForQuest = string.Empty,
                         playerIndex = playerIndex,
                     });
-                    isDirty = true;
+                    SetDirty(true);
                 }
             } catch (Exception ex) {
                 Debug.LogException(ex);
@@ -515,7 +554,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         urlForQuest = alt.Get() ?? string.Empty,
                         playerIndex = 0,
                     });
-                    isDirty = true;
+                    SetDirty(true);
                 }
             } catch (Exception ex) {
                 Debug.LogException(ex);
@@ -535,7 +574,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         urlForQuest = string.Empty,
                         playerIndex = trackMode == 1 ? firstAvProPlayerIndex : firstUnityPlayerIndex,
                     });
-                    isDirty = true;
+                    SetDirty(true);
                 }
             } catch (Exception ex) {
                 Debug.LogException(ex);
@@ -575,7 +614,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         urlForQuest = string.Empty,
                         playerIndex = trackMode == 1 ? firstAvProPlayerIndex : firstUnityPlayerIndex,
                     });
-                    isDirty = true;
+                    SetDirty(true);
                 }
             } catch (Exception ex) {
                 Debug.LogException(ex);
@@ -595,7 +634,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         urlForQuest = string.Empty,
                         playerIndex = trackMode == 1 ? firstAvProPlayerIndex : firstUnityPlayerIndex,
                     });
-                    isDirty = true;
+                    SetDirty(true);
                 }
             } catch (Exception ex) {
                 Debug.LogException(ex);
@@ -618,7 +657,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         urlForQuest = string.Empty,
                         playerIndex = isLive ? firstAvProPlayerIndex : firstUnityPlayerIndex,
                     });
-                    isDirty = true;
+                    SetDirty(true);
                 }
             } catch (Exception ex) {
                 Debug.LogException(ex);
@@ -641,7 +680,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         urlForQuest = questUrl?.Get() ?? string.Empty,
                         playerIndex = 0,
                     });
-                    isDirty = true;
+                    SetDirty(true);
                 }
             } catch (Exception ex) {
                 Debug.LogException(ex);
@@ -701,14 +740,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 case JsonType.Array:
                     if (playLists.Count > 0 && !i18n.DisplayLocalizedDialog2("PlaylistEditor.import_array")) {
                         playLists.Clear();
-                        isDirty = true;
+                        SetDirty(true);
                     }
                     LoadPlayLists(jsonData);
                     break;
                 case JsonType.Object:
                     if (selectedPlayList.entries != null)
                         switch (i18n.DisplayLocalizedDialog3("PlaylistEditor.import_object")) {
-                            case 1: selectedPlayList.entries.Clear(); isDirty = true; break;
+                            case 1: selectedPlayList.entries.Clear(); SetDirty(true); break;
                             case 2: selectedPlayList = GetOrCreatePlayList(jsonData["title"].ToString(), true); break;
                         }
                     else
@@ -743,7 +782,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         urlForQuest = urlForQuest,
                         playerIndex = playerIndex,
                     });
-                    isDirty = true;
+                    SetDirty(true);
                 } catch (Exception ex) {
                     Debug.LogException(ex);
                 }
@@ -761,7 +800,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     urlForQuest = string.Empty,
                     playerIndex = 0,
                 });
-            isDirty = true;
+            SetDirty(true);
         }
 
         async UniTask FetchTitles() {
@@ -778,13 +817,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 entry.title = entries[i].title;
                 selectedPlayList.entries[i] = entry;
             }
-            isDirty = true;
+            SetDirty(true);
         }
 
         void ReversePlaylist() {
             if (selectedPlayList.entries == null || selectedPlayList.entries.Count == 0) return;
             selectedPlayList.entries.Reverse();
-            isDirty = true;
+            SetDirty(true);
         }
 
         [Serializable]
