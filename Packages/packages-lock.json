@@ -216,13 +216,19 @@
         "com.unity.postprocessing": "3.2.2"
       }
     },
-    "com.vrchat.core.vpm-resolver": {
-      "version": "file:com.vrchat.core.vpm-resolver",
+    "com.vrchat.core.bootstrap": {
+      "version": "file:com.vrchat.core.bootstrap",
       "depth": 0,
       "source": "embedded",
       "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "3.0.2"
+        "com.unity.nuget.newtonsoft-json": "2.0.2"
       }
+    },
+    "com.vrchat.demo-template": {
+      "version": "file:com.vrchat.demo-template",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.vrchat.worlds": {
       "version": "file:com.vrchat.worlds",
@@ -231,7 +237,9 @@
       "dependencies": {
         "com.unity.cinemachine": "2.9.7",
         "com.unity.textmeshpro": "3.0.6",
-        "com.unity.inputsystem": "1.2.0"
+        "com.unity.inputsystem": "1.2.0",
+        "com.unity.ai.navigation": "1.1.5",
+        "com.unity.ugui": "1.0.0"
       }
     },
     "idv.jlchntoz.editorutils": {
