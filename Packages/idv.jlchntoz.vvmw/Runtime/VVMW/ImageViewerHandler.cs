@@ -106,8 +106,9 @@ namespace JLChnToZ.VRC.VVMW {
                 index = urlStr.IndexOf('?');
                 if (index < 0) index = urlStr.Length;
             }
-            index = urlStr.LastIndexOf('.', index - 1);
-            switch (urlStr.Substring(index + 1).ToLower()) {
+            int startIndex = urlStr.LastIndexOf('.', index - 1) + 1;
+            if (startIndex < 0 || startIndex >= index) return -1;
+            switch (urlStr.Substring(startIndex, index - startIndex).ToLower()) {
                 case "png":
                 case "jpg":
                 case "jpeg":
