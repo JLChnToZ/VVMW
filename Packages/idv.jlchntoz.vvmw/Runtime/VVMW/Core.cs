@@ -345,6 +345,9 @@ namespace JLChnToZ.VRC.VVMW {
                 var videoTexture = VideoTexture;
                 if (videoTexture != null) VRCShader.SetGlobalTexture(broadcastTextureId, videoTexture);
             }
+            #if AUDIOLINK_V1
+            SendCustomEventDelayedFrames(nameof(_RestoreAudioLinkState), 0);
+            #endif
             if (afterFirstRun) return;
             url = VRCUrl.Empty;
             foreach (var handler in playerHandlers)
@@ -609,6 +612,13 @@ namespace JLChnToZ.VRC.VVMW {
         public override void OnVideoPlay() {
             SendEvent("OnVideoPlay");
             SetAudioPitch();
+            AssignAudioLinkSource();
+            if (!synced || !Networking.IsOwner(gameObject) || isLocalReloading) return;
+            state = PLAYING;
+            StartSyncTime();
+        }
+
+        void AssignAudioLinkSource() {
             assignedAudioSource = activeHandler.PrimaryAudioSource;
             if (audioLink != null) {
                 if (assignedAudioSource != null)
@@ -621,9 +631,6 @@ namespace JLChnToZ.VRC.VVMW {
                     audioLink.SetProgramVariable("audioSource", assignedAudioSource);
                 #endif
             }
-            if (!synced || !Networking.IsOwner(gameObject) || isLocalReloading) return;
-            state = PLAYING;
-            StartSyncTime();
         }
 
         public override void OnVideoPause() {
@@ -970,12 +977,6 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void StartSyncTime() {
-            #if AUDIOLINK_V1
-            if (!isSyncAudioLink) {
-                isSyncAudioLink = true;
-                _SyncAudioLink();
-            }
-            #endif
             if (!synced) return;
             SyncTime(true);
             if (!isResyncTime) {
@@ -1101,6 +1102,10 @@ namespace JLChnToZ.VRC.VVMW {
                 audioLink.autoSetMediaState = false;
                 audioLink.SetMediaPlaying(state);
             }
+            if (!isSyncAudioLink) {
+                isSyncAudioLink = true;
+                _SyncAudioLink();
+            }
         }
 
         public void _SyncAudioLink() {
@@ -1116,6 +1121,21 @@ namespace JLChnToZ.VRC.VVMW {
             }
             audioLink.SetMediaTime(activeHandler.Time / duration);
             SendCustomEventDelayedSeconds(nameof(_SyncAudioLink), 0.25F);
+        }
+
+        public void _RestoreAudioLinkState() {
+            var state = MediaPlaying.Stopped;
+            if (activeHandler != null) {
+                if (activeHandler.IsPlaying) {
+                    state = MediaPlaying.Playing;
+                    AssignAudioLinkSource();
+                } else if (activeHandler.IsPaused)
+                    state = MediaPlaying.Paused;
+            } else if (isLoading)
+                state = MediaPlaying.Loading;
+            else if (isError)
+                state = MediaPlaying.Error;
+            SetAudioLinkPlayBackState(state);
         }
         #endif
 

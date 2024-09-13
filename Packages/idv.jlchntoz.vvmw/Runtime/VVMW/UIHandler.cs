@@ -162,6 +162,7 @@ namespace JLChnToZ.VRC.VVMW {
         DateTime joinTime, playListLastInteractTime;
         TimeSpan interactCoolDown = TimeSpan.FromSeconds(5);
         bool afterFirstRun;
+        int initKey, playbackStateKey;
 
         int SelectedPlayListIndex {
             get {
@@ -193,7 +194,13 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void OnEnable() {
-            if (playbackControlsAnimator != null) playbackControlsAnimator.SetTrigger("Init");
+            if (playbackControlsAnimator != null) {
+                if (!afterFirstRun) {
+                    initKey = Animator.StringToHash("Init");
+                    playbackStateKey = Animator.StringToHash("PlaybackState");
+                }
+                playbackControlsAnimator.SetTrigger(initKey);
+            }
             if (afterFirstRun) return;
             afterFirstRun = true;
             joinTime = DateTime.UtcNow;
@@ -486,7 +493,8 @@ namespace JLChnToZ.VRC.VVMW {
             bool canStop = false;
             bool canLocalSync = false;
             bool canSeek = false;
-            switch (core.State) {
+            int state = core.State;
+            switch (state) {
                 case 0: // Idle
                     if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
                     SetStatusEnabled(true);
@@ -545,6 +553,7 @@ namespace JLChnToZ.VRC.VVMW {
                     canSeek = true;
                     break;
             }
+            if (playbackControlsAnimator != null) playbackControlsAnimator.SetInteger(playbackStateKey, state);
             if (reloadButton != null) {
                 var localUrl = core.Url;
                 canLocalSync = !VRCUrl.IsNullOrEmpty(localUrl);
