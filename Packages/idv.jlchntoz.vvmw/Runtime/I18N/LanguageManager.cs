@@ -23,6 +23,7 @@ namespace JLChnToZ.VRC.VVMW.I18N {
 
         [FieldChangeCallback(nameof(LanguageKey))]
         string languageKey = "EN";
+        string requestedUILanguage;
         string[] languageKeys;
         string[] languageNames;
         bool afterFirstRun;
@@ -42,58 +43,67 @@ namespace JLChnToZ.VRC.VVMW.I18N {
             if (afterFirstRun) return;
             afterFirstRun = true;
             if (VRCJson.TryDeserializeFromJson(languageJson, out DataToken rawLanguages) && rawLanguages.TokenType == TokenType.DataDictionary) {
-                var uiLanguage = VRCPlayerApi.GetCurrentLanguage();
                 languages = rawLanguages.DataDictionary;
                 languageKeys = new string[languages.Count];
                 languageNames = new string[languages.Count];
                 var keys = languages.GetKeys();
-                var localTimeZone = TimeZoneInfo.Local.Id;
-                int hasMatchingLanguage = 0;
                 for (int i = 0, count = keys.Count; i < count; i++) {
                     var currentLanguageKey = keys[i].String;
-                    languageKeys[i] = currentLanguageKey;
-                    if (languages.TryGetValue(currentLanguageKey, TokenType.DataDictionary, out DataToken language)) {
-                        if (hasMatchingLanguage < 2 && language.DataDictionary.TryGetValue("_vrclang", out DataToken langToken)) {
-                            switch (langToken.TokenType) {
-                                case TokenType.String:
-                                    if (langToken.String == uiLanguage) {
-                                        languageKey = currentLanguageKey;
-                                        hasMatchingLanguage = 2;
-                                    }
-                                    break;
-                                case TokenType.DataList:
-                                    if (langToken.DataList.Contains(uiLanguage)) {
-                                        languageKey = currentLanguageKey;
-                                        hasMatchingLanguage = 2;
-                                    }
-                                    break;
-                            }
-                        }
-                        if (hasMatchingLanguage < 1 && language.DataDictionary.TryGetValue("_timezone", out DataToken timezoneToken))
-                            switch (timezoneToken.TokenType) {
-                                case TokenType.String:
-                                    if (timezoneToken.String == localTimeZone) {
-                                        languageKey = currentLanguageKey;
-                                        hasMatchingLanguage = 1;
-                                    }
-                                    break;
-                                case TokenType.DataList:
-                                    if (timezoneToken.DataList.Contains(localTimeZone)) {
-                                        languageKey = currentLanguageKey;
-                                        hasMatchingLanguage = 1;
-                                    }
-                                    break;
-                            }
-                        if (language.DataDictionary.TryGetValue("_name", TokenType.String, out DataToken nameToken)) {
-                            languageNames[i] = nameToken.String;
-                            continue;
-                        }
+                    languageKeys[i] = keys[i].String;
+                    if (languages.TryGetValue(currentLanguageKey, TokenType.DataDictionary, out DataToken token) &&
+                        token.DataDictionary.TryGetValue("_name", TokenType.String, out token)) {
+                        languageNames[i] = token.String;
+                        continue;
                     }
                     languageNames[i] = currentLanguageKey;
                 }
-                ChangeLanguage();
+                DetectLanguage(VRCPlayerApi.GetCurrentLanguage());
             } else
                 Debug.LogError("Failed to parse language json.");
+        }
+
+        void DetectLanguage(string uiLanguage) {
+            if (requestedUILanguage == uiLanguage) return;
+            requestedUILanguage = uiLanguage;
+            var localTimeZone = TimeZoneInfo.Local.Id;
+            int hasMatchingLanguage = 0;
+            for (int i = 0, count = languageKeys.Length; i < count; i++) {
+                var currentLanguageKey = languageKeys[i];
+                if (!languages.TryGetValue(currentLanguageKey, TokenType.DataDictionary, out DataToken language))
+                    continue;
+                if (hasMatchingLanguage < 2 && language.DataDictionary.TryGetValue("_vrclang", out DataToken langToken)) {
+                    switch (langToken.TokenType) {
+                        case TokenType.String:
+                            if (langToken.String == uiLanguage) {
+                                languageKey = currentLanguageKey;
+                                hasMatchingLanguage = 2;
+                            }
+                            break;
+                        case TokenType.DataList:
+                            if (langToken.DataList.Contains(uiLanguage)) {
+                                languageKey = currentLanguageKey;
+                                hasMatchingLanguage = 2;
+                            }
+                            break;
+                    }
+                }
+                if (hasMatchingLanguage < 1 && language.DataDictionary.TryGetValue("_timezone", out DataToken timezoneToken))
+                    switch (timezoneToken.TokenType) {
+                        case TokenType.String:
+                            if (timezoneToken.String == localTimeZone) {
+                                languageKey = currentLanguageKey;
+                                hasMatchingLanguage = 1;
+                            }
+                            break;
+                        case TokenType.DataList:
+                            if (timezoneToken.DataList.Contains(localTimeZone)) {
+                                languageKey = currentLanguageKey;
+                                hasMatchingLanguage = 1;
+                            }
+                            break;
+                    }
+            }
+            ChangeLanguage();
         }
 
         public string GetLocale(string key) {
@@ -110,6 +120,14 @@ namespace JLChnToZ.VRC.VVMW.I18N {
             currentLanguage = currentLanguageWrapped.DataDictionary;
             SendEvent("_OnLanguageChanged");
         }
+
+#if VRCSDK_3_7_0_OR_NEWER
+        public override void OnLanguageChanged(string language) => DetectLanguage(language);
+#else
+        [NonSerialized]
+        public string onLanguageChangedLanguage;
+        public void _onLanguageChanged() => DetectLanguage(onLanguageChangedLanguage);
+#endif
     }
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
