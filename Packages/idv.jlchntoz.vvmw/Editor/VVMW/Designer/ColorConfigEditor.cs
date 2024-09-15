@@ -1,7 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
+using JLChnToZ.VRC.Foundation.Editors;
+using JLChnToZ.VRC.Foundation.I18N.Editors;
 using JLChnToZ.VRC.VVMW.Editors;
+using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
     [CustomEditor(typeof(ColorConfig))]
@@ -31,7 +34,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     }
                     using (new EditorGUI.DisabledScope(colorsProperty.arraySize <= 0))
                         if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.removePalette")))
-                            Utils.DeleteElement(colorsProperty, colorsProperty.arraySize - 1);
+                            FUtils.DeleteElement(colorsProperty, colorsProperty.arraySize - 1);
                 }
             serializedObject.ApplyModifiedProperties();
             EditorGUILayout.Space();

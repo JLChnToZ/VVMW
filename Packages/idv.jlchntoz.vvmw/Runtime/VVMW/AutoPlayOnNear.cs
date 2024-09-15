@@ -1,7 +1,8 @@
 ﻿using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
-using JLChnToZ.VRC.VVMW.I18N;
+using JLChnToZ.VRC.Foundation;
+using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]

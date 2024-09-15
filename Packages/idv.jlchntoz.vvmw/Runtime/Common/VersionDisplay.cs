@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using JLChnToZ.VRC.Foundation;
 #if UNITY_EDITOR
 using UnityEngine.UI;
 using TMPro;

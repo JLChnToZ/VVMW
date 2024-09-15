@@ -4,6 +4,7 @@ using VRC.SDK3.Image;
 using VRC.Udon.Common.Interfaces;
 using VRC.SDK3.Components.Video;
 using UdonSharp;
+using JLChnToZ.VRC.Foundation;
 
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]

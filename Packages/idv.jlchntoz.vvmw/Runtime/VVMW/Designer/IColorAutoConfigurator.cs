@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using JLChnToZ.VRC.Foundation;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
     [EditorOnly, ExecuteInEditMode]

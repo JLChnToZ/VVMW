@@ -5,7 +5,8 @@ using VRC.SDKBase;
 using VRC.SDK3.Components.Video;
 using VRC.SDK3.Video.Components.Base;
 using VRC.Udon.Common.Enums;
-using JLChnToZ.VRC.VVMW.I18N;
+using JLChnToZ.VRC.Foundation;
+using JLChnToZ.VRC.Foundation.I18N;
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
 using UnityEngine.Rendering;

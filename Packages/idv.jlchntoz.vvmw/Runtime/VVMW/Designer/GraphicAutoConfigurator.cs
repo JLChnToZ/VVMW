@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using JLChnToZ.VRC.VVMW.I18N;
+using JLChnToZ.VRC.Foundation.I18N;
 
 #if UNITY_EDITOR
 using UnityEditor;

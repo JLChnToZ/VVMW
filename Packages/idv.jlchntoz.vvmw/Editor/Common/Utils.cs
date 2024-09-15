@@ -1,142 +1,11 @@
-using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
 using UnityEditor;
-using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     public static class Utils {
-        static GUIContent tempContent;
         static GUIStyle textFieldDropDownTextStyle, textFieldDropDownStyle;
-        static readonly GetFieldInfoAndStaticTypeFromPropertyDelegate getFieldInfoAndStaticTypeFromProperty = Delegate.CreateDelegate(
-            typeof(GetFieldInfoAndStaticTypeFromPropertyDelegate), Type
-            .GetType("UnityEditor.ScriptAttributeUtility, UnityEditor", false)?
-            .GetMethod("GetFieldInfoAndStaticTypeFromProperty", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
-        ) as GetFieldInfoAndStaticTypeFromPropertyDelegate;
-
-        delegate FieldInfo GetFieldInfoAndStaticTypeFromPropertyDelegate(SerializedProperty property, out Type type);
-
-        public static IEnumerable<T> IterateAllComponents<T>(this Scene scene, bool includeEditorOnly = false) where T : Component {
-            var pending = new Stack<Transform>();
-            var components = new List<T>();
-            var rootGameObjects = scene.GetRootGameObjects();
-            for (int i = rootGameObjects.Length - 1; i >= 0; i--) pending.Push(rootGameObjects[i].transform);
-            while (pending.Count > 0) {
-                var transform = pending.Pop();
-                if (transform == null || (!includeEditorOnly && transform.tag == "EditorOnly")) continue;
-                for (int i = transform.childCount - 1; i >= 0; i--) pending.Push(transform.GetChild(i));
-                components.Clear();
-                transform.GetComponents(components);
-                foreach (var component in components) if (component != null) yield return component;
-            }
-        }
-
-        public static T FindClosestComponentInHierarchy<T>(Transform startFrom, GameObject[] roots = null) where T : Component =>
-            FindClosestComponentInHierarchy(startFrom, typeof(T), roots) as T;
-
-        public static Component FindClosestComponentInHierarchy(Transform startFrom, Type type, GameObject[] roots = null) {
-            for (Transform transform = startFrom, lastTransform = null; transform != null; transform = transform.parent) {
-                if (transform.TryGetComponent(type, out var result)) return result;
-                foreach (Transform child in transform) {
-                    if (lastTransform == child) continue;
-                    result = transform.GetComponentInChildren(type, true);
-                    if (result != null) return result;
-                }
-                lastTransform = transform;
-            }
-            if (roots == null) {
-                var scene = startFrom.gameObject.scene;
-                if (!scene.IsValid()) return null;
-                roots = scene.GetRootGameObjects();
-            }
-            foreach (var root in roots) {
-                var result = root.GetComponentInChildren(type, true);
-                if (result != null) return result;
-            }
-            return null;
-        }
-
-        public static void DeleteElement(SerializedProperty property, int index) {
-            int size = property.arraySize;
-            property.DeleteArrayElementAtIndex(index);
-            if (size == property.arraySize) property.DeleteArrayElementAtIndex(index);
-        }
-
-        public static TDelegate ToDelegate<TDelegate>(this MethodInfo method, object target = null) where TDelegate : Delegate =>
-            (TDelegate)(method.IsStatic ?
-                Delegate.CreateDelegate(typeof(TDelegate), method, false) :
-                Delegate.CreateDelegate(typeof(TDelegate), target, method, false)
-            );
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static GUIContent GetTempContent(SerializedProperty property) =>
-            GetTempContent(property.displayName, property.tooltip);
-
-        public static GUIContent GetTempContent(string text = "", string tooltip = "", Texture2D image = null) {
-            if (tempContent == null) tempContent = new GUIContent();
-            tempContent.text = text;
-            tempContent.tooltip = tooltip;
-            tempContent.image = image;
-            return tempContent;
-        }
-
-        public static GUIContent GetLocalizedContent(this EditorI18N i18n, string key) =>
-            GetTempContent(i18n.GetOrDefault(key), i18n[$"{key}:tooltip"]);
-
-        public static GUIContent GetLocalizedContent(this EditorI18N i18n, string key, params object[] format) =>
-            GetTempContent(string.Format(i18n.GetOrDefault(key), format), i18n[$"{key}:tooltip"]);
-        
-        public static void DisplayLocalizedDialog1(this EditorI18N i18n, string key) =>
-            EditorUtility.DisplayDialog(
-                i18n.GetOrDefault($"{key}:title"),
-                i18n.GetOrDefault($"{key}:content"),
-                i18n.GetOrDefault($"{key}:positive")
-            );
-
-        public static void DisplayLocalizedDialog1(this EditorI18N i18n, string key, params object[] args) =>
-            EditorUtility.DisplayDialog(
-                string.Format(i18n.GetOrDefault($"{key}:title"), args),
-                string.Format(i18n.GetOrDefault($"{key}:content"), args),
-                string.Format(i18n.GetOrDefault($"{key}:positive"), args)
-            );
-
-        public static bool DisplayLocalizedDialog2(this EditorI18N i18n, string key) =>
-            EditorUtility.DisplayDialog(
-                i18n.GetOrDefault($"{key}:title"),
-                i18n.GetOrDefault($"{key}:content"),
-                i18n.GetOrDefault($"{key}:positive"),
-                i18n.GetOrDefault($"{key}:negative")
-            );
-
-        public static bool DisplayLocalizedDialog2(this EditorI18N i18n, string key, params object[] args) =>
-            EditorUtility.DisplayDialog(
-                string.Format(i18n.GetOrDefault($"{key}:title"), args),
-                string.Format(i18n.GetOrDefault($"{key}:content"), args),
-                string.Format(i18n.GetOrDefault($"{key}:positive"), args),
-                string.Format(i18n.GetOrDefault($"{key}:negative"), args)
-            );
-
-        public static int DisplayLocalizedDialog3(this EditorI18N i18n, string key) =>
-            EditorUtility.DisplayDialogComplex(
-                i18n.GetOrDefault($"{key}:title"),
-                i18n.GetOrDefault($"{key}:content"),
-                i18n.GetOrDefault($"{key}:positive"),
-                i18n.GetOrDefault($"{key}:negative"),
-                i18n.GetOrDefault($"{key}:alt")
-            );
-        
-        public static int DisplayLocalizedDialog3(this EditorI18N i18n, string key, params object[] args) =>
-            EditorUtility.DisplayDialogComplex(
-                string.Format(i18n.GetOrDefault($"{key}:title"), args),
-                string.Format(i18n.GetOrDefault($"{key}:content"), args),
-                string.Format(i18n.GetOrDefault($"{key}:positive"), args),
-                string.Format(i18n.GetOrDefault($"{key}:negative"), args),
-                string.Format(i18n.GetOrDefault($"{key}:alt"), args)
-            );
 
         public static void DrawShaderPropertiesField(
             SerializedProperty property,
@@ -220,20 +89,5 @@ namespace JLChnToZ.VRC.VVMW {
             }
             return fallback ?? "_MainTex";
         }
-
-        public static FieldInfo GetFieldInfoFromProperty(SerializedProperty property, out Type type) {
-            if (getFieldInfoAndStaticTypeFromProperty == null) {
-                type = null;
-                return null;
-            }
-            return getFieldInfoAndStaticTypeFromProperty(property, out type);
-        }
-
-#if !NETSTANDARD2_1
-        // Polyfill for old .NET Framework
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Contains(this string s, string value, StringComparison comparationType) =>
-            s.IndexOf(value, comparationType) >= 0;
-#endif
     }
 }

@@ -1,3 +1,4 @@
+using JLChnToZ.VRC.Foundation;
 using UnityEditor;
 
 namespace JLChnToZ.VRC.VVMW.Editors {

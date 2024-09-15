@@ -7,7 +7,8 @@ using TMPro;
 using VRC.SDKBase;
 using VRC.SDK3.Components;
 using VRC.SDK3.Components.Video;
-using JLChnToZ.VRC.VVMW.I18N;
+using JLChnToZ.VRC.Foundation;
+using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]

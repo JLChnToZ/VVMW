@@ -1,9 +1,10 @@
 using UnityEngine;
 using UnityEditor;
-using JLChnToZ.VRC.VVMW.I18N;
-using JLChnToZ.VRC.VVMW.I18N.Editors;
+using JLChnToZ.VRC.Foundation.I18N;
+using JLChnToZ.VRC.Foundation.Editors;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
+    using Utils = JLChnToZ.VRC.Foundation.Editors.Utils;
     public abstract class VVMWEditorBase : Editor {
         const string bannerTextureGUID = "e8354bc2ac14e86498c0983daf484661";
         const string iconGUID = "a24ecd1d23cca9e46871bc17dfe3bd46";
@@ -76,7 +77,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 GUI.Label(new Rect(bannerRect.xMax - versionSize.x, bannerRect.yMin, versionSize.x, versionSize.y), tempContent, versionLabelStyle);
             }
             EditorGUILayout.Space();
-            EditorI18NEditor.DrawLocaleField();
+            // EditorI18NEditor.DrawLocaleField();
             selfUpdater.DrawUpdateNotifier();
             EditorGUILayout.Space();
         }

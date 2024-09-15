@@ -4,6 +4,8 @@ using VRC.SDK3.Video.Components;
 using VRC.SDK3.Video.Components.AVPro;
 using VRC.SDK3.Video.Components.Base;
 using UdonSharpEditor;
+using JLChnToZ.VRC.Foundation.Editors;
+using JLChnToZ.VRC.Foundation.I18N.Editors;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(VideoPlayerHandler))]

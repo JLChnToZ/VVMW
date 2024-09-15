@@ -3,7 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRC.SDKBase;
 using VRC.Udon.Common;
-using JLChnToZ.VRC.VVMW.I18N;
+using JLChnToZ.VRC.Foundation;
+using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW.Pickups {
     // Recreated U# form YamaButa's PickUpToggle, PickupSetScale_VR, PickupSetScale_PC Udon Graphs.

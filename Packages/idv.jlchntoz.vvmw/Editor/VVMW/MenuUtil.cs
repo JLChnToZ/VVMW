@@ -4,12 +4,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
+using JLChnToZ.VRC.Foundation.Editors;
+using JLChnToZ.VRC.Foundation.I18N;
+using JLChnToZ.VRC.Foundation.I18N.Editors;
 using JLChnToZ.VRC.VVMW.Designer;
 using JLChnToZ.VRC.VVMW.Editors;
 using VVMW.ThirdParties.Yttl;
 
+using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
+
 using static UnityEngine.Object;
-using JLChnToZ.VRC.VVMW.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     public static class MenuUtil {
@@ -101,21 +105,21 @@ namespace JLChnToZ.VRC.VVMW {
         [MenuItem(createMenuRoot + "Additional Controls/Screen", false, 49)]
         static void CreateScreen() {
             var go = SpawnPrefab(prefabRoot + "Default Screen.prefab");
-            var core = Utils.FindClosestComponentInHierarchy<Core>(go.transform);
+            var core = FUtils.FindClosestComponentInHierarchy<Core>(go.transform);
             if (core != null) CoreEditor.AddTarget(core, go.GetComponent<Renderer>());
         }
 
         [MenuItem(createMenuRoot + "Additional Controls/Pickupable Screen", false, 49)]
         static void CreatePickupScreen() {
             var go = SpawnPrefab(prefabRoot + "Pickup Screen.prefab");
-            var core = Utils.FindClosestComponentInHierarchy<Core>(go.transform);
+            var core = FUtils.FindClosestComponentInHierarchy<Core>(go.transform);
             if (core != null) CoreEditor.AddTarget(core, go.transform.Find("Pickup_ScalingPanel/ScreenScaling/Screen").GetComponent<Renderer>());
         }
 
         [MenuItem(createMenuRoot + "Additional Controls/Audio Source", false, 49)]
         static void CreateAudioSource() {
             var go = SpawnPrefab(prefabRoot + "Default Audio Source.prefab");
-            var core = Utils.FindClosestComponentInHierarchy<Core>(go.transform);
+            var core = FUtils.FindClosestComponentInHierarchy<Core>(go.transform);
             if (core != null) CoreEditor.AddTarget(core, go.GetComponent<AudioSource>());
         }
 
@@ -128,7 +132,7 @@ namespace JLChnToZ.VRC.VVMW {
         [MenuItem(createMenuRoot + "Additional Controls/On-Screen Controls With Screen", false, 49)]
         static void CreateOnScreenContols() {
             var go = SpawnPrefab(prefabRoot + "Screen With Overlay.prefab");
-            var core = Utils.FindClosestComponentInHierarchy<Core>(go.transform);
+            var core = FUtils.FindClosestComponentInHierarchy<Core>(go.transform);
             if (core != null) CoreEditor.AddTarget(core, go.transform.Find("Screen").GetComponent<Renderer>());
         }
 

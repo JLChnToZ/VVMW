@@ -10,6 +10,9 @@ using UdonSharp;
 using UdonSharpEditor;
 using VRC.SDK3.Video.Components;
 using VRC.SDK3.Video.Components.AVPro;
+using JLChnToZ.VRC.Foundation.Editors;
+using JLChnToZ.VRC.Foundation.I18N.Editors;
+using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
 
 using UnityObject = UnityEngine.Object;
 
@@ -163,7 +166,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                 }
                 var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
-                var content = Utils.GetTempContent(autoPlayPlayerTypeProperty);
+                var content = FUtils.GetTempContent(autoPlayPlayerTypeProperty);
                 using (new EditorGUI.PropertyScope(rect, content, autoPlayPlayerTypeProperty))
                 using (var changed = new EditorGUI.ChangeCheckScope()) {
                     rect = EditorGUI.PrefixLabel(rect, content);
@@ -291,12 +294,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     else if (value is RawImage) {}
                     else targetProperty.objectReferenceValue = null;
                     if (GUILayout.Button(i18n.GetLocalizedContent("VVMW.Remove"), GUILayout.ExpandWidth(false))) {
-                        Utils.DeleteElement(screenTargetsProperty, i);
-                        Utils.DeleteElement(screenTargetModesProperty, i);
-                        Utils.DeleteElement(screenTargetIndecesProperty, i);
-                        Utils.DeleteElement(screenTargetPropertyNamesProperty, i);
-                        Utils.DeleteElement(avProPropertyNamesProperty, i);
-                        Utils.DeleteElement(screenTargetDefaultTexturesProperty, i);
+                        FUtils.DeleteElement(screenTargetsProperty, i);
+                        FUtils.DeleteElement(screenTargetModesProperty, i);
+                        FUtils.DeleteElement(screenTargetIndecesProperty, i);
+                        FUtils.DeleteElement(screenTargetPropertyNamesProperty, i);
+                        FUtils.DeleteElement(avProPropertyNamesProperty, i);
+                        FUtils.DeleteElement(screenTargetDefaultTexturesProperty, i);
                         screenTargetVisibilityState.RemoveAt(i);
                         i--;
                         length--;
@@ -338,12 +341,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         } else if (targetProperty.objectReferenceValue is RawImage) {
                             mode = 4;
                         } else {
-                            Utils.DeleteElement(screenTargetsProperty, i);
-                            Utils.DeleteElement(screenTargetModesProperty, i);
-                            Utils.DeleteElement(screenTargetIndecesProperty, i);
-                            Utils.DeleteElement(screenTargetPropertyNamesProperty, i);
-                            Utils.DeleteElement(avProPropertyNamesProperty, i);
-                            Utils.DeleteElement(screenTargetDefaultTexturesProperty, i);
+                            FUtils.DeleteElement(screenTargetsProperty, i);
+                            FUtils.DeleteElement(screenTargetModesProperty, i);
+                            FUtils.DeleteElement(screenTargetIndecesProperty, i);
+                            FUtils.DeleteElement(screenTargetPropertyNamesProperty, i);
+                            FUtils.DeleteElement(avProPropertyNamesProperty, i);
+                            FUtils.DeleteElement(screenTargetDefaultTexturesProperty, i);
                             screenTargetVisibilityState.RemoveAt(i);
                             i--;
                             length--;

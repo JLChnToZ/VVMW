@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using VRC.SDKBase;
+using JLChnToZ.VRC.Foundation;
 
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]

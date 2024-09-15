@@ -4,7 +4,8 @@ using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using UnityEngine.Serialization;
-using JLChnToZ.VRC.VVMW.I18N;
+using JLChnToZ.VRC.Foundation;
+using JLChnToZ.VRC.Foundation.I18N;
 
 #if AUDIOLINK_V1
 using AudioLink;

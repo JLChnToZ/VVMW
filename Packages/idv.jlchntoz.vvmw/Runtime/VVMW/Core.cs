@@ -8,7 +8,8 @@ using VRC.SDK3.Data;
 using VRC.Udon.Common;
 using VRC.Udon.Common.Interfaces;
 using VVMW.ThirdParties.Yttl;
-using JLChnToZ.VRC.VVMW.I18N;
+using JLChnToZ.VRC.Foundation;
+using JLChnToZ.VRC.Foundation.I18N;
 
 #if AUDIOLINK_V1
 using AudioLink;

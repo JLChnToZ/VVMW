@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEditor;
 using Cysharp.Threading.Tasks;
-using VVMW.ThirdParties.LitJson;
+using JLChnToZ.VRC.Foundation.ThirdParties.LitJson;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     public static class YtdlpResolver {

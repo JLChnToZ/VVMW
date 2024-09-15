@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using JLChnToZ.VRC.Foundation;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif

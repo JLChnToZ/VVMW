@@ -2,6 +2,8 @@
 using UnityEngine;
 using UnityEditor;
 using UdonSharpEditor;
+using JLChnToZ.VRC.Foundation.Editors;
+using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(FrontendHandler))]
@@ -78,7 +80,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (GUILayout.Button(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.editPlaylist")))
                 PlayListEditorWindow.StartEditPlayList(target as FrontendHandler);
             var rect = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight);
-            var tempContent = Utils.GetTempContent(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.defaultPlaylist"));
+            var tempContent = FUtils.GetTempContent(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.defaultPlaylist"));
             using (new EditorGUI.DisabledScope(playListNames.Length == 0))
             using (new EditorGUI.PropertyScope(rect, tempContent, defaultPlayListIndexProperty))
             using (var changed = new EditorGUI.ChangeCheckScope()) {

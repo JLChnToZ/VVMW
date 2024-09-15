@@ -8,10 +8,13 @@ using UnityEditor;
 using UnityEditorInternal;
 using Cysharp.Threading.Tasks;
 using VRC.SDKBase;
-using JLChnToZ.VRC.VVMW.I18N;
-using VVMW.ThirdParties.LitJson;
+using JLChnToZ.VRC.Foundation.Editors;
+using JLChnToZ.VRC.Foundation.I18N;
+using JLChnToZ.VRC.Foundation.I18N.Editors;
+using JLChnToZ.VRC.Foundation.ThirdParties.LitJson;
 
 using UnityObject = UnityEngine.Object;
+using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
 
@@ -232,7 +235,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             float playerRectWidth = titleRect.width;
             if (playerHandlerNames != null) {
                 playerRectWidth = EditorStyles.popup.CalcSize(
-                    Utils.GetTempContent(entry.playerIndex >= 0 && entry.playerIndex < playerHandlerNames.Length ? playerHandlerNames[entry.playerIndex] : "")
+                    FUtils.GetTempContent(entry.playerIndex >= 0 && entry.playerIndex < playerHandlerNames.Length ? playerHandlerNames[entry.playerIndex] : "")
                 ).x;
             }
             titleRect.xMax = titleRect.width - playerRectWidth - 10;

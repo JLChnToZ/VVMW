@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UdonSharp;
+using JLChnToZ.VRC.Foundation;
 
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
