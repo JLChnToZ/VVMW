@@ -12,8 +12,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (iterator.NextVisible(true))
                 do {
                     if (iterator.propertyPath == "m_Script") continue;
-                    if (EditorGUILayout.PropertyField(iterator, iterator.isExpanded))
-                        iterator.isExpanded = !iterator.isExpanded;
+                    EditorGUILayout.PropertyField(iterator);
                 } while (iterator.NextVisible(false));
             serializedObject.ApplyModifiedProperties();
         }
