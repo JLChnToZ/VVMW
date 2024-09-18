@@ -169,7 +169,7 @@ VizVid 原生支援使用者進入特定區域時播放，離開時停止。適�
 為了讓 VR 中的文字能顯示得更清楚，比起 Legacy Text，Unity 跟 VRChat SDK 都建議使用 TextMeshPro (TMPro)。VizVid 在 v1.0.32 以後，開始支援將文字顯示系統遷移至 TMPro。
 
 1. 選擇如 Default UI、Overlay Control、Re-Sync 按鈕等等，最上層的 VizVid UI 物件。
-2. 選擇功能表中的`Tools > VizVid > Migrate TMPro Components`，腳本會搞定一切。
+2. 選擇功能表中的`Tools > JLChnToZ VRCW Foundation > Migrate TMPro Components`，腳本會搞定一切。
 3. 就醬！
 
 > [!NOTE]

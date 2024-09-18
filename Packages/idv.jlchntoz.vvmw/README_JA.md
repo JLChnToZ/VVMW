@@ -164,7 +164,7 @@ VizVidは、ユーザーが特定のエリアに入る時に再生、離れる�
 ### Text Mesh Proへの移行<a name="text-mesh-proへの移行"></a>
 VRの中に、文字を綺麗に表示にするため、レガシィテキストの代わり、UnityとVRChat SDKは、TextMeshPro (TMPro) の使用は推奨しています。VizVidはv1.0.32以降、TMProへの移行に対応しています：
 1. Default UI・オーバーレイ操作パネル・再同期 (Re-Sync) ボタンなど、最も上の階層のUIゲームオブジェクトを選択します。
-2. Unityメニューバーに「`Tools > VizVid > Migrate TMPro Components`」を選択して、この後はスクリプトに任せてください。
+2. Unityメニューバーに「`Tools > JLChnToZ VRCW Foundation > Migrate TMPro Components`」を選択して、この後はスクリプトに任せてください。
 3. はい、終わり。
 
 > [!NOTE]

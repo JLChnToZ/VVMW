@@ -168,7 +168,7 @@ And thats it!
 Both Unity and VRChat SDK encourages to use TextMeshPro (TMPro) instead of legacy Text components for all UIs in your scene for readability and aesthetics in VR. To upgrade VizVid to use TMPro instead of legacy Text, starting from v1.0.32, you can do the following:
 
 1. Select the outermost UI game objects of VizVid you want to migrate, such as Default UI, Overlay Control, Re-Sync Button.
-2. Select `Tools > VizVid > Migrate TMPro Components` in menu, the script will do the thing.
+2. Select `Tools > JLChnToZ VRCW Foundation > Migrate TMPro Components` in menu, the script will do the thing.
 3. That's it!
 
 > [!NOTE]
