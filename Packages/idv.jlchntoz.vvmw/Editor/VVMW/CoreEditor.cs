@@ -222,7 +222,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 var primaryAudioSource = audioSourcesProperty.arraySize > 0 ? audioSourcesProperty.GetArrayElementAtIndex(0).objectReferenceValue : null;
                 foreach (var handler in builtinPlayerHandlers) {
                     using (var so = new SerializedObject(handler)) {
-                        so.FindProperty("primaryAudioSource").objectReferenceValue = primaryAudioSource;
+                        var property = so.FindProperty("primaryAudioSource");
+                        if (property != null) property.objectReferenceValue = primaryAudioSource;
                         so.ApplyModifiedProperties();
                     }
                     if (handler.TryGetComponent(out VRCUnityVideoPlayer unityVideoPlayer))
