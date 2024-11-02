@@ -24,6 +24,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] protected string[] streamKeys;
         [SerializeField, LocalizedLabel] protected int playerIndex;
         [SerializeField, LocalizedLabel] protected bool autoInterrupt = true;
+        [SerializeField, LocalizedLabel] protected bool autoPlay = true;
         [SerializeField, LocalizedLabel] InputField inputFieldToCopy;
         [BindEvent(nameof(Button.onClick), nameof(_Regenerate))]
         [SerializeField, LocalizedLabel] Button regenerateButton;
@@ -46,7 +47,6 @@ namespace JLChnToZ.VRC.VVMW {
             UpdateText();
         }
 
-
         void UpdateText() {
             if (inputFieldToCopy) inputFieldToCopy.text = streamKeys[streamIndex];
         }
@@ -59,6 +59,7 @@ namespace JLChnToZ.VRC.VVMW {
                     Networking.SetOwner(Networking.LocalPlayer, gameObject);
                 RequestSerialization();
             }
+            if (autoPlay) _Play();
         }
 
         protected virtual void RegenerateCore() {
