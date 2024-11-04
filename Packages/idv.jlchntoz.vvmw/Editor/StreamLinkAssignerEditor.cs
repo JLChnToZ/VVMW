@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using UnityEngine;
 using UnityEditor;
 using UdonSharpEditor;
-using JLChnToZ.VRC.Foundation.Editors;
+using JLChnToZ.VRC.Foundation.I18N;
 using JLChnToZ.VRC.Foundation.I18N.Editors;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
@@ -34,9 +34,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         RNGCryptoServiceProvider rng;
         byte[] keyBytes;
         SerializedObject coreSO;
+        EditorI18N i18N;
 
         protected override void OnEnable() {
             base.OnEnable();
+            i18N = EditorI18N.Instance;
             coreProperty = serializedObject.FindProperty("core");
             frontendHandlerProperty = serializedObject.FindProperty("frontendHandler");
             streamKeyTemplateProperty = serializedObject.FindProperty("streamKeyTemplate");
@@ -74,7 +76,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             ResolveCoreSerializedObject();
             if (corePlayerHandlersProperty != null) {
                 int selected = playerIndexProperty.intValue - 1;
-                if (CoreEditor.DrawPlayerDropdown(corePlayerHandlersProperty, playerIndexProperty, ref selected))
+                if (CoreEditor.DrawPlayerDropdown(corePlayerHandlersProperty, playerIndexProperty, ref selected, "JLChnToZ.VRC.VVMW.StreamLinkAssigner.playerIndex"))
                     playerIndexProperty.intValue = selected + 1;
             } else
                 EditorGUILayout.PropertyField(playerIndexProperty);
@@ -82,19 +84,21 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(streamKeyTemplateProperty);
             EditorGUILayout.PropertyField(streamUrlTemplateProperty);
             EditorGUILayout.PropertyField(altStreamUrlTemplateProperty);
-            generateKeyCount = EditorGUILayout.IntField("Generate Keys", generateKeyCount);
-            uniqueIdLength = EditorGUILayout.IntField("Unique ID Length", uniqueIdLength);
-            folded = EditorGUILayout.Foldout(folded, "Stream Keys & URLs", true);
+            generateKeyCount = EditorGUILayout.IntField(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.keyCount"), generateKeyCount);
+            uniqueIdLength = EditorGUILayout.IntField(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.uniqueIdLength"), uniqueIdLength);
+            folded = EditorGUILayout.Foldout(folded, i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.streamKeysAndUrls"), true);
             using (new EditorGUILayout.HorizontalScope()) {
-                if (GUILayout.Button("Generate") &&
-                    EditorUtility.DisplayDialog("Generate Stream Keys", "Are you sure to generate stream keys? It will overwrite existing keys.", "Yes", "No")) {
+                if (GUILayout.Button(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.generate")) && (
+                    streamKeysProperty.arraySize == 0 ||
+                    i18N.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.StreamLinkAssigner.generate"))) {
                     GenerateKeys();
                 }
-                if (GUILayout.Button("Generate URLs"))
-                    GenerateUrls();
-                if (GUILayout.Button("Clear") &&
-                    EditorUtility.DisplayDialog("Clear Stream Keys", "Are you sure to clear stream keys?", "Yes", "No")) {
-                    ClearStreamKeys();
+                using (new EditorGUI.DisabledScope(streamKeysProperty.arraySize == 0)) {
+                    if (GUILayout.Button(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.generateUrls"))) GenerateUrls();
+                    if (GUILayout.Button(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.clear")) &&
+                        i18N.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.StreamLinkAssigner.clear")) {
+                        ClearStreamKeys();
+                    }
                 }
             }
             if (folded) {

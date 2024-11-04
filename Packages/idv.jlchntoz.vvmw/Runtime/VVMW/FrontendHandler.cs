@@ -619,7 +619,7 @@ namespace JLChnToZ.VRC.VVMW {
         void RecordPlaybackHistory(VRCUrl pcUrl, VRCUrl questUrl, byte playerIndex, string title) {
             if (historySize <= 0) return;
             bool hasQuestUrl = !VRCUrl.IsNullOrEmpty(questUrl) && !pcUrl.Equals(questUrl);
-            if (!IsArrayNullOrEmpty(localHistoryUrls)) {
+            if (IsArrayNullOrEmpty(localHistoryUrls)) {
                 localHistoryUrls = new VRCUrl[1] { pcUrl };
                 if (hasQuestUrl) localHistoryQuestUrls = new VRCUrl[1] { questUrl };
                 localHistoryPlayerIndex = new byte[1] { playerIndex };

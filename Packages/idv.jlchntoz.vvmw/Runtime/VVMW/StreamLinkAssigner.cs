@@ -8,6 +8,7 @@ using JLChnToZ.VRC.Foundation.I18N;
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     [DisallowMultipleComponent]
+    [DefaultExecutionOrder(2)]
     [AddComponentMenu("VizVid/Stream Key Assigner")]
     public class StreamLinkAssigner : VizVidBehaviour {
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core"), Locatable(
@@ -22,7 +23,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] protected bool currentUserOnly;
         [SerializeField, LocalizedLabel] protected VRCUrl[] streamLinks, altStreamLinks;
         [SerializeField, LocalizedLabel] protected string[] streamKeys;
-        [SerializeField, LocalizedLabel] protected int playerIndex;
+        [SerializeField, LocalizedLabel] protected int playerIndex = 1;
         [SerializeField, LocalizedLabel] protected bool autoInterrupt = true;
         [SerializeField, LocalizedLabel] protected bool autoPlay = true;
         [SerializeField, LocalizedLabel] InputField inputFieldToCopy;
@@ -33,7 +34,7 @@ namespace JLChnToZ.VRC.VVMW {
         [UdonSynced] int syncedStreamIndex = -1;
         protected int streamIndex;
 
-        void Start() {
+        protected virtual void Start() {
             if (currentUserOnly || Networking.IsOwner(gameObject)) _Regenerate();
         }
 

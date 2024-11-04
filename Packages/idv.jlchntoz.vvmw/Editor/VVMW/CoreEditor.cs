@@ -160,7 +160,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (autoPlayDelayProperty.floatValue < 0) autoPlayDelayProperty.floatValue = 0;
         }
 
-        internal static bool DrawPlayerDropdown(SerializedProperty playerHandlersProperty, SerializedProperty autoPlayPlayerTypeProperty, ref int autoPlayPlayerType) {
+        internal static bool DrawPlayerDropdown(SerializedProperty playerHandlersProperty, SerializedProperty autoPlayPlayerTypeProperty, ref int autoPlayPlayerType, string localeKey = "") {
             if (playerNames == null || playerNames.Length != playerHandlersProperty.arraySize)
                 playerNames = new string[playerHandlersProperty.arraySize];
             if (playerTypes == null || playerTypes.Length != playerHandlersProperty.arraySize)
@@ -175,7 +175,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
             }
             var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
-            var content = FUtils.GetTempContent(autoPlayPlayerTypeProperty);
+            var content = string.IsNullOrEmpty(localeKey) ? FUtils.GetTempContent(autoPlayPlayerTypeProperty) : i18n.GetLocalizedContent(localeKey);
             using (new EditorGUI.PropertyScope(rect, content, autoPlayPlayerTypeProperty))
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 rect = EditorGUI.PrefixLabel(rect, content);
@@ -186,7 +186,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void DrawPlayerHandlersListHeader(Rect rect) {
-            var tempContent = i18n.GetLocalizedContent("VVMW.AutoFind");
+            var tempContent = i18n.GetLocalizedContent("Locatable.AutoFind");
             var miniButtonStyle = EditorStyles.miniButton;
             var size = miniButtonStyle.CalcSize(tempContent);
             var buttonRect = new Rect(rect.xMax - size.x, rect.y, size.x, rect.height);
