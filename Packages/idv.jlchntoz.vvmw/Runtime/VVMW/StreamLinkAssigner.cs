@@ -18,9 +18,9 @@ namespace JLChnToZ.VRC.VVMW {
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
         )] protected FrontendHandler frontendHandler;
+        [SerializeField, LocalizedLabel] protected string streamKeyTemplate = "{0}", streamUrlTemplate = "rtspt://example.com/live/{0}", altStreamUrlTemplate = "rtsp://example.com/live/{0}";
         [SerializeField, LocalizedLabel] protected bool currentUserOnly;
-        [SerializeField, LocalizedLabel] protected VRCUrl[] streamLinks;
-        [SerializeField, LocalizedLabel] protected VRCUrl[] altStreamLinks;
+        [SerializeField, LocalizedLabel] protected VRCUrl[] streamLinks, altStreamLinks;
         [SerializeField, LocalizedLabel] protected string[] streamKeys;
         [SerializeField, LocalizedLabel] protected int playerIndex;
         [SerializeField, LocalizedLabel] protected bool autoInterrupt = true;
@@ -70,7 +70,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (frontendHandler) {
                 bool enableIntrrupt = autoInterrupt && frontendHandler.HasQueueList;
                 int currentPendingCount = enableIntrrupt && frontendHandler.PlayListIndex == 0 ? frontendHandler.PendingCount : -1;
-                frontendHandler.PlayUrlMP(streamLinks[streamIndex], altStreamLinks[streamIndex], (byte)playerIndex);
+                frontendHandler.PlayUrl(streamLinks[streamIndex], altStreamLinks[streamIndex], (byte)playerIndex);
                 if (enableIntrrupt && frontendHandler.PlayListIndex == 0) {
                     int pendingCount = frontendHandler.PendingCount;
                     if (pendingCount > currentPendingCount)
@@ -78,7 +78,7 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 return;
             }
-            if (core) core.PlayUrlMP(streamLinks[streamIndex], altStreamLinks[streamIndex], (byte)playerIndex);
+            if (core) core.PlayUrl(streamLinks[streamIndex], altStreamLinks[streamIndex], (byte)playerIndex);
         }
     }
 }

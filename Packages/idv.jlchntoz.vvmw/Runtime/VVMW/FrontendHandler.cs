@@ -385,9 +385,11 @@ namespace JLChnToZ.VRC.VVMW {
             UpdateState();
         }
 
-        public void PlayUrl(VRCUrl url, byte index) => PlayUrlMP(url, null, index);
+        public void PlayUrl(VRCUrl url, byte index) => PlayUrl(url, null, null, index);
 
-        public void PlayUrlMP(VRCUrl pcUrl, VRCUrl questUrl, byte index) {
+        public void PlayUrl(VRCUrl pcUrl, VRCUrl questUrl, byte index) => PlayUrl(pcUrl, questUrl, null, index);
+
+        public void PlayUrl(VRCUrl pcUrl, VRCUrl questUrl, string queuedTitle, byte index) {
             if (VRCUrl.IsNullOrEmpty(pcUrl)) return;
             if (VRCUrl.IsNullOrEmpty(questUrl)) questUrl = pcUrl;
             bool shouldRequestSync = false;
@@ -400,6 +402,8 @@ namespace JLChnToZ.VRC.VVMW {
                 core.Stop();
                 shouldRequestSync = true;
             }
+            if (string.IsNullOrEmpty(queuedTitle))
+                queuedTitle = $"{Networking.LocalPlayer.displayName}:\n{UnescapeUrl(pcUrl)}";
             if (enableQueueList && (core.IsReady || core.IsLoading || (localQueuedUrls != null && localQueuedUrls.Length > 0))) {
                 if (IsArrayNullOrEmpty(localQueuedUrls)) {
                     localQueuedUrls = new VRCUrl[] { pcUrl };
@@ -428,7 +432,6 @@ namespace JLChnToZ.VRC.VVMW {
                     newPlayerIndexQueue[localQueuedPlayerIndex.Length] = index;
                     localQueuedPlayerIndex = newPlayerIndexQueue;
                 }
-                string queuedTitle = $"{Networking.LocalPlayer.displayName}:\n{UnescapeUrl(pcUrl)}";
                 if (IsArrayNullOrEmpty(localQueuedTitles)) {
                     localQueuedTitles = new string[] { queuedTitle };
                 } else {
@@ -441,9 +444,9 @@ namespace JLChnToZ.VRC.VVMW {
                 UpdateState();
                 return;
             }
-            RecordPlaybackHistory(pcUrl, questUrl, index, $"{Networking.LocalPlayer.displayName}:\n{UnescapeUrl(pcUrl)}");
+            RecordPlaybackHistory(pcUrl, questUrl, index, queuedTitle);
             if (shouldRequestSync || historySize > 0) RequestSync();
-            core.PlayUrlMP(pcUrl, questUrl, index);
+            core.PlayUrl(pcUrl, questUrl, index);
             core._ResetTitle();
         }
 
@@ -451,7 +454,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (localHistoryUrls == null || index < 0 || index >= localHistoryUrls.Length) return;
             var pcUrl = localHistoryUrls[index];
             var questUrl = IsArrayNullOrEmpty(localHistoryQuestUrls) ? pcUrl : localHistoryQuestUrls[index];
-            PlayUrlMP(pcUrl, questUrl, localHistoryPlayerIndex[index]);
+            PlayUrl(pcUrl, questUrl, localHistoryTitles[index], localHistoryPlayerIndex[index]);
         }
 
         public void _PlayNext() {
@@ -564,7 +567,7 @@ namespace JLChnToZ.VRC.VVMW {
                 Array.Copy(localPlayListOrder, 1, newOrderList, 0, newLength);
                 localPlayListOrder = newOrderList;
             }
-            core.PlayUrlMP(playListUrls[localPlayingIndex], playListUrlsQuest[localPlayingIndex], playListPlayerIndex[localPlayingIndex]);
+            core.PlayUrl(playListUrls[localPlayingIndex], playListUrlsQuest[localPlayingIndex], playListPlayerIndex[localPlayingIndex]);
             core.SetTitle(playListEntryTitles[localPlayingIndex], playListTitles[localPlayListIndex - 1]);
             RequestSync();
             UpdateState();
@@ -605,7 +608,7 @@ namespace JLChnToZ.VRC.VVMW {
             localQueuedPlayerIndex = newPlayerIndexQueue;
             localQueuedTitles = newTitles;
             if (!deleteOnly) {
-                core.PlayUrlMP(url, questUrl, playerIndex);
+                core.PlayUrl(url, questUrl, playerIndex);
                 core._ResetTitle();
                 RecordPlaybackHistory(url, questUrl, playerIndex, title);
             }

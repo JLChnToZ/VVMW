@@ -22,6 +22,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static readonly Dictionary<Type, FieldInfo> controllableTypes = new Dictionary<Type, FieldInfo>();
         readonly Dictionary<Core, UdonSharpBehaviour> autoPlayControllers = new Dictionary<Core, UdonSharpBehaviour>();
         static readonly string[] materialModeOptions = new string[3];
+        static string[] playerNames;
+        static PlayerType[] playerTypes;
         SerializedProperty playerHandlersProperty;
         SerializedProperty audioSourcesProperty;
         SerializedProperty defaultUrlProperty;
@@ -48,8 +50,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty realtimeGIUpdateIntervalProperty;
         SerializedProperty timeDriftDetectThresholdProperty;
         SerializedReorderableList playerHandlersList, audioSourcesList, targetsList;
-        string[] playerNames;
-        PlayerType[] playerTypes;
         List<bool> screenTargetVisibilityState;
 
         static CoreEditor() {
@@ -152,31 +152,37 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             TrustedUrlUtils.DrawUrlField(defaultUrlProperty, playerType.ToTrustUrlType(BuildTarget.StandaloneWindows64));
             if (!string.IsNullOrEmpty(defaultUrlProperty.FindPropertyRelative("url").stringValue)) {
                 TrustedUrlUtils.DrawUrlField(defaultQuestUrlProperty, playerType.ToTrustUrlType(BuildTarget.Android));
-                if (playerNames == null || playerNames.Length != playerHandlersProperty.arraySize)
-                    playerNames = new string[playerHandlersProperty.arraySize];
-                if (playerTypes == null || playerTypes.Length != playerHandlersProperty.arraySize)
-                    playerTypes = new PlayerType[playerHandlersProperty.arraySize];
-                for (int i = 0; i < playerNames.Length; i++) {
-                    var playerHandler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as AbstractMediaPlayerHandler;
-                    if (playerHandler == null)
-                        playerNames[i] = "null";
-                    else {
-                        playerNames[i] = string.IsNullOrEmpty(playerHandler.playerName) ? playerHandler.name : playerHandler.playerName;
-                        playerTypes[i] = playerHandler.GetPlayerType();
-                    }
-                }
-                var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
-                var content = FUtils.GetTempContent(autoPlayPlayerTypeProperty);
-                using (new EditorGUI.PropertyScope(rect, content, autoPlayPlayerTypeProperty))
-                using (var changed = new EditorGUI.ChangeCheckScope()) {
-                    rect = EditorGUI.PrefixLabel(rect, content);
-                    autoPlayPlayerType = EditorGUI.Popup(rect, autoPlayPlayerType, playerNames);
-                    if (changed.changed) autoPlayPlayerTypeProperty.intValue = autoPlayPlayerType + 1;
-                }
+                if (DrawPlayerDropdown(playerHandlersProperty, autoPlayPlayerTypeProperty, ref autoPlayPlayerType))
+                    autoPlayPlayerTypeProperty.intValue = autoPlayPlayerType + 1;
             }
             EditorGUILayout.PropertyField(loopProperty);
             EditorGUILayout.PropertyField(autoPlayDelayProperty);
             if (autoPlayDelayProperty.floatValue < 0) autoPlayDelayProperty.floatValue = 0;
+        }
+
+        internal static bool DrawPlayerDropdown(SerializedProperty playerHandlersProperty, SerializedProperty autoPlayPlayerTypeProperty, ref int autoPlayPlayerType) {
+            if (playerNames == null || playerNames.Length != playerHandlersProperty.arraySize)
+                playerNames = new string[playerHandlersProperty.arraySize];
+            if (playerTypes == null || playerTypes.Length != playerHandlersProperty.arraySize)
+                playerTypes = new PlayerType[playerHandlersProperty.arraySize];
+            for (int i = 0; i < playerNames.Length; i++) {
+                var playerHandler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as AbstractMediaPlayerHandler;
+                if (playerHandler == null)
+                    playerNames[i] = "null";
+                else {
+                    playerNames[i] = string.IsNullOrEmpty(playerHandler.playerName) ? playerHandler.name : playerHandler.playerName;
+                    playerTypes[i] = playerHandler.GetPlayerType();
+                }
+            }
+            var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
+            var content = FUtils.GetTempContent(autoPlayPlayerTypeProperty);
+            using (new EditorGUI.PropertyScope(rect, content, autoPlayPlayerTypeProperty))
+            using (var changed = new EditorGUI.ChangeCheckScope()) {
+                rect = EditorGUI.PrefixLabel(rect, content);
+                autoPlayPlayerType = EditorGUI.Popup(rect, autoPlayPlayerType, playerNames);
+                if (changed.changed) return true;
+            }
+            return false;
         }
 
         void DrawPlayerHandlersListHeader(Rect rect) {

@@ -403,9 +403,9 @@ namespace JLChnToZ.VRC.VVMW {
             return (byte)(largestSupport <= 0 ? 0 : largestSupportIndex + 1);
         }
 
-        public void PlayUrl(VRCUrl url, byte playerType) => PlayUrlMP(url, null, playerType);
+        public void PlayUrl(VRCUrl url, byte playerType) => PlayUrl(url, null, playerType);
 
-        public void PlayUrlMP(VRCUrl pcUrl, VRCUrl questUrl, byte playerType) {
+        public void PlayUrl(VRCUrl pcUrl, VRCUrl questUrl, byte playerType) {
             isError = false;
             VRCUrl url;
             #if UNITY_ANDROID || UNITY_IOS
@@ -451,6 +451,9 @@ namespace JLChnToZ.VRC.VVMW {
             if (RequestSync()) state = LOADING;
             LoadYTTL();
         }
+
+        [Obsolete("Use PlayUrl(VRCUrl, VRCUrl, byte) instead.")]
+        public void PlayUrlMP(VRCUrl pcUrl, VRCUrl questUrl, byte playerType) => PlayUrl(pcUrl, questUrl, playerType);
 
         public override void OnVideoError(VideoError videoError) {
             isError = true;
