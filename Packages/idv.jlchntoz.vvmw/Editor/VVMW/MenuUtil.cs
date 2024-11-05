@@ -64,6 +64,9 @@ namespace JLChnToZ.VRC.VVMW {
                             so.ApplyModifiedProperties();
                         }
                     }
+                } else if (component is StreamLinkAssigner) {
+                    if (!LocatableAttributeDrawer.Locate(component, GetField(typeof(StreamLinkAssigner), "frontendHandler"), false, true))
+                        LocatableAttributeDrawer.Locate(component, GetField(typeof(StreamLinkAssigner), "core"), true, true);
                 }
             }
             Undo.RegisterCreatedObjectUndo(go, $"Create {go.name}");
@@ -129,6 +132,9 @@ namespace JLChnToZ.VRC.VVMW {
         [MenuItem(createMenuRoot + "Additional Controls/Separated Controls (Narrow)", false, 49)]
         static void CreateSeparateNarrowContols() => SpawnPrefab(prefabRoot + "Default UI (Narrow).prefab");
 
+        [MenuItem(createMenuRoot + "Additional Controls/Separated Controls (With Alt. URL Input, Narrow)", false, 49)]
+        static void CreateSeparateNarrowContolsDual() => SpawnPrefab(prefabRoot + "Default UI Dual Input (Narrow).prefab");
+
         [MenuItem(createMenuRoot + "Additional Controls/On-Screen Controls With Screen", false, 49)]
         static void CreateOnScreenContols() {
             var go = SpawnPrefab(prefabRoot + "Screen With Overlay.prefab");
@@ -151,5 +157,8 @@ namespace JLChnToZ.VRC.VVMW {
 
         [MenuItem(createMenuRoot + "Additional Controls/Auto Play On Near (Local Only)", false, 49)]
         static void CreateAutoPlayOnNear() => SpawnPrefab(prefabRoot + "Auto Play On Near.prefab");
+
+        [MenuItem(createMenuRoot + "Additional Controls/Streem Key Assigner", false, 49)]
+        static void CreateStreemAssigner() => SpawnPrefab(prefabRoot + "Stream Key Assigner.prefab");
     }
 }

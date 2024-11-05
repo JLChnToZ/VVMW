@@ -34,6 +34,9 @@ namespace JLChnToZ.VRC.VVMW {
         [BindEvent(nameof(VRCUrlInputField.onValueChanged), nameof(_OnURLChanged))]
         [BindEvent(nameof(VRCUrlInputField.onEndEdit), nameof(_OnURLEndEdit))]
         [SerializeField, LocalizedLabel] VRCUrlInputField urlInput;
+        [BindEvent(nameof(VRCUrlInputField.onValueChanged), nameof(_OnURLChanged))]
+        [BindEvent(nameof(VRCUrlInputField.onEndEdit), nameof(_OnURLEndEdit))]
+        [SerializeField, LocalizedLabel] VRCUrlInputField altUrlInput;
         [SerializeField, LocalizedLabel] GameObject videoPlayerSelectButtonTemplate;
         [SerializeField, LocalizedLabel] GameObject videoPlayerSelectRoot, videoPlayerSelectPanel;
         [BindEvent(nameof(Button.onClick), nameof(_VideoPlayerSelect))]
@@ -397,6 +400,7 @@ namespace JLChnToZ.VRC.VVMW {
             bool isEmpty = string.IsNullOrEmpty(urlInput.textComponent.text);
             if (otherObjectUnderUrlInput != null) otherObjectUnderUrlInput.SetActive(isEmpty);
             if (videoPlayerSelectPanel != null) videoPlayerSelectPanel.SetActive(!isEmpty);
+            if (Utilities.IsValid(altUrlInput)) altUrlInput.gameObject.SetActive(!isEmpty);
         }
 
         public void _OnURLEndEdit() {
@@ -414,15 +418,20 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _InputConfirmClick() {
             var url = urlInput.GetUrl();
+            var altUrl = url;
             if (!VRCUrl.IsNullOrEmpty(url)) {
+                if (Utilities.IsValid(altUrlInput)) {
+                    altUrl = altUrlInput.GetUrl();
+                    if (VRCUrl.IsNullOrEmpty(altUrl)) altUrl = url;
+                }
                 playListLastInteractTime = joinTime;
                 if (Utilities.IsValid(handler)) {
-                    handler.PlayUrl(url, selectedPlayer);
+                    handler.PlayUrl(url, altUrl, selectedPlayer);
                     if (queueListScrollView != null)
                         SelectedPlayListIndex = handler.PlayListIndex;
                     UpdatePlayList();
                 } else
-                    core.PlayUrl(url, selectedPlayer);
+                    core.PlayUrl(url, altUrl, selectedPlayer);
                 _InputCancelClick();
             }
         }
@@ -434,6 +443,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _InputCancelClick() {
             urlInput.SetUrl(VRCUrl.Empty);
+            if (Utilities.IsValid(altUrlInput)) altUrlInput.SetUrl(VRCUrl.Empty);
             _OnUIUpdate();
             _OnURLChanged();
         }
@@ -590,6 +600,10 @@ namespace JLChnToZ.VRC.VVMW {
                 if (urlInput != null) {
                     urlInput.interactable = unlocked;
                     if (!unlocked) urlInput.SetUrl(VRCUrl.Empty);
+                }
+                if (altUrlInput != null) {
+                    altUrlInput.interactable = unlocked;
+                    if (!unlocked) altUrlInput.SetUrl(VRCUrl.Empty);
                 }
             }
             if (hasHandler) {
