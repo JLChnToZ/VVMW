@@ -16,12 +16,14 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 - Local mode (toggleable syncing with other users within instance before uploading)
 - Modulized screen, audio & UI architecture, support multiple instances
 - Both on-screen & separated interfaces available
+- Optional extra alternative URL input for supporting cross-platform users (since v1.3.0)
 - (Almost) one-click to change interface colors
 - Supports both legacy UI and TextMeshPro setup (since v1.0.32)
 - Local pickupable & scaleable screen
 - Wrist band (VR) / keyboard (desktop) resync button & volume controls
 - Auto plays when local user steps into specific region
 - Auto fades out background music when video is playing
+- Dedicated component assigns random stream link per-instance/user (since v1.3.0)
 - Custom shader with various display modes built-in (Stretch, Contain, Cover, Stereographic Video Source), can be configurated on material options
 - Luminance adjustment for screens using built-in materials (sice v1.1.0)
 - Localization system with auto language detection (English, Chinese, Japanese & Korean)

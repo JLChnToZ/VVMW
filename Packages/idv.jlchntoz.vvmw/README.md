@@ -23,6 +23,7 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
     * [How to Setup Auto Plays When a User Goes Nearby?](#how-to-setup-auto-plays-when-a-user-goes-nearby)
     * [How to Make Background Music Fade Out When Video is Playing?](#how-to-make-background-music-fade-out-when-video-is-playing)
     * [How to Upgrade to Text Mesh Pro?](#how-to-upgrade-to-text-mesh-pro)
+    * [How to Automatically Assigns Unique Stream Links for Each Event Performer or Instance?](#how-to-automatically-assigns-unique-stream-links-for-each-event-performer-or-instance)
 * [Details in the Bundle](#details-in-the-bundle)
 	* [VVMW (Game Object)](#vvmw-game-object)
 	* [Builtin Module / AVPro Module / Image Module](#builtin-module--avpro-module--image-module)
@@ -89,11 +90,15 @@ VizVid is aim to be flexible, so do the controllers. We have provide 3 variants 
 - Narrow: Suitable for the controls don't come along with the screen (or even without any screen).  
   The prefab name is `Default UI (Narrow)`.  
   ![ ](.tutorial/controls-narrow.png)
+- Narrow with Alt. URL Input: Almost same as above, but with 2 input fields that allows user to enter mobile (Quest) specific alternative links. Most common usage is ad-hoc input live streaming URLs for a cross-platform event venue, which requires different protocol for each platform (RTSP and RTSPT).
+  The prefab name is `Default UI (Narrow)`.  
+  ![ ](.tutorial/controls-narrow-dual.png)
 
 To add them, right-click on the player object in hierarchy, and select one of these depends which type of controls you want to add:
 - `VizVid > Additional Controls > On Screen With Controls with Overlay`
 - `VizVid > Additional Controls > Separated Controls`
 - `VizVid > Additional Controls > Separated Controls (Narrow)`
+- `VizVid > Additional Controls > Separated Controls (With Alt. URL Input, Narrow)`
 
 ![ ](.tutorial/add-controls-simple.png)
 
@@ -175,6 +180,15 @@ Both Unity and VRChat SDK encourages to use TextMeshPro (TMPro) instead of legac
 > Please note this only applies to currently what you have on the scene, if the player is upgraded in the future and new UI components are added, or you have added/replaced any UIs of the player afterwards, you will have to do this again.
 
 If you want to test the player within Unity Editor but find out all non-English text become tofu after migration, you may refer to this article: [TextMeshPro in VRChat](https://hai-vr.notion.site/TextMeshPro-in-VRChat-91561782adea47a78569cec641fd5ee9#88dd13b80e4d4caeafc00f26b4aa2ae1).
+
+### How to Automatically Assigns Unique Stream Links for Each Event Performer or Instance?
+
+As we are also music event organizers/performers, we all know the pain to find a convenient place to start our streaming, better with provided stream keys to copy, but also not interfere with other instances or users. This component is the solution already built with the video player, starting from v1.3.0. To use this, you can follow this instructions:
+1. Right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Stream Key Assigner`.
+2. The newly spawned object should be selected by default, head in to inspector, you will see following panel:  
+![ ](.tutorial/add-streamkey.png)
+3. Change the **Stream Key Template**, **Stream URL Template** and **Alt Stream URL Template** according to your streaming sevice, and click **Generate**. (For Key Count and Unique ID Length option, it depends on how popular your world does, but normally 100 streaming keys and 5 characters length is enough for per-instance random)
+4. Adjust the object placement as you like, then you are done.
 
 ## Details in the Bundle
 In the prefab, it should look like this in hierarchy:
