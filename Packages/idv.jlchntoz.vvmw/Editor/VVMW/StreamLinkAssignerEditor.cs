@@ -35,6 +35,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         byte[] keyBytes;
         SerializedObject coreSO;
         EditorI18N i18N;
+        string sampleKey, samplePCUrl, sampleQuestUrl;
 
         protected override void OnEnable() {
             base.OnEnable();
@@ -81,26 +82,41 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             } else
                 EditorGUILayout.PropertyField(playerIndexProperty);
             EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(streamKeyTemplateProperty);
-            EditorGUILayout.PropertyField(streamUrlTemplateProperty);
-            EditorGUILayout.PropertyField(altStreamUrlTemplateProperty);
-            generateKeyCount = EditorGUILayout.IntField(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.keyCount"), generateKeyCount);
-            uniqueIdLength = EditorGUILayout.IntField(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.uniqueIdLength"), uniqueIdLength);
-            folded = EditorGUILayout.Foldout(folded, i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.streamKeysAndUrls"), true);
-            using (new EditorGUILayout.HorizontalScope()) {
-                if (GUILayout.Button(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.generate")) && (
-                    streamKeysProperty.arraySize == 0 ||
-                    i18N.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.StreamLinkAssigner.generate"))) {
-                    GenerateKeys();
+            using (new EditorGUILayout.VerticalScope(GUI.skin.box)) {
+                EditorGUILayout.LabelField(i18N.GetLocalizedContent("HEADER:StreamKeyGenerator"), EditorStyles.boldLabel);
+                using (var changeCheck = new EditorGUI.ChangeCheckScope()) {
+                    EditorGUILayout.PropertyField(streamKeyTemplateProperty);
+                    EditorGUILayout.PropertyField(streamUrlTemplateProperty);
+                    EditorGUILayout.PropertyField(altStreamUrlTemplateProperty);
+                    generateKeyCount = EditorGUILayout.IntField(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.keyCount"), generateKeyCount);
+                    uniqueIdLength = EditorGUILayout.IntField(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.uniqueIdLength"), uniqueIdLength);
+                    if (changeCheck.changed || sampleKey == null || samplePCUrl == null || sampleQuestUrl == null) {
+                        sampleKey = string.Format(streamKeyTemplateProperty.stringValue, new string('X', uniqueIdLength));
+                        samplePCUrl = string.Format(streamUrlTemplateProperty.stringValue, sampleKey);
+                        sampleQuestUrl = string.IsNullOrWhiteSpace(altStreamUrlTemplateProperty.stringValue) ? samplePCUrl :
+                            string.Format(altStreamUrlTemplateProperty.stringValue, sampleKey);
+                    }
                 }
-                using (new EditorGUI.DisabledScope(streamKeysProperty.arraySize == 0)) {
-                    if (GUILayout.Button(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.generateUrls"))) GenerateUrls();
-                    if (GUILayout.Button(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.clear")) &&
-                        i18N.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.StreamLinkAssigner.clear")) {
-                        ClearStreamKeys();
+                EditorGUILayout.HelpBox(string.Format(
+                    i18n.GetOrDefault("JLChnToZ.VRC.VVMW.StreamLinkAssigner.generate_message"),
+                    generateKeyCount, samplePCUrl, sampleQuestUrl
+                ), MessageType.Info);
+                using (new EditorGUILayout.HorizontalScope()) {
+                    if (GUILayout.Button(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.generate")) && (
+                        streamKeysProperty.arraySize == 0 ||
+                        i18N.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.StreamLinkAssigner.generate"))) {
+                        GenerateKeys();
+                    }
+                    using (new EditorGUI.DisabledScope(streamKeysProperty.arraySize == 0)) {
+                        if (GUILayout.Button(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.generateUrls"))) GenerateUrls();
+                        if (GUILayout.Button(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.clear")) &&
+                            i18N.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.StreamLinkAssigner.clear")) {
+                            ClearStreamKeys();
+                        }
                     }
                 }
             }
+            folded = EditorGUILayout.Foldout(folded, i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.streamKeysAndUrls", streamKeysProperty.arraySize), true);
             if (folded) {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(streamKeysProperty, true);
@@ -152,7 +168,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 usedKeys.Clear();
                 var streamUrl = streamUrlTemplateProperty.stringValue;
                 var altStremUrl = altStreamUrlTemplateProperty.stringValue;
-                if (string.IsNullOrEmpty(altStremUrl)) altStremUrl = streamUrl;
+                if (string.IsNullOrWhiteSpace(altStremUrl)) altStremUrl = streamUrl;
                 for (int i = 0; i < generateKeyCount; i++) {
                     var finalKey = GenerateKey(out var generatedKey);
                     if (finalKey == null) return;
@@ -204,7 +220,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             altStreamLinksProperty.arraySize = count;
             var streamUrl = streamUrlTemplateProperty.stringValue;
             var altStremUrl = altStreamUrlTemplateProperty.stringValue;
-            if (string.IsNullOrEmpty(altStremUrl)) altStremUrl = streamUrl;
+            if (string.IsNullOrWhiteSpace(altStremUrl)) altStremUrl = streamUrl;
             for (int i = 0; i < count; i++) {
                 streamLinksProperty.GetArrayElementAtIndex(i).FindPropertyRelative("url").stringValue =
                     string.Format(streamUrl, streamKeysProperty.GetArrayElementAtIndex(i).stringValue);
