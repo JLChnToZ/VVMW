@@ -12,6 +12,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(StreamLinkAssigner))]
     public class StreamLinkAssignerEditor : VVMWEditorBase {
         const string SAFE_CHARS = "23456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz";
+        static readonly string[] randomPrefixes = new[] {
+            "apple", "banana", "cherry", "date", "elder", "fig", "grape", "honey", "ice", "juice",
+            "kiwi", "lemon", "mango", "nectar", "orange", "pear", "quince", "rasp", "straw",
+            "tanger", "vanilla", "water", "xylitol", "yogurt", "zest", "almond", "berry", "candy",
+            "dew", "egg", "flour", "grain", "honey", "ice", "jam", "kale", "lime", "mint", "nut",
+            "oat", "pea", "quinoa", "rice", "salt", "tea", "umami", "vine", "wheat", "yam",
+        };
         readonly HashSet<string> usedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         SerializedProperty coreProperty,
             frontendHandlerProperty,
@@ -55,9 +62,30 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             inputFieldToCopyProperty = serializedObject.FindProperty("inputFieldToCopy");
             regenerateButtonProperty = serializedObject.FindProperty("regenerateButton");
             playButtonProperty = serializedObject.FindProperty("playButton");
-            generateKeyCount = streamKeysProperty.arraySize;
-            uniqueIdLength = 5;
+            InitGenerator();
+        }
+
+        void InitGenerator() {
             usedKeys.Clear();
+            generateKeyCount = streamKeysProperty.arraySize;
+            if (generateKeyCount == 0) generateKeyCount = 100;
+            uniqueIdLength = 5;
+            if (PrefabUtility.IsPartOfPrefabAsset(target)) return;
+            serializedObject.Update();
+            if (string.IsNullOrWhiteSpace(streamKeyTemplateProperty.stringValue)) {
+                var sb = new StringBuilder();
+                for (int i = UnityEngine.Random.Range(0, 4); i >= 0; i--) {
+                    sb.Append(randomPrefixes[UnityEngine.Random.Range(0, randomPrefixes.Length)]);
+                    sb.Append('-');
+                }
+                sb.Append("{0}");
+                streamKeyTemplateProperty.stringValue = sb.ToString();
+            }
+            if (string.IsNullOrWhiteSpace(streamUrlTemplateProperty.stringValue))
+                streamUrlTemplateProperty.stringValue = "rtspt://example.com/live/{0}";
+            if (string.IsNullOrWhiteSpace(altStreamUrlTemplateProperty.stringValue))
+                altStreamUrlTemplateProperty.stringValue = "rtsp://example.com/live/{0}";
+            serializedObject.ApplyModifiedProperties();
         }
 
         protected override void OnDisable() {
@@ -82,6 +110,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             } else
                 EditorGUILayout.PropertyField(playerIndexProperty);
             EditorGUILayout.Space();
+            bool isEmpty = streamKeysProperty.arraySize == 0;
             using (new EditorGUILayout.VerticalScope(GUI.skin.box)) {
                 EditorGUILayout.LabelField(i18N.GetLocalizedContent("HEADER:StreamKeyGenerator"), EditorStyles.boldLabel);
                 using (var changeCheck = new EditorGUI.ChangeCheckScope()) {
@@ -103,11 +132,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 ), MessageType.Info);
                 using (new EditorGUILayout.HorizontalScope()) {
                     if (GUILayout.Button(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.generate")) && (
-                        streamKeysProperty.arraySize == 0 ||
+                        isEmpty ||
                         i18N.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.StreamLinkAssigner.generate"))) {
                         GenerateKeys();
                     }
-                    using (new EditorGUI.DisabledScope(streamKeysProperty.arraySize == 0)) {
+                    using (new EditorGUI.DisabledScope(isEmpty)) {
                         if (GUILayout.Button(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.generateUrls"))) GenerateUrls();
                         if (GUILayout.Button(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.clear")) &&
                             i18N.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.StreamLinkAssigner.clear")) {
@@ -124,6 +153,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 EditorGUILayout.PropertyField(altStreamLinksProperty, true);
                 EditorGUI.indentLevel--;
             }
+            if (isEmpty) EditorGUILayout.HelpBox(i18N.GetOrDefault("JLChnToZ.VRC.VVMW.StreamLinkAssigner.notgenerated_message"), MessageType.Warning);
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(currentUserOnlyProperty);
             EditorGUILayout.PropertyField(autoInterruptProperty);

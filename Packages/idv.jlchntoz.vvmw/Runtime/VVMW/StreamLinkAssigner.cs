@@ -19,7 +19,7 @@ namespace JLChnToZ.VRC.VVMW {
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
         )] protected FrontendHandler frontendHandler;
-        [SerializeField, LocalizedLabel] protected string streamKeyTemplate = "{0}", streamUrlTemplate = "rtspt://example.com/live/{0}", altStreamUrlTemplate = "rtsp://example.com/live/{0}";
+        [SerializeField, LocalizedLabel] protected string streamKeyTemplate, streamUrlTemplate = "rtspt://example.com/live/{0}", altStreamUrlTemplate = "rtsp://example.com/live/{0}";
         [SerializeField, LocalizedLabel] protected bool currentUserOnly;
         [SerializeField, LocalizedLabel] protected VRCUrl[] streamLinks, altStreamLinks;
         [SerializeField, LocalizedLabel] protected string[] streamKeys;
@@ -32,7 +32,7 @@ namespace JLChnToZ.VRC.VVMW {
         [BindEvent(nameof(Button.onClick), nameof(_Play))]
         [SerializeField, LocalizedLabel] Button playButton;
         [UdonSynced] int syncedStreamIndex = -1;
-        protected int streamIndex;
+        protected int streamIndex = -1;
 
         protected virtual void Start() {
             if (currentUserOnly || Networking.IsOwner(gameObject)) _Regenerate();
@@ -64,10 +64,18 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         protected virtual void RegenerateCore() {
+            if (streamLinks == null || streamLinks.Length == 0) {
+                Debug.LogError("[Stream Key Assigner] No stream links are generated. Please report to the world creator to fix this.");
+                return;
+            }
             streamIndex = Random.Range(0, streamLinks.Length);
         }
 
         public void _Play() {
+            if (streamIndex < 0) {
+                Debug.LogError("[Stream Key Assigner] No stream key is assigned. Unable to play.");
+                return;
+            }
             if (frontendHandler) {
                 bool enableIntrrupt = autoInterrupt && frontendHandler.HasQueueList;
                 int currentPendingCount = enableIntrrupt && frontendHandler.PlayListIndex == 0 ? frontendHandler.PendingCount : -1;
