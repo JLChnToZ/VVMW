@@ -5,6 +5,8 @@ using System.Security.Cryptography;
 using UnityEngine;
 using UnityEditor;
 using UdonSharpEditor;
+using JLChnToZ.VRC.Foundation;
+using JLChnToZ.VRC.Foundation.Editors;
 using JLChnToZ.VRC.Foundation.I18N;
 using JLChnToZ.VRC.Foundation.I18N.Editors;
 
@@ -115,8 +117,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 EditorGUILayout.LabelField(i18N.GetLocalizedContent("HEADER:StreamKeyGenerator"), EditorStyles.boldLabel);
                 using (var changeCheck = new EditorGUI.ChangeCheckScope()) {
                     EditorGUILayout.PropertyField(streamKeyTemplateProperty);
-                    EditorGUILayout.PropertyField(streamUrlTemplateProperty);
-                    EditorGUILayout.PropertyField(altStreamUrlTemplateProperty);
+                    DrawUrlField(streamUrlTemplateProperty, TrustedUrlTypes.AVProDesktop, i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.streamUrlTemplate"));
+                    DrawUrlField(altStreamUrlTemplateProperty, TrustedUrlTypes.AVProAndroid, i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.altStreamUrlTemplate"));
                     generateKeyCount = EditorGUILayout.IntField(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.keyCount"), generateKeyCount);
                     uniqueIdLength = EditorGUILayout.IntField(i18N.GetLocalizedContent("JLChnToZ.VRC.VVMW.StreamLinkAssigner.uniqueIdLength"), uniqueIdLength);
                     if (changeCheck.changed || sampleKey == null || samplePCUrl == null || sampleQuestUrl == null) {
@@ -263,6 +265,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             streamKeysProperty.arraySize = 0;
             streamLinksProperty.arraySize = 0;
             altStreamLinksProperty.arraySize = 0;
+        }
+
+        static void DrawUrlField(SerializedProperty serializedProperty, TrustedUrlTypes trustedUrlTypes, GUIContent content = null) {
+            var controlRect = EditorGUILayout.GetControlRect();
+            using (var scope = new EditorGUI.PropertyScope(controlRect, content, serializedProperty))
+            using (var changed = new EditorGUI.ChangeCheckScope()) {
+                var urlStr = serializedProperty.stringValue;
+                urlStr = TrustedUrlUtils.DrawUrlField(urlStr, trustedUrlTypes, controlRect, scope.content);
+                if (changed.changed) serializedProperty.stringValue = urlStr;
+            }
         }
 
     }
