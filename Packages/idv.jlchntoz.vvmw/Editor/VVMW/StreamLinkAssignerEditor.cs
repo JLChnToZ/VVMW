@@ -101,6 +101,19 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, false, false)) return;
             var serializedObject = this.serializedObject;
             serializedObject.Update();
+            DrawNecessaryFields();
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(currentUserOnlyProperty);
+            EditorGUILayout.PropertyField(autoInterruptProperty);
+            EditorGUILayout.PropertyField(autoPlayProperty);
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(inputFieldToCopyProperty);
+            EditorGUILayout.PropertyField(regenerateButtonProperty);
+            EditorGUILayout.PropertyField(playButtonProperty);
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        protected void DrawNecessaryFields() {
             EditorGUILayout.PropertyField(coreProperty);
             EditorGUILayout.PropertyField(frontendHandlerProperty);
             EditorGUILayout.Space();
@@ -156,15 +169,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 EditorGUI.indentLevel--;
             }
             if (isEmpty) EditorGUILayout.HelpBox(i18N.GetOrDefault("JLChnToZ.VRC.VVMW.StreamLinkAssigner.notgenerated_message"), MessageType.Warning);
-            EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(currentUserOnlyProperty);
-            EditorGUILayout.PropertyField(autoInterruptProperty);
-            EditorGUILayout.PropertyField(autoPlayProperty);
-            EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(inputFieldToCopyProperty);
-            EditorGUILayout.PropertyField(regenerateButtonProperty);
-            EditorGUILayout.PropertyField(playButtonProperty);
-            serializedObject.ApplyModifiedProperties();
         }
 
         Core GetCore() {
