@@ -9,7 +9,7 @@ VizVidの使用をご検討いただき、誠にありがとうございます�
 VizVidはVRChatに向けて開発している、汎用的な動画プレイヤーのフロントエンドです。ラウンジで皆で楽しんでいただける動画/ライブ配信プレイヤーだけではなく、大規模イベント、さらに展示会やショーケース・ブースにも対応する、汎用性が満載の動画プレイヤーになります。柔軟に構築されたガジェットのように、裏蓋を開けたら簡単に調整可能で、ユーザーの必要に応じて簡単に改変できます。
 
 > [!NOTE]
-> このマニュアルは v1.1.0 以降に対応しており、一部の内容は古いバージョンと異なります。
+> このマニュアルは v1.3.0 以降に対応しており、一部の内容は古いバージョンと異なります。
 
 ## 目次<a name="目次"></a>
 - [導入方法](#導入方法)
@@ -25,6 +25,7 @@ VizVidはVRChatに向けて開発している、汎用的な動画プレイヤ�
     - [ユーザー接近の自動再生設定](#ユーザー接近の自動再生設定)
     - [動画を再生する時、ワールドBGMの自動フェードアウト](#動画を再生する時、ワールドBGMの自動フェードアウト)
     - [Text Mesh Proへの移行](#Text-Mesh-Proへの移行)
+    - [ユニークストリーミングキーの自動発行](#ユニークストリーミングキーの自動発行)
 - [バンドルの仕組み](#バンドルの仕組み)
     - [VVMW (Game Object)](#VVMW-Game-Object)
     - [Builtin Module / AVPro Module / Image Module](#Builtin-Module--AVPro-Module--Image-Module)
@@ -92,12 +93,16 @@ VizVidは柔軟な構成を狙うため、操作パネルも同じ考え方で�
 * **Narrow**：再生画面に付けない・表示しない方にはおすすめです。  
   プレハブ名は「`Default UI (Narrow)`」です。 
   ![ ](.tutorial/controls-narrow.png)
+* **Narrow with Alt. URL**：Narrowとほぼ同じですが、対応プラットフォーム (PC、Questなど) に合わせて、それぞれの入力欄が用意しています。クロスプラットフォーム会場に、臨時的URLを入力する場合、RTSPやRTSPTなど、各プラットフォームに合わせたURLの入力が出来ます。
+プレハブ名は「`Default UI Dual Input (Narrow)`」です。
+  ![ ](.tutorial/controls-narrow-dual.png)
 
 
 Unityヒエラルキーにあるプレイヤーオブジェクトに右クリック、追加したい操作パネルを選択して、新規操作パネルが追加されます：
 - `VizVid > Additional Controls > On Screen With Controls with Overlay`
 - `VizVid > Additional Controls > Separated Controls`
 - `VizVid > Additional Controls > Separated Controls (Narrow)`
+- `VizVid > Additional Controls > Separated Controls (With Alt. URL Input, Narrow)`
 ![ ](.tutorial/add-controls-simple.png)
 
 
@@ -164,13 +169,24 @@ VizVidは、ユーザーが特定のエリアに入る時に再生、離れる�
 ### Text Mesh Proへの移行<a name="text-mesh-proへの移行"></a>
 VRの中に、文字を綺麗に表示にするため、レガシィテキストの代わり、UnityとVRChat SDKは、TextMeshPro (TMPro) の使用は推奨しています。VizVidはv1.0.32以降、TMProへの移行に対応しています：
 1. Default UI・オーバーレイ操作パネル・再同期 (Re-Sync) ボタンなど、最も上の階層のUIゲームオブジェクトを選択します。
-2. Unityメニューバーに「`Tools > JLChnToZ VRCW Foundation > Migrate TMPro Components`」を選択して、この後はスクリプトに任せてください。
+2. Unityメニューバーに「`Tools > VizVid > Migrate TMPro Components`」を選択して、この後はスクリプトに任せてください。
 3. はい、終わり。
 
 > [!NOTE]
 > 注意：この手順は、シーンがあるオブジェクトのみ適用され、その以降アップデートで追加されたUI要素や、手動で追加/置換えたUIオブジェクトには適用されませんので、追加/置換えた対象になったオブジェクトに、再度この手順を行ってください。
 
 Unityエディター内TMProに移行したVizVid、英語以外のテキストが豆腐 (→□) に表示された場合、この記事をご参照ください：[TextMeshPro in VRChat](https://hai-vr.notion.site/TextMeshPro-in-VRChat-91561782adea47a78569cec641fd5ee9#88dd13b80e4d4caeafc00f26b4aa2ae1)。
+
+### ユニークストリーミングキーの自動発行
+VRChatで音楽活動しているグループとして、事前にアサインされたストリーミングキーを入れたいのに、他のインスタンスやユーザーに邪魔されないよう、こういう事前準備の大変さはよく知っています。そのため、v1.3.0から、ユニークストリーミングキーの自動発行機能を実装しました。
+
+使用方法：
+1. ヒエラルキーにある、VizVidのオブジェクトに右クリック、`VizVid > Additional Controls > Stream Key Assigner`を選択します。
+2. デフォルトの場合、新たなオブジェクトが作成されます。ヒエラルキーには、表示される画面がこのように見えます。
+![ ](.tutorial/add-streamkey.png)
+3. 使用するストリーミングサービスによって、**Steeam Key Template**、**Stream URL Template**，また **Alt Stream URL Template**を編集し、**Generate**をクリックします。
+(Key CountとUnique IDに関して、ストリーミングキーが100個、また英数半角5文字は十分のはずですが、再調整が出来るため、ストリーミングサービスの都合で調整が行えます。)
+4. オブジェクトを配置、完了。
 
 ## バンドルの仕組み<a name="バンドルの仕組み"></a>
 Unityヒエラルキーにあるプレハブは、以下の通りになります：

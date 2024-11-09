@@ -91,7 +91,7 @@ VizVid is aim to be flexible, so do the controllers. We have provide 3 variants 
   The prefab name is `Default UI (Narrow)`.  
   ![ ](.tutorial/controls-narrow.png)
 - Narrow with Alt. URL Input: Almost same as above, but with 2 input fields that allows user to enter mobile (Quest) specific alternative links. Most common usage is ad-hoc input live streaming URLs for a cross-platform event venue, which requires different protocol for each platform (RTSP and RTSPT).
-  The prefab name is `Default UI (Narrow)`.  
+  The prefab name is `Default UI Dual Input (Narrow)`.  
   ![ ](.tutorial/controls-narrow-dual.png)
 
 To add them, right-click on the player object in hierarchy, and select one of these depends which type of controls you want to add:
