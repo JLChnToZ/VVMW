@@ -83,7 +83,7 @@ namespace JLChnToZ.VRC.VVMW {
                 if (enableIntrrupt && frontendHandler.PlayListIndex == 0) {
                     int pendingCount = frontendHandler.PendingCount;
                     if (pendingCount > currentPendingCount)
-                        frontendHandler._PlayAt(0, pendingCount - 1, false);
+                        frontendHandler.PlayAt(0, pendingCount - 1, false);
                 }
                 return;
             }

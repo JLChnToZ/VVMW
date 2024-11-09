@@ -745,7 +745,7 @@ namespace JLChnToZ.VRC.VVMW {
         public void _OnQueueListEntryClick() {
             playListLastInteractTime = DateTime.UtcNow;
             int selectedPlayListIndex = SelectedPlayListIndex;
-            handler._PlayAt(selectedPlayListIndex, queueListScrollView.lastInteractIndex, false);
+            handler.PlayAt(selectedPlayListIndex, queueListScrollView.lastInteractIndex, false);
             if (selectedPlayListIndex < 0) {
                 SelectedPlayListIndex = 0;
                 UpdatePlayList();
@@ -755,7 +755,7 @@ namespace JLChnToZ.VRC.VVMW {
         public void _OnQueueListEntryDelete() {
             playListLastInteractTime = DateTime.UtcNow;
             int selectedPlayListIndex = SelectedPlayListIndex;
-            handler._PlayAt(selectedPlayListIndex, queueListScrollView.lastInteractIndex, true);
+            handler.PlayAt(selectedPlayListIndex, queueListScrollView.lastInteractIndex, true);
             if (selectedPlayListIndex < 0) {
                 SelectedPlayListIndex = 0;
                 UpdatePlayList();

@@ -459,15 +459,21 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _PlayNext() {
             if (synced && !Networking.IsOwner(gameObject)) return;
-            _PlayAt(localPlayListIndex, -1, false);
+            PlayAt(localPlayListIndex, -1, false);
         }
 
-        public void _PlayAt(int playListIndex, int entryIndex, bool deleteOnly) {
+        [Obsolete("Use PlayAt instead.")]
+        public void _PlayAt(int playListIndex, int entryIndex, bool deleteOnly) =>
+            PlayAt(playListIndex, entryIndex, deleteOnly);
+
+        public void PlayAt(int playListIndex, int entryIndex, bool deleteOnly) {
             int actualPlayListIndex = playListIndex;
             if (actualPlayListIndex < 0) actualPlayListIndex = 0;
             if (actualPlayListIndex != localPlayListIndex) {
                 localQueuedUrls = null;
+                localQueuedQuestUrls = null;
                 localQueuedPlayerIndex = null;
+                localQueuedTitles = null;
                 localPlayListOrder = null;
                 localPlayListIndex = actualPlayListIndex;
             }
@@ -577,7 +583,19 @@ namespace JLChnToZ.VRC.VVMW {
             if (localQueuedUrls == null) return;
             int newLength = localQueuedUrls.Length;
             if (index >= newLength || newLength <= 0) return;
-            if (index < 0) index = Shuffle ? UnityEngine.Random.Range(0, newLength) : 0;
+            if (index < 0) {
+                if (deleteOnly) {
+                    localPlayListIndex = 0;
+                    localQueuedUrls = null;
+                    localQueuedQuestUrls = null;
+                    localQueuedPlayerIndex = null;
+                    localQueuedTitles = null;
+                    RequestSync();
+                    UpdateState();
+                    return;
+                }
+                index = Shuffle ? UnityEngine.Random.Range(0, newLength) : 0;
+            }
             newLength--;
             var url = localQueuedUrls[index];
             bool hasQuestUrl = !IsArrayNullOrEmpty(localQueuedQuestUrls);
