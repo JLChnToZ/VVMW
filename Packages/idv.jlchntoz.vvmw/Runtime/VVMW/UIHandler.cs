@@ -16,7 +16,7 @@ namespace JLChnToZ.VRC.VVMW {
     [AddComponentMenu("VizVid/UI Handler")]
     [DefaultExecutionOrder(2)]
     [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#default-ui--screen-with-overlay")]
-    public class UIHandler : VizVidBehaviour {
+    public partial class UIHandler : VizVidBehaviour {
         [LocalizedHeader("HEADER:Main_Reference")]
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core"), Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
@@ -154,48 +154,13 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] string luminancePropertyName = "_EmissionIntensity";
         int luminancePropertyId;
 
-        string[] playListNames;
-        ButtonEntry[] videoPlayerSelectButtons;
-        [NonSerialized] public byte loadWithIndex;
-        int lastSelectedPlayListIndex, lastPlayingIndex;
-        int lastDisplayCount;
-        bool hasUpdate, wasUnlocked, hasUnlockInit, playListUpdateRequired;
-        string enqueueCountFormat;
+        bool hasUpdate, wasUnlocked, hasUnlockInit;
         byte selectedPlayer = 1;
         int interactTriggerId;
         DateTime joinTime, playListLastInteractTime;
         TimeSpan interactCoolDown = TimeSpan.FromSeconds(5);
         bool afterFirstRun;
         int initKey, playbackStateKey;
-
-        int SelectedPlayListIndex {
-            get {
-                if (playListScrollView == null) return 0;
-                int selectedIndex = playListScrollView.SelectedIndex;
-                if (handler != null) {
-                    if (handler.HistorySize > 0) {
-                        if (selectedIndex == 0) return -1;
-                        if (handler.HasQueueList) selectedIndex--;
-                    } else if (!handler.HasQueueList)
-                        selectedIndex++;
-                }
-                return selectedIndex;
-            }
-            set {
-                if (playListScrollView == null) return;
-                if (value < 0) {
-                    playListScrollView.SelectedIndex = 0;
-                    return;
-                }
-                if (handler != null) {
-                    if (handler.HistorySize > 0) {
-                        if (handler.HasQueueList) value++;
-                    } else if (!handler.HasQueueList)
-                        value--;
-                }
-                playListScrollView.SelectedIndex = value;
-            }
-        }
 
         void OnEnable() {
             if (playbackControlsAnimator != null) {
@@ -208,86 +173,15 @@ namespace JLChnToZ.VRC.VVMW {
             if (afterFirstRun) return;
             afterFirstRun = true;
             joinTime = DateTime.UtcNow;
-            var hasHandler = Utilities.IsValid(handler);
-            if (hasHandler) core = handler.core;
+            if (Utilities.IsValid(handler)) core = handler.core;
             if (luminanceSlider != null && !string.IsNullOrEmpty(luminancePropertyName)) {
                 luminancePropertyId = VRCShader.PropertyToID(luminancePropertyName);
                 _OnScreenSharedPropertiesChanged();
             }
-            if (enqueueCountText != null) {
-                enqueueCountFormat = enqueueCountText.text;
-                enqueueCountText.text = string.Format(enqueueCountFormat, 0);
-            } else if (enqueueCountTMPro != null) {
-                enqueueCountFormat = enqueueCountTMPro.text;
-                enqueueCountTMPro.text = string.Format(enqueueCountFormat, 0);
-            }
-            if (playListPanelRoot != null) playListPanelRoot.SetActive(true);
-            if (playListScrollView != null) {
-                playListNames = hasHandler ? handler.PlayListTitles : null;
-                if (playListNames != null) {
-                    bool hasQueueList = handler.HasQueueList;
-                    bool hasHistory = handler.HistorySize > 0;
-                    if (hasQueueList || hasHistory) {
-                        int length = playListNames.Length;
-                        if (hasQueueList) length++;
-                        if (hasHistory) length++;
-                        var temp = new string[length];
-                        int i = 0;
-                        if (hasHistory) temp[i++] = languageManager.GetLocale("PlaybackHistory");
-                        if (hasQueueList) temp[i++] = languageManager.GetLocale("QueueList");
-                        Array.Copy(playListNames, 0, temp, i, playListNames.Length);
-                        playListNames = temp;
-                    }
-                } else if (playListNames == null)
-                    playListNames = new[] { languageManager.GetLocale("QueueList") };
-                bool hasPlayList = playListNames.Length > 1;
-                playListScrollView.EventPrefix = "_OnPlayList";
-                playListScrollView.CanDelete = false;
-                playListScrollView.EntryNames = playListNames;
-                SelectedPlayListIndex = hasHandler ? handler.PlayListIndex : 0;
-                if (playListTogglePanelButton != null)
-                    playListScrollView.gameObject.SetActive(false);
-                else
-                    playListScrollView.gameObject.SetActive(hasPlayList);
-            }
-            if (queueListScrollView != null) {
-                queueListScrollView.EventPrefix = "_OnQueueList";
-                queueListScrollView.gameObject.SetActive(hasHandler);
-            }
-            if (videoPlayerSelectButtonTemplate != null) {
-                var templateTransform = videoPlayerSelectButtonTemplate.transform;
-                var parent = videoPlayerSelectRoot.transform;
-                var sibling = templateTransform.GetSiblingIndex() + 1;
-                var videoPlayerNames = core.PlayerNames;
-                videoPlayerSelectButtons = new ButtonEntry[videoPlayerNames.Length];
-                for (int i = 0; i < videoPlayerNames.Length; i++) {
-                    var button = Instantiate(videoPlayerSelectButtonTemplate);
-                    button.SetActive(true);
-                    var buttonTransform = button.transform;
-                    buttonTransform.SetParent(parent, false);
-                    buttonTransform.SetSiblingIndex(sibling + i);
-                    var buttonControl = button.GetComponent<ButtonEntry>();
-                    buttonControl.LanguageManager = languageManager;
-                    buttonControl.Key = videoPlayerNames[i];
-                    buttonControl.callbackTarget = this;
-                    buttonControl.callbackEventName = nameof(_LoadPlayerClick);
-                    buttonControl.callbackVariableName = nameof(loadWithIndex);
-                    buttonControl.callbackUserData = (byte)(i + 1);
-                    videoPlayerSelectButtons[i] = buttonControl;
-                }
-                videoPlayerSelectButtonTemplate.SetActive(false);
-            }
+            InitPlayQueueList();
+            InitPlayerSelect();
             if (playNextIndicator != null) playNextIndicator.SetActive(false);
-            bool isSynced = core.IsSynced;
-            if (shiftControlsRoot != null) shiftControlsRoot.SetActive(isSynced);
-            else {
-                if (shiftBackLButton != null) shiftBackLButton.gameObject.SetActive(isSynced);
-                if (shiftBackSButton != null) shiftBackSButton.gameObject.SetActive(isSynced);
-                if (shiftForwardSButton != null) shiftForwardSButton.gameObject.SetActive(isSynced);
-                if (shiftForwardLButton != null) shiftForwardLButton.gameObject.SetActive(isSynced);
-                if (shiftResetButton != null) shiftResetButton.gameObject.SetActive(isSynced);
-                if (shiftOffsetText != null) shiftOffsetText.gameObject.SetActive(isSynced);
-            }
+            InitShiftControl();
             _OnUIUpdate();
             _OnVolumeChange();
             _OnSyncOffsetChange();
@@ -373,10 +267,6 @@ namespace JLChnToZ.VRC.VVMW {
             _InputCancelClick();
         }
 
-        public void _OnSeek() {
-            core.Progress = progressSlider.value;
-        }
-
         public void _OnVolumeSlide() {
             core.Volume = volumeSlider.value;
         }
@@ -396,79 +286,6 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void _OnURLChanged() {
-            bool isEmpty = string.IsNullOrEmpty(urlInput.textComponent.text);
-            if (otherObjectUnderUrlInput != null) otherObjectUnderUrlInput.SetActive(isEmpty);
-            if (videoPlayerSelectPanel != null) videoPlayerSelectPanel.SetActive(!isEmpty);
-            if (Utilities.IsValid(altUrlInput)) altUrlInput.gameObject.SetActive(!isEmpty);
-        }
-
-        public void _OnURLEndEdit() {
-            _OnURLChanged();
-            if (urlInputConfirmButton == null) {
-                _InputConfirmClick();
-                return;
-            }
-            byte player = core.GetSuitablePlayerType(urlInput.GetUrl());
-            if (player > 0) {
-                loadWithIndex = player;
-                _LoadPlayerClick();
-            }
-        }
-
-        public void _InputConfirmClick() {
-            var url = urlInput.GetUrl();
-            var altUrl = url;
-            if (!VRCUrl.IsNullOrEmpty(url)) {
-                if (Utilities.IsValid(altUrlInput)) {
-                    altUrl = altUrlInput.GetUrl();
-                    if (VRCUrl.IsNullOrEmpty(altUrl)) altUrl = url;
-                }
-                playListLastInteractTime = joinTime;
-                if (Utilities.IsValid(handler)) {
-                    handler.PlayUrl(url, altUrl, selectedPlayer);
-                    if (queueListScrollView != null)
-                        SelectedPlayListIndex = handler.PlayListIndex;
-                    UpdatePlayList();
-                } else
-                    core.PlayUrl(url, altUrl, selectedPlayer);
-                _InputCancelClick();
-            }
-        }
-
-        public void _VideoPlayerSelect() {
-            if (videoPlayerSelectRoot == null) return;
-            videoPlayerSelectRoot.SetActive(!videoPlayerSelectRoot.activeSelf);
-        }
-
-        public void _InputCancelClick() {
-            urlInput.SetUrl(VRCUrl.Empty);
-            if (Utilities.IsValid(altUrlInput)) altUrlInput.SetUrl(VRCUrl.Empty);
-            _OnUIUpdate();
-            _OnURLChanged();
-        }
-
-        public void _PlayListTogglePanel() {
-            if (playListScrollView == null) return;
-            var playListGameObject = playListScrollView.gameObject;
-            playListGameObject.SetActive(!playListGameObject.activeSelf);
-        }
-
-        public void _PlayListToggle() {
-            if (playListScrollView == null) return;
-            if (playlistToggle.isOn) {
-                playListPanelRoot.SetActive(true);
-                if (Utilities.IsValid(handler)) {
-                    if (queueListScrollView != null)
-                        queueListScrollView.SelectedIndex = handler.PlayListIndex;
-                    playListLastInteractTime = joinTime;
-                }
-            } else {
-                playListLastInteractTime = DateTime.UtcNow;
-                playListPanelRoot.SetActive(false);
-            }
-        }
-
         public void _OnLanguageChanged() {
             if (!afterFirstRun) return;
             _OnUIUpdate();
@@ -485,15 +302,6 @@ namespace JLChnToZ.VRC.VVMW {
             }
             UpdatePlayerText();
         }
-
-        public void _LoadPlayerClick() {
-            selectedPlayer = loadWithIndex;
-            UpdatePlayerText();
-            if (videoPlayerSelectRoot != null) videoPlayerSelectRoot.SetActive(false);
-        }
-
-        void UpdatePlayerText() =>
-            SetLocalizedText(selectdPlayerText, selectdPlayerTMPro, videoPlayerSelectButtons[selectedPlayer - 1].Text);
 
         public void _OnUIUpdate() {
             if (!afterFirstRun) return;
@@ -643,171 +451,6 @@ namespace JLChnToZ.VRC.VVMW {
             if (speedResetButton != null) speedResetButton.interactable = canChangeSpeed;
         }
 
-        public void _DeferUpdatePlayList() {
-            if (playListUpdateRequired && !UpdatePlayList() && playListUpdateRequired)
-                SendCustomEventDelayedFrames(nameof(_DeferUpdatePlayList), 0);
-        }
-
-        bool UpdatePlayList() {
-            int playListIndex = handler.PlayListIndex;
-            int playingIndex = handler.CurrentPlayingIndex;
-            int displayCount, offset;
-            int pendingCount = handler.PendingCount;
-            VRCUrl[] queuedUrls = handler.QueueUrls, playListUrls = handler.PlayListUrls;
-            string[] entryTitles = handler.PlayListEntryTitles, queuedTitles = handler.QueueTitles, historyTitles = handler.HistoryTitles;
-            int[] urlOffsets = handler.PlayListUrlOffsets;
-            if (playListIndex > 0) {
-                offset = urlOffsets[playListIndex - 1];
-                displayCount = (playListIndex < urlOffsets.Length ? urlOffsets[playListIndex] : playListUrls.Length) - offset;
-            } else {
-                offset = 0;
-                displayCount = queuedUrls.Length;
-            }
-            bool hasPending = pendingCount > 0;
-            bool isEntryContainerInactive = queueListScrollView == null || !queueListScrollView.gameObject.activeInHierarchy;
-            int selectedPlayListIndex = SelectedPlayListIndex;
-            bool isNotCoolingDown = (DateTime.UtcNow - playListLastInteractTime) >= interactCoolDown;
-            if (isEntryContainerInactive || isNotCoolingDown)
-                SelectedPlayListIndex = selectedPlayListIndex = playListIndex;
-            if (playNextButton != null) playNextButton.gameObject.SetActive(hasPending);
-            if (currentPlayListButton != null) currentPlayListButton.gameObject.SetActive(hasPending && selectedPlayListIndex >= 0);
-            if (!string.IsNullOrEmpty(enqueueCountFormat))
-                SetText(enqueueCountText, enqueueCountTMPro, string.Format(enqueueCountFormat, pendingCount));
-            if (selectedPlayListIndex > 0)
-                SetText(selectedPlayListText, selectedPlayListTMPro, handler.PlayListTitles[selectedPlayListIndex - 1]);
-            else
-                SetLocalizedText(selectedPlayListText, selectedPlayListTMPro, selectedPlayListIndex < 0 ? "PlaybackHistory" : "QueueList");
-            if (playNextIndicator != null)
-                playNextIndicator.SetActive(!handler.Shuffle && selectedPlayListIndex == 0 && handler.PlayListIndex == 0 && handler.PendingCount > 0);
-            bool shouldRefreshQueue = playListUpdateRequired || selectedPlayListIndex <= 0 || lastSelectedPlayListIndex != selectedPlayListIndex || lastPlayingIndex != playingIndex;
-            lastSelectedPlayListIndex = selectedPlayListIndex;
-            lastPlayingIndex = playingIndex;
-            if (!shouldRefreshQueue || queueListScrollView == null)
-                return false;
-            if (isEntryContainerInactive) {
-                if (!playListUpdateRequired) {
-                    playListUpdateRequired = true;
-                    SendCustomEventDelayedFrames(nameof(_DeferUpdatePlayList), 0);
-                }
-                return false;
-            }
-            playListUpdateRequired = false;
-            if (selectedPlayListIndex != playListIndex) {
-                if (selectedPlayListIndex > 0) {
-                    offset = urlOffsets[selectedPlayListIndex - 1];
-                    displayCount = (selectedPlayListIndex < urlOffsets.Length ? urlOffsets[selectedPlayListIndex] : playListUrls.Length) - offset;
-                } else if (selectedPlayListIndex < 0) {
-                    offset = 0;
-                    displayCount = historyTitles.Length;
-                } else {
-                    offset = 0;
-                    displayCount = queuedUrls.Length;
-                }
-                playingIndex = -1;
-            }
-            if (selectedPlayListIndex == 0) {
-                queueListScrollView.CanDelete = true;
-                queueListScrollView.EntryNames = queuedTitles;
-                queueListScrollView.SetIndexWithoutScroll(-1);
-            } else if (selectedPlayListIndex == -1) {
-                queueListScrollView.CanDelete = false;
-                queueListScrollView.EntryNames = historyTitles;
-                queueListScrollView.SetIndexWithoutScroll(-1);
-            } else {
-                queueListScrollView.CanDelete = false;
-                queueListScrollView.SetEntries(entryTitles, offset, displayCount);
-                queueListScrollView.SetIndexWithoutScroll(playingIndex);
-            }
-            if (isNotCoolingDown) queueListScrollView.ScrollToSelected();
-            return true;
-        }
-
-        public void _OnPlayListEntryClick() {
-            if (currentPlayListButton != null) playListScrollView.gameObject.SetActive(false);
-            playListLastInteractTime = DateTime.UtcNow;
-            UpdatePlayList();
-            queueListScrollView.ScrollToSelected();
-        }
-
-        public void _OnPlayListScroll() {
-            playListLastInteractTime = DateTime.UtcNow;
-        }
-
-        public void _OnQueueListScroll() {
-            playListLastInteractTime = DateTime.UtcNow;
-        }
-
-        public void _OnCurrentPlayListSelectClick() {
-            SelectedPlayListIndex = handler != null ? handler.PlayListIndex : 0;
-            _OnPlayListEntryClick();
-        }
-
-        public void _OnQueueListEntryClick() {
-            playListLastInteractTime = DateTime.UtcNow;
-            int selectedPlayListIndex = SelectedPlayListIndex;
-            handler.PlayAt(selectedPlayListIndex, queueListScrollView.lastInteractIndex, false);
-            if (selectedPlayListIndex < 0) {
-                SelectedPlayListIndex = 0;
-                UpdatePlayList();
-            }
-        }
-
-        public void _OnQueueListEntryDelete() {
-            playListLastInteractTime = DateTime.UtcNow;
-            int selectedPlayListIndex = SelectedPlayListIndex;
-            handler.PlayAt(selectedPlayListIndex, queueListScrollView.lastInteractIndex, true);
-            if (selectedPlayListIndex < 0) {
-                SelectedPlayListIndex = 0;
-                UpdatePlayList();
-            }
-        }
-
-        public void _UpdateProgress() {
-            if (!core.IsPlaying) {
-                hasUpdate = false;
-                return;
-            }
-            UpdateProgressOnce();
-            SendCustomEventDelayedSeconds(nameof(_UpdateProgress), 0.25F);
-        }
-
-        void UpdateProgressOnce() {
-            var duration = core.Duration;
-            if (duration <= 0 || float.IsInfinity(duration)) {
-                SetStatusEnabled(true);
-                SetLocalizedText(timeText, timeTMPro, "TimeIdleFormat");
-                SetLocalizedText(durationText, durationTMPro, "TimeIdleFormat");
-                if (statusText != null || statusTMPro != null) {
-                    if (!string.IsNullOrEmpty(core.title) || !string.IsNullOrEmpty(core.author))
-                        SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("StreamingWithTitle"), core.title, core.author));
-                    else if (core.IsStatic)
-                        SetLocalizedText(statusText, statusTMPro, "DisplayStatic");
-                    else
-                        SetLocalizedText(statusText, statusTMPro, "Streaming");
-                }
-                if (progressSlider != null) {
-                    progressSlider.SetValueWithoutNotify(1);
-                    progressSlider.interactable = false;
-                }
-            } else {
-                SetStatusEnabled(false);
-                var time = TimeSpan.FromSeconds(core.Time);
-                var durationTS = TimeSpan.FromSeconds(duration);
-                SetText(durationText, durationTMPro, string.Format(languageManager.GetLocale("TimeFormat"), durationTS));
-                SetText(timeText, timeTMPro, string.Format(languageManager.GetLocale("TimeFormat"), time));
-                if (core.IsPaused)
-                    SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("Paused"), time, durationTS));
-                else if (!string.IsNullOrEmpty(core.title) || !string.IsNullOrEmpty(core.author))
-                    SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("PlayingWithTitle"), time, durationTS, core.title, core.author));
-                else
-                    SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("Playing"), time, durationTS));
-                if (progressSlider != null) {
-                    progressSlider.SetValueWithoutNotify(core.Progress);
-                    progressSlider.interactable = true;
-                }
-            }
-        }
-
         void SetLocalizedText(Text text, TextMeshProUGUI tmp, string locale) {
             if (text == null && tmp == null) return;
             SetText(text, tmp, languageManager.GetLocale(locale));
@@ -823,46 +466,6 @@ namespace JLChnToZ.VRC.VVMW {
             timeContainer.SetActive(!enabled);
             if (statusText != null) statusText.enabled = enabled;
             if (statusTMPro != null) statusTMPro.enabled = enabled;
-        }
-
-        public void _ShiftBackL() {
-            core.SyncOffset -= 0.1F;
-        }
-        public void _ShiftBackS() {
-            core.SyncOffset -= 0.05F;
-        }
-        public void _ShiftForwardS() {
-            core.SyncOffset += 0.05F;
-        }
-        public void _ShiftForwardL() {
-            core.SyncOffset += 0.1F;
-        }
-        public void _ShiftReset() {
-            core.SyncOffset = 0;
-        }
-        public void _OnSyncOffsetChange() {
-            if (!afterFirstRun) return;
-            SetText(shiftOffsetText, shiftOffsetTMPro, string.Format(languageManager.GetLocale("TimeDrift"), core.SyncOffset));
-        }
-
-        public void _SpeedDownL() {
-            core.Speed -= 0.25F;
-        }
-        public void _SpeedDownS() {
-            core.Speed -= 0.1F;
-        }
-        public void _SpeedUpS() {
-            core.Speed += 0.1F;
-        }
-        public void _SpeedUpL() {
-            core.Speed += 0.25F;
-        }
-        public void _SpeedReset() {
-            core.Speed = 1;
-        }
-        public void _OnSpeedChange() {
-            if (!afterFirstRun) return;
-            SetText(speedOffsetText, speedOffsetTMPro, string.Format(languageManager.GetLocale("SpeedOffset"), core.Speed));
         }
 
         public void _OnLuminanceSliderChanged() => core.SetScreenFloatExtra(luminancePropertyId, luminanceSlider.value);
