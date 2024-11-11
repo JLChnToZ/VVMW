@@ -11,6 +11,8 @@
         [Toggle(_)] _IsMirror ("Mirror Flip", Int) = 1
         [Toggle(_HAS_EMISSION_INTENSITY)] _HasEmission ("Enable Emission Intensity", Int) = 0
         _EmissionIntensity ("Emission Intensity", Range(0, 10)) = 1.0
+        [Toggle(_ALPHA_CLIP)] _AlphaClip ("Alpha Clip", Int) = 0
+        _AlphaClipThreshold ("Alpha Clip Threshold", Range(0, 1)) = 0.5
     }
     SubShader {
         Tags { "RenderType" = "Opaque" }
@@ -24,6 +26,7 @@
             #include "./VideoShaderCommon.cginc"
 
             #pragma multi_compile_local __ _HAS_EMISSION_INTENSITY
+            #pragma multi_compile_local __ _ALPHA_CLIP
 
             struct appdata {
                 float4 vertex : POSITION;
@@ -50,6 +53,9 @@
             #ifdef _HAS_EMISSION_INTENSITY
             float _EmissionIntensity;
             #endif
+            #ifdef _ALPHA_CLIP
+            float _AlphaClipThreshold;
+            #endif
 
             v2f vert (appdata v) {
                 v2f o;
@@ -68,6 +74,9 @@
                 half4 c = getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
                 #ifdef _HAS_EMISSION_INTENSITY
                 c.rgb *= _EmissionIntensity;
+                #endif
+                #ifdef _ALPHA_CLIP
+                clip(c.a - _AlphaClipThreshold);
                 #endif
                 return c * _Color;
             }
