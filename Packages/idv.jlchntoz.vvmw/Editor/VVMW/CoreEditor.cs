@@ -49,6 +49,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty broadcastScreenTextureNameProperty;
         SerializedProperty realtimeGIUpdateIntervalProperty;
         SerializedProperty timeDriftDetectThresholdProperty;
+#if VRC_ENABLE_PLAYER_PERSISTENCE
+        SerializedProperty enablePersistenceProperty;
+#endif
         SerializedReorderableList playerHandlersList, audioSourcesList, targetsList;
         List<bool> screenTargetVisibilityState;
 
@@ -90,6 +93,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             defaultTextureProperty = serializedObject.FindProperty("defaultTexture");
             realtimeGIUpdateIntervalProperty = serializedObject.FindProperty("realtimeGIUpdateInterval");
             timeDriftDetectThresholdProperty = serializedObject.FindProperty("timeDriftDetectThreshold");
+#if VRC_ENABLE_PLAYER_PERSISTENCE
+            enablePersistenceProperty = serializedObject.FindProperty("enablePersistence");
+#endif
             targetsList = new SerializedReorderableList(serializedObject.FindProperty("targets"));
             screenTargetVisibilityState = new List<bool>();
             for (int i = 0, count = screenTargetsProperty.arraySize; i < count; i++)
@@ -134,6 +140,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(defaultVolumeProperty);
             EditorGUILayout.PropertyField(defaultMutedProperty);
             EditorGUILayout.PropertyField(syncedProperty);
+#if VRC_ENABLE_PLAYER_PERSISTENCE
+            EditorGUILayout.PropertyField(enablePersistenceProperty);
+#endif
             EditorGUILayout.PropertyField(audioLinkProperty);
             EditorGUILayout.PropertyField(yttlManagerProperty);
             EditorGUILayout.Space();

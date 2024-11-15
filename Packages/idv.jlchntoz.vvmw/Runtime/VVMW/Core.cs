@@ -163,6 +163,10 @@ namespace JLChnToZ.VRC.VVMW {
             if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedSeconds(nameof(_PlayDefaultUrl), autoPlayDelay);
             else if (synced) SendCustomEventDelayedSeconds(nameof(_RequestOwnerSync), autoPlayDelay + 3);
             afterFirstRun = true;
+#if VRC_ENABLE_PLAYER_PERSISTENCE
+            // Uncomment the following line when player persistence go live, currently it will breaks non-beta version clients.
+            // RestoreFromPersistence(Networking.LocalPlayer);
+#endif
         }
 
         void OnDisable() {

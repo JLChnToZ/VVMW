@@ -18,6 +18,7 @@ namespace JLChnToZ.VRC.VVMW {
                 defaultVolume = Mathf.Clamp01(value);
                 if (value > 0) defaultMuted = false;
                 UpdateVolume();
+                SaveVolumeToPersistence();
             }
         }
 
@@ -26,6 +27,7 @@ namespace JLChnToZ.VRC.VVMW {
             set {
                 defaultMuted = value;
                 UpdateVolume();
+                SaveVolumeToPersistence();
             }
         }
 
