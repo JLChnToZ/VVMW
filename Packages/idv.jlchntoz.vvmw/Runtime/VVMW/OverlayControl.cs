@@ -151,10 +151,6 @@ namespace JLChnToZ.VRC.VVMW {
                 offsetSliderVR.SetValueWithoutNotify(Mathf.Log(offset, 1.5F));
             }
         }
-
-        public override void OnPlayerDataUpdated(VRCPlayerApi player, PlayerData.Info[] infos) {
-            persistenceSupported = true;
-        }
 #endif
 
         void Update() {

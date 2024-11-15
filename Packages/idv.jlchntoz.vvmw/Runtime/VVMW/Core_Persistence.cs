@@ -16,12 +16,8 @@ namespace JLChnToZ.VRC.VVMW {
             RestoreFromPersistence(player);
         }
 
-        public override void OnPlayerDataUpdated(VRCPlayerApi player, PlayerData.Info[] infos) {
-            persistenceSupported = true;
-        }
-
         void RestoreFromPersistence(VRCPlayerApi player) {
-            if (!player.isLocal || !enablePersistence) return;
+            if (!player.isLocal || !enablePersistence || !persistenceSupported) return;
             bool volumeUpdated = false;
             if (!string.IsNullOrEmpty(volumePersistenceKey) && PlayerData.TryGetFloat(player, volumePersistenceKey, out float volume)) {
                 defaultVolume = volume;
