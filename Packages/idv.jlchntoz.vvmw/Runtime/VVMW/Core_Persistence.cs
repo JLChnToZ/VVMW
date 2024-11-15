@@ -9,8 +9,16 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] internal bool enablePersistence = true;
         [SerializeField] internal string volumePersistenceKey;
         [SerializeField] internal string mutedPersistenceKey;
+        bool persistenceSupported = false;
 
-        public override void OnPlayerRestored(VRCPlayerApi player) => RestoreFromPersistence(player);
+        public override void OnPlayerRestored(VRCPlayerApi player) {
+            persistenceSupported = true;
+            RestoreFromPersistence(player);
+        }
+
+        public override void OnPlayerDataUpdated(VRCPlayerApi player, PlayerData.Info[] infos) {
+            persistenceSupported = true;
+        }
 
         void RestoreFromPersistence(VRCPlayerApi player) {
             if (!player.isLocal || !enablePersistence) return;
@@ -27,6 +35,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void SaveVolumeToPersistence() {
+            if (!persistenceSupported || !enablePersistence) return;
             if (!string.IsNullOrEmpty(volumePersistenceKey))
                 PlayerData.SetFloat(volumePersistenceKey, defaultVolume);
             if (!string.IsNullOrEmpty(mutedPersistenceKey))

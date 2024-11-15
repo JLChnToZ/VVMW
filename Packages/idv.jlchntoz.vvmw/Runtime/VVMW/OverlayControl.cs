@@ -73,6 +73,7 @@ namespace JLChnToZ.VRC.VVMW {
         VRCPlayerApi localPlayer;
         [System.NonSerialized] public bool isLeftHanded;
         float offset = 0.05F;
+        bool persistenceSupported = false;
 
         public float Volume {
             get => volume;
@@ -136,6 +137,7 @@ namespace JLChnToZ.VRC.VVMW {
 
 #if VRC_ENABLE_PLAYER_PERSISTENCE
         public override void OnPlayerRestored(VRCPlayerApi player) {
+            persistenceSupported = true;
             if (!player.isLocal) return;
             if (PlayerData.HasKey(player, PlayerPersistenceHandKey)) {
                 int hand = PlayerData.GetByte(player, PlayerPersistenceHandKey);
@@ -148,6 +150,10 @@ namespace JLChnToZ.VRC.VVMW {
                 offset = PlayerData.GetFloat(player, PlayerPersistenceDistanceKey);
                 offsetSliderVR.SetValueWithoutNotify(Mathf.Log(offset, 1.5F));
             }
+        }
+
+        public override void OnPlayerDataUpdated(VRCPlayerApi player, PlayerData.Info[] infos) {
+            persistenceSupported = true;
         }
 #endif
 
@@ -213,18 +219,18 @@ namespace JLChnToZ.VRC.VVMW {
                 disableHandControls = false;
                 isLeftHanded = false;
 #if VRC_ENABLE_PLAYER_PERSISTENCE
-                PlayerData.SetByte(PlayerPersistenceHandKey, 1);
+                if (persistenceSupported) PlayerData.SetByte(PlayerPersistenceHandKey, 1);
 #endif
             } else if (rightHandToggle.isOn) {
                 disableHandControls = false;
                 isLeftHanded = true;
 #if VRC_ENABLE_PLAYER_PERSISTENCE
-                PlayerData.SetByte(PlayerPersistenceHandKey, 2);
+                if (persistenceSupported) PlayerData.SetByte(PlayerPersistenceHandKey, 2);
 #endif
             } else {
                 disableHandControls = true;
 #if VRC_ENABLE_PLAYER_PERSISTENCE
-                PlayerData.SetByte(PlayerPersistenceHandKey, 0);
+                if (persistenceSupported) PlayerData.SetByte(PlayerPersistenceHandKey, 0);
 #endif
             }
         }
@@ -232,7 +238,7 @@ namespace JLChnToZ.VRC.VVMW {
         public void _OnOffsetChange() {
             offset = Mathf.Pow(1.5F, offsetSliderVR.value);
 #if VRC_ENABLE_PLAYER_PERSISTENCE
-            PlayerData.SetFloat(PlayerPersistenceDistanceKey, offset);
+            if (persistenceSupported) PlayerData.SetFloat(PlayerPersistenceDistanceKey, offset);
 #endif
         }
     }
