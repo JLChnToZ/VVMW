@@ -6,6 +6,9 @@ using VRC.SDKBase;
 using VRC.Udon;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
+#if VRC_ENABLE_PLAYER_PERSISTENCE
+using VRC.SDK3.Persistence;
+#endif
 
 namespace JLChnToZ.VRC.VVMW {
 
@@ -15,6 +18,11 @@ namespace JLChnToZ.VRC.VVMW {
     [DefaultExecutionOrder(2)]
     [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-add-an-overlay-control")]
     public class OverlayControl : VizVidBehaviour {
+
+#if VRC_ENABLE_PLAYER_PERSISTENCE
+        const string PlayerPersistenceHandKey = "VVMW:OverlayControl:Hand";
+        const string PlayerPersistenceDistanceKey = "VVMW:OverlayControl:Distances";
+#endif
         Quaternion leftHandRotation = Quaternion.Euler(-90, -45, 0);
         Quaternion rightHandRotation = Quaternion.Euler(90, -45, 180);
         Vector3 offsetDirection = new Vector3(0, 1, -1);
@@ -126,6 +134,23 @@ namespace JLChnToZ.VRC.VVMW {
                 desktopHintsVolumeDownKey2TMPro.text = volumeDownKey.ToString();
         }
 
+#if VRC_ENABLE_PLAYER_PERSISTENCE
+        public override void OnPlayerRestored(VRCPlayerApi player) {
+            if (!player.isLocal) return;
+            if (PlayerData.HasKey(player, PlayerPersistenceHandKey)) {
+                int hand = PlayerData.GetByte(player, PlayerPersistenceHandKey);
+                disableHandControls = hand == 0;
+                isLeftHanded = hand == 1;
+                leftHandToggle.SetIsOnWithoutNotify(hand == 1);
+                rightHandToggle.SetIsOnWithoutNotify(hand == 2);
+            }
+            if (PlayerData.HasKey(player, PlayerPersistenceDistanceKey)) {
+                offset = PlayerData.GetFloat(player, PlayerPersistenceDistanceKey);
+                offsetSliderVR.SetValueWithoutNotify(Mathf.Log(offset, 1.5F));
+            }
+        }
+#endif
+
         void Update() {
             if (!Utilities.IsValid(localPlayer)) return;
             if (vrMode) {
@@ -187,16 +212,28 @@ namespace JLChnToZ.VRC.VVMW {
             if (leftHandToggle.isOn) {
                 disableHandControls = false;
                 isLeftHanded = false;
+#if VRC_ENABLE_PLAYER_PERSISTENCE
+                PlayerData.SetByte(PlayerPersistenceHandKey, 1);
+#endif
             } else if (rightHandToggle.isOn) {
                 disableHandControls = false;
                 isLeftHanded = true;
+#if VRC_ENABLE_PLAYER_PERSISTENCE
+                PlayerData.SetByte(PlayerPersistenceHandKey, 2);
+#endif
             } else {
                 disableHandControls = true;
+#if VRC_ENABLE_PLAYER_PERSISTENCE
+                PlayerData.SetByte(PlayerPersistenceHandKey, 0);
+#endif
             }
         }
 
         public void _OnOffsetChange() {
             offset = Mathf.Pow(1.5F, offsetSliderVR.value);
+#if VRC_ENABLE_PLAYER_PERSISTENCE
+            PlayerData.SetFloat(PlayerPersistenceDistanceKey, offset);
+#endif
         }
     }
 }
