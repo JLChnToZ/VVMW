@@ -1,6 +1,7 @@
 using UnityEngine;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
+using UdonSharp;
 
 #if AUDIOLINK_V1
 using AudioLink;
