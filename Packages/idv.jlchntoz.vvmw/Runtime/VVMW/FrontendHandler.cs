@@ -121,6 +121,8 @@ namespace JLChnToZ.VRC.VVMW {
                 return;
             }
             synced = core.IsSynced;
+            for (int i = 0; i < playListUrlOffsets.Length; i++)
+                LoadDynamicPlaylist(i);
             if (!synced || Networking.IsOwner(gameObject)) {
                 if (core.Loop) localFlags |= REPEAT_ONE;
                 if (defaultPlayListIndex > 0 && defaultPlayListIndex <= playListUrlOffsets.Length && autoPlay)
