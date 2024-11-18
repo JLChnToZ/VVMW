@@ -14,6 +14,7 @@ using static JLChnToZ.VRC.Foundation.Editors.Utils;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
     public class LTCGIAutoSetup : ILTCGI_AutoSetup {
+        internal const string CRT_PATH = "Packages/idv.jlchntoz.vvmw/Materials/VVMW/VideoCRT (For LTCGI).asset";
         const string PROXY_SRC_PATH = "Packages/idv.jlchntoz.vvmw/Samples~/VizVidLTCGIAutoSetupProxy.cs";
         const string PROXY_DEST_PATH = "Assets/_pi_/_LTCGI-Adapters/Editor/";
         const string PROXY_DEST_NAME = PROXY_DEST_PATH + "LTCGI_VizVidAutoSetup.cs";
@@ -79,6 +80,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                         ltcgiScreen.TextureIndex = 0;
                         configurator.screens.Add(ltcgiScreen);
                     }
+                    var rt = AssetDatabase.LoadAssetAtPath<CustomRenderTexture>(CRT_PATH);
+                    if (rt != null) controller.VideoTexture = rt;
                 }
             }
             return go;
@@ -105,7 +108,6 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
     [ExecuteInEditMode]
     internal class LTCGIConfigurator : MonoBehaviour, ISelfPreProcess {
-        const string CRT_PATH = "Packages/idv.jlchntoz.vvmw/Materials/VVMW/VideoCRT (For LTCGI).asset";
         public Core core;
         public LTCGI_Controller controller;
         public List<LTCGI_Screen> screens;
@@ -115,7 +117,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         public void PreProcess() {
             try {
                 if (core == null || controller == null) return;
-                var rt = AssetDatabase.LoadAssetAtPath<CustomRenderTexture>(CRT_PATH);
+                var rt = AssetDatabase.LoadAssetAtPath<CustomRenderTexture>(LTCGIAutoSetup.CRT_PATH);
                 if (rt == null) return;
                 var mat = rt.material;
                 if (mat == null) return;
