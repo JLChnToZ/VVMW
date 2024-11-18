@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "Unity.TextMeshPro",
+        "com.vrchat.core.vpm-resolver.Editor",
         "VRC.SDK3",
         "VRC.SDK3.Editor",
         "VRC.SDKBase.Editor",
@@ -15,7 +16,8 @@
         "JLChnToZ.VRC.Foundation",
         "JLChnToZ.VRC.Foundation.Editor",
         "JLChnToZ.VVMW",
-        "com.vrchat.core.vpm-resolver.Editor"
+        "LTCGI_Assembly",
+        "at.pimaker.ltcgi.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -26,6 +28,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "at.pimaker.ltcgi",
+            "expression": "",
+            "define": "LTCGI_IMPORTED"
+        }
+    ],
     "noEngineReferences": false
 }

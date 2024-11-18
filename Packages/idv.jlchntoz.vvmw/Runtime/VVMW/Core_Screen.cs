@@ -9,11 +9,11 @@ namespace JLChnToZ.VRC.VVMW {
         Vector4 normalST = new Vector4(1, 1, 0, 0), flippedST = new Vector4(1, -1, 0, 1);
         Rect normalRect = new Rect(0, 0, 1, 1), flippedRect = new Rect(0, 1, 1, -1);
         [SerializeField, LocalizedLabel] Texture defaultTexture;
-        [SerializeField] Object[] screenTargets;
-        [SerializeField] int[] screenTargetModes;
-        [SerializeField] int[] screenTargetIndeces;
-        [SerializeField] string[] screenTargetPropertyNames, avProPropertyNames;
-        [SerializeField] Texture[] screenTargetDefaultTextures;
+        [SerializeField] internal Object[] screenTargets;
+        [SerializeField] internal int[] screenTargetModes;
+        [SerializeField] internal int[] screenTargetIndeces;
+        [SerializeField] internal string[] screenTargetPropertyNames, avProPropertyNames;
+        [SerializeField] internal Texture[] screenTargetDefaultTextures;
         [SerializeField, LocalizedLabel] bool broadcastScreenTexture;
         [SerializeField, LocalizedLabel] string broadcastScreenTextureName = "_Udon_VideoTex";
         int[] screenTargetPropertyIds, avProPropertyIds;
