@@ -8,12 +8,11 @@ using UnityEngine.SceneManagement;
 using UnityEditor;
 using VRC.SDKBase;
 using UdonSharpEditor;
-using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.Editors;
 using pi.LTCGI;
 
 using static JLChnToZ.VRC.Foundation.Editors.Utils;
-using UnityObject = UnityEngine.Object;
+using static UnityEngine.Object;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
     public class LTCGIAutoSetup : ILTCGI_AutoSetup {
@@ -112,20 +111,19 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 
         static void Preprocess(LTCGIConfigurator configurator, Core core, LTCGI_Controller controller, List<LTCGI_Screen> screens) {
-            Debug.Log("VizVid LTCGI Configurator is running.");
             try {
                 if (core == null || controller == null) {
-                    Debug.LogError("VizVid LTCGI Configurator is missing Core or Controller.");
+                    Debug.LogError("[VizVid LTCGI Configurator] Missing Core or Controller.");
                     return;
                 }
                 var rt = AssetDatabase.LoadAssetAtPath<CustomRenderTexture>(CRT_PATH);
                 if (rt == null) {
-                    Debug.LogError("VizVid LTCGI Configurator is missing VideoCRT (For LTCGI).");
+                    Debug.LogError("[VizVid LTCGI Configurator] Missing Custom Render Texture.");
                     return;
                 }
                 var mat = rt.material;
                 if (mat == null) {
-                    Debug.LogError("VizVid LTCGI Configurator is missing material.");
+                    Debug.LogError("[VizVid LTCGI Configurator] Missing Material.");
                     return;
                 }
                 var aspectRatioId = Shader.PropertyToID("_AspectRatio");
@@ -182,7 +180,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 controller.VideoTexture = rt;
                 controller.UpdateMaterials();
             } finally {
-                UnityObject.DestroyImmediate(configurator.gameObject);
+                DestroyImmediate(configurator.gameObject);
             }
         }
     }
