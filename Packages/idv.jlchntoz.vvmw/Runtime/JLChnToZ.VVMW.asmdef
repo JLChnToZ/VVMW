@@ -7,7 +7,9 @@
         "UdonSharp.Runtime",
         "VRC.Udon.Serialization.OdinSerializer",
         "JLChnToZ.VRC.Foundation",
-        "AudioLink"
+        "AudioLink",
+        "LTCGI_Assembly",
+        "at.pimaker.ltcgi.Editor"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -16,6 +18,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "at.pimaker.ltcgi",
+            "expression": "",
+            "define": "LTCGI_IMPORTED"
+        }
+    ],
     "noEngineReferences": false
 }

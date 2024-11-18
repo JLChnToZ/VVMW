@@ -7,14 +7,17 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
 using VRC.SDKBase;
+using UdonSharpEditor;
 using JLChnToZ.VRC.Foundation;
+using JLChnToZ.VRC.Foundation.Editors;
 using pi.LTCGI;
 
 using static JLChnToZ.VRC.Foundation.Editors.Utils;
+using UnityObject = UnityEngine.Object;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
     public class LTCGIAutoSetup : ILTCGI_AutoSetup {
-        internal const string CRT_PATH = "Packages/idv.jlchntoz.vvmw/Materials/VVMW/VideoCRT (For LTCGI).asset";
+        const string CRT_PATH = "Packages/idv.jlchntoz.vvmw/Materials/VVMW/VideoCRT (For LTCGI).asset";
         const string PROXY_SRC_PATH = "Packages/idv.jlchntoz.vvmw/Samples~/VizVidLTCGIAutoSetupProxy.cs";
         const string PROXY_DEST_PATH = "Assets/_pi_/_LTCGI-Adapters/Editor/";
         const string PROXY_DEST_NAME = PROXY_DEST_PATH + "LTCGI_VizVidAutoSetup.cs";
@@ -22,7 +25,10 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         readonly Dictionary<Core, string> cores = new Dictionary<Core, string>();
 
         [InitializeOnLoadMethod]
-        static void OnLoad() => EditorApplication.delayCall += RegisterProxy;
+        static void OnLoad() {
+            EditorApplication.delayCall += RegisterProxy;
+            LTCGIConfigurator.OnPreProcess = Preprocess;
+        }
 
         static void RegisterProxy() {
             if (File.Exists(PROXY_DEST_NAME)) return;
@@ -104,23 +110,24 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             foreach (var core in SceneManager.GetActiveScene().IterateAllComponents<Core>())
                 cores.Add(core, GetHierarchyPath(core));
         }
-    }
 
-    [ExecuteInEditMode]
-    internal class LTCGIConfigurator : MonoBehaviour, ISelfPreProcess {
-        public Core core;
-        public LTCGI_Controller controller;
-        public List<LTCGI_Screen> screens;
-
-        public int Priority => 0;
-
-        public void PreProcess() {
+        static void Preprocess(LTCGIConfigurator configurator, Core core, LTCGI_Controller controller, List<LTCGI_Screen> screens) {
+            Debug.Log("VizVid LTCGI Configurator is running.");
             try {
-                if (core == null || controller == null) return;
-                var rt = AssetDatabase.LoadAssetAtPath<CustomRenderTexture>(LTCGIAutoSetup.CRT_PATH);
-                if (rt == null) return;
+                if (core == null || controller == null) {
+                    Debug.LogError("VizVid LTCGI Configurator is missing Core or Controller.");
+                    return;
+                }
+                var rt = AssetDatabase.LoadAssetAtPath<CustomRenderTexture>(CRT_PATH);
+                if (rt == null) {
+                    Debug.LogError("VizVid LTCGI Configurator is missing VideoCRT (For LTCGI).");
+                    return;
+                }
                 var mat = rt.material;
-                if (mat == null) return;
+                if (mat == null) {
+                    Debug.LogError("VizVid LTCGI Configurator is missing material.");
+                    return;
+                }
                 var aspectRatioId = Shader.PropertyToID("_AspectRatio");
                 float aspectRatios = 0;
                 int count = 0;
@@ -170,18 +177,13 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     core.screenTargets[index] = mat;
                     core.screenTargetPropertyNames[index] = "_MainTex";
                     core.avProPropertyNames[index] = "_IsAVProVideo";
+                    UdonSharpEditorUtility.CopyProxyToUdon(core);
                 }
                 controller.VideoTexture = rt;
                 controller.UpdateMaterials();
             } finally {
-                DestroyImmediate(gameObject);
+                UnityObject.DestroyImmediate(configurator.gameObject);
             }
-        }
-
-        void OnDestroy() {
-            foreach (var screen in screens)
-                if (screen != null)
-                    DestroyImmediate(screen);
         }
     }
 }
