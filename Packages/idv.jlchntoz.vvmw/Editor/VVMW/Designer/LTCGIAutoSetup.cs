@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
-using VRC.SDKBase;
 using UdonSharpEditor;
 using JLChnToZ.VRC.Foundation.Editors;
 using pi.LTCGI;
@@ -80,7 +79,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                             ltcgiScreen.Specular = true;
                             ltcgiScreen.Diffuse = true;
                         }
-                        ltcgiScreen.Dynamic = meshTarget.GetComponentInParent<VRC_Pickup>(true);
+                        if (meshTarget.GetComponentInParent<Rigidbody>(true))
+                            ltcgiScreen.Dynamic = true;
                         ltcgiScreen.ColorMode = ColorMode.Texture;
                         ltcgiScreen.TextureIndex = 0;
                         configurator.screens.Add(ltcgiScreen);

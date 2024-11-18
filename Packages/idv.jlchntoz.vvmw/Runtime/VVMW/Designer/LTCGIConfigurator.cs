@@ -1,4 +1,4 @@
-#if LTCGI_IMPORTED
+#if LTCGI_IMPORTED && UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using UnityEngine;
