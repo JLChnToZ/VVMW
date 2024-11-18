@@ -44,7 +44,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 
         public GameObject AutoSetupEditor(LTCGI_Controller controller) {
-            bool first = true;
+            bool first = false;
             GameObject go = null;
             foreach (var kv in cores) {
                 var core = kv.Key;
