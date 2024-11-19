@@ -351,7 +351,20 @@ You have 2 ways to do this:
     - Select the AVPro player module, set the Primary Audio Source to this newly created audio source.
 
 ### LTCGI
-This player provides basic integration to [LTCGI](https://ltcgi.dev/). To use with LTCGI, use the provided "VideoCRT" CustomRenderTexture in Materials folder as video texture input inside LTCGI controller, then assigns this CustomRenderTexture to "Add Video Screen Target" option in the VVMW core, other then that just follow LTCGI documentation ([this](https://ltcgi.dev/Getting%20Started/Setup/Controller) and [this](https://ltcgi.dev/Getting%20Started/Setup/LTCGI_Screen)).  
+VizVid provides integration to [LTCGI](https://ltcgi.dev/).
+
+Since v1.3.2, the most simple way to integrate LTCGI with VizVid is using the one-click setup button.
+First, assume you have already setup your VizVid screens and added LTCGI Controller to your scene according to [LTCGI documentation](https://ltcgi.dev/Getting%20Started/Setup/Controller),
+then you will find there are extra button(s) says "Auto-Configure XXX" on the LTCGI Controller's inspector.  
+![ ](.tutorial/add-ltcgi-new.png)  
+Make sure the "XXX" matches your player's name (if you have multiple of them), and click on it,
+VizVid is now ready to serve LTCGI with video signals.
+
+If you are not using built-in screens, this one-click auto setup may not detect it and you may need to add [LTCGI Screen](https://ltcgi.dev/Getting%20Started/Setup/LTCGI_Screen) manually.
+
+You may need to configurate the reflected objects to use [supported shaders](https://ltcgi.dev/Getting%20Started/Installation/Compatible_Shaders), also for screen intensity settings and optionally [bake shadow map](https://ltcgi.dev/Advanced/Shadowmaps), but for these parts, please refer to their documention.
+
+If you are using version v1.3.1 or below, or any reason you are unable to use above method, please use the provided "VideoCRT" CustomRenderTexture in Materials folder as video texture input inside LTCGI controller, then assigns this CustomRenderTexture to "Add Video Screen Target" option in the VVMW core to integrate with LTCGI.  
 ![ ](.tutorial/add-ltcgi.png)
 
 ### YTTL
