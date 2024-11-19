@@ -16,6 +16,7 @@ using static UnityEngine.Object;
 namespace JLChnToZ.VRC.VVMW.Designer {
     public class LTCGIAutoSetup : ILTCGI_AutoSetup {
         const string CRT_PATH = "Packages/idv.jlchntoz.vvmw/Materials/VVMW/VideoCRT (For LTCGI).asset";
+        const string SHADER_NAME = "JLChnToZ/VideoCRT";
         const string PROXY_SRC_PATH = "Packages/idv.jlchntoz.vvmw/Samples~/VizVidLTCGIAutoSetupProxy.cs";
         const string PROXY_DEST_PATH = "Assets/_pi_/_LTCGI-Adapters/Editor/";
         const string PROXY_DEST_NAME = PROXY_DEST_PATH + "LTCGI_VizVidAutoSetup.cs";
@@ -35,6 +36,17 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             if (!Directory.Exists(PROXY_DEST_PATH)) Directory.CreateDirectory(PROXY_DEST_PATH);
             File.WriteAllText(PROXY_DEST_NAME, contents, new UTF8Encoding(true));
             AssetDatabase.Refresh();
+        }
+
+        static CustomRenderTexture GetOrSetSuitableCRT(LTCGI_Controller controller) {
+            var rt = controller.VideoTexture as CustomRenderTexture;
+            Material mat;
+            Shader shader;
+            if (rt != null && (mat = rt.material) != null && (shader = mat.shader) != null && shader.name == SHADER_NAME)
+                return rt;
+            rt = AssetDatabase.LoadAssetAtPath<CustomRenderTexture>(CRT_PATH);
+            controller.VideoTexture = rt;
+            return rt;
         }
 
         public LTCGIAutoSetup() {
@@ -85,8 +97,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                         ltcgiScreen.TextureIndex = 0;
                         configurator.screens.Add(ltcgiScreen);
                     }
-                    var rt = AssetDatabase.LoadAssetAtPath<CustomRenderTexture>(CRT_PATH);
-                    if (rt != null) controller.VideoTexture = rt;
+                    GetOrSetSuitableCRT(controller);
                 }
             }
             return go;
@@ -116,11 +127,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     Debug.LogError("[VizVid LTCGI Configurator] Missing Core or Controller.");
                     return;
                 }
-                var rt = AssetDatabase.LoadAssetAtPath<CustomRenderTexture>(CRT_PATH);
-                if (rt == null) {
-                    Debug.LogError("[VizVid LTCGI Configurator] Missing Custom Render Texture.");
-                    return;
-                }
+                var rt = GetOrSetSuitableCRT(controller);
                 var mat = rt.material;
                 if (mat == null) {
                     Debug.LogError("[VizVid LTCGI Configurator] Missing Material.");
@@ -177,7 +184,6 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     core.avProPropertyNames[index] = "_IsAVProVideo";
                     UdonSharpEditorUtility.CopyProxyToUdon(core);
                 }
-                controller.VideoTexture = rt;
                 controller.UpdateMaterials();
             } finally {
                 DestroyImmediate(configurator.gameObject);
