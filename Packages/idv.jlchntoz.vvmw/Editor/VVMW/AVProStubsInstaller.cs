@@ -3,11 +3,10 @@ using System.IO;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.PackageManager.UI;
-
-#if UNITY_ANDROID || UNITY_IOS
-using VRC.SDKBase.Editor;
-#elif UNITY_STANDALONE_WIN
+#if VRC_SDK_VRCSDK3
 using VRC.SDK3.Editor;
+#else
+using VRC.SDKBase.Editor;
 #endif
 
 using PackageManagerPackageInfo = UnityEditor.PackageManager.PackageInfo;
@@ -40,13 +39,12 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         static void AddBuildHook(object sender, EventArgs e) {
-#if UNITY_ANDROID || UNITY_IOS
-            if (VRCSdkControlPanel.TryGetBuilder(out IVRCSdkBuilderApi builder))
-                builder.OnSdkBuildStart += OnBuildStarted;
-#elif UNITY_STANDALONE_WIN
+#if VRC_SDK_VRCSDK3
             if (VRCSdkControlPanel.TryGetBuilder(out IVRCSdkWorldBuilderApi builder))
-                builder.OnSdkBuildStart += OnBuildStarted;
+#else
+            if (VRCSdkControlPanel.TryGetBuilder(out IVRCSdkBuilderApi builder))
 #endif
+                builder.OnSdkBuildStart += OnBuildStarted;
         }
 
         static void OnBuildStarted(object sender, object target) => InstallAVProStubs(true, false);
