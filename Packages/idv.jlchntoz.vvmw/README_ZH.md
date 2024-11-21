@@ -36,7 +36,7 @@
 * [第三方套件支援](#第三方套件支援)
 	* [Udon Auth](#Udon-Auth)
 	* [Audio Link](#Audio-Link)
-	* [LTCGI](#LTGCI)
+	* [LTCGI](#LTCGI)
 	* [YTTL](#YTTL)
 	* [Topaz Chat / VRCDN (和其他串流服務)](#Topaz-Chat--VRCDN-和其他串流服務)
 
@@ -353,7 +353,18 @@ VizVid 能整合基礎的 Audio Link。基礎安裝請參考上方的「Audio Li
     - 選擇 AVPro 播放器模組。將 Primary Audio Source 設定至剛剛加入的 Audio Source。
 
 ### LTCGI
-VizVid 支援對 [LTCGI](https://ltcgi.dev/) 的基本整合。跟 LTGCI 控制器相同，使用 Material 資料夾中的「VideoCRT」自訂渲染材質，將這個自訂渲染材質，拖曳至VizVid 核心中的「Add Video Screen Target」選項，並參考 LTCGI 的說明文件進行設定 ([這篇](https://ltcgi.dev/Getting%20Started/Setup/Controller)跟[這篇](https://ltcgi.dev/Getting%20Started/Setup/LTCGI_Screen))。  
+VizVid 支援 [LTCGI](https://ltcgi.dev/)。
+
+從 v1.3.2 起，VizVid 支援一鍵整合 LTCGI。
+只要事先放置 VizVid 螢幕，並依循 [LTCGI 說明文件](https://ltcgi.dev/Getting%20Started/Setup/Controller) 將 LTCGI Controller 放入場景中，在 LTCGI 的 Inspector，便會多出一個「Auto-Configure XXX」的按鈕。
+![ ](.tutorial/add-ltcgi-new.png)  
+只要確認「XXX」，與你的播放器物件名稱相同 (若設有多個播放器)，按下按鈕後，LTCGI 便可開始接收影像訊號。
+
+若不使用 Built-in screen，一鍵設定功能可能無法正常偵測，需手動新增 [LTCGI 螢幕](https://ltcgi.dev/Getting%20Started/Setup/LTCGI_Screen)。
+
+你可能需要調整反射物件、螢幕亮度以及[陰影貼圖(可選)](https://ltcgi.dev/Advanced/Shadowmaps)以使用[支援的著色器](https://ltcgi.dev/Getting%20Started/Installation/Compatible_Shaders)，這部分請分別參照各自的說明文件。
+
+若使用 v1.3.1 或更舊的版本，或其他原因導致無法使用以上方式整合，請使用 Material 資料夾中的自訂渲染材質「VideoCRT」作為 LTCGI Controller 內的影像紋理輸入，並將該自訂渲染材質指派至 VVMW 物件，Core 區域的 "Add Video Screen Target" 以進行整合。
 ![ ](.tutorial/add-ltcgi.png)
 
 ### YTTL

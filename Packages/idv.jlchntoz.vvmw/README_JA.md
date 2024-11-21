@@ -38,7 +38,7 @@ VizVidはVRChatに向けて開発している、汎用的な動画プレイヤ�
 - [サードパーティーへ製品の対応](#サードパーティーへ製品の対応)
     - [Udon Auth](#Udon-Auth)
     - [Audio Link](#Audio-Link)
-    - [LTCGI](#LTCHI)
+    - [LTCGI](#LTCGI)
     - [YTTL](#YTTL)
     - [Topaz Chat / VRCDN (他のストリーミングサービス)](#Topaz-Chat--VRCDN-他のストリーミングサービス)
 
@@ -318,7 +318,18 @@ AVProのマルチチャンネルでAudio Linkを使用する場合、プレイ�
     * AVProプレイヤーモジュールを選択し、Primary Audio Sourceを新規作成したオーディオソースに設定します。
 
 ### LTCGI<a name="ltcgi"></a>
-VizVidは[LTCGI](https://ltcgi.dev/)と基本的な統合に対応しています。LTCGIコントローラーと同様、Materialフォルダーにある「VideoCRT」カスタムレンダーテクスチャを、VVMWの「Add Video Screen Target」にドラッグし、LTCGIの説明 ([これ](https://ltcgi.dev/Getting%20Started/Setup/Controller)と[これ](https://ltcgi.dev/Getting%20Started/Setup/LTCGI_Screen)) に従い行ってください。  
+VizVidは[LTCGI](https://ltcgi.dev/)に対応しています。
+
+v1.3.2から、VizVidはワンクリックで、LTCGIとの統合が可能になりました。
+事前にVizVidのスクリーンを配置、[LTCGIマニュアル](https://ltcgi.dev/Getting%20Started/Setup/Controller)に従い、LTCGI Controllerをシーンに配置すると、LTCGIのインスペクターに、「Auto-Configure XXX」が表示されます。
+![ ](.tutorial/add-ltcgi-new.png)  
+「XXX」の名前とプレイヤーオブジェクト名前の一致 (複数プレイヤーが存在する場合) が確認できると、ボタンを押して、LTCGIが映像を受信します。
+
+Built-in screen使用しない場合、ワンクリック機能の動作が出来なくなる可能性があり、手動で[LTCGIスクリーン](https://ltcgi.dev/Getting%20Started/Setup/LTCGI_Screen)を追加することができます。
+
+[対応シェーダー](https://ltcgi.dev/Getting%20Started/Installation/Compatible_Shaders)を使用するため、反射オブジェクト、スクリーンの明るさや[シャドウマップ(任意)](https://ltcgi.dev/Advanced/Shadowmaps)を調整する場合があります。それぞれに対して、各自のマニュアルご参照ください。
+
+VizVid v1.3.1以前、また他の事情で上記の方法で統合出来ない場合、Meterialフォルダーにある、LTCGI Controllerに映像入力するためのカスタムレンダーテクスチャ「VideoCRT」を、VVMWオブジェクト、Coreの「Add Video Screen Target」にドラッグアンドドロップし、統合を行ってください。
 ![ ](.tutorial/add-ltcgi.png)
 
 ### YTTL<a name="yttl"></a>
