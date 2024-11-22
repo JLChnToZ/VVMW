@@ -19,8 +19,8 @@ namespace JLChnToZ.VRC.VVMW {
 
         float PropertyValue {
             get {
-                if (targetRenderer != null) {
-                    if (propertyBlock == null) propertyBlock = new MaterialPropertyBlock();
+                if (Utilities.IsValid(targetRenderer)) {
+                    if (!Utilities.IsValid(propertyBlock)) propertyBlock = new MaterialPropertyBlock();
                     if (rendererMaterialIndex >= 0)
                         targetRenderer.GetPropertyBlock(propertyBlock, rendererMaterialIndex);
                     else
@@ -29,20 +29,20 @@ namespace JLChnToZ.VRC.VVMW {
                         return propertyBlock.GetFloat(properlyNameID);
                     if (rendererMaterialIndex < 0) {
                         foreach (var mat in targetRenderer.sharedMaterials)
-                            if (mat != null && mat.HasProperty(properlyNameID))
+                            if (Utilities.IsValid(mat) && mat.HasProperty(properlyNameID))
                                 return mat.GetFloat(properlyNameID);
                     } else {
                         var mat = targetRenderer.sharedMaterials[rendererMaterialIndex];
-                        if (mat != null && mat.HasProperty(properlyNameID))
+                        if (Utilities.IsValid(mat) && mat.HasProperty(properlyNameID))
                             return mat.GetFloat(properlyNameID);
                     }
-                } else if (targetMaterial != null)
+                } else if (Utilities.IsValid(targetMaterial))
                     return targetMaterial.GetFloat(properlyNameID);
                 return float.NaN;
             }
             set {
-                if (targetRenderer != null) {
-                    if (propertyBlock == null) propertyBlock = new MaterialPropertyBlock();
+                if (Utilities.IsValid(targetRenderer)) {
+                    if (!Utilities.IsValid(propertyBlock)) propertyBlock = new MaterialPropertyBlock();
                     if (rendererMaterialIndex < 0)
                         targetRenderer.GetPropertyBlock(propertyBlock);
                     else
@@ -52,16 +52,16 @@ namespace JLChnToZ.VRC.VVMW {
                         targetRenderer.SetPropertyBlock(propertyBlock);
                     else
                         targetRenderer.SetPropertyBlock(propertyBlock, rendererMaterialIndex);
-                } else if (targetMaterial != null)
+                } else if (Utilities.IsValid(targetMaterial))
                     targetMaterial.SetFloat(properlyNameID, value);
             }
         }
 
         void Start() {
             properlyNameID = VRCShader.PropertyToID(propertyName);
-            if (targetMaterial == null && targetRenderer == null) {
+            if (!Utilities.IsValid(targetMaterial) && !Utilities.IsValid(targetRenderer)) {
                 targetRenderer = GetComponent<Renderer>();
-                if (targetRenderer == null) {
+                if (!Utilities.IsValid(targetRenderer)) {
                     Debug.LogError("[VVMW] No target material or renderer specified.");
                     return;
                 }

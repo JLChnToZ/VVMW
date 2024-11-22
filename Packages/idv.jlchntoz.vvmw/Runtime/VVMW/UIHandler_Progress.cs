@@ -1,4 +1,5 @@
 using System;
+using VRC.SDKBase;
 
 namespace JLChnToZ.VRC.VVMW {
     public partial class UIHandler {
@@ -21,7 +22,7 @@ namespace JLChnToZ.VRC.VVMW {
                 SetStatusEnabled(true);
                 SetLocalizedText(timeText, timeTMPro, "TimeIdleFormat");
                 SetLocalizedText(durationText, durationTMPro, "TimeIdleFormat");
-                if (statusText != null || statusTMPro != null) {
+                if (Utilities.IsValid(statusText) || Utilities.IsValid(statusTMPro)) {
                     if (!string.IsNullOrEmpty(core.title) || !string.IsNullOrEmpty(core.author))
                         SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("StreamingWithTitle"), core.title, core.author));
                     else if (core.IsStatic)
@@ -29,7 +30,7 @@ namespace JLChnToZ.VRC.VVMW {
                     else
                         SetLocalizedText(statusText, statusTMPro, "Streaming");
                 }
-                if (progressSlider != null) {
+                if (Utilities.IsValid(progressSlider)) {
                     progressSlider.SetValueWithoutNotify(1);
                     progressSlider.interactable = false;
                 }
@@ -45,7 +46,7 @@ namespace JLChnToZ.VRC.VVMW {
                     SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("PlayingWithTitle"), time, durationTS, core.title, core.author));
                 else
                     SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("Playing"), time, durationTS));
-                if (progressSlider != null) {
+                if (Utilities.IsValid(progressSlider)) {
                     progressSlider.SetValueWithoutNotify(core.Progress);
                     progressSlider.interactable = true;
                 }

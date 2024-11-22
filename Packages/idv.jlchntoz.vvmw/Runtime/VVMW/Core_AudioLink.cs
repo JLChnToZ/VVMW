@@ -1,7 +1,7 @@
 using UnityEngine;
+using VRC.SDKBase;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
-using UdonSharp;
 
 #if AUDIOLINK_V1
 using AudioLink;
@@ -37,8 +37,8 @@ namespace JLChnToZ.VRC.VVMW {
 
         void AssignAudioLinkSource() {
             assignedAudioSource = activeHandler.PrimaryAudioSource;
-            if (audioLink != null) {
-                if (assignedAudioSource != null)
+            if (Utilities.IsValid(audioLink)) {
+                if (Utilities.IsValid(assignedAudioSource))
                 #if AUDIOLINK_V1
                     audioLink.audioSource = assignedAudioSource;
                 float duration = activeHandler.Duration;
@@ -58,9 +58,9 @@ namespace JLChnToZ.VRC.VVMW {
 
         #if AUDIOLINK_V1
         bool IsAudioLinked() {
-            if (audioLink == null) return false;
+            if (!Utilities.IsValid(audioLink)) return false;
             var settedAudioSource = audioLink.audioSource;
-            return settedAudioSource == null || settedAudioSource == assignedAudioSource;
+            return !Utilities.IsValid(settedAudioSource) || settedAudioSource == assignedAudioSource;
         }
 
         void SetAudioLinkPlayBackState(MediaPlaying state) {
@@ -75,7 +75,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _SyncAudioLink() {
-            if (!gameObject.activeInHierarchy || !enabled || isLoading || isLocalReloading || activeHandler == null || !activeHandler.IsReady || !IsAudioLinked()) {
+            if (!gameObject.activeInHierarchy || !enabled || isLoading || isLocalReloading || !Utilities.IsValid(activeHandler) || !activeHandler.IsReady || !IsAudioLinked()) {
                 isSyncAudioLink = false;
                 return;
             }
@@ -91,7 +91,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _RestoreAudioLinkState() {
             var state = MediaPlaying.Stopped;
-            if (activeHandler != null) {
+            if (Utilities.IsValid(activeHandler)) {
                 if (activeHandler.IsPlaying) {
                     state = MediaPlaying.Playing;
                     AssignAudioLinkSource();

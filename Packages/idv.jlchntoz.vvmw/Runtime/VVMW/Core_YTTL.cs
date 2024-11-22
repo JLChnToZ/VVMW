@@ -72,7 +72,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (!hasCustomTitle) return;
             hasCustomTitle = false;
             url = VRCUrl.Empty;
-            if (yttl == null) {
+            if (!Utilities.IsValid(yttl)) {
                 author = "";
                 title = "";
                 viewCount = "";
@@ -83,12 +83,12 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void LoadYTTL() {
-            if (yttl == null || hasCustomTitle || url.Equals(localUrl)) return;
+            if (!Utilities.IsValid(yttl) || hasCustomTitle || url.Equals(localUrl)) return;
             author = "";
             title = "";
             viewCount = "";
             description = "";
-            if (localUrl != null)
+            if (Utilities.IsValid(localUrl))
                 yttl.LoadData(localUrl, this);
         }
     }

@@ -53,7 +53,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public string[] PlayerNames {
             get {
-                if (playerNames == null || playerNames.Length != playerHandlers.Length) {
+                if (!Utilities.IsValid(playerNames) || playerNames.Length != playerHandlers.Length) {
                     playerNames = new string[playerHandlers.Length];
                     for (int i = 0; i < playerNames.Length; i++)
                         playerNames[i] = playerHandlers[i].playerName;
@@ -69,7 +69,7 @@ namespace JLChnToZ.VRC.VVMW {
                     return;
                 localActivePlayer = value;
                 var lastActiveHandler = activeHandler;
-                bool wasPlaying = lastActiveHandler != null && lastActiveHandler.IsPlaying;
+                bool wasPlaying = Utilities.IsValid(lastActiveHandler) && lastActiveHandler.IsPlaying;
                 activeHandler = null;
                 for (int i = 0; i < playerHandlers.Length; i++) {
                     var handler = playerHandlers[i];
@@ -93,7 +93,7 @@ namespace JLChnToZ.VRC.VVMW {
             set {
                 bool wasLoop = loop;
                 loop = value;
-                if (activeHandler != null) activeHandler.Loop = value;
+                if (Utilities.IsValid(activeHandler)) activeHandler.Loop = value;
                 if (synced && wasLoop != value && Networking.IsOwner(gameObject))
                     RequestSerialization();
                 #if AUDIOLINK_V1
@@ -102,7 +102,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public bool IsAVPro => activeHandler != null && activeHandler.IsAvPro;
+        public bool IsAVPro => Utilities.IsValid(activeHandler) && activeHandler.IsAvPro;
 
         public VRCUrl Url => localUrl;
 
@@ -112,15 +112,15 @@ namespace JLChnToZ.VRC.VVMW {
 
         public bool IsLoading => isLoading;
 
-        public bool IsReady => activeHandler != null && activeHandler.IsReady && !isLoading;
+        public bool IsReady => Utilities.IsValid(activeHandler) && activeHandler.IsReady && !isLoading;
 
-        public bool IsPlaying => activeHandler != null && activeHandler.IsPlaying;
+        public bool IsPlaying => Utilities.IsValid(activeHandler) && activeHandler.IsPlaying;
 
-        public bool IsPaused => activeHandler != null && activeHandler.IsPaused;
+        public bool IsPaused => Utilities.IsValid(activeHandler) && activeHandler.IsPaused;
 
         public byte State {
             get {
-                if (activeHandler == null) return 0;
+                if (!Utilities.IsValid(activeHandler)) return 0;
                 if (activeHandler.IsPaused) return 5;
                 if (activeHandler.IsPlaying) return 4;
                 if (isError) return 2;
@@ -132,12 +132,12 @@ namespace JLChnToZ.VRC.VVMW {
 
         public VideoError LastError => lastError;
 
-        public bool IsStatic => activeHandler != null && activeHandler.IsStatic;
+        public bool IsStatic => Utilities.IsValid(activeHandler) && activeHandler.IsStatic;
 
         public bool IsTrusted {
             get {
                 if (!trustUpdated) {
-                    isTrusted = activeHandler != null && activeHandler.IsCurrentUrlTrusted();
+                    isTrusted = Utilities.IsValid(activeHandler) && activeHandler.IsCurrentUrlTrusted();
                     trustUpdated = true;
                 }
                 return isTrusted;
@@ -182,7 +182,7 @@ namespace JLChnToZ.VRC.VVMW {
             int largestSupport = int.MinValue, largestSupportIndex = -1;
             for (int i = 0; i < playerHandlers.Length; i++) {
                 var handler = playerHandlers[i];
-                if (handler == null) continue;
+                if (!Utilities.IsValid(handler)) continue;
                 var support = handler.IsSupported(urlStr);
                 if (support > largestSupport) {
                     largestSupport = support;
@@ -340,20 +340,20 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void Play() {
-            if (activeHandler == null) return;
+            if (!Utilities.IsValid(activeHandler)) return;
             activeHandler.Play();
             RequestSync();
         }
 
         public void Pause() {
-            if (activeHandler == null) return;
+            if (!Utilities.IsValid(activeHandler)) return;
             activeHandler.Pause();
             RequestSync();
         }
 
         public void Stop() {
             var handler = activeHandler;
-            if (handler == null) return;
+            if (!Utilities.IsValid(handler)) return;
             handler.Stop();
             if (!handler.IsReady) { // Cancel loading if it is still loading
                 ActivePlayer = 0;
@@ -430,7 +430,7 @@ namespace JLChnToZ.VRC.VVMW {
             trustUpdated = false;
             SendEvent("_onVideoEnd");
             #if AUDIOLINK_V1
-            if (audioLink != null) audioLink.SetMediaPlaying(MediaPlaying.Stopped);
+            if (Utilities.IsValid(audioLink)) audioLink.SetMediaPlaying(MediaPlaying.Stopped);
             #endif
             _OnTextureChanged();
             if (!synced || !Networking.IsOwner(gameObject)) return;
@@ -451,7 +451,7 @@ namespace JLChnToZ.VRC.VVMW {
             lastSyncTime = Networking.GetNetworkDateTime();
             ownerServerTime = lastSyncTime.Ticks;
             syncedSpeed = speed;
-            if (activeHandler == null) {
+            if (!Utilities.IsValid(activeHandler)) {
                 activePlayer = 0;
                 state = IDLE;
                 time = 0;
@@ -506,7 +506,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             bool shouldReload = state != IDLE && localUrl != url && (VRCUrl.IsNullOrEmpty(localUrl) || VRCUrl.IsNullOrEmpty(url) || !localUrl.Equals(url));
             if (shouldReload) {
-                if (activeHandler == null) {
+                if (!Utilities.IsValid(activeHandler)) {
                     Debug.LogWarning($"[VVMW] Owner serialization incomplete, will queue a sync request.");
                     SendCustomEventDelayedSeconds(nameof(_RequestOwnerSync), 1);
                     return;
@@ -522,7 +522,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             localUrl = url;
             if (shouldReload) LoadYTTL();
-            if (activeHandler != null && activeHandler.IsReady) {
+            if (Utilities.IsValid(activeHandler) && activeHandler.IsReady) {
                 bool forceSyncTime = false;
                 int intState = state;
                 switch (intState) {

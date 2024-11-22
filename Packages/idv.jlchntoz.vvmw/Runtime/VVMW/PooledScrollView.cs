@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
+using VRC.SDKBase;
 using UdonSharp;
 using JLChnToZ.VRC.Foundation;
 
@@ -59,7 +60,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public string[] EntryNames {
             get {
-                if (entryNames == null) return null;
+                if (!Utilities.IsValid(entryNames)) return null;
                 if (offset == 0 && count == entryNames.Length)
                     return entryNames;
                 var result = new string[count];
@@ -69,7 +70,7 @@ namespace JLChnToZ.VRC.VVMW {
             set {
                 entryNames = value;
                 offset = 0;
-                count = entryNames != null ? entryNames.Length : 0;
+                count = Utilities.IsValid(entryNames) ? entryNames.Length : 0;
                 if (hasInit && gameObject.activeInHierarchy)
                     UpdateEntryState();
             }
@@ -97,11 +98,11 @@ namespace JLChnToZ.VRC.VVMW {
 
         public float ScrollPosition {
             get {
-                if (scrollRect == null) return 0F;
+                if (!Utilities.IsValid(scrollRect)) return 0F;
                 return scrollRect.normalizedPosition.y;
             }
             set {
-                if (scrollRect == null) return;
+                if (!Utilities.IsValid(scrollRect)) return;
                 var normalizedPosition = scrollRect.normalizedPosition;
                 normalizedPosition.y = value;
                 scrollRect.normalizedPosition = normalizedPosition;
@@ -110,9 +111,9 @@ namespace JLChnToZ.VRC.VVMW {
 
         void OnEnable() {
             if (!hasInit) {
-                if (template == null) {
+                if (!Utilities.IsValid(template)) {
                     var listEntry = GetComponentInChildren<ListEntry>(true);
-                    if (listEntry == null) {
+                    if (!Utilities.IsValid(listEntry)) {
                         Debug.LogError("No template found in PooledScrollView", this);
                         return;
                     }
@@ -156,9 +157,9 @@ namespace JLChnToZ.VRC.VVMW {
                 template.gameObject.SetActive(false);
                 EventPrefix = eventPrefix;
                 hasInit = true;
-                if (entryNames != null) UpdateEntryState();
+                if (Utilities.IsValid(entryNames)) UpdateEntryState();
             } else {
-                if (entryNames != null) UpdateEntryState();
+                if (Utilities.IsValid(entryNames)) UpdateEntryState();
                 foreach (var entry in entries) {
                     entry.HasDelete = canDelete;
                     entry.Unlocked = canInteract;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using VRC.SDKBase;
 using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
@@ -17,10 +18,10 @@ namespace JLChnToZ.VRC.VVMW {
                 switch (screenTargetModes[i] & 0x7) {
                     case 1: case 2: case 3:
                         var target = (Renderer)screenTargets[i];
-                        if (target != null) RendererExtensions.UpdateGIMaterials(target);
+                        if (Utilities.IsValid(target)) RendererExtensions.UpdateGIMaterials(target);
                         break;
                 }
-            if (!enabled || !gameObject.activeInHierarchy || activeHandler == null || !activeHandler.IsReady) {
+            if (!enabled || !gameObject.activeInHierarchy || !Utilities.IsValid(activeHandler) || !activeHandler.IsReady) {
                 isRealtimeGIUpdaterRunning = false;
                 return;
             }

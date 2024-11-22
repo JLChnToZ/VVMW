@@ -12,9 +12,9 @@ namespace JLChnToZ.VRC.VVMW {
 
         int SelectedPlayListIndex {
             get {
-                if (playListScrollView == null) return 0;
+                if (!Utilities.IsValid(playListScrollView)) return 0;
                 int selectedIndex = playListScrollView.SelectedIndex;
-                if (handler != null) {
+                if (Utilities.IsValid(handler)) {
                     if (handler.HistorySize > 0) {
                         if (selectedIndex == 0) return -1;
                         if (handler.HasQueueList) selectedIndex--;
@@ -24,12 +24,12 @@ namespace JLChnToZ.VRC.VVMW {
                 return selectedIndex;
             }
             set {
-                if (playListScrollView == null) return;
+                if (!Utilities.IsValid(playListScrollView)) return;
                 if (value < 0) {
                     playListScrollView.SelectedIndex = 0;
                     return;
                 }
-                if (handler != null) {
+                if (Utilities.IsValid(handler)) {
                     if (handler.HistorySize > 0) {
                         if (handler.HasQueueList) value++;
                     } else if (!handler.HasQueueList)
@@ -40,18 +40,18 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void InitPlayQueueList() {
-            if (enqueueCountText != null) {
+            if (Utilities.IsValid(enqueueCountText)) {
                 enqueueCountFormat = enqueueCountText.text;
                 enqueueCountText.text = string.Format(enqueueCountFormat, 0);
-            } else if (enqueueCountTMPro != null) {
+            } else if (Utilities.IsValid(enqueueCountTMPro)) {
                 enqueueCountFormat = enqueueCountTMPro.text;
                 enqueueCountTMPro.text = string.Format(enqueueCountFormat, 0);
             }
             var hasHandler = Utilities.IsValid(handler);
-            if (playListPanelRoot != null) playListPanelRoot.SetActive(true);
-            if (playListScrollView != null) {
+            if (Utilities.IsValid(playListPanelRoot)) playListPanelRoot.SetActive(true);
+            if (Utilities.IsValid(playListScrollView)) {
                 playListNames = hasHandler ? handler.PlayListTitles : null;
-                if (playListNames != null) {
+                if (Utilities.IsValid(playListNames)) {
                     bool hasQueueList = handler.HasQueueList;
                     bool hasHistory = handler.HistorySize > 0;
                     if (hasQueueList || hasHistory) {
@@ -65,36 +65,36 @@ namespace JLChnToZ.VRC.VVMW {
                         Array.Copy(playListNames, 0, temp, i, playListNames.Length);
                         playListNames = temp;
                     }
-                } else if (playListNames == null)
+                } else if (!Utilities.IsValid(playListNames))
                     playListNames = new[] { languageManager.GetLocale("QueueList") };
                 bool hasPlayList = playListNames.Length > 1;
                 playListScrollView.EventPrefix = "_OnPlayList";
                 playListScrollView.CanDelete = false;
                 playListScrollView.EntryNames = playListNames;
                 SelectedPlayListIndex = hasHandler ? handler.PlayListIndex : 0;
-                if (playListTogglePanelButton != null)
+                if (Utilities.IsValid(playListTogglePanelButton))
                     playListScrollView.gameObject.SetActive(false);
                 else
                     playListScrollView.gameObject.SetActive(hasPlayList);
             }
-            if (queueListScrollView != null) {
+            if (Utilities.IsValid(queueListScrollView)) {
                 queueListScrollView.EventPrefix = "_OnQueueList";
                 queueListScrollView.gameObject.SetActive(hasHandler);
             }
         }
 
         public void _PlayListTogglePanel() {
-            if (playListScrollView == null) return;
+            if (!Utilities.IsValid(playListScrollView)) return;
             var playListGameObject = playListScrollView.gameObject;
             playListGameObject.SetActive(!playListGameObject.activeSelf);
         }
 
         public void _PlayListToggle() {
-            if (playListScrollView == null) return;
+            if (!Utilities.IsValid(playListScrollView)) return;
             if (playlistToggle.isOn) {
                 playListPanelRoot.SetActive(true);
                 if (Utilities.IsValid(handler)) {
-                    if (queueListScrollView != null)
+                    if (Utilities.IsValid(queueListScrollView))
                         queueListScrollView.SelectedIndex = handler.PlayListIndex;
                     playListLastInteractTime = joinTime;
                 }
@@ -120,25 +120,25 @@ namespace JLChnToZ.VRC.VVMW {
                 displayCount = queuedUrls.Length;
             }
             bool hasPending = pendingCount > 0;
-            bool isEntryContainerInactive = queueListScrollView == null || !queueListScrollView.gameObject.activeInHierarchy;
+            bool isEntryContainerInactive = !Utilities.IsValid(queueListScrollView) || !queueListScrollView.gameObject.activeInHierarchy;
             int selectedPlayListIndex = SelectedPlayListIndex;
             bool isNotCoolingDown = (DateTime.UtcNow - playListLastInteractTime) >= interactCoolDown;
             if (isEntryContainerInactive || isNotCoolingDown)
                 SelectedPlayListIndex = selectedPlayListIndex = playListIndex;
-            if (playNextButton != null) playNextButton.gameObject.SetActive(hasPending);
-            if (currentPlayListButton != null) currentPlayListButton.gameObject.SetActive(hasPending && selectedPlayListIndex >= 0);
+            if (Utilities.IsValid(playNextButton)) playNextButton.gameObject.SetActive(hasPending);
+            if (Utilities.IsValid(currentPlayListButton)) currentPlayListButton.gameObject.SetActive(hasPending && selectedPlayListIndex >= 0);
             if (!string.IsNullOrEmpty(enqueueCountFormat))
                 SetText(enqueueCountText, enqueueCountTMPro, string.Format(enqueueCountFormat, pendingCount));
             if (selectedPlayListIndex > 0)
                 SetText(selectedPlayListText, selectedPlayListTMPro, handler.PlayListTitles[selectedPlayListIndex - 1]);
             else
                 SetLocalizedText(selectedPlayListText, selectedPlayListTMPro, selectedPlayListIndex < 0 ? "PlaybackHistory" : "QueueList");
-            if (playNextIndicator != null)
+            if (Utilities.IsValid(playNextIndicator))
                 playNextIndicator.SetActive(!handler.Shuffle && selectedPlayListIndex == 0 && handler.PlayListIndex == 0 && handler.PendingCount > 0);
             bool shouldRefreshQueue = playListUpdateRequired || selectedPlayListIndex <= 0 || lastSelectedPlayListIndex != selectedPlayListIndex || lastPlayingIndex != playingIndex;
             lastSelectedPlayListIndex = selectedPlayListIndex;
             lastPlayingIndex = playingIndex;
-            if (!shouldRefreshQueue || queueListScrollView == null)
+            if (!shouldRefreshQueue || !Utilities.IsValid(queueListScrollView))
                 return false;
             if (isEntryContainerInactive) {
                 if (!playListUpdateRequired) {
@@ -179,7 +179,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnPlayListEntryClick() {
-            if (currentPlayListButton != null) playListScrollView.gameObject.SetActive(false);
+            if (Utilities.IsValid(currentPlayListButton)) playListScrollView.gameObject.SetActive(false);
             playListLastInteractTime = DateTime.UtcNow;
             UpdatePlayList();
             queueListScrollView.ScrollToSelected();
@@ -194,7 +194,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnCurrentPlayListSelectClick() {
-            SelectedPlayListIndex = handler != null ? handler.PlayListIndex : 0;
+            SelectedPlayListIndex = Utilities.IsValid(handler) ? handler.PlayListIndex : 0;
             _OnPlayListEntryClick();
         }
 

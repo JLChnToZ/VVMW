@@ -64,7 +64,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         protected virtual void RegenerateCore() {
-            if (streamLinks == null || streamLinks.Length == 0) {
+            if (!Utilities.IsValid(streamLinks) || streamLinks.Length == 0) {
                 Debug.LogError("[Stream Key Assigner] No stream links are generated. Please report to the world creator to fix this.");
                 return;
             }

@@ -1,8 +1,9 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
-using UdonSharp;
 using TMPro;
+using VRC.SDKBase;
+using UdonSharp;
 using JLChnToZ.VRC.Foundation;
 
 namespace JLChnToZ.VRC.VVMW {
@@ -40,13 +41,13 @@ namespace JLChnToZ.VRC.VVMW {
 
         public string TextContent {
             get {
-                if (content != null) return content.text;
-                if (contentTMPro != null) return contentTMPro.text;
+                if (Utilities.IsValid(content)) return content.text;
+                if (Utilities.IsValid(contentTMPro)) return contentTMPro.text;
                 return "";
             }
             set {
-                if (content != null) content.text = value;
-                if (contentTMPro != null) contentTMPro.text = value;
+                if (Utilities.IsValid(content)) content.text = value;
+                if (Utilities.IsValid(contentTMPro)) contentTMPro.text = value;
             }
         }
 
@@ -67,8 +68,8 @@ namespace JLChnToZ.VRC.VVMW {
             get => isSelected;
             set {
                 isSelected = value;
-                if (content != null) content.color = isSelected ? selectedColor : normalColor;
-                if (contentTMPro != null) contentTMPro.color = isSelected ? selectedColor : normalColor;
+                if (Utilities.IsValid(content)) content.color = isSelected ? selectedColor : normalColor;
+                if (Utilities.IsValid(contentTMPro)) contentTMPro.color = isSelected ? selectedColor : normalColor;
             }
         }
 
@@ -77,20 +78,20 @@ namespace JLChnToZ.VRC.VVMW {
                 if (asPooledEntry) {
                     if (indexAsUserData) return lastOffset;
                     if (lastOffset < 0 && lastOffset >= pooledEntryCount) return null;
-                    if (callbackUserDatas != null) return callbackUserDatas[lastOffset + pooledEntryOffset];
+                    if (Utilities.IsValid(callbackUserDatas)) return callbackUserDatas[lastOffset + pooledEntryOffset];
                 }
                 return callbackUserData;
             }
         }
 
         void Start() {
-            if (callbackUserData == null) callbackUserData = this;
+            if (!Utilities.IsValid(callbackUserData)) callbackUserData = this;
             rectTransform = GetComponent<RectTransform>();
         }
 
         bool UpdateIndex() {
-            if (rectTransform == null) rectTransform = GetComponent<RectTransform>();
-            if (parentRectTransform == null) parentRectTransform = rectTransform.parent.GetComponent<RectTransform>();
+            if (!Utilities.IsValid(rectTransform)) rectTransform = GetComponent<RectTransform>();
+            if (!Utilities.IsValid(parentRectTransform)) parentRectTransform = rectTransform.parent.GetComponent<RectTransform>();
             int newOffset = Mathf.FloorToInt((-parentRectTransform.anchoredPosition.y / rectTransform.rect.height - entryOffset - 1) / spawnedEntryCount + 1) * spawnedEntryCount + entryOffset;
             if (lastOffset == newOffset) return false;
             lastOffset = newOffset;
@@ -99,7 +100,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void UpdatePositionAndContent() {
             if (!asPooledEntry) return;
-            if (rectTransform == null) rectTransform = GetComponent<RectTransform>();
+            if (!Utilities.IsValid(rectTransform)) rectTransform = GetComponent<RectTransform>();
             if (lastOffset >= 0 && lastOffset < pooledEntryCount) {
                 _UpdateContent();
                 rectTransform.anchoredPosition = new Vector2(0, lastOffset * rectTransform.rect.height);
@@ -110,7 +111,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnClick() {
-            if (callbackTarget == null) return;
+            if (!Utilities.IsValid(callbackTarget)) return;
             if (!string.IsNullOrEmpty(callbackVariableName))
                 callbackTarget.SetProgramVariable(callbackVariableName, callbackUserData);
             if (!string.IsNullOrEmpty(callbackEventName))
@@ -118,7 +119,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _OnDeleteClick() {
-            if (callbackTarget == null) return;
+            if (!Utilities.IsValid(callbackTarget)) return;
             if (!string.IsNullOrEmpty(callbackVariableName))
                 callbackTarget.SetProgramVariable(callbackVariableName, callbackUserData);
             if (!string.IsNullOrEmpty(deleteEventName))

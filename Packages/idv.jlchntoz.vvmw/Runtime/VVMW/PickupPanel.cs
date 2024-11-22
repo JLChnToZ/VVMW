@@ -60,7 +60,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
             instructionRenderer.sharedMaterial = isVR ? vrInstructionMaterial : pcInstructionMaterial;
             instructionRenderer.enabled = false;
             UpdateLockedState();
-            if (languageManager != null) _OnLanguageChanged();
+            if (Utilities.IsValid(languageManager)) _OnLanguageChanged();
         }
 
         void Update() {
@@ -101,7 +101,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
         }
 
         public void _OnLanguageChanged() {
-            if (pickup != null) pickup.InteractionText = languageManager.GetLocale("PickupScreen");
+            if (Utilities.IsValid(pickup)) pickup.InteractionText = languageManager.GetLocale("PickupScreen");
         }
 
         public void _MakeUpright() {

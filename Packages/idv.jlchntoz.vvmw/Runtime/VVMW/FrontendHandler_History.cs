@@ -18,20 +18,20 @@ namespace JLChnToZ.VRC.VVMW {
 
         public VRCUrl[] HistoryUrls {
             get {
-                if (localHistoryUrls == null) localHistoryUrls = new VRCUrl[0];
+                if (!Utilities.IsValid(localHistoryUrls)) localHistoryUrls = new VRCUrl[0];
                 return localHistoryUrls;
             }
         }
 
         public string[] HistoryTitles {
             get {
-                if (localHistoryTitles == null) localHistoryTitles = new string[0];
+                if (!Utilities.IsValid(localHistoryTitles)) localHistoryTitles = new string[0];
                 return localHistoryTitles;
             }
         }
 
         public void PlayHistory(int index) {
-            if (localHistoryUrls == null || index < 0 || index >= localHistoryUrls.Length) return;
+            if (!Utilities.IsValid(localHistoryUrls) || index < 0 || index >= localHistoryUrls.Length) return;
             var pcUrl = localHistoryUrls[index];
             var questUrl = IsArrayNullOrEmpty(localHistoryQuestUrls) ? pcUrl : localHistoryQuestUrls[index];
             PlayUrl(pcUrl, questUrl, localHistoryTitles[index], localHistoryPlayerIndex[index]);

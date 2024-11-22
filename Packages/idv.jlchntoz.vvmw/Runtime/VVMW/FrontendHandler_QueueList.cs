@@ -16,21 +16,21 @@ namespace JLChnToZ.VRC.VVMW {
 
         public VRCUrl[] QueueUrls {
             get {
-                if (localQueuedUrls == null) localQueuedUrls = new VRCUrl[0];
+                if (!Utilities.IsValid(localQueuedUrls)) localQueuedUrls = new VRCUrl[0];
                 return localQueuedUrls;
             }
         }
 
         public byte[] QueuePlayerIndex {
             get {
-                if (localQueuedPlayerIndex == null) localQueuedPlayerIndex = new byte[0];
+                if (!Utilities.IsValid(localQueuedPlayerIndex)) localQueuedPlayerIndex = new byte[0];
                 return localQueuedPlayerIndex;
             }
         }
 
         public string[] QueueTitles {
             get {
-                if (localQueuedTitles == null) localQueuedTitles = new string[0];
+                if (!Utilities.IsValid(localQueuedTitles)) localQueuedTitles = new string[0];
                 return localQueuedTitles;
             }
         }
@@ -56,7 +56,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             if (string.IsNullOrEmpty(queuedTitle))
                 queuedTitle = $"{Networking.LocalPlayer.displayName}:\n{UnescapeUrl(pcUrl)}";
-            if (enableQueueList && (core.IsReady || core.IsLoading || (localQueuedUrls != null && localQueuedUrls.Length > 0))) {
+            if (enableQueueList && (core.IsReady || core.IsLoading || (Utilities.IsValid(localQueuedUrls) && localQueuedUrls.Length > 0))) {
                 if (IsArrayNullOrEmpty(localQueuedUrls)) {
                     localQueuedUrls = new VRCUrl[] { pcUrl };
                 } else {
@@ -103,7 +103,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void PlayQueueList(int index, bool deleteOnly) {
-            if (localQueuedUrls == null) return;
+            if (!Utilities.IsValid(localQueuedUrls)) return;
             int newLength = localQueuedUrls.Length;
             if (index >= newLength || newLength <= 0) return;
             if (index < 0) {

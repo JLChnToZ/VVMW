@@ -1,5 +1,6 @@
-﻿using UdonSharp;
-using UnityEngine;
+﻿using UnityEngine;
+using VRC.SDKBase;
+using UdonSharp;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
 
@@ -14,7 +15,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
         [SerializeField, LocalizedLabel] string interactKey = "Reset";
 
         void Start() {
-            if (languageManager != null) {
+            if (Utilities.IsValid(languageManager)) {
                 _OnLanguageChanged();
             }
         }

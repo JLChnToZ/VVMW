@@ -1,6 +1,7 @@
 using System;
-using UdonSharp;
 using UnityEngine;
+using VRC.SDKBase;
+using UdonSharp;
 using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
@@ -33,10 +34,10 @@ namespace JLChnToZ.VRC.VVMW {
 
         void UpdateVolume() {
             var volume = defaultMuted ? 0 : defaultVolume * defaultVolume; // Volume is not linear
-            if (audioSources != null)
+            if (Utilities.IsValid(audioSources))
                 for (int i = 0; i < audioSources.Length; i++) {
                     var audioSource = audioSources[i];
-                    if (audioSource == null) continue;
+                    if (!Utilities.IsValid(audioSource)) continue;
                     audioSource.volume = volume;
                 }
             SendEvent("_OnVolumeChange");
@@ -44,11 +45,11 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void SetAudioPitch() {
-            if (audioSources == null) return;
+            if (!Utilities.IsValid(audioSources)) return;
             var speed = activeHandler.Speed;
             for (int i = 0; i < audioSources.Length; i++) {
                 var audioSource = audioSources[i];
-                if (audioSource == null) continue;
+                if (!Utilities.IsValid(audioSource)) continue;
                 audioSource.pitch = speed;
             }
         }

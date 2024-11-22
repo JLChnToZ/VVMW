@@ -22,7 +22,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (!enabled || !gameObject.activeInHierarchy) return;
             SendCustomEventDelayedSeconds(nameof(_SlowUpdate), 0.5F);
             var player = Networking.LocalPlayer;
-            if (player == null) return;
+            if (!Utilities.IsValid(player)) return;
             if (Vector3.Distance(player.GetPosition(), transform.position) <= distance) {
                 if (!wasPlaying) Play();
             } else {
@@ -39,12 +39,12 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void Play() {
-            if (handler != null) handler._AutoPlay();
+            if (Utilities.IsValid(handler)) handler._AutoPlay();
             wasPlaying = true;
         }
 
         void Stop() {
-            if (handler != null) handler._Stop();
+            if (Utilities.IsValid(handler)) handler._Stop();
             wasPlaying = false;
         }
     }

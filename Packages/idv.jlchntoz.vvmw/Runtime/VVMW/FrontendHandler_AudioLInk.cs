@@ -1,3 +1,4 @@
+using VRC.SDKBase;
 #if AUDIOLINK_V1
 using AudioLink;
 #endif
@@ -7,7 +8,7 @@ namespace JLChnToZ.VRC.VVMW {
         void UpdateAudioLink() {
             #if AUDIOLINK_V1
             var audioLink = core.AudioLink;
-            if (audioLink != null) {
+            if (Utilities.IsValid(audioLink)) {
                 if ((localFlags & REPEAT_ALL) != 0) {
                     if ((localFlags & SHUFFLE) != 0)
                         audioLink.SetMediaLoop(MediaLoop.RandomLoop);

@@ -108,29 +108,29 @@ namespace JLChnToZ.VRC.VVMW {
                 leftHandToggle.SetIsOnWithoutNotify(!isLeftHanded);
                 rightHandToggle.SetIsOnWithoutNotify(isLeftHanded);
             }
-            if (desktopHintsReloadButtonKey != null)
+            if (Utilities.IsValid(desktopHintsReloadButtonKey))
                 desktopHintsReloadButtonKey.text = reloadKey.ToString();
-            if (desktopHintsReloadButtonKeyTMPro != null)
+            if (Utilities.IsValid(desktopHintsReloadButtonKeyTMPro))
                 desktopHintsReloadButtonKeyTMPro.text = reloadKey.ToString();
-            if (desktopHintsVolumeUpKey != null)
+            if (Utilities.IsValid(desktopHintsVolumeUpKey))
                 desktopHintsVolumeUpKey.text = volumeUpKey.ToString();
-            if (desktopHintsVolumeUpKeyTMPro != null)
+            if (Utilities.IsValid(desktopHintsVolumeUpKeyTMPro))
                 desktopHintsVolumeUpKeyTMPro.text = volumeUpKey.ToString();
-            if (desktopHintsVolumeDownKey != null)
+            if (Utilities.IsValid(desktopHintsVolumeDownKey))
                 desktopHintsVolumeDownKey.text = volumeDownKey.ToString();
-            if (desktopHintsVolumeDownKeyTMPro != null)
+            if (Utilities.IsValid(desktopHintsVolumeDownKeyTMPro))
                 desktopHintsVolumeDownKeyTMPro.text = volumeDownKey.ToString();
-            if (desktopHintsReloadButtonKey2 != null)
+            if (Utilities.IsValid(desktopHintsReloadButtonKey2))
                 desktopHintsReloadButtonKey2.text = reloadKey.ToString();
-            if (desktopHintsReloadButtonKey2TMPro != null)
+            if (Utilities.IsValid(desktopHintsReloadButtonKey2TMPro))
                 desktopHintsReloadButtonKey2TMPro.text = reloadKey.ToString();
-            if (desktopHintsVolumeUpKey2 != null)
+            if (Utilities.IsValid(desktopHintsVolumeUpKey2))
                 desktopHintsVolumeUpKey2.text = volumeUpKey.ToString();
-            if (desktopHintsVolumeUpKey2TMPro != null)
+            if (Utilities.IsValid(desktopHintsVolumeUpKey2TMPro))
                 desktopHintsVolumeUpKey2TMPro.text = volumeUpKey.ToString();
-            if (desktopHintsVolumeDownKey2 != null)
+            if (Utilities.IsValid(desktopHintsVolumeDownKey2))
                 desktopHintsVolumeDownKey2.text = volumeDownKey.ToString();
-            if (desktopHintsVolumeDownKey2TMPro != null)
+            if (Utilities.IsValid(desktopHintsVolumeDownKey2TMPro))
                 desktopHintsVolumeDownKey2TMPro.text = volumeDownKey.ToString();
         }
 
@@ -180,7 +180,7 @@ namespace JLChnToZ.VRC.VVMW {
             bool hasCore = Utilities.IsValid(core);
             if (hasCore && core.IsPlaying)
                 core.LocalSync();
-            else if (!(hasCore && core.IsLoading) && resyncTargets != null)
+            else if (!(hasCore && core.IsLoading) && Utilities.IsValid(resyncTargets))
                 foreach (var target in resyncTargets)
                     if (target.gameObject.activeInHierarchy) {
                         foreach (var ub in target.GetComponents(typeof(UdonBehaviour)))
@@ -203,7 +203,7 @@ namespace JLChnToZ.VRC.VVMW {
                 volumeSliderDesktop.anchorMax = new Vector2(volume, 1);
                 desktopModeAnim.SetTrigger("VolumeChange");
             }
-            if (audioSources != null)
+            if (Utilities.IsValid(audioSources))
                 foreach (var audioSource in audioSources)
                     audioSource.volume = volume;
         }

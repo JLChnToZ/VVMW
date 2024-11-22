@@ -1,4 +1,5 @@
-﻿using UdonSharp;
+﻿using VRC.SDKBase;
+using UdonSharp;
 using UnityEngine;
 
 namespace JLChnToZ.VRC.VVMW {
@@ -20,7 +21,7 @@ namespace JLChnToZ.VRC.VVMW {
         public void _OnInactive() => SetRect(inactiveRect);
 
         void SetRect(RectTransform rectTransform) {
-            if (rectTransform == null) return;
+            if (!Utilities.IsValid(rectTransform)) return;
             Init();
             var rect = rectTransform.rect;
             collider.center = transform.InverseTransformPoint(rectTransform.TransformPoint(rect.center));

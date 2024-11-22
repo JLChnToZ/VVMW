@@ -36,7 +36,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override bool IsStatic => true;
 
         public override void LoadUrl(VRCUrl url, bool reload) {
-            if (loader == null) loader = new VRCImageDownloader();
+            if (!Utilities.IsValid(loader)) loader = new VRCImageDownloader();
             if (url.Equals(currentUrl) && !reload && texture) {
                 isReady = true;
                 if (isActive) core.OnVideoReady();
@@ -120,7 +120,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         #if UNITY_EDITOR && !COMPILER_UDONSHARP
         protected override void PreProcess() {
-            if (applyTurstedUrl != null) applyTurstedUrl(TrustedUrlTypes.ImageUrl, ref trustedUrlDomains);
+            if (Utilities.IsValid(applyTurstedUrl)) applyTurstedUrl(TrustedUrlTypes.ImageUrl, ref trustedUrlDomains);
         }
         #endif
     }

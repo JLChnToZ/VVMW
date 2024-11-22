@@ -62,11 +62,11 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public override bool IsAvPro => isAvPro && bufferedTexture == null;
+        public override bool IsAvPro => isAvPro && !Utilities.IsValid(bufferedTexture);
 
         public override float Duration => isRealTimeProtocol ? float.PositiveInfinity : videoPlayer.GetDuration();
 
-        public override Texture Texture => texture != null && bufferedTexture != null ? bufferedTexture : texture;
+        public override Texture Texture => Utilities.IsValid(texture) && Utilities.IsValid(bufferedTexture) ? bufferedTexture : texture;
 
         public override AudioSource PrimaryAudioSource => primaryAudioSource;
 
@@ -121,11 +121,11 @@ namespace JLChnToZ.VRC.VVMW {
             if (useSharedMaterial)
                 texture = renderer.sharedMaterial.GetTexture(texturePropertyID);
             else {
-                if (propertyBlock == null) propertyBlock = new MaterialPropertyBlock();
+                if (!Utilities.IsValid(propertyBlock)) propertyBlock = new MaterialPropertyBlock();
                 renderer.GetPropertyBlock(propertyBlock);
                 texture = propertyBlock.GetTexture(texturePropertyID);
             }
-            if (texture != null) {
+            if (Utilities.IsValid(texture)) {
                 isWaitingForTexture = false;
                 BlitBufferScreen();
                 core._OnTextureChanged();
@@ -135,11 +135,11 @@ namespace JLChnToZ.VRC.VVMW {
 
         void BlitBufferScreen() {
             if (!isAvPro || !useFlickerWorkaround || isFlickerWorkaroundTextureRunning ||
-                blitMaterial == null || texture == null || !videoPlayer.IsPlaying)
+                !Utilities.IsValid(blitMaterial) || !Utilities.IsValid(texture) || !videoPlayer.IsPlaying)
                 return;
             isFlickerWorkaroundTextureRunning = true;
             SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
-            if (bufferedTexture != null && texture.width == bufferedTexture.width && texture.height == bufferedTexture.height)
+            if (Utilities.IsValid(bufferedTexture) && texture.width == bufferedTexture.width && texture.height == bufferedTexture.height)
                 return;
             Debug.Log($"[VVMW] Released temporary render texture for {playerName}.");
             VRCRenderTexture.ReleaseTemporary(bufferedTexture);
@@ -147,7 +147,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _BlitBufferScreen() {
-            if (!isActive || !videoPlayer.IsPlaying || texture == null) {
+            if (!isActive || !videoPlayer.IsPlaying || !Utilities.IsValid(texture)) {
                 isFlickerWorkaroundTextureRunning = false;
                 return;
             }
@@ -155,7 +155,7 @@ namespace JLChnToZ.VRC.VVMW {
                 isFlickerWorkaroundTextureRunning = false;
             else
                 SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
-            if (bufferedTexture == null) {
+            if (!Utilities.IsValid(bufferedTexture)) {
                 int width = texture.width, height = texture.height;
                 Debug.Log($"[VVMW] Created temporary render texture for {playerName}: {width}x{height}");
                 bufferedTexture = VRCRenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB64, RenderTextureReadWrite.sRGB, 1);
@@ -191,7 +191,7 @@ namespace JLChnToZ.VRC.VVMW {
             isReady = false;
             SetPlaybackSpeed();
             if (!isLoadUrlRequested) {
-                float delay = rateLimitResolver != null ? rateLimitResolver._GetSafeLoadUrlDelay() : 0;
+                float delay = Utilities.IsValid(rateLimitResolver) ? rateLimitResolver._GetSafeLoadUrlDelay() : 0;
                 if (delay > 0) {
                     isLoadUrlRequested = true;
                     SendCustomEventDelayedSeconds(nameof(_DoLoadUrl), delay);
@@ -318,7 +318,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void SetPlaybackSpeed() {
-            if (animator == null) return;
+            if (!Utilities.IsValid(animator)) return;
             animator.SetFloat(speedParameterID, isRealTimeProtocol ? 1 : playbackSpeed);
             animator.Update(0);
             if (!isAvPro) {
@@ -328,12 +328,12 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void UpdatePrimaryAudioSourcePitch() {
-            if (primaryAudioSource != null) primaryAudioSource.pitch = actualPlaybackSpeed;
+            if (Utilities.IsValid(primaryAudioSource)) primaryAudioSource.pitch = actualPlaybackSpeed;
         }
 
         void ClearTexture() {
             texture = null;
-            if (bufferedTexture != null) {
+            if (Utilities.IsValid(bufferedTexture)) {
                 Debug.Log($"[VVMW] Released temporary render texture for {playerName}.");
                 VRCRenderTexture.ReleaseTemporary(bufferedTexture);
                 bufferedTexture = null;
@@ -420,7 +420,7 @@ namespace JLChnToZ.VRC.VVMW {
                         screenSo.FindProperty("useSharedMaterial").boolValue = false;
                         screenSo.ApplyModifiedPropertiesWithoutUndo();
                     }
-                    if (primaryAudioSource != null) {
+                    if (Utilities.IsValid(primaryAudioSource)) {
                         if (!primaryAudioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker))
                             speaker = primaryAudioSource.gameObject.AddComponent<VRCAVProVideoSpeaker>();
                         using (var speakerSo = new SerializedObject(speaker)) {
@@ -434,7 +434,7 @@ namespace JLChnToZ.VRC.VVMW {
                     videoPlayerSo.FindProperty("targetMaterialRenderer").objectReferenceValue = renderer;
                     videoPlayerSo.FindProperty("targetMaterialProperty").stringValue = texturePropertyName;
                     videoPlayerSo.FindProperty("aspectRatio").intValue = 0;
-                    if (primaryAudioSource != null) {
+                    if (Utilities.IsValid(primaryAudioSource)) {
                         var targetAudioSources = videoPlayerSo.FindProperty("targetAudioSources");
                         targetAudioSources.arraySize = 1;
                         targetAudioSources.GetArrayElementAtIndex(0).objectReferenceValue = primaryAudioSource;
@@ -444,7 +444,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             isAvPro = urlType == TrustedUrlTypes.AVProDesktop;
             useSharedMaterial = isAvPro;
-            if (applyTurstedUrl != null) applyTurstedUrl(urlType, ref trustedUrlDomains);
+            if (Utilities.IsValid(applyTurstedUrl)) applyTurstedUrl(urlType, ref trustedUrlDomains);
         }
         #endif
     }

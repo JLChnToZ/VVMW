@@ -5,7 +5,7 @@ namespace JLChnToZ.VRC.VVMW {
         ButtonEntry[] videoPlayerSelectButtons;
 
         void InitPlayerSelect() {
-            if (videoPlayerSelectButtonTemplate != null) {
+            if (Utilities.IsValid(videoPlayerSelectButtonTemplate)) {
                 var templateTransform = videoPlayerSelectButtonTemplate.transform;
                 var parent = videoPlayerSelectRoot.transform;
                 var sibling = templateTransform.GetSiblingIndex() + 1;
@@ -32,14 +32,14 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _OnURLChanged() {
             bool isEmpty = string.IsNullOrEmpty(urlInput.textComponent.text);
-            if (otherObjectUnderUrlInput != null) otherObjectUnderUrlInput.SetActive(isEmpty);
-            if (videoPlayerSelectPanel != null) videoPlayerSelectPanel.SetActive(!isEmpty);
+            if (Utilities.IsValid(otherObjectUnderUrlInput)) otherObjectUnderUrlInput.SetActive(isEmpty);
+            if (Utilities.IsValid(videoPlayerSelectPanel)) videoPlayerSelectPanel.SetActive(!isEmpty);
             if (Utilities.IsValid(altUrlInput)) altUrlInput.gameObject.SetActive(!isEmpty);
         }
 
         public void _OnURLEndEdit() {
             _OnURLChanged();
-            if (urlInputConfirmButton == null) {
+            if (!Utilities.IsValid(urlInputConfirmButton)) {
                 _InputConfirmClick();
                 return;
             }
@@ -61,7 +61,7 @@ namespace JLChnToZ.VRC.VVMW {
                 playListLastInteractTime = joinTime;
                 if (Utilities.IsValid(handler)) {
                     handler.PlayUrl(url, altUrl, selectedPlayer);
-                    if (queueListScrollView != null)
+                    if (Utilities.IsValid(queueListScrollView))
                         SelectedPlayListIndex = handler.PlayListIndex;
                     UpdatePlayList();
                 } else
@@ -71,7 +71,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _VideoPlayerSelect() {
-            if (videoPlayerSelectRoot == null) return;
+            if (!Utilities.IsValid(videoPlayerSelectRoot)) return;
             videoPlayerSelectRoot.SetActive(!videoPlayerSelectRoot.activeSelf);
         }
 
@@ -85,7 +85,7 @@ namespace JLChnToZ.VRC.VVMW {
         public void _LoadPlayerClick() {
             selectedPlayer = loadWithIndex;
             UpdatePlayerText();
-            if (videoPlayerSelectRoot != null) videoPlayerSelectRoot.SetActive(false);
+            if (Utilities.IsValid(videoPlayerSelectRoot)) videoPlayerSelectRoot.SetActive(false);
         }
 
         void UpdatePlayerText() =>

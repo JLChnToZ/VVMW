@@ -21,13 +21,13 @@ namespace JLChnToZ.VRC.VVMW {
         int broadcastTextureId;
         DataDictionary screenSharedProperties;
 
-        public Texture VideoTexture => activeHandler != null ? activeHandler.Texture : null;
+        public Texture VideoTexture => Utilities.IsValid(activeHandler) ? activeHandler.Texture : null;
 
         void StartBroadcastScreenTexture() {
             if (!broadcastScreenTexture) return;
             if (broadcastTextureId == 0) broadcastTextureId = VRCShader.PropertyToID(broadcastScreenTextureName);
             var videoTexture = VideoTexture;
-            if (videoTexture != null) VRCShader.SetGlobalTexture(broadcastTextureId, videoTexture);
+            if (Utilities.IsValid(videoTexture)) VRCShader.SetGlobalTexture(broadcastTextureId, videoTexture);
         }
 
         void StopBroadcastScreenTexture() {
@@ -35,7 +35,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void InitScreenProperties() {
-            if (screenTargetPropertyNames != null) {
+            if (Utilities.IsValid(screenTargetPropertyNames)) {
                 screenTargetPropertyIds = new int[screenTargetPropertyNames.Length];
                 for (int i = 0; i < screenTargetPropertyNames.Length; i++) {
                     var propertyName = screenTargetPropertyNames[i];
@@ -43,7 +43,7 @@ namespace JLChnToZ.VRC.VVMW {
                         screenTargetPropertyIds[i] = VRCShader.PropertyToID(propertyName);
                 }
             }
-            if (avProPropertyNames != null) {
+            if (Utilities.IsValid(avProPropertyNames)) {
                 avProPropertyIds = new int[avProPropertyNames.Length];
                 for (int i = 0; i < avProPropertyNames.Length; i++) {
                     if ((screenTargetModes[i] & 0x8) != 0)
@@ -59,16 +59,16 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _OnTextureChanged() {
             var videoTexture = VideoTexture;
-            var hasVideoTexture = videoTexture != null;
+            var hasVideoTexture = Utilities.IsValid(videoTexture);
             var isAvPro = hasVideoTexture && IsAVPro;
             for (int i = 0, length = screenTargets.Length; i < length; i++) {
-                if (screenTargets[i] == null) continue;
+                if (!Utilities.IsValid(screenTargets[i])) continue;
                 Texture texture = null;
                 if (hasVideoTexture)
                     texture = videoTexture;
-                else if (screenTargetDefaultTextures != null && i < screenTargetDefaultTextures.Length)
+                else if (Utilities.IsValid(screenTargetDefaultTextures) && i < screenTargetDefaultTextures.Length)
                     texture = screenTargetDefaultTextures[i];
-                if (texture == null) texture = defaultTexture;
+                if (!Utilities.IsValid(texture)) texture = defaultTexture;
                 switch (screenTargetModes[i] & 0x7) {
                     case 0: { // Material
                         SetTextureToMaterial(texture, (Material)screenTargets[i], i, isAvPro);
@@ -77,7 +77,7 @@ namespace JLChnToZ.VRC.VVMW {
                     case 1: { // Renderer (Property Block)
                         var renderer = (Renderer)screenTargets[i];
                         int index = screenTargetIndeces[i];
-                        if (screenTargetPropertyBlock == null) screenTargetPropertyBlock = new MaterialPropertyBlock();
+                        if (!Utilities.IsValid(screenTargetPropertyBlock)) screenTargetPropertyBlock = new MaterialPropertyBlock();
                         if (index < 0) renderer.GetPropertyBlock(screenTargetPropertyBlock);
                         else renderer.GetPropertyBlock(screenTargetPropertyBlock, index);
                         if (screenTargetPropertyIds[i] != 0)
@@ -126,11 +126,11 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public float GetScreenFloatExtra(int id) {
-            if (screenSharedProperties != null && screenSharedProperties.TryGetValue(id, TokenType.Float, out var value))
+            if (Utilities.IsValid(screenSharedProperties) && screenSharedProperties.TryGetValue(id, TokenType.Float, out var value))
                 return value.Float;
             float v = 0;
             for (int i = 0, length = screenTargets.Length; i < length; i++) {
-                if (screenTargets[i] == null) continue;
+                if (!Utilities.IsValid(screenTargets[i])) continue;
                 switch (screenTargetModes[i] & 0x7) {
                     case 0: { // Material
                         v = ((Material)screenTargets[i]).GetFloat(id);
@@ -139,7 +139,7 @@ namespace JLChnToZ.VRC.VVMW {
                     case 1: { // Renderer (Property Block)
                         var renderer = (Renderer)screenTargets[i];
                         int index = screenTargetIndeces[i];
-                        if (screenTargetPropertyBlock == null) screenTargetPropertyBlock = new MaterialPropertyBlock();
+                        if (!Utilities.IsValid(screenTargetPropertyBlock)) screenTargetPropertyBlock = new MaterialPropertyBlock();
                         if (index < 0) {
                             renderer.GetPropertyBlock(screenTargetPropertyBlock);
                             if (screenTargetPropertyBlock.HasFloat(id)) {
@@ -181,16 +181,16 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                 }
             }
-            if (screenSharedProperties == null) screenSharedProperties = new DataDictionary();
+            if (!Utilities.IsValid(screenSharedProperties)) screenSharedProperties = new DataDictionary();
             screenSharedProperties[id] = v;
             return v;
         }
 
         public void SetScreenFloatExtra(int id, float value) {
-            if (screenSharedProperties == null) screenSharedProperties = new DataDictionary();
+            if (!Utilities.IsValid(screenSharedProperties)) screenSharedProperties = new DataDictionary();
             screenSharedProperties[id] = value;
             for (int i = 0, length = screenTargets.Length; i < length; i++) {
-                if (screenTargets[i] == null) continue;
+                if (!Utilities.IsValid(screenTargets[i])) continue;
                 switch (screenTargetModes[i] & 0x7) {
                     case 0: { // Material
                         ((Material)screenTargets[i]).SetFloat(id, value);
@@ -199,7 +199,7 @@ namespace JLChnToZ.VRC.VVMW {
                     case 1: { // Renderer (Property Block)
                         var renderer = (Renderer)screenTargets[i];
                         int index = screenTargetIndeces[i];
-                        if (screenTargetPropertyBlock == null) screenTargetPropertyBlock = new MaterialPropertyBlock();
+                        if (!Utilities.IsValid(screenTargetPropertyBlock)) screenTargetPropertyBlock = new MaterialPropertyBlock();
                         if (index < 0) renderer.GetPropertyBlock(screenTargetPropertyBlock);
                         else renderer.GetPropertyBlock(screenTargetPropertyBlock, index);
                         screenTargetPropertyBlock.SetFloat(id, value);

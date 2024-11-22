@@ -43,8 +43,8 @@ namespace JLChnToZ.VRC.VVMW {
         }
     
         public int PendingCount => localPlayListIndex > 0 ?
-            localPlayListOrder != null ? localPlayListOrder.Length : 0 :
-            localQueuedUrls != null ? localQueuedUrls.Length : 0;
+            Utilities.IsValid(localPlayListOrder) ? localPlayListOrder.Length : 0 :
+            Utilities.IsValid(localQueuedUrls) ? localQueuedUrls.Length : 0;
 
         public bool RepeatOne {
             get => (localFlags & REPEAT_ONE) == REPEAT_ONE;
@@ -235,15 +235,15 @@ namespace JLChnToZ.VRC.VVMW {
 
         public override void OnPreSerialization() {
             if (!synced) return;
-            queuedUrls = localQueuedUrls == null ? new VRCUrl[0] : localQueuedUrls;
-            queuedQuestUrls = localQueuedQuestUrls == null ? new VRCUrl[0] : localQueuedQuestUrls;
-            queuedPlayerIndex = localQueuedPlayerIndex == null ? new byte[0] : localQueuedPlayerIndex;
-            playListOrder = localPlayListOrder == null ? new ushort[0] : localPlayListOrder;
-            queuedTitles = localQueuedTitles == null ? "" : string.Join("\u2029", localQueuedTitles);
-            historyUrls = localHistoryUrls == null ? new VRCUrl[0] : localHistoryUrls;
-            historyQuestUrls = localHistoryQuestUrls == null ? new VRCUrl[0] : localHistoryQuestUrls;
-            historyPlayerIndex = localHistoryPlayerIndex == null ? new byte[0] : localHistoryPlayerIndex;
-            historyTitles = localHistoryTitles == null ? "" : string.Join("\u2029", localHistoryTitles);
+            queuedUrls = !Utilities.IsValid(localQueuedUrls) ? new VRCUrl[0] : localQueuedUrls;
+            queuedQuestUrls = !Utilities.IsValid(localQueuedQuestUrls) ? new VRCUrl[0] : localQueuedQuestUrls;
+            queuedPlayerIndex = !Utilities.IsValid(localQueuedPlayerIndex) ? new byte[0] : localQueuedPlayerIndex;
+            playListOrder = !Utilities.IsValid(localPlayListOrder) ? new ushort[0] : localPlayListOrder;
+            queuedTitles = !Utilities.IsValid(localQueuedTitles) ? "" : string.Join("\u2029", localQueuedTitles);
+            historyUrls = !Utilities.IsValid(localHistoryUrls) ? new VRCUrl[0] : localHistoryUrls;
+            historyQuestUrls = !Utilities.IsValid(localHistoryQuestUrls) ? new VRCUrl[0] : localHistoryQuestUrls;
+            historyPlayerIndex = !Utilities.IsValid(localHistoryPlayerIndex) ? new byte[0] : localHistoryPlayerIndex;
+            historyTitles = !Utilities.IsValid(localHistoryTitles) ? "" : string.Join("\u2029", localHistoryTitles);
             flags = localFlags;
             playListIndex = (ushort)localPlayListIndex;
             playingIndex = localPlayingIndex;
@@ -339,6 +339,6 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _OnTitleData() => UpdateState();
 
-        bool IsArrayNullOrEmpty(Array array) => array == null || array.Length == 0;
+        bool IsArrayNullOrEmpty(Array array) => !Utilities.IsValid(array) || array.Length == 0;
     }
 }

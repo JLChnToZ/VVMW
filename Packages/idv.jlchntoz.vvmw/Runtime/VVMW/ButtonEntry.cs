@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using VRC.SDKBase;
 using UdonSharp;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
@@ -42,8 +43,8 @@ namespace JLChnToZ.VRC.VVMW {
 
         public string Text {
             get {
-                if (buttonText != null) return buttonText.text;
-                if (buttonTMPro != null) return buttonTMPro.text;
+                if (Utilities.IsValid(buttonText)) return buttonText.text;
+                if (Utilities.IsValid(buttonTMPro)) return buttonTMPro.text;
                 return "";
             }
         }
@@ -52,21 +53,21 @@ namespace JLChnToZ.VRC.VVMW {
             get => manager;
             set {
                 manager = value;
-                if (manager != null) manager._AddListener(this);
+                if (Utilities.IsValid(manager)) manager._AddListener(this);
                 _OnLanguageChanged();
             }
         }
 
         public void _OnLanguageChanged() {
             var result = manager.GetLocale(key);
-            if (args != null && args.Length > 0)
+            if (Utilities.IsValid(args) && args.Length > 0)
                 result = string.Format(result, args);
-            if (buttonText != null) buttonText.text = result;
-            if (buttonTMPro != null) buttonTMPro.text = result;
+            if (Utilities.IsValid(buttonText)) buttonText.text = result;
+            if (Utilities.IsValid(buttonTMPro)) buttonTMPro.text = result;
         }
 
         public void _OnClick() {
-            if (callbackTarget == null) return;
+            if (!Utilities.IsValid(callbackTarget)) return;
             if (!string.IsNullOrEmpty(callbackVariableName))
                 callbackTarget.SetProgramVariable(callbackVariableName, callbackUserData);
             if (!string.IsNullOrEmpty(callbackEventName))

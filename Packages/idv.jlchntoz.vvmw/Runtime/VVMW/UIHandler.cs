@@ -163,7 +163,7 @@ namespace JLChnToZ.VRC.VVMW {
         int initKey, playbackStateKey;
 
         void OnEnable() {
-            if (playbackControlsAnimator != null) {
+            if (Utilities.IsValid(playbackControlsAnimator)) {
                 if (!afterFirstRun) {
                     initKey = Animator.StringToHash("Init");
                     playbackStateKey = Animator.StringToHash("PlaybackState");
@@ -174,13 +174,13 @@ namespace JLChnToZ.VRC.VVMW {
             afterFirstRun = true;
             joinTime = DateTime.UtcNow;
             if (Utilities.IsValid(handler)) core = handler.core;
-            if (luminanceSlider != null && !string.IsNullOrEmpty(luminancePropertyName)) {
+            if (Utilities.IsValid(luminanceSlider) && !string.IsNullOrEmpty(luminancePropertyName)) {
                 luminancePropertyId = VRCShader.PropertyToID(luminancePropertyName);
                 _OnScreenSharedPropertiesChanged();
             }
             InitPlayQueueList();
             InitPlayerSelect();
-            if (playNextIndicator != null) playNextIndicator.SetActive(false);
+            if (Utilities.IsValid(playNextIndicator)) playNextIndicator.SetActive(false);
             InitShiftControl();
             _OnUIUpdate();
             _OnVolumeChange();
@@ -277,9 +277,9 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _OnVolumeChange() {
             if (!afterFirstRun) return;
-            if (volumeSlider != null)
+            if (Utilities.IsValid(volumeSlider))
                 volumeSlider.SetValueWithoutNotify(core.Volume);
-            if (muteButton != null && unmuteButton != null) {
+            if (Utilities.IsValid(muteButton) && Utilities.IsValid(unmuteButton)) {
                 var muted = core.Muted;
                 muteButton.gameObject.SetActive(!muted);
                 unmuteButton.gameObject.SetActive(muted);
@@ -293,11 +293,11 @@ namespace JLChnToZ.VRC.VVMW {
             if (Utilities.IsValid(handler)) {
                 bool hasQueueList = handler.HasQueueList;
                 bool hasHistory = handler.HistorySize > 0;
-                if ((hasQueueList || hasHistory) && playListNames != null) {
+                if ((hasQueueList || hasHistory) && Utilities.IsValid(playListNames)) {
                     int i = 0;
                     if (hasHistory) playListNames[i++] = languageManager.GetLocale("PlaybackHistory");
                     if (hasQueueList) playListNames[i++] = languageManager.GetLocale("QueueList");
-                    if (playListScrollView != null) playListScrollView.EntryNames = playListNames;
+                    if (Utilities.IsValid(playListScrollView)) playListScrollView.EntryNames = playListNames;
                 }
             }
             UpdatePlayerText();
@@ -315,14 +315,14 @@ namespace JLChnToZ.VRC.VVMW {
             int state = core.State;
             switch (state) {
                 case 0: // Idle
-                    if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
+                    if (Utilities.IsValid(idleScreenRoot)) idleScreenRoot.SetActive(true);
                     SetStatusEnabled(true);
                     SetLocalizedText(statusText, statusTMPro, "VVMW_Name");
                     SetLocalizedText(durationText, durationTMPro, "TimeIdleFormat");
                     SetLocalizedText(timeText, timeTMPro, "TimeIdleFormat");
                     break;
                 case 1: // Loading
-                    if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
+                    if (Utilities.IsValid(idleScreenRoot)) idleScreenRoot.SetActive(true);
                     SetStatusEnabled(true);
                     SetLocalizedText(statusText, statusTMPro, "Loading");
                     SetLocalizedText(durationText, durationTMPro, "TimeIdleFormat");
@@ -330,8 +330,8 @@ namespace JLChnToZ.VRC.VVMW {
                     canStop = unlocked;
                     break;
                 case 2: // Error
-                    if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
-                    if (statusText == null && statusTMPro == null) break;
+                    if (Utilities.IsValid(idleScreenRoot)) idleScreenRoot.SetActive(true);
+                    if (!Utilities.IsValid(statusText) && !Utilities.IsValid(statusTMPro)) break;
                     SetStatusEnabled(true);
                     var errorCode = core.LastError;
                     switch (errorCode) {
@@ -346,42 +346,42 @@ namespace JLChnToZ.VRC.VVMW {
                     canStop = unlocked;
                     break;
                 case 3: // Ready
-                    if (idleScreenRoot != null) idleScreenRoot.SetActive(true);
-                    if (statusText != null || statusTMPro != null) {
+                    if (Utilities.IsValid(idleScreenRoot)) idleScreenRoot.SetActive(true);
+                    if (Utilities.IsValid(statusText) || Utilities.IsValid(statusTMPro)) {
                         SetStatusEnabled(true);
                         SetLocalizedText(statusText, statusTMPro, "Ready");
                     }
-                    if (progressSlider != null) {
+                    if (Utilities.IsValid(progressSlider)) {
                         progressSlider.SetValueWithoutNotify(1);
                         progressSlider.interactable = false;
                     }
                     canPlay = unlocked;
                     break;
                 case 4: // Playing
-                    if (idleScreenRoot != null) idleScreenRoot.SetActive(false);
+                    if (Utilities.IsValid(idleScreenRoot)) idleScreenRoot.SetActive(false);
                     SetStatusEnabled(false);
                     canPause = unlocked && !core.IsStatic;
                     canStop = unlocked;
                     canSeek = true;
                     break;
                 case 5: // Paused
-                    if (idleScreenRoot != null) idleScreenRoot.SetActive(false);
+                    if (Utilities.IsValid(idleScreenRoot)) idleScreenRoot.SetActive(false);
                     SetStatusEnabled(false);
                     canPlay = unlocked && !core.IsStatic;
                     canStop = unlocked;
                     canSeek = true;
                     break;
             }
-            if (playbackControlsAnimator != null) playbackControlsAnimator.SetInteger(playbackStateKey, state);
-            if (reloadButton != null) {
+            if (Utilities.IsValid(playbackControlsAnimator)) playbackControlsAnimator.SetInteger(playbackStateKey, state);
+            if (Utilities.IsValid(reloadButton)) {
                 var localUrl = core.Url;
                 canLocalSync = !VRCUrl.IsNullOrEmpty(localUrl);
             }
-            if (playButton != null) playButton.gameObject.SetActive(canPlay);
-            if (pauseButton != null) pauseButton.gameObject.SetActive(canPause);
-            if (stopButton != null) stopButton.gameObject.SetActive(canStop);
-            if (reloadButton != null) reloadButton.gameObject.SetActive(canLocalSync);
-            if (progressSlider != null) {
+            if (Utilities.IsValid(playButton)) playButton.gameObject.SetActive(canPlay);
+            if (Utilities.IsValid(pauseButton)) pauseButton.gameObject.SetActive(canPause);
+            if (Utilities.IsValid(stopButton)) stopButton.gameObject.SetActive(canStop);
+            if (Utilities.IsValid(reloadButton)) reloadButton.gameObject.SetActive(canLocalSync);
+            if (Utilities.IsValid(progressSlider)) {
                 if (canSeek) {
                     UpdateProgressOnce();
                     if (!hasUpdate) {
@@ -397,19 +397,19 @@ namespace JLChnToZ.VRC.VVMW {
             if (wasUnlocked != unlocked || !hasUnlockInit) {
                 hasUnlockInit = true;
                 wasUnlocked = unlocked;
-                if (queueListScrollView != null) queueListScrollView.CanInteract = unlocked;
-                if (playListScrollView != null) playListScrollView.CanInteract = unlocked;
-                if (repeatOffButton != null) repeatOffButton.interactable = unlocked;
-                if (repeatOneButton != null) repeatOneButton.interactable = unlocked;
-                if (repeatAllButton != null) repeatAllButton.interactable = unlocked;
-                if (shuffleOnButton != null) shuffleOnButton.interactable = unlocked;
-                if (playNextButton != null) playNextButton.interactable = unlocked;
-                if (playListTogglePanelButton != null) playListTogglePanelButton.interactable = unlocked && playListNames != null && playListNames.Length > 1;
-                if (urlInput != null) {
+                if (Utilities.IsValid(queueListScrollView)) queueListScrollView.CanInteract = unlocked;
+                if (Utilities.IsValid(playListScrollView)) playListScrollView.CanInteract = unlocked;
+                if (Utilities.IsValid(repeatOffButton)) repeatOffButton.interactable = unlocked;
+                if (Utilities.IsValid(repeatOneButton)) repeatOneButton.interactable = unlocked;
+                if (Utilities.IsValid(repeatAllButton)) repeatAllButton.interactable = unlocked;
+                if (Utilities.IsValid(shuffleOnButton)) shuffleOnButton.interactable = unlocked;
+                if (Utilities.IsValid(playNextButton)) playNextButton.interactable = unlocked;
+                if (Utilities.IsValid(playListTogglePanelButton)) playListTogglePanelButton.interactable = unlocked && Utilities.IsValid(playListNames) && playListNames.Length > 1;
+                if (Utilities.IsValid(urlInput)) {
                     urlInput.interactable = unlocked;
                     if (!unlocked) urlInput.SetUrl(VRCUrl.Empty);
                 }
-                if (altUrlInput != null) {
+                if (Utilities.IsValid(altUrlInput)) {
                     altUrlInput.interactable = unlocked;
                     if (!unlocked) altUrlInput.SetUrl(VRCUrl.Empty);
                 }
@@ -418,14 +418,14 @@ namespace JLChnToZ.VRC.VVMW {
                 bool isRepeatOne = handler.RepeatOne;
                 bool isRepeatAll = handler.RepeatAll;
                 bool isShuffle = handler.Shuffle;
-                if (repeatOffButton != null) repeatOffButton.gameObject.SetActive(!isRepeatOne && !isRepeatAll);
-                if (repeatOneButton != null) repeatOneButton.gameObject.SetActive(isRepeatOne);
-                if (repeatAllButton != null) repeatAllButton.gameObject.SetActive(isRepeatAll);
-                if (shuffleOffButton != null) {
+                if (Utilities.IsValid(repeatOffButton)) repeatOffButton.gameObject.SetActive(!isRepeatOne && !isRepeatAll);
+                if (Utilities.IsValid(repeatOneButton)) repeatOneButton.gameObject.SetActive(isRepeatOne);
+                if (Utilities.IsValid(repeatAllButton)) repeatAllButton.gameObject.SetActive(isRepeatAll);
+                if (Utilities.IsValid(shuffleOffButton)) {
                     shuffleOffButton.gameObject.SetActive(!isShuffle);
                     shuffleOffButton.interactable = unlocked;
                 }
-                if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(isShuffle);
+                if (Utilities.IsValid(shuffleOnButton)) shuffleOnButton.gameObject.SetActive(isShuffle);
                 UpdatePlayList();
                 SetLocalizedText(queueModeText, queueModeTMPro,
                     handler.PlayListIndex == 0 && handler.HasQueueList && (core.IsReady || core.IsLoading || handler.QueueUrls.Length > 0) ?
@@ -433,45 +433,45 @@ namespace JLChnToZ.VRC.VVMW {
                 );
             } else {
                 bool isRepeatOne = core.Loop;
-                if (repeatOffButton != null) repeatOffButton.gameObject.SetActive(!isRepeatOne);
-                if (repeatOneButton != null) repeatOneButton.gameObject.SetActive(isRepeatOne);
-                if (repeatAllButton != null) repeatAllButton.gameObject.SetActive(false);
-                if (shuffleOffButton != null) {
+                if (Utilities.IsValid(repeatOffButton)) repeatOffButton.gameObject.SetActive(!isRepeatOne);
+                if (Utilities.IsValid(repeatOneButton)) repeatOneButton.gameObject.SetActive(isRepeatOne);
+                if (Utilities.IsValid(repeatAllButton)) repeatAllButton.gameObject.SetActive(false);
+                if (Utilities.IsValid(shuffleOffButton)) {
                     shuffleOffButton.gameObject.SetActive(true);
                     shuffleOffButton.interactable = false;
                 }
-                if (shuffleOnButton != null) shuffleOnButton.gameObject.SetActive(false);
+                if (Utilities.IsValid(shuffleOnButton)) shuffleOnButton.gameObject.SetActive(false);
                 SetLocalizedText(queueModeText, queueModeTMPro, "QueueModeInstant");
             }
             bool canChangeSpeed = unlocked && core.SupportSpeedAdjustment;
-            if (speedDownLButton != null) speedDownLButton.interactable = canChangeSpeed;
-            if (speedDownSButton != null) speedDownSButton.interactable = canChangeSpeed;
-            if (speedUpSButton != null) speedUpSButton.interactable = canChangeSpeed;
-            if (speedUpLButton != null) speedUpLButton.interactable = canChangeSpeed;
-            if (speedResetButton != null) speedResetButton.interactable = canChangeSpeed;
+            if (Utilities.IsValid(speedDownLButton)) speedDownLButton.interactable = canChangeSpeed;
+            if (Utilities.IsValid(speedDownSButton)) speedDownSButton.interactable = canChangeSpeed;
+            if (Utilities.IsValid(speedUpSButton)) speedUpSButton.interactable = canChangeSpeed;
+            if (Utilities.IsValid(speedUpLButton)) speedUpLButton.interactable = canChangeSpeed;
+            if (Utilities.IsValid(speedResetButton)) speedResetButton.interactable = canChangeSpeed;
         }
 
         void SetLocalizedText(Text text, TextMeshProUGUI tmp, string locale) {
-            if (text == null && tmp == null) return;
+            if (!Utilities.IsValid(text) && !Utilities.IsValid(tmp)) return;
             SetText(text, tmp, languageManager.GetLocale(locale));
         }
 
         void SetText(Text text, TextMeshProUGUI tmp, string content) {
-            if (text != null) text.text = content;
-            if (tmp != null) tmp.text = content;
+            if (Utilities.IsValid(text)) text.text = content;
+            if (Utilities.IsValid(tmp)) tmp.text = content;
         }
 
         void SetStatusEnabled(bool enabled) {
-            if (timeContainer == null || (statusText == null && statusTMPro == null)) return;
+            if (!Utilities.IsValid(timeContainer) || (!Utilities.IsValid(statusText) && !Utilities.IsValid(statusTMPro))) return;
             timeContainer.SetActive(!enabled);
-            if (statusText != null) statusText.enabled = enabled;
-            if (statusTMPro != null) statusTMPro.enabled = enabled;
+            if (Utilities.IsValid(statusText)) statusText.enabled = enabled;
+            if (Utilities.IsValid(statusTMPro)) statusTMPro.enabled = enabled;
         }
 
         public void _OnLuminanceSliderChanged() => core.SetScreenFloatExtra(luminancePropertyId, luminanceSlider.value);
 
         public void _OnScreenSharedPropertiesChanged() {
-            if (luminanceSlider == null) return;
+            if (!Utilities.IsValid(luminanceSlider)) return;
             luminanceSlider.SetValueWithoutNotify(core.GetScreenFloatExtra(luminancePropertyId));
         }
 

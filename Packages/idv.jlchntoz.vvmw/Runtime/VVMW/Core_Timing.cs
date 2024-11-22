@@ -19,9 +19,9 @@ namespace JLChnToZ.VRC.VVMW {
         bool isResyncTime;
         DateTime lastSyncTime;
 
-        public float Time => activeHandler != null ? activeHandler.Time : 0;
+        public float Time => Utilities.IsValid(activeHandler) ? activeHandler.Time : 0;
 
-        public float Duration => activeHandler != null ? activeHandler.Duration : 0;
+        public float Duration => Utilities.IsValid(activeHandler) ? activeHandler.Duration : 0;
 
         public float SyncOffset {
             get => syncOffset;
@@ -29,7 +29,7 @@ namespace JLChnToZ.VRC.VVMW {
                 if (syncOffset == value) return;
                 syncOffset = value;
                 SendEvent("_OnSyncOffsetChange");
-                if (synced && activeHandler != null && activeHandler.IsPlaying) {
+                if (synced && Utilities.IsValid(activeHandler) && activeHandler.IsPlaying) {
                     var duration = activeHandler.Duration;
                     if (duration <= 0 || float.IsInfinity(duration)) return;
                     activeHandler.Time = CalcVideoTime();
@@ -40,13 +40,13 @@ namespace JLChnToZ.VRC.VVMW {
 
         public float Progress {
             get {
-                if (activeHandler == null) return 0;
+                if (!Utilities.IsValid(activeHandler)) return 0;
                 var duration = activeHandler.Duration;
                 if (activeHandler.Duration <= 0 || float.IsInfinity(duration)) return 0;
                 return activeHandler.Time / activeHandler.Duration;
             }
             set {
-                if (activeHandler == null) return;
+                if (!Utilities.IsValid(activeHandler)) return;
                 var duration = activeHandler.Duration;
                 if (activeHandler.Duration <= 0 || float.IsInfinity(duration)) return;
                 activeHandler.Time = duration * value;
@@ -54,7 +54,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public bool SupportSpeedAdjustment => activeHandler != null && activeHandler.SupportSpeedAdjustment;
+        public bool SupportSpeedAdjustment => Utilities.IsValid(activeHandler) && activeHandler.SupportSpeedAdjustment;
 
         public float Speed {
             get => speed;
@@ -81,7 +81,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public void _AutoSyncTime() {
-            if (!gameObject.activeInHierarchy || !enabled || isLoading || isLocalReloading || activeHandler == null || !activeHandler.IsReady) {
+            if (!gameObject.activeInHierarchy || !enabled || isLoading || isLocalReloading || !Utilities.IsValid(activeHandler) || !activeHandler.IsReady) {
                 isResyncTime = false;
                 return;
             }
@@ -96,7 +96,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         long CalcSyncTime(out float actualSpeed) {
-            if (activeHandler == null) {
+            if (!Utilities.IsValid(activeHandler)) {
                 actualSpeed = 1;
                 return 0;
             }
@@ -111,7 +111,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         float CalcVideoTime() {
-            if (activeHandler == null) return 0;
+            if (!Utilities.IsValid(activeHandler)) return 0;
             var duration = activeHandler.Duration;
             if (duration <= 0 || float.IsInfinity(duration)) return 0;
             float videoTime;
@@ -162,7 +162,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void SyncSpeed() {
-            if (activeHandler != null && activeHandler.SupportSpeedAdjustment)
+            if (Utilities.IsValid(activeHandler) && activeHandler.SupportSpeedAdjustment)
                 activeHandler.Speed = speed;
             SetAudioPitch();
             SendEvent("_OnSpeedChange");

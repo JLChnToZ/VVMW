@@ -19,7 +19,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void LoadDynamicPlaylist(int index) {
-            if (readUrlMap == null) readUrlMap = new DataDictionary();
+            if (!Utilities.IsValid(readUrlMap)) readUrlMap = new DataDictionary();
             int offset = index > 0 ? playListUrlOffsets[index - 1] : 0;
             if (playListPlayerIndex[offset] != 0) return;
             var url = playListUrls[offset];
@@ -34,7 +34,7 @@ namespace JLChnToZ.VRC.VVMW {
                 return;
             }
             int index = -1;
-            if (readUrlMap != null && readUrlMap.TryGetValue(url, TokenType.Int, out token))
+            if (Utilities.IsValid(readUrlMap) && readUrlMap.TryGetValue(url, TokenType.Int, out token))
                 index = token.Int;
             switch (token.TokenType) {
                 case TokenType.DataDictionary:
@@ -42,7 +42,7 @@ namespace JLChnToZ.VRC.VVMW {
                     string hash = null;
                     int hashIndex = url.IndexOf('#');
                     if (hashIndex >= 0) hash = url.Substring(0, hashIndex);
-                    if (hash != null) {
+                    if (Utilities.IsValid(hash)) {
                         if (dict.TryGetValue(hash, TokenType.DataList, out token))
                             ApplyDynamicPlaylist(hash, index, token.DataList);
                         break;
@@ -133,14 +133,14 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         Array EnsureArrayLength(Type type, Array array, int length) {
-            if (array != null && array.Length >= length) return array;
+            if (Utilities.IsValid(array) && array.Length >= length) return array;
             var temp = Array.CreateInstance(type, length);
-            if (array != null) Array.Copy(array, temp, array.Length);
+            if (Utilities.IsValid(array)) Array.Copy(array, temp, array.Length);
             return temp;
         }
 
         Array SplitArrayAtMiddle(Type type, Array array, int index, int length) {
-            if (array == null) return Array.CreateInstance(type, length);
+            if (!Utilities.IsValid(array)) return Array.CreateInstance(type, length);
             int orgLength = array.Length;
             if (index >= orgLength) index = orgLength;
             else if (index < 0) index = 0;

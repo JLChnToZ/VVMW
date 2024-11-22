@@ -79,7 +79,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void PlayPlayList(int index) {
             if (index >= 0) RefreshPlayListQueue(index);
-            if (localPlayListOrder == null) {
+            if (!Utilities.IsValid(localPlayListOrder)) {
                 localPlayListIndex = 0;
                 RequestSync();
                 UpdateState();
