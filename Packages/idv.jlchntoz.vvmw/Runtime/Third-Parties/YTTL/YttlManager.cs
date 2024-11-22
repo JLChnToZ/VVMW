@@ -29,7 +29,7 @@ namespace VVMW.ThirdParties.Yttl {
                 return;
             }
 
-            if (cache == null) cache = new DataDictionary();
+            if (!Utilities.IsValid(cache)) cache = new DataDictionary();
             else if (cache.TryGetValue(urlStr, TokenType.DataDictionary, out var cacheToken)) {
                 Debug.Log("[YTTL] Found cache");
                 GetAllData(cacheToken.DataDictionary, out var author, out var title, out var viewCount, out var description);
@@ -45,7 +45,7 @@ namespace VVMW.ThirdParties.Yttl {
             bool isRequesting;
             DataToken token;
 
-            if (listeners == null) {
+            if (!Utilities.IsValid(listeners)) {
                 listeners = new DataDictionary();
                 isRequesting = false;
                 token = default;
@@ -74,7 +74,7 @@ namespace VVMW.ThirdParties.Yttl {
 
             parser.SetRawDataText(data);
 
-            if (labels == null) labels = new DataList(new DataToken[] { "author", "title", "viewCount", "description" });
+            if (!Utilities.IsValid(labels)) labels = new DataList(new DataToken[] { "author", "title", "viewCount", "description" });
 
             if (!parser.TryGetValue(host, labels, out var resultDict)) {
                 Debug.LogWarning("[YTTL] Error when getting information");
@@ -90,7 +90,7 @@ namespace VVMW.ThirdParties.Yttl {
                 var listenerList = listenerToken.DataList;
                 for (int i = 0, count = listenerList.Count; i < count; i++) {
                     var listener = (UdonBehaviour)listenerList[i].Reference;
-                    if (listener == null) continue;
+                    if (!Utilities.IsValid(listener)) continue;
                     listener.SetProgramVariable(nameof(url), result.Url);
                     listener.SetProgramVariable(nameof(author), author);
                     listener.SetProgramVariable(nameof(title), title);
