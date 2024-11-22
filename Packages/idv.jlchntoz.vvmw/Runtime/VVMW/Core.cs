@@ -164,8 +164,7 @@ namespace JLChnToZ.VRC.VVMW {
             else if (synced) SendCustomEventDelayedSeconds(nameof(_RequestOwnerSync), autoPlayDelay + 3);
             afterFirstRun = true;
 #if VRC_ENABLE_PLAYER_PERSISTENCE
-            // Uncomment the following line when player persistence go live, currently it will breaks non-beta version clients.
-            // RestoreFromPersistence(Networking.LocalPlayer);
+            RestoreFromPersistence(Networking.LocalPlayer);
 #endif
         }
 
