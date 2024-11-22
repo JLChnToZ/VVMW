@@ -5,6 +5,9 @@ using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW.Pickups {
+    /// <summary>
+    /// The reset button for the pickup panel.
+    /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     [RequireComponent(typeof(Collider))]
     [DisallowMultipleComponent]

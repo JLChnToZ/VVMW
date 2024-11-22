@@ -6,6 +6,9 @@ using JLChnToZ.VRC.Foundation;
 using pi.LTCGI;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
+    /// <summary>
+    /// An editor component that can configurate LTCGI components.
+    /// </summary>
     [ExecuteInEditMode]
     [EditorOnly]
     internal class LTCGIConfigurator : MonoBehaviour, ISelfPreProcess {

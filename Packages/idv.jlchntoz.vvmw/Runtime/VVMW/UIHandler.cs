@@ -11,6 +11,9 @@ using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
+    /// <summary>
+    /// The default UI handler for VizVid.
+    /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/UI Handler")]

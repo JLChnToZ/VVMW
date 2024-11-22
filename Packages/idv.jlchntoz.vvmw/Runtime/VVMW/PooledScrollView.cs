@@ -6,6 +6,10 @@ using UdonSharp;
 using JLChnToZ.VRC.Foundation;
 
 namespace JLChnToZ.VRC.VVMW {
+    /// <summary>
+    /// An entry list with all UI elements pooled.
+    /// This is the component for handling the scroll list.
+    /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     [RequireComponent(typeof(ScrollRect))]
     [BindEvent(typeof(ScrollRect), nameof(ScrollRect.onValueChanged), nameof(_OnScroll))]

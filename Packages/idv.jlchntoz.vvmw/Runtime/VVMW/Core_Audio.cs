@@ -13,6 +13,9 @@ namespace JLChnToZ.VRC.VVMW {
         bool defaultMuted = false;
         AudioSource assignedAudioSource;
 
+        /// <summary>
+        /// The volume of the audio.
+        /// </summary>
         public float Volume {
             get => defaultMuted ? 0 : defaultVolume;
             set {
@@ -23,6 +26,9 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// Whether the audio is muted.
+        /// </summary>
         public bool Muted {
             get => defaultMuted;
             set {

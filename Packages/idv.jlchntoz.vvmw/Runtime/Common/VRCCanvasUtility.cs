@@ -3,6 +3,9 @@ using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
+    /// <summary>
+    /// An editor component to help auto configurate VRChat interactable UI canvas.
+    /// </summary>
     [ExecuteInEditMode, EditorOnly]
     [RequireComponent(typeof(RectTransform), typeof(BoxCollider))]
     [AddComponentMenu("VizVid/Common/VRC Canvas Utility")]

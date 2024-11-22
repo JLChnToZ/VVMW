@@ -13,6 +13,9 @@ using AudioLink;
 #endif
 
 namespace JLChnToZ.VRC.VVMW {
+    /// <summary>
+    /// The "Brain" of the VizVid video player.
+    /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Core")]
@@ -51,6 +54,9 @@ namespace JLChnToZ.VRC.VVMW {
         bool isOwnerSyncRequested, isReloadRequested;
         DateTime lastClickResyncTime;
 
+        /// <summary>
+        /// The video player backend names.
+        /// </summary>
         public string[] PlayerNames {
             get {
                 if (!Utilities.IsValid(playerNames) || playerNames.Length != playerHandlers.Length) {
@@ -62,6 +68,10 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// The current active player backend.
+        /// </summary>
+        /// <remarks>It is 1-based, 0 means no active player.</remarks>
         public byte ActivePlayer {
             get => localActivePlayer;
             private set {
@@ -86,8 +96,15 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// The last active player backend.
+        /// </summary>
+        /// <remarks>It is 1-based, 0 means no active player.</remarks>
         public byte LastActivePlayer => lastActivePlayer;
 
+        /// <summary>
+        /// Should the player repeat the video when it ends.
+        /// </summary>
         public bool Loop {
             get => loop;
             set {
@@ -102,22 +119,53 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// Is current backend an AVPro backend.
+        /// </summary>
+        /// <remarks>This indicates the video texture might be flipped.</remarks>
         public bool IsAVPro => Utilities.IsValid(activeHandler) && activeHandler.IsAvPro;
 
+        /// <summary>
+        /// The current loaded URL.
+        /// </summary>
         public VRCUrl Url => localUrl;
 
+        /// <summary>
+        /// The URL previously loaded.
+        /// </summary>
         public VRCUrl LastUrl => lastUrl;
 
+        /// <summary>
+        /// Is the player synced in the instance.
+        /// </summary>
         public bool IsSynced => synced;
 
+        /// <summary>
+        /// Is the player currently loading a video.
+        /// </summary>
         public bool IsLoading => isLoading;
 
+        /// <summary>
+        /// Is the video loaded and ready to play.
+        /// </summary>
         public bool IsReady => Utilities.IsValid(activeHandler) && activeHandler.IsReady && !isLoading;
 
+        /// <summary>
+        /// Is the video currently playing.
+        /// </summary>
         public bool IsPlaying => Utilities.IsValid(activeHandler) && activeHandler.IsPlaying;
 
+        /// <summary>
+        /// Is the video currently paused.
+        /// </summary>
         public bool IsPaused => Utilities.IsValid(activeHandler) && activeHandler.IsPaused;
 
+        /// <summary>
+        /// The player state.
+        /// </summary>
+        /// <remarks>
+        /// 0: Idle, 1: Loading, 2: Error, 3: Ready, 4: Playing, 5: Paused
+        /// </remarks>
         public byte State {
             get {
                 if (!Utilities.IsValid(activeHandler)) return 0;
@@ -130,10 +178,23 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// The last error occurred.
+        /// </summary>
         public VideoError LastError => lastError;
 
+        /// <summary>
+        /// Is the player showing a static image instead of a video.
+        /// </summary>
         public bool IsStatic => Utilities.IsValid(activeHandler) && activeHandler.IsStatic;
 
+        /// <summary>
+        /// Is current loaded URL trusted by VRChat.
+        /// </summary>
+        /// <remarks>
+        /// If it is <c>false</c>, it might need to notify the user to enable "Allow untrusted URLs" in the settings.
+        /// The list of trusted URLs will be updated upon building the world.
+        /// </remarks>
         public bool IsTrusted {
             get {
                 if (!trustUpdated) {
@@ -172,10 +233,21 @@ namespace JLChnToZ.VRC.VVMW {
             StopBroadcastScreenTexture();
         }
 
+        /// <summary>
+        /// Play the default URL.
+        /// </summary>
         public void _PlayDefaultUrl() {
             if (!VRCUrl.IsNullOrEmpty(defaultUrl)) PlayUrl(null, 0);
         }
 
+        /// <summary>
+        /// Determine the suitable player backend for the given URL.
+        /// </summary>
+        /// <param name="url">The URL to be checked.</param>
+        /// <returns>The player backend index, 0 means no suitable player backend.</returns>
+        /// <remarks>
+        /// This will not actually load the URL, it only checks the URL.
+        /// </remarks>
         public byte GetSuitablePlayerType(VRCUrl url) {
             if (VRCUrl.IsNullOrEmpty(url)) return 0;
             string urlStr = url.Get();
@@ -192,8 +264,19 @@ namespace JLChnToZ.VRC.VVMW {
             return (byte)(largestSupport <= 0 ? 0 : largestSupportIndex + 1);
         }
 
+        /// <summary>
+        /// Play the given URL.
+        /// </summary>
+        /// <param name="url">The URL to be played.</param>
+        /// <param name="playerType">The player backend index, 0 means no suitable player backend.</param>
         public void PlayUrl(VRCUrl url, byte playerType) => PlayUrl(url, null, playerType);
 
+        /// <summary>
+        /// Play the given URL.
+        /// </summary>
+        /// <param name="pcUrl">The URL for PC platform.</param>
+        /// <param name="questUrl">The URL for Quest (mobile) platform.</param>
+        /// <param name="playerType">The player backend index, 0 means no suitable player backend.</param>
         public void PlayUrl(VRCUrl pcUrl, VRCUrl questUrl, byte playerType) {
             isError = false;
             VRCUrl url;
@@ -241,9 +324,15 @@ namespace JLChnToZ.VRC.VVMW {
             LoadYTTL();
         }
 
+        /// <inheritdoc cref="PlayUrl(VRCUrl, VRCUrl, byte)"/>
         [Obsolete("Use PlayUrl(VRCUrl, VRCUrl, byte) instead.")]
         public void PlayUrlMP(VRCUrl pcUrl, VRCUrl questUrl, byte playerType) => PlayUrl(pcUrl, questUrl, playerType);
 
+        /// <summary>
+        /// Event entry point when the video backend encounters an error.
+        /// Internal use, do not invoke this.
+        /// </summary>
+        /// <param name="videoError"></param>
         public override void OnVideoError(VideoError videoError) {
             isError = true;
             lastError = videoError;
@@ -268,6 +357,9 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _DeferSendErrorEvent() => SendEvent("_OnVideoError");
 
+        /// <summary>
+        /// Reload the current URL.
+        /// </summary>
         public void _ReloadUrl() {
             isError = false;
             if (VRCUrl.IsNullOrEmpty(loadingUrl) ||
@@ -285,6 +377,10 @@ namespace JLChnToZ.VRC.VVMW {
             SendEvent("_OnVideoBeginLoad");
         }
 
+        /// <summary>
+        /// Force every client to reload the current URL.
+        /// This is meant to be called by the user interaction.
+        /// </summary>
         public void GlobalSync() {
             if (!synced) {
                 LocalSync();
@@ -293,6 +389,13 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomNetworkEvent(NetworkEventTarget.All, nameof(LocalSync));
         }
 
+        /// <summary>
+        /// Reload the current URL.
+        /// This is meant to be called by the user interaction.
+        /// </summary>
+        /// <remarks>
+        /// When this method is invoked twice in a short time, it will request the owner to sync the player.
+        /// </remarks>
         public void LocalSync() {
             if (synced) {
                 var currentTime = Networking.GetNetworkDateTime();
@@ -339,18 +442,27 @@ namespace JLChnToZ.VRC.VVMW {
             if (enabled && gameObject.activeInHierarchy) ReloadUrlCore();
         }
 
+        /// <summary>
+        /// Play the current video.
+        /// </summary>
         public void Play() {
             if (!Utilities.IsValid(activeHandler)) return;
             activeHandler.Play();
             RequestSync();
         }
 
+        /// <summary>
+        /// Pause the current video.
+        /// </summary>
         public void Pause() {
             if (!Utilities.IsValid(activeHandler)) return;
             activeHandler.Pause();
             RequestSync();
         }
 
+        /// <summary>
+        /// Stop the current video.
+        /// </summary>
         public void Stop() {
             var handler = activeHandler;
             if (!Utilities.IsValid(handler)) return;
@@ -366,6 +478,10 @@ namespace JLChnToZ.VRC.VVMW {
             RequestSync();
         }
 
+        /// <summary>
+        /// Event entry point from video backend when the video is ready.
+        /// Internal use, do not invoke this.
+        /// </summary>
         public override void OnVideoReady() {
             loadingUrl = null;
             lastError = VideoError.Unknown;
@@ -397,11 +513,19 @@ namespace JLChnToZ.VRC.VVMW {
             if (videoTime > 0) activeHandler.Time = videoTime;
         }
 
+        /// <summary>
+        /// Event entry point from video backend when the video is started.
+        /// Internal use, do not invoke this.
+        /// </summary>
         public override void OnVideoStart() {
             SendEvent("_onVideoStart");
             StartSyncTime();
         }
 
+        /// <summary>
+        /// Event entry point from video backend when the video starts playing.
+        /// Internal use, do not invoke this.
+        /// </summary>
         public override void OnVideoPlay() {
             SendEvent("OnVideoPlay");
             SetAudioPitch();
@@ -411,6 +535,10 @@ namespace JLChnToZ.VRC.VVMW {
             StartSyncTime();
         }
 
+        /// <summary>
+        /// Event entry point from video backend when the video is paused.
+        /// Internal use, do not invoke this.
+        /// </summary>
         public override void OnVideoPause() {
             SendEvent("OnVideoPause");
             #if AUDIOLINK_V1
@@ -421,6 +549,10 @@ namespace JLChnToZ.VRC.VVMW {
             StartSyncTime();
         }
 
+        /// <summary>
+        /// Event entry point from video backend when the video finishes.
+        /// Internal use, do not invoke this.
+        /// </summary>
         public override void OnVideoEnd() {
             if (!VRCUrl.IsNullOrEmpty(loadingUrl) || isLocalReloading) return;
             lastActivePlayer = activePlayer;
@@ -438,6 +570,10 @@ namespace JLChnToZ.VRC.VVMW {
             RequestSerialization();
         }
 
+        /// <summary>
+        /// Event entry point from video backend when the video loops.
+        /// Internal use, do not invoke this.
+        /// </summary>
         public override void OnVideoLoop() {
             SendEvent("_onVideoLoop");
             activeHandler.Time = 0;
@@ -446,6 +582,10 @@ namespace JLChnToZ.VRC.VVMW {
             RequestSerialization();
         }
 
+        /// <summary>
+        /// Event entry point when the video player is about to synchronize.
+        /// Internal use, do not invoke this.
+        /// </summary>
         public override void OnPreSerialization() {
             if (!synced || isLocalReloading) return;
             lastSyncTime = Networking.GetNetworkDateTime();
@@ -481,6 +621,11 @@ namespace JLChnToZ.VRC.VVMW {
             syncedActualSpeed = actualSpeed;
         }
 
+        /// <summary>
+        /// Event entry point when the video player is synchronized from the owner.
+        /// Internal use, do not invoke this.
+        /// </summary>
+        /// <param name="result"></param>
         public override void OnDeserialization(DeserializationResult result) {
             if (!synced) return;
             ActivePlayer = activePlayer;

@@ -4,6 +4,9 @@ using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
+    /// <summary>
+    /// This component fades out the background music when a video is playing.
+    /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [AddComponentMenu("VizVid/Components/BGM Volume Control")]
     [RequireComponent(typeof(AudioSource))]

@@ -6,6 +6,9 @@ using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
+    /// <summary>
+    /// The playlist, queue list and history list handler for VizVid.
+    /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Frontend Handler")]
@@ -25,6 +28,12 @@ namespace JLChnToZ.VRC.VVMW {
         byte localFlags;
         bool afterFirstRun, isDataArrivedBeforeInit;
 
+        /// <summary>
+        /// Whether the frontend is locked.
+        /// </summary>
+        /// <remarks>
+        /// This is meant to integrate with external permission systems.
+        /// </remarks>
         public bool Locked {
             get => locked;
             private set {
@@ -33,7 +42,10 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-
+        /// <summary>
+        /// The playlist index (1-based) of the current playing item.
+        /// If the value is 0, it means it is not playing from a playlist.
+        /// </summary>
         public int PlayListIndex {
             get {
                 if (localPlayListIndex > 0) return localPlayListIndex;
@@ -42,10 +54,16 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
     
+        /// <summary>
+        /// How masny items left on the queue list or playlist.
+        /// </summary>
         public int PendingCount => localPlayListIndex > 0 ?
             Utilities.IsValid(localPlayListOrder) ? localPlayListOrder.Length : 0 :
             Utilities.IsValid(localQueuedUrls) ? localQueuedUrls.Length : 0;
 
+        /// <summary>
+        /// Should the frontend repeats the current item.
+        /// </summary>
         public bool RepeatOne {
             get => (localFlags & REPEAT_ONE) == REPEAT_ONE;
             set {
@@ -64,6 +82,9 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// Should the frontend repeats all items.
+        /// </summary>
         public bool RepeatAll {
             get => (localFlags & REPEAT_ALL) == REPEAT_ALL;
             set {
@@ -82,6 +103,9 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// Should the frontend shuffles the playlist.
+        /// </summary>
         public bool Shuffle {
             get => (localFlags & SHUFFLE) == SHUFFLE;
             set {
@@ -99,6 +123,9 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// Disables all repeat modes.
+        /// </summary>
         public void NoRepeat() {
             byte newFlags = localFlags;
             newFlags &= ~(REPEAT_ONE | REPEAT_ALL) & 0xFF;
@@ -156,18 +183,27 @@ namespace JLChnToZ.VRC.VVMW {
             UpdateAudioLink();
         }
 
+        /// <summary>
+        /// Play or resume the current item.
+        /// </summary>
         public void _Play() {
             if (locked) return;
             core.Play();
             SendEvent("_OnPlay");
         }
 
+        /// <summary>
+        /// Pause the current item.
+        /// </summary>
         public void _Pause() {
             if (locked) return;
             core.Pause();
             SendEvent("_OnPause");
         }
 
+        /// <summary>
+        /// Stops current item and clears the queue list.
+        /// </summary>
         public void _Stop() {
             if (locked) return;
             if (core.ActivePlayer == 0 || core.State < 3) // Manually trigger UI update
@@ -186,6 +222,9 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _TriggerUIUpdate() => SendEvent("_OnUIUpdate");
 
+        /// <summary>
+        /// Skips current item and play the next one.
+        /// </summary>
         public void _Skip() {
             if (locked) return;
             if (core.ActivePlayer == 0 || core.State < 3) { // Stop() will not work if there is no active player (nothing is playing)
@@ -197,21 +236,28 @@ namespace JLChnToZ.VRC.VVMW {
             SendEvent("_OnSkip");
         }
 
+        /// <inheritdoc cref="Core.LocalSync" />
         public void _LocalSync() {
             core.LocalSync();
             SendEvent("_OnLocalSync");
         }
 
+        /// <inheritdoc cref="Core.GlobalSync" />
         public void _GlobalSync() {
             if (locked) return;
             core.GlobalSync();
             SendEvent("_OnGlobalSync");
         }
 
+        /// <inheritdoc cref="Core.OnVideoReady" />
         public override void OnVideoReady() => UpdateState();
+        /// <inheritdoc cref="Core.OnVideoStart" />
         public override void OnVideoStart() => UpdateState();
+        /// <inheritdoc cref="Core.OnVideoPlay" />
         public override void OnVideoPlay() => UpdateState();
+        /// <inheritdoc cref="Core.OnVideoPause" />
         public override void OnVideoPause() => UpdateState();
+        /// <inheritdoc cref="Core.OnVideoEnd" />
         public override void OnVideoEnd() {
             UpdateState();
             SendCustomEventDelayedFrames(nameof(_PlayNext), 0);
@@ -233,6 +279,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _OnScreenSharedPropertiesChanged() => SendEvent("_OnScreenSharedPropertiesChanged");
 
+        /// <inheritdoc cref="Core.OnPreSerialization" />
         public override void OnPreSerialization() {
             if (!synced) return;
             queuedUrls = !Utilities.IsValid(localQueuedUrls) ? new VRCUrl[0] : localQueuedUrls;
@@ -254,6 +301,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <inheritdoc cref="Core.OnDeserialization" />
         public override void OnDeserialization() {
             if (!afterFirstRun) {
                 isDataArrivedBeforeInit = true;
@@ -283,15 +331,37 @@ namespace JLChnToZ.VRC.VVMW {
             UpdateState();
         }
 
+        /// <summary>
+        /// Play the next item in the queue list or playlist.
+        /// </summary>
         public void _PlayNext() {
             if (synced && !Networking.IsOwner(gameObject)) return;
             PlayAt(localPlayListIndex, -1, false);
         }
 
+        /// <inheritdoc cref="PlayAt(int, int, bool)" />
         [Obsolete("Use PlayAt instead.")]
         public void _PlayAt(int playListIndex, int entryIndex, bool deleteOnly) =>
             PlayAt(playListIndex, entryIndex, deleteOnly);
 
+        /// <summary>
+        /// Play (and/or delete) the item at the specified index of the specified list.
+        /// </summary>
+        /// <param name="playListIndex">
+        /// The index of the playlist (1-based).
+        /// 0 for queue list, -1 for history list
+        /// </param>
+        /// <param name="entryIndex">
+        /// The index of the entry in the playlist or queue list.
+        /// -1 to play the next item or random if shuffle is enabled.
+        /// </param>
+        /// <param name="deleteOnly">
+        /// Instead of playing, just delete the item.
+        /// Only works with queue list.
+        /// </param>
+        /// <remarks>
+        /// If requested entry is at the queue list, it will be removed.
+        /// </remarks>
         public void PlayAt(int playListIndex, int entryIndex, bool deleteOnly) {
             int actualPlayListIndex = playListIndex;
             if (actualPlayListIndex < 0) actualPlayListIndex = 0;

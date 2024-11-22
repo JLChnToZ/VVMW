@@ -21,6 +21,9 @@ namespace JLChnToZ.VRC.VVMW {
         int broadcastTextureId;
         DataDictionary screenSharedProperties;
 
+        /// <summary>
+        /// The texture of the video.
+        /// </summary>
         public Texture VideoTexture => Utilities.IsValid(activeHandler) ? activeHandler.Texture : null;
 
         void StartBroadcastScreenTexture() {
@@ -125,6 +128,11 @@ namespace JLChnToZ.VRC.VVMW {
             SendEvent("_OnTextureChanged");
         }
 
+        /// <summary>
+        /// Get the shader property of the screen.
+        /// </summary>
+        /// <param name="id">The ID of the property. This is obtained by <see cref="VRCShader.PropertyToID(string)"/></param>
+        /// <returns>The value of the property.</returns>
         public float GetScreenFloatExtra(int id) {
             if (Utilities.IsValid(screenSharedProperties) && screenSharedProperties.TryGetValue(id, TokenType.Float, out var value))
                 return value.Float;
@@ -186,6 +194,11 @@ namespace JLChnToZ.VRC.VVMW {
             return v;
         }
 
+        /// <summary>
+        /// Set the shader property of the screen.
+        /// </summary>
+        /// <param name="id">The ID of the property. This is obtained by <see cref="VRCShader.PropertyToID(string)"/></param>
+        /// <param name="value">The value of the property.</param>
         public void SetScreenFloatExtra(int id, float value) {
             if (!Utilities.IsValid(screenSharedProperties)) screenSharedProperties = new DataDictionary();
             screenSharedProperties[id] = value;

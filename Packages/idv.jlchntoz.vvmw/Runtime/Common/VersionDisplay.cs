@@ -9,10 +9,16 @@ using PackageManagerPackageInfo = UnityEditor.PackageManager.PackageInfo;
 #endif
 
 namespace JLChnToZ.VRC.VVMW {
+    /// <summary>
+    /// A component that display the version of the package.
+    /// </summary>
     [EditorOnly]
     [AddComponentMenu("VizVid/Common/Version Display")]
     [TMProMigratable]
     public partial class VersionDisplay : MonoBehaviour {
+        /// <summary>
+        /// The format of the version display.
+        /// </summary>
         public string format = "V{0}";
     }
 

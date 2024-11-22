@@ -19,10 +19,25 @@ namespace JLChnToZ.VRC.VVMW {
         bool isResyncTime;
         DateTime lastSyncTime;
 
+        /// <summary>
+        /// The current time of the video in seconds.
+        /// </summary>
+        /// <remarks>
+        /// If it is a live stream, this value will be zero.
+        /// </remarks>
         public float Time => Utilities.IsValid(activeHandler) ? activeHandler.Time : 0;
 
+        /// <summary>
+        /// The duration of the video in seconds.
+        /// </summary>
+        /// <remarks>
+        /// If it is a live stream, this value will be infinity.
+        /// </remarks>
         public float Duration => Utilities.IsValid(activeHandler) ? activeHandler.Duration : 0;
 
+        /// <summary>
+        /// The offset of the video time to other players, in seconds.
+        /// </summary>
         public float SyncOffset {
             get => syncOffset;
             set {
@@ -38,6 +53,12 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// The playback progress of the video, from 0 to 1.
+        /// </summary>
+        /// <remarks>
+        /// If it is a live stream, this value will be zero, and setting this value will have no effect.
+        /// </remarks>
         public float Progress {
             get {
                 if (!Utilities.IsValid(activeHandler)) return 0;
@@ -54,8 +75,17 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// Is current video player backend support speed adjustment.
+        /// </summary>
         public bool SupportSpeedAdjustment => Utilities.IsValid(activeHandler) && activeHandler.SupportSpeedAdjustment;
 
+        /// <summary>
+        /// The playback speed of the video.
+        /// </summary>
+        /// <remarks>
+        /// The value will be clamped between 0.1 and 2.
+        /// </remarks>
         public float Speed {
             get => speed;
             set {
@@ -66,6 +96,10 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// Event entry point on the ownership of the video player is transferred.
+        /// Internal use only. Do not call this method.
+        /// </summary>
         public override void OnOwnershipTransferred(VRCPlayerApi player) {
             if (!player.isLocal) isLocalReloading = false;
             syncLatency = 0;
@@ -149,13 +183,19 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// Request the owner to synchronize the video player state.
+        /// </summary>
+        /// <remarks>
+        /// If synchronization is disabled, this method will have no effect.
+        /// </remarks>
         public void _RequestOwnerSync() {
             isOwnerSyncRequested = false;
             if (!synced) return;
             SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(OwnerSync));
         }
 
-        public void OwnerSync() {
+        internal void OwnerSync() {
             if (!Networking.IsOwner(gameObject) || !synced) return;
             if ((Networking.GetNetworkDateTime() - lastSyncTime).Ticks < OWNER_SYNC_COOLDOWN_TICKS) return;
             RequestSerialization();

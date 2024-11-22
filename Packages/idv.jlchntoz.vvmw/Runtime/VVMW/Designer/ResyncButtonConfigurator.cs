@@ -10,6 +10,9 @@ using UdonSharp;
 #endif
 
 namespace JLChnToZ.VRC.VVMW.Designer {
+    /// <summary>
+    /// An editor component that can auto configurate resync buttons.
+    /// </summary>
     [EditorOnly]
     [RequireComponent(typeof(Button))]
     [AddComponentMenu("VizVid/Color Configurator/Resync Button")]

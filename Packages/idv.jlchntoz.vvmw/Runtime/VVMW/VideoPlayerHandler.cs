@@ -16,6 +16,9 @@ using VRC.SDK3.Video.Components.AVPro;
 #endif
 
 namespace JLChnToZ.VRC.VVMW {
+    /// <summary>
+    /// A backend for loading and displaying videos.
+    /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [RequireComponent(typeof(BaseVRCVideoPlayer), typeof(Renderer))]
     [DisallowMultipleComponent]

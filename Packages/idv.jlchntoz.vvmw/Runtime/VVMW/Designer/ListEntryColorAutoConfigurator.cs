@@ -6,6 +6,9 @@ using UnityEditor;
 #endif
 
 namespace JLChnToZ.VRC.VVMW.Designer {
+    /// <summary>
+    /// An auto configurator that can configurate color tint for <see cref="ListEntry"/> components.
+    /// </summary>
     [AddComponentMenu("VizVid/Color Configurator/List Entry")]
     public class ListEntryColorAutoConfigurator : AbstractAutoConfigurator {
         [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.normalColorIndex")]

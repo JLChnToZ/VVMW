@@ -7,6 +7,9 @@ using UdonSharp;
 using JLChnToZ.VRC.Foundation;
 
 namespace JLChnToZ.VRC.VVMW {
+    /// <summary>
+    /// A backend for loading and displaying images.
+    /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Components/Image Viewer Handler")]

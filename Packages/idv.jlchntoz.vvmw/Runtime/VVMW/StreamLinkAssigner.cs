@@ -6,10 +6,14 @@ using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
+    /// <summary>
+    /// Automatically assigns unique stream links for each event, performer, or instance.
+    /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(2)]
     [AddComponentMenu("VizVid/Stream Key Assigner")]
+    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-automatically-assigns-unique-stream-links-for-each-event-performer-or-instance")]
     public class StreamLinkAssigner : VizVidBehaviour {
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core"), Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",

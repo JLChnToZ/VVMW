@@ -14,6 +14,10 @@ namespace JLChnToZ.VRC.VVMW {
         byte[] localQueuedPlayerIndex;
         string[] localQueuedTitles;
 
+        /// <summary>
+        /// The URLs of the queued items.
+        /// </summary>
+        /// <remarks>The returned array is meant to be read only, do not modify.</remarks>
         public VRCUrl[] QueueUrls {
             get {
                 if (!Utilities.IsValid(localQueuedUrls)) localQueuedUrls = new VRCUrl[0];
@@ -21,6 +25,13 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// The player backend index of the queued items.
+        /// </summary>
+        /// <remarks>
+        /// This is 1-based index, 0 is invalid.
+        /// </remarks>
+        /// <remarks>The returned array is meant to be read only, do not modify.</remarks>
         public byte[] QueuePlayerIndex {
             get {
                 if (!Utilities.IsValid(localQueuedPlayerIndex)) localQueuedPlayerIndex = new byte[0];
@@ -28,6 +39,10 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// The titles of the queued items.
+        /// </summary>
+        /// <remarks>The returned array is meant to be read only, do not modify.</remarks>
         public string[] QueueTitles {
             get {
                 if (!Utilities.IsValid(localQueuedTitles)) localQueuedTitles = new string[0];
@@ -35,12 +50,29 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// Whether the queue list is enabled.
+        /// </summary>
         public bool HasQueueList => enableQueueList;
 
+        /// <inheritdoc cref="PlayUrl(VRCUrl, VRCUrl, string, byte)"/>
         public void PlayUrl(VRCUrl url, byte index) => PlayUrl(url, null, null, index);
 
+        /// <inheritdoc cref="PlayUrl(VRCUrl, VRCUrl, string, byte)"/>
         public void PlayUrl(VRCUrl pcUrl, VRCUrl questUrl, byte index) => PlayUrl(pcUrl, questUrl, null, index);
 
+        /// <summary>
+        /// Play or enqueue a video URL.
+        /// </summary>
+        /// <param name="url">The URL of the video.</param>
+        /// <param name="pcUrl">The URL of the video for PC.</param>
+        /// <param name="questUrl">The URL of the video for Quest (mobile).</param>
+        /// <param name="queuedTitle">The title of the video to be displayed in the queue list.</param>
+        /// <param name="index">The player index (1-based) to play the video.</param>
+        /// <remarks>
+        /// If queue list is enabled and the player is playing or loading, the URL will be enqueued.
+        /// Except if it is playing an entry of a playlist, in this case will always intrrupts the current playback.
+        /// </remarks>
         public void PlayUrl(VRCUrl pcUrl, VRCUrl questUrl, string queuedTitle, byte index) {
             if (VRCUrl.IsNullOrEmpty(pcUrl)) return;
             if (VRCUrl.IsNullOrEmpty(questUrl)) questUrl = pcUrl;

@@ -19,18 +19,56 @@ namespace JLChnToZ.VRC.VVMW {
         int localPlayListIndex;
         ushort localPlayingIndex;
 
+        /// <summary>
+        /// All titles of the playlists.
+        /// </summary>
+        /// <remarks>The returned array is meant to be read only, do not modify.</remarks>
         public string[] PlayListTitles => playListTitles;
     
+        /// <summary>
+        /// The index offsets for
+        /// <see cref="PlayListUrls"/>,
+        /// <see cref="PlayListUrlsQuest"/>,
+        /// <see cref="PlayListEntryTitles"/>,
+        /// and <see cref="PlayListPlayerIndex"/>.
+        /// </summary>
+        /// <remarks>
+        /// The offset is the index of the first element of next playlist.
+        /// It means if you want to query playlist X, the actual range will be <c>offsets[X - 1]</c> to <c>offsets[X] - 1</c>.
+        /// The returned array is meant to be read only, do not modify.
+        /// </remarks>
         public int[] PlayListUrlOffsets => playListUrlOffsets;
     
+        /// <summary>
+        /// The URLs of the playlists.
+        /// </summary>
+        /// <remarks>The returned array is meant to be read only, do not modify.</remarks>
         public VRCUrl[] PlayListUrls => playListUrls;
 
+        /// <summary>
+        /// The URLs of the playlists for Quest (mobile).
+        /// </summary>
+        /// <remarks>The returned array is meant to be read only, do not modify.</remarks>
         public VRCUrl[] PlayListUrlsQuest => playListUrlsQuest;
     
+        /// <summary>
+        /// The titles of the playlist entries.
+        /// </summary>
+        /// <remarks>The returned array is meant to be read only, do not modify.</remarks>
         public string[] PlayListEntryTitles => playListEntryTitles;
     
+        /// <summary>
+        /// The player index of the playlist entries.
+        /// </summary>
+        /// <remarks>
+        /// This is 1-based index. 0 is reserved for future use.
+        /// </remarks>
+        /// <remarks>The returned array is meant to be read only, do not modify.</remarks>
         public byte[] PlayListPlayerIndex => playListPlayerIndex;
 
+        /// <summary>
+        /// The entry index of the current playing item, relative to the current playlist.
+        /// </summary>
         public int CurrentPlayingIndex => localPlayListIndex > 0 ? localPlayingIndex - playListUrlOffsets[localPlayListIndex - 1] : -1;
 
         void RefreshPlayListQueue(int startIndex) {

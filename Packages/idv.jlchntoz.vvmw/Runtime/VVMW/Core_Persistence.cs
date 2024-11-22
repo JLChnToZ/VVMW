@@ -10,6 +10,11 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] internal string volumePersistenceKey;
         [SerializeField] internal string mutedPersistenceKey;
 
+        /// <summary>
+        /// Event called when player persistence data is loaded.
+        /// Internal use only. Do not call this method.
+        /// </summary>
+        /// <param name="player"></param>
         public override void OnPlayerRestored(VRCPlayerApi player) {
             RestoreFromPersistence(player);
         }

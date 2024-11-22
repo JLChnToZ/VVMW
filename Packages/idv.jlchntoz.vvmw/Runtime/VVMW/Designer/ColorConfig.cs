@@ -6,14 +6,23 @@ using UnityEditor;
 #endif
 
 namespace JLChnToZ.VRC.VVMW.Designer {
+    /// <summary>
+    /// An editor component that can configurate colors for all children components that implement <see cref="AbstractAutoConfigurator"/>.
+    /// </summary>
     [EditorOnly]
     [ExecuteInEditMode]
     [AddComponentMenu("VizVid/Color Configurator/Color Config")]
     [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-change-color")]
     public class ColorConfig : MonoBehaviour {
+        /// <summary>
+        /// The color palette for all children components.
+        /// </summary>
         public Color[] colors;
         [SerializeField, HideInInspector] AbstractAutoConfigurator[] appliedAutoConfigurators;
 
+        /// <summary>
+        /// Configurate colors for all children components of this object that implement <see cref="AbstractAutoConfigurator"/>.
+        /// </summary>
         public void ConfigurateColors() {
             var autoConfigurators = GetComponentsInChildren<AbstractAutoConfigurator>(true);
             #if UNITY_EDITOR
@@ -27,6 +36,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             #endif
         }
 
+        /// <summary>
+        /// Check and configurate colors for all components on scene that implement <see cref="AbstractAutoConfigurator"/>.
+        /// </summary>
         public void CheckAndConfigurateColors() {
             var applied = new HashSet<AbstractAutoConfigurator>();
             if (appliedAutoConfigurators != null)

@@ -5,6 +5,9 @@ using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
+    /// <summary>
+    /// The base class for video player backends.
+    /// </summary>
     public abstract partial class AbstractMediaPlayerHandler : VizVidBehaviour {
         [NonSerialized] public Core core;
         [LocalizedLabel] public string playerName = "";

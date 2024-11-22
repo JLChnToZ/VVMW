@@ -14,8 +14,14 @@ namespace JLChnToZ.VRC.VVMW {
         byte[] localHistoryPlayerIndex;
         string[] localHistoryTitles;
 
+        /// <summary>
+        /// How many history items to keep.
+        /// </summary>
         public int HistorySize => historySize;
 
+        /// <summary>
+        /// The URLs of the history items.
+        /// </summary>
         public VRCUrl[] HistoryUrls {
             get {
                 if (!Utilities.IsValid(localHistoryUrls)) localHistoryUrls = new VRCUrl[0];
@@ -23,6 +29,9 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// The titles of the history items.
+        /// </summary>
         public string[] HistoryTitles {
             get {
                 if (!Utilities.IsValid(localHistoryTitles)) localHistoryTitles = new string[0];
@@ -30,12 +39,17 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        /// <summary>
+        /// Play the history item at the specified index.
+        /// </summary>
+        /// <param name="index">The index of the history item.</param>
         public void PlayHistory(int index) {
             if (!Utilities.IsValid(localHistoryUrls) || index < 0 || index >= localHistoryUrls.Length) return;
             var pcUrl = localHistoryUrls[index];
             var questUrl = IsArrayNullOrEmpty(localHistoryQuestUrls) ? pcUrl : localHistoryQuestUrls[index];
             PlayUrl(pcUrl, questUrl, localHistoryTitles[index], localHistoryPlayerIndex[index]);
         }
+
         void RecordPlaybackHistory(VRCUrl pcUrl, VRCUrl questUrl, byte playerIndex, string title) {
             if (historySize <= 0) return;
             bool hasQuestUrl = !VRCUrl.IsNullOrEmpty(questUrl) && !pcUrl.Equals(questUrl);

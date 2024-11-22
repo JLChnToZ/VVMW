@@ -7,6 +7,9 @@ using UnityEditor;
 #endif
 
 namespace JLChnToZ.VRC.VVMW.Designer {
+    /// <summary>
+    /// An auto configurator that can configurate color tint for <see cref="Selectable"/> components.
+    /// </summary>
     [RequireComponent(typeof(Selectable))]
     [AddComponentMenu("VizVid/Color Configurator/Color Tint")]
     public class ColorTintAutoConfigurator : AbstractAutoConfigurator {

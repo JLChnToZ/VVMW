@@ -7,6 +7,9 @@ using UnityEditor;
 #endif
 
 namespace JLChnToZ.VRC.VVMW.Designer {
+    /// <summary>
+    /// An auto configurator that can configurate color tint for <see cref="Graphic"/> components.
+    /// </summary>
     [RequireComponent(typeof(Graphic))]
     [AddComponentMenu("VizVid/Color Configurator/UI Graphics")]
     public class GraphicAutoConfigurator : AbstractAutoConfigurator {

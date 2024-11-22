@@ -9,6 +9,9 @@ using JLChnToZ.VRC.Foundation.I18N;
 namespace JLChnToZ.VRC.VVMW.Pickups {
     // Recreated U# form YamaButa's PickUpToggle, PickupSetScale_VR, PickupSetScale_PC Udon Graphs.
     // Source: https://yamabuta.booth.pm/items/4189997
+    /// <summary>
+    /// A pickupable screen component.
+    /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     [RequireComponent(typeof(VRC_Pickup))]
     [DisallowMultipleComponent]

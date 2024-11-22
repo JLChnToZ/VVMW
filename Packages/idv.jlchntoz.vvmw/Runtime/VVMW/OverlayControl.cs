@@ -11,7 +11,9 @@ using VRC.SDK3.Persistence;
 #endif
 
 namespace JLChnToZ.VRC.VVMW {
-
+    /// <summary>
+    /// A component displays a overlay UI (PC), or wrist UI (VR) for controlling the VizVid video player.
+    /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Components/Overlay Control")]

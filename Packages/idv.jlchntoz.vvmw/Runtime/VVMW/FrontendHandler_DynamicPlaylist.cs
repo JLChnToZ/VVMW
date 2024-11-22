@@ -14,6 +14,9 @@ namespace JLChnToZ.VRC.VVMW {
     public partial class FrontendHandler {
         DataDictionary readUrlMap;
 
+        /// <summary>
+        /// Load a dynamic playlist from a URL.
+        /// </summary>
         public void LoadDynamicPlaylist(VRCUrl url) {
             VRCStringDownloader.LoadUrl(url, (IUdonEventReceiver)this);
         }

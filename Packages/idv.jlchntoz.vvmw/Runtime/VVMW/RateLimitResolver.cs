@@ -4,6 +4,9 @@ using UdonSharp;
 using JLChnToZ.VRC.Foundation;
 
 namespace JLChnToZ.VRC.VVMW {
+    /// <summary>
+    /// This module is for reducing rate limit errors by debouncing (on holds and wait for certain time) video switching requests across VizVid instances.
+    /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [AddComponentMenu("/VizVid/Components/Rate Limit Resolver")]
     [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#rate-limit-resolver")]

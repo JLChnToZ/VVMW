@@ -22,8 +22,14 @@ namespace JLChnToZ.VRC.VVMW {
         bool isSyncAudioLink;
 
         #if AUDIOLINK_V1
+        /// <summary>
+        /// The <see cref="AudioLink.AudioLink"/> component.
+        /// </summary>
         public AudioLink.AudioLink AudioLink
         #else
+        /// <summary>
+        /// The AudioLink component.
+        /// </summary>
         public UdonSharpBehaviour AudioLink
         #endif
         {
