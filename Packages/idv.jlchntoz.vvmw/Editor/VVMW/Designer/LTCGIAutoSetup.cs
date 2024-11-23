@@ -71,9 +71,16 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     first = true;
                 }
                 if (GUILayout.Button($"Auto-Configure '{path}'")) {
-                    go = new GameObject("VizVid LTCGI Configurator", typeof(LTCGIConfigurator)) {
-                        hideFlags = HideFlags.HideInHierarchy,
-                    };
+                    foreach (var existing in Foundation.Editors.Utils.IterateAllComponents<LTCGIConfigurator>(SceneManager.GetActiveScene(), true)) {
+                        if (existing.core == core)
+                            go = existing.gameObject;
+                        else
+                            DestroyImmediate(existing.gameObject); // Only one configurator can exists.
+                    }
+                    if (go == null)
+                        go = new GameObject("VizVid LTCGI Configurator", typeof(LTCGIConfigurator)) {
+                            hideFlags = HideFlags.HideInHierarchy,
+                        };
                     go.transform.SetParent(core.transform, false);
                     var configurator = go.GetComponent<LTCGIConfigurator>();
                     configurator.core = core;
