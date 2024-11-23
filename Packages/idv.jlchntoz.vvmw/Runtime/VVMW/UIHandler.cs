@@ -192,7 +192,10 @@ namespace JLChnToZ.VRC.VVMW {
             UpdatePlayerText();
         }
 
-        public void _Play() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _Play() {
             if (Utilities.IsValid(handler))
                 handler._Play();
             else
@@ -200,7 +203,10 @@ namespace JLChnToZ.VRC.VVMW {
             _InputCancelClick();
         }
 
-        public void _Pause() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _Pause() {
             if (Utilities.IsValid(handler))
                 handler._Pause();
             else
@@ -208,7 +214,10 @@ namespace JLChnToZ.VRC.VVMW {
             _InputCancelClick();
         }
 
-        public void _Stop() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _Stop() {
             if (Utilities.IsValid(handler))
                 handler._Stop();
             else
@@ -217,44 +226,65 @@ namespace JLChnToZ.VRC.VVMW {
             _InputCancelClick();
         }
 
-        public void _Skip() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _Skip() {
             if (!Utilities.IsValid(handler)) return;
             handler._Skip();
             _InputCancelClick();
         }
 
-        public void _RepeatOff() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _RepeatOff() {
             if (Utilities.IsValid(handler))
                 handler.NoRepeat();
             else
                 core.Loop = false;
         }
 
-        public void _RepeatOne() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _RepeatOne() {
             if (Utilities.IsValid(handler))
                 handler.RepeatOne = true;
             else
                 core.Loop = true;
         }
 
-        public void _RepeatAll() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _RepeatAll() {
             if (Utilities.IsValid(handler))
                 handler.RepeatAll = true;
             else
                 core.Loop = true;
         }
 
-        public void _ShuffleOff() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _ShuffleOff() {
             if (Utilities.IsValid(handler))
                 handler.Shuffle = false;
         }
 
-        public void _ShuffleOn() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _ShuffleOn() {
             if (Utilities.IsValid(handler))
                 handler.Shuffle = true;
         }
 
-        public void _LocalSync() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _LocalSync() {
             if (Utilities.IsValid(handler))
                 handler._LocalSync();
             else
@@ -262,7 +292,10 @@ namespace JLChnToZ.VRC.VVMW {
             _InputCancelClick();
         }
 
-        public void _GlobalSync() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _GlobalSync() {
             if (Utilities.IsValid(handler))
                 handler._GlobalSync();
             else
@@ -270,15 +303,24 @@ namespace JLChnToZ.VRC.VVMW {
             _InputCancelClick();
         }
 
-        public void _OnVolumeSlide() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnVolumeSlide() {
             core.Volume = volumeSlider.value;
         }
 
-        public void _OnMute() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnMute() {
             core.Muted = !core.Muted;
         }
 
-        public void _OnVolumeChange() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnVolumeChange() {
             if (!afterFirstRun) return;
             if (Utilities.IsValid(volumeSlider))
                 volumeSlider.SetValueWithoutNotify(core.Volume);
@@ -289,7 +331,10 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void _OnLanguageChanged() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnLanguageChanged() {
             if (!afterFirstRun) return;
             _OnUIUpdate();
             _OnSyncOffsetChange();
@@ -306,7 +351,10 @@ namespace JLChnToZ.VRC.VVMW {
             UpdatePlayerText();
         }
 
-        public void _OnUIUpdate() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnUIUpdate() {
             if (!afterFirstRun) return;
             bool hasHandler = Utilities.IsValid(handler);
             bool unlocked = !hasHandler || !handler.Locked;
@@ -471,14 +519,21 @@ namespace JLChnToZ.VRC.VVMW {
             if (Utilities.IsValid(statusTMPro)) statusTMPro.enabled = enabled;
         }
 
-        public void _OnLuminanceSliderChanged() => core.SetScreenFloatExtra(luminancePropertyId, luminanceSlider.value);
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnLuminanceSliderChanged() => core.SetScreenFloatExtra(luminancePropertyId, luminanceSlider.value);
 
-        public void _OnScreenSharedPropertiesChanged() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnScreenSharedPropertiesChanged() {
             if (!Utilities.IsValid(luminanceSlider)) return;
             luminanceSlider.SetValueWithoutNotify(core.GetScreenFloatExtra(luminancePropertyId));
         }
 
         #region Core Callbacks
+#if COMPILER_UDONSHARP
         public override void OnVideoReady() => _OnUIUpdate();
         public override void OnVideoStart() => _OnUIUpdate();
         public override void OnVideoPlay() => _OnUIUpdate();
@@ -486,6 +541,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override void OnVideoEnd() => _OnUIUpdate();
         public void _OnVideoError() => _OnUIUpdate();
         public void _OnVideoBeginLoad() => _OnUIUpdate();
+#endif
         #endregion
     }
 }

@@ -60,7 +60,12 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void _OnTextureChanged() {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal
+#endif
+        void _OnTextureChanged() {
             var videoTexture = VideoTexture;
             var hasVideoTexture = Utilities.IsValid(videoTexture);
             var isAvPro = hasVideoTexture && IsAVPro;

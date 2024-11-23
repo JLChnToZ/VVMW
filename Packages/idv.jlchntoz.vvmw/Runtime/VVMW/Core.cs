@@ -113,9 +113,9 @@ namespace JLChnToZ.VRC.VVMW {
                 if (Utilities.IsValid(activeHandler)) activeHandler.Loop = value;
                 if (synced && wasLoop != value && Networking.IsOwner(gameObject))
                     RequestSerialization();
-                #if AUDIOLINK_V1
+#if AUDIOLINK_V1
                 if (IsAudioLinked()) audioLink.SetMediaLoop(value ? MediaLoop.LoopOne : MediaLoop.None);
-                #endif
+#endif
             }
         }
 
@@ -205,16 +205,11 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        VRCUrl URL {
-            get => url;
-            set => url = value ?? VRCUrl.Empty;
-        }
-
         void OnEnable() {
             StartBroadcastScreenTexture();
-            #if AUDIOLINK_V1
+#if AUDIOLINK_V1
             SendCustomEventDelayedFrames(nameof(_RestoreAudioLinkState), 0);
-            #endif
+#endif
             if (afterFirstRun) return;
             url = VRCUrl.Empty;
             foreach (var handler in playerHandlers)
@@ -280,29 +275,29 @@ namespace JLChnToZ.VRC.VVMW {
         public void PlayUrl(VRCUrl pcUrl, VRCUrl questUrl, byte playerType) {
             isError = false;
             VRCUrl url;
-            #if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS
             url = questUrl;
             if (VRCUrl.IsNullOrEmpty(url))
-            #endif
-                url = pcUrl;
+#endif
+            url = pcUrl;
             if (VRCUrl.IsNullOrEmpty(url)) {
                 if (!VRCUrl.IsNullOrEmpty(defaultUrl)) {
                     pcUrl = defaultUrl;
                     questUrl = defaultQuestUrl;
                 } else return;
-                #if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS
                 url = questUrl;
                 if (VRCUrl.IsNullOrEmpty(url))
-                #endif
-                    url = pcUrl;
+#endif
+                url = pcUrl;
                 playerType = (byte)autoPlayPlayerType;
             }
-            #if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS
             if (!VRCUrl.IsNullOrEmpty(questUrl)) {
                 localUrl = questUrl;
                 altUrl = pcUrl;
             } else
-            #endif
+#endif
             {
                 localUrl = pcUrl;
                 altUrl = questUrl;
@@ -316,9 +311,9 @@ namespace JLChnToZ.VRC.VVMW {
             isLoading = true;
             isLocalReloading = false;
             SendEvent("_OnVideoBeginLoad");
-            #if AUDIOLINK_V1
+#if AUDIOLINK_V1
             SetAudioLinkPlayBackState(MediaPlaying.Loading);
-            #endif
+#endif
             activeHandler.LoadUrl(url, false);
             if (RequestSync()) state = LOADING;
             LoadYTTL();
@@ -337,9 +332,9 @@ namespace JLChnToZ.VRC.VVMW {
             isError = true;
             lastError = videoError;
             SendCustomEventDelayedFrames(nameof(_DeferSendErrorEvent), 0);
-            #if AUDIOLINK_V1
+#if AUDIOLINK_V1
             SetAudioLinkPlayBackState(MediaPlaying.Error);
-            #endif
+#endif
             if (retryCount < totalRetryCount) {
                 retryCount++;
                 loadingUrl = localUrl;
@@ -355,7 +350,10 @@ namespace JLChnToZ.VRC.VVMW {
             isLoading = false;
         }
 
-        public void _DeferSendErrorEvent() => SendEvent("_OnVideoError");
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _DeferSendErrorEvent() => SendEvent("_OnVideoError");
 
         /// <summary>
         /// Reload the current URL.
@@ -416,12 +414,12 @@ namespace JLChnToZ.VRC.VVMW {
 
         void ReloadUrlCore() {
             if (synced) {
-                #if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS
                 if (!VRCUrl.IsNullOrEmpty(questUrl))
                     localUrl = questUrl;
                 else
-                #endif
-                    localUrl = pcUrl;
+#endif
+                localUrl = pcUrl;
             } else if (VRCUrl.IsNullOrEmpty(localUrl))
                 localUrl = defaultUrl;
             loadingUrl = localUrl;
@@ -431,13 +429,21 @@ namespace JLChnToZ.VRC.VVMW {
             _ReloadUrl();
         }
 
-        public void _RequestReloadUrl() {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal
+#endif
+        void _RequestReloadUrl() {
             if (isReloadRequested) return;
             isReloadRequested = true;
             SendCustomEventDelayedSeconds(nameof(_ReloadUrlCore), 1F);
         }
 
-        public void _ReloadUrlCore() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _ReloadUrlCore() {
             isReloadRequested = false;
             if (enabled && gameObject.activeInHierarchy) ReloadUrlCore();
         }
@@ -541,9 +547,9 @@ namespace JLChnToZ.VRC.VVMW {
         /// </summary>
         public override void OnVideoPause() {
             SendEvent("OnVideoPause");
-            #if AUDIOLINK_V1
+#if AUDIOLINK_V1
             SetAudioLinkPlayBackState(MediaPlaying.Paused);
-            #endif
+#endif
             if (!synced || !Networking.IsOwner(gameObject) || isLocalReloading) return;
             state = PAUSED;
             StartSyncTime();
@@ -561,9 +567,9 @@ namespace JLChnToZ.VRC.VVMW {
             localUrl = synced ? null : defaultUrl;
             trustUpdated = false;
             SendEvent("_onVideoEnd");
-            #if AUDIOLINK_V1
+#if AUDIOLINK_V1
             if (Utilities.IsValid(audioLink)) audioLink.SetMediaPlaying(MediaPlaying.Stopped);
-            #endif
+#endif
             _OnTextureChanged();
             if (!synced || !Networking.IsOwner(gameObject)) return;
             state = IDLE;
@@ -599,12 +605,12 @@ namespace JLChnToZ.VRC.VVMW {
                 questUrl = null;
             } else {
                 activePlayer = localActivePlayer;
-                #if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS
                 if (!VRCUrl.IsNullOrEmpty(altUrl)) {
                     pcUrl = altUrl;
                     questUrl = localUrl;
                 } else
-                #endif
+#endif
                 {
                     pcUrl = localUrl;
                     questUrl = altUrl;
@@ -639,12 +645,12 @@ namespace JLChnToZ.VRC.VVMW {
                 SyncSpeed();
             }
             VRCUrl url = null;
-            #if UNITY_ANDROID || UNITY_IOS
+#if UNITY_ANDROID || UNITY_IOS
             if (!VRCUrl.IsNullOrEmpty(questUrl)) {
                 url = questUrl;
                 altUrl = pcUrl;
             } else
-            #endif
+#endif
             {
                 url = pcUrl;
                 altUrl = questUrl;

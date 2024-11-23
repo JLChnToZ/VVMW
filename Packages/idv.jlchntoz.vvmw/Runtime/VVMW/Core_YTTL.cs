@@ -12,17 +12,40 @@ namespace JLChnToZ.VRC.VVMW {
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/Prefabs/Third-Parties/YTTL/YTTL Manager.prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.First
         ), SerializeField, LocalizedLabel] YttlManager yttl;
-        [NonSerialized, FieldChangeCallback(nameof(URL))]
-        public VRCUrl url = VRCUrl.Empty;
+#if COMPILER_UDONSHARP
+        [NonSerialized, FieldChangeCallback(nameof(URL))] public
+#endif
+        VRCUrl url = VRCUrl.Empty;
+        /// <summary>
+        /// The author of the video. This may be custom assigned or fetched from the video.
+        /// Directly setting this value is unsupported, use <see cref="SetTitle"/> instead.
+        /// </summary>
         [NonSerialized, FieldChangeCallback(nameof(Author))]
         public string author = "";
+        /// <summary>
+        /// The title of the video. This may be custom assigned or fetched from the video.
+        /// Directly setting this value is unsupported, use <see cref="SetTitle"/> instead.
+        /// </summary>
         [NonSerialized, FieldChangeCallback(nameof(Title))]
         public string title = "";
+        /// <summary>
+        /// View count of the video. This is fetched from the video.
+        /// Directly setting this value is unsupported.
+        /// </summary>
         [NonSerialized, FieldChangeCallback(nameof(ViewCount))]
         public string viewCount = "";
+        /// <summary>
+        /// Description of the video. This is fetched from the video.
+        /// Directly setting this value is unsupported.
+        /// </summary>
         [NonSerialized, FieldChangeCallback(nameof(Description))]
         public string description = "";
         bool hasCustomTitle;
+
+        VRCUrl URL {
+            get => url;
+            set => url = value ?? VRCUrl.Empty;
+        }
         
         string Title {
             get => title;
@@ -56,8 +79,15 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+#if COMPILER_UDONSHARP
         public void Yttl_OnDataLoaded() => SendEvent("_OnTitleData");
+#endif
 
+        /// <summary>
+        /// Sets the title and author of the video to be displayed.
+        /// </summary>
+        /// <param name="title">The title of the video.</param>
+        /// <param name="author">The author of the video.</param>
         public void SetTitle(string title, string author) {
             hasCustomTitle = true;
             url = VRCUrl.Empty;
@@ -68,6 +98,9 @@ namespace JLChnToZ.VRC.VVMW {
             SendEvent("_OnTitleData");
         }
 
+        /// <summary>
+        /// Clears the custom displayed title and author of the video.
+        /// </summary>
         public void _ResetTitle() {
             if (!hasCustomTitle) return;
             hasCustomTitle = false;

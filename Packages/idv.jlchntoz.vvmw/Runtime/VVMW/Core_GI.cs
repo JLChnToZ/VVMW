@@ -13,7 +13,10 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomEventDelayedFrames(nameof(_UpdateRealtimeGI), 0);
         }
 
-        public void _UpdateRealtimeGI() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _UpdateRealtimeGI() {
             for (int i = 0, length = screenTargets.Length; i < length; i++)
                 switch (screenTargetModes[i] & 0x7) {
                     case 1: case 2: case 3:

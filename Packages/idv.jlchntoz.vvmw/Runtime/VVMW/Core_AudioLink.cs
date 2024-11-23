@@ -80,7 +80,10 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void _SyncAudioLink() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _SyncAudioLink() {
             if (!gameObject.activeInHierarchy || !enabled || isLoading || isLocalReloading || !Utilities.IsValid(activeHandler) || !activeHandler.IsReady || !IsAudioLinked()) {
                 isSyncAudioLink = false;
                 return;
@@ -95,7 +98,10 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomEventDelayedSeconds(nameof(_SyncAudioLink), 0.25F);
         }
 
-        public void _RestoreAudioLinkState() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _RestoreAudioLinkState() {
             var state = MediaPlaying.Stopped;
             if (Utilities.IsValid(activeHandler)) {
                 if (activeHandler.IsPlaying) {

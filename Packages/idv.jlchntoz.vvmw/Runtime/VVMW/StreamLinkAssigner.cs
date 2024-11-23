@@ -9,6 +9,9 @@ namespace JLChnToZ.VRC.VVMW {
     /// <summary>
     /// Automatically assigns unique stream links for each event, performer, or instance.
     /// </summary>
+    /// <remarks>
+    /// You may extend this class
+    /// </remarks>
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(2)]
@@ -56,6 +59,9 @@ namespace JLChnToZ.VRC.VVMW {
             if (inputFieldToCopy) inputFieldToCopy.text = streamKeys[streamIndex];
         }
 
+        /// <summary>
+        /// Reassign the stream key from the pool.
+        /// </summary>
         public void _Regenerate() {
             RegenerateCore();
             UpdateText();
@@ -67,6 +73,12 @@ namespace JLChnToZ.VRC.VVMW {
             if (autoPlay) _Play();
         }
 
+        /// <summary>
+        /// The actual logic to assign the pool index of the stream key.
+        /// </summary>
+        /// <remarks>
+        /// You may override this method to implement your own logic.
+        /// </remarks>
         protected virtual void RegenerateCore() {
             if (!Utilities.IsValid(streamLinks) || streamLinks.Length == 0) {
                 Debug.LogError("[Stream Key Assigner] No stream links are generated. Please report to the world creator to fix this.");
@@ -75,6 +87,9 @@ namespace JLChnToZ.VRC.VVMW {
             streamIndex = Random.Range(0, streamLinks.Length);
         }
 
+        /// <summary>
+        /// Send the assigned stream key to the player.
+        /// </summary>
         public void _Play() {
             if (streamIndex < 0) {
                 Debug.LogError("[Stream Key Assigner] No stream key is assigned. Unable to play.");

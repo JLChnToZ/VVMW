@@ -114,7 +114,10 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void _AutoSyncTime() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _AutoSyncTime() {
             if (!gameObject.activeInHierarchy || !enabled || isLoading || isLocalReloading || !Utilities.IsValid(activeHandler) || !activeHandler.IsReady) {
                 isResyncTime = false;
                 return;
@@ -195,7 +198,10 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(OwnerSync));
         }
 
-        internal void OwnerSync() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void OwnerSync() {
             if (!Networking.IsOwner(gameObject) || !synced) return;
             if ((Networking.GetNetworkDateTime() - lastSyncTime).Ticks < OWNER_SYNC_COOLDOWN_TICKS) return;
             RequestSerialization();

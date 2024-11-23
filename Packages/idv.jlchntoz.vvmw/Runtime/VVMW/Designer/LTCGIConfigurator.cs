@@ -11,6 +11,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     /// </summary>
     [ExecuteInEditMode]
     [EditorOnly]
+    [AddComponentMenu(".")]
     internal class LTCGIConfigurator : MonoBehaviour, ISelfPreProcess {
         internal static Action<LTCGIConfigurator, Core, LTCGI_Controller, List<LTCGI_Screen>> OnPreProcess;
         [HideInInspector] public Core core;

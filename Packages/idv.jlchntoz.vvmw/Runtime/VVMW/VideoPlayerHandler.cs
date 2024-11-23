@@ -48,7 +48,12 @@ namespace JLChnToZ.VRC.VVMW {
         float playbackSpeed = 1, actualPlaybackSpeed = 1;
         VRCUrl loadedUrl;
 
-        public override bool IsActive {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override bool IsActive {
             get => isActive;
             set {
                 isActive = value;
@@ -56,7 +61,12 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public override float Time {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override float Time {
             get => videoPlayer.GetTime();
             set {
                 videoPlayer.SetTime(value);
@@ -65,28 +75,78 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public override bool IsAvPro => isAvPro && !Utilities.IsValid(bufferedTexture);
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override bool IsAvPro => isAvPro && !Utilities.IsValid(bufferedTexture);
 
-        public override float Duration => isRealTimeProtocol ? float.PositiveInfinity : videoPlayer.GetDuration();
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override float Duration => isRealTimeProtocol ? float.PositiveInfinity : videoPlayer.GetDuration();
 
-        public override Texture Texture => Utilities.IsValid(texture) && Utilities.IsValid(bufferedTexture) ? bufferedTexture : texture;
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override Texture Texture => Utilities.IsValid(texture) && Utilities.IsValid(bufferedTexture) ? bufferedTexture : texture;
 
-        public override AudioSource PrimaryAudioSource => primaryAudioSource;
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override AudioSource PrimaryAudioSource => primaryAudioSource;
 
-        public override bool Loop {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override bool Loop {
             get => videoPlayer.Loop;
             set => videoPlayer.Loop = value;
         }
 
-        public override bool IsReady => isReady && videoPlayer.IsReady;
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override bool IsReady => isReady && videoPlayer.IsReady;
 
-        public override bool IsPlaying => videoPlayer.IsPlaying;
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override bool IsPlaying => videoPlayer.IsPlaying;
 
-        public override bool IsPaused => isPaused;
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override bool IsPaused => isPaused;
 
-        public override bool SupportSpeedAdjustment => animator && !isRealTimeProtocol;
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override bool SupportSpeedAdjustment => animator && !isRealTimeProtocol;
 
-        public override float Speed {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override float Speed {
             get => SupportSpeedAdjustment ? actualPlaybackSpeed : 1;
             set {
                 if (!animator || Mathf.Approximately(playbackSpeed, value)) return;
@@ -115,7 +175,10 @@ namespace JLChnToZ.VRC.VVMW {
                 renderer.sharedMaterial = renderer.material;
         }
 
-        public void _GetTexture() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _GetTexture() {
             if (!isActive || !isWaitingForTexture || !videoPlayer.IsPlaying) {
                 isWaitingForTexture = false;
                 ClearTexture();
@@ -149,7 +212,10 @@ namespace JLChnToZ.VRC.VVMW {
             bufferedTexture = null;
         }
 
-        public void _BlitBufferScreen() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _BlitBufferScreen() {
             if (!isActive || !videoPlayer.IsPlaying || !Utilities.IsValid(texture)) {
                 isFlickerWorkaroundTextureRunning = false;
                 return;
@@ -169,7 +235,12 @@ namespace JLChnToZ.VRC.VVMW {
             VRCGraphics.Blit(texture, bufferedTexture, blitMaterial);
         }
 
-        public override void LoadUrl(VRCUrl url, bool reload) {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override void LoadUrl(VRCUrl url, bool reload) {
             if (videoPlayer.IsPlaying) videoPlayer.Stop();
             if (!isActive) return;
             bool skip = !reload &&
@@ -205,7 +276,10 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void _DoLoadUrl() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _DoLoadUrl() {
             isLoadUrlRequested = false;
             if (!isActive || VRCUrl.IsNullOrEmpty(currentUrl))
                 return;
@@ -213,19 +287,34 @@ namespace JLChnToZ.VRC.VVMW {
             videoPlayer.LoadURL(currentUrl);
         }
 
-        public override void Play() {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override void Play() {
             if (!isActive) return;
             videoPlayer.Play();
             OnVideoPlay();
         }
 
-        public override void Pause() {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override void Pause() {
             if (!isActive) return;
             videoPlayer.Pause();
             OnVideoPause();
         }
 
-        public override void Stop() {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override void Stop() {
             if (!isActive) return;
             videoPlayer.Stop();
             if (isRealTimeProtocol) {
@@ -270,7 +359,9 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+#if COMPILER_UDONSHARP
         public void _onVideoPlay() => OnVideoPlay();
+#endif
 
         public override void OnVideoPlay() {
             isPaused = false;
@@ -279,7 +370,9 @@ namespace JLChnToZ.VRC.VVMW {
             core.OnVideoPlay();
         }
 
+#if COMPILER_UDONSHARP
         public void _onVideoPause() => OnVideoPause();
+#endif
 
         public override void OnVideoPause() {
             isPaused = true;
@@ -344,7 +437,12 @@ namespace JLChnToZ.VRC.VVMW {
             if (isActive) core._OnTextureChanged();
         }
 
-        public override int IsSupported(string urlStr) {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override int IsSupported(string urlStr) {
             if (!urlStr.StartsWith("http", StringComparison.OrdinalIgnoreCase))
                 return isAvPro && IsRealTimeProtocolS(urlStr) ? isLowLatency ? 2 : 1 : -1;
             int index = urlStr.IndexOf("://");
@@ -396,7 +494,7 @@ namespace JLChnToZ.VRC.VVMW {
             return 0;
         }
 
-        #if UNITY_EDITOR && !COMPILER_UDONSHARP
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
         protected override void PreProcess() {
             TrustedUrlTypes urlType = default;
             if (!TryGetComponent(out BaseVRCVideoPlayer videoPlayer)) return;
@@ -449,6 +547,6 @@ namespace JLChnToZ.VRC.VVMW {
             useSharedMaterial = isAvPro;
             if (Utilities.IsValid(applyTurstedUrl)) applyTurstedUrl(urlType, ref trustedUrlDomains);
         }
-        #endif
+#endif
     }
 }

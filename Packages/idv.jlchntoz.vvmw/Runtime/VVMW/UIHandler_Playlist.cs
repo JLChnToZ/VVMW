@@ -83,13 +83,19 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void _PlayListTogglePanel() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _PlayListTogglePanel() {
             if (!Utilities.IsValid(playListScrollView)) return;
             var playListGameObject = playListScrollView.gameObject;
             playListGameObject.SetActive(!playListGameObject.activeSelf);
         }
 
-        public void _PlayListToggle() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _PlayListToggle() {
             if (!Utilities.IsValid(playListScrollView)) return;
             if (playlistToggle.isOn) {
                 playListPanelRoot.SetActive(true);
@@ -178,27 +184,42 @@ namespace JLChnToZ.VRC.VVMW {
             return true;
         }
 
-        public void _OnPlayListEntryClick() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnPlayListEntryClick() {
             if (Utilities.IsValid(currentPlayListButton)) playListScrollView.gameObject.SetActive(false);
             playListLastInteractTime = DateTime.UtcNow;
             UpdatePlayList();
             queueListScrollView.ScrollToSelected();
         }
 
-        public void _OnPlayListScroll() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnPlayListScroll() {
             playListLastInteractTime = DateTime.UtcNow;
         }
 
-        public void _OnQueueListScroll() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnQueueListScroll() {
             playListLastInteractTime = DateTime.UtcNow;
         }
 
-        public void _OnCurrentPlayListSelectClick() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnCurrentPlayListSelectClick() {
             SelectedPlayListIndex = Utilities.IsValid(handler) ? handler.PlayListIndex : 0;
             _OnPlayListEntryClick();
         }
 
-        public void _OnQueueListEntryClick() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnQueueListEntryClick() {
             playListLastInteractTime = DateTime.UtcNow;
             int selectedPlayListIndex = SelectedPlayListIndex;
             handler.PlayAt(selectedPlayListIndex, queueListScrollView.lastInteractIndex, false);
@@ -208,7 +229,10 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void _OnQueueListEntryDelete() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnQueueListEntryDelete() {
             playListLastInteractTime = DateTime.UtcNow;
             int selectedPlayListIndex = SelectedPlayListIndex;
             handler.PlayAt(selectedPlayListIndex, queueListScrollView.lastInteractIndex, true);

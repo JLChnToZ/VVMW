@@ -15,7 +15,13 @@ namespace JLChnToZ.VRC.VVMW {
         AudioSource audioSource;
         [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
         [SerializeField, Locatable, BindUdonSharpEvent] Core core;
+        /// <summary>
+        /// The target volume when the video is not playing.
+        /// </summary>
         [Range(0, 1), LocalizedLabel] public float volume = 1;
+        /// <summary>
+        /// Is the background music muted.
+        /// </summary>
         [LocalizedLabel] public bool isMuted;
         [SerializeField, LocalizedLabel, Range(0, 10)] float fadeTime = 1;
         bool isVideoPlaying;
@@ -34,8 +40,14 @@ namespace JLChnToZ.VRC.VVMW {
             if (isVideoPlaying && (!core.enabled || !core.gameObject.activeSelf)) isVideoPlaying = false;
         }
 
+        /// <summary>
+        /// Mute the background music.
+        /// </summary>
         public void Mute() => isMuted = true;
 
+        /// <summary>
+        /// Unmute the background music.
+        /// </summary>
         public void Unmute() => isMuted = false;
         
         public override void OnVideoStart() => isVideoPlaying = !core.IsStatic;

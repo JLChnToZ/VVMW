@@ -3,11 +3,17 @@ using VRC.SDKBase;
 
 namespace JLChnToZ.VRC.VVMW {
     public partial class UIHandler {
-        public void _OnSeek() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnSeek() {
             core.Progress = progressSlider.value;
         }
 
-        public void _UpdateProgress() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _UpdateProgress() {
             if (!core.IsPlaying) {
                 hasUpdate = false;
                 return;

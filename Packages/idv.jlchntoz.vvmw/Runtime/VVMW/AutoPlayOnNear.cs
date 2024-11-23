@@ -21,7 +21,10 @@ namespace JLChnToZ.VRC.VVMW {
             Stop();
         }
 
-        public void _SlowUpdate() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _SlowUpdate() {
             if (!enabled || !gameObject.activeInHierarchy) return;
             SendCustomEventDelayedSeconds(nameof(_SlowUpdate), 0.5F);
             var player = Networking.LocalPlayer;

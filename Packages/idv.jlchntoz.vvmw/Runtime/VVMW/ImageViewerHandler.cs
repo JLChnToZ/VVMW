@@ -18,7 +18,12 @@ namespace JLChnToZ.VRC.VVMW {
         VRCImageDownloader loader;
         bool loop, isPlaying;
 
-        public override bool IsActive {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override bool IsActive {
             get => isActive;
             set {
                 isActive = value;
@@ -29,16 +34,36 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public override bool Loop { 
-            get => loop; 
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override bool Loop {
+            get => loop;
             set => loop = value;
         }
 
-        public override bool IsPlaying => isPlaying;
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override bool IsPlaying => isPlaying;
 
-        public override bool IsStatic => true;
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override bool IsStatic => true;
 
-        public override void LoadUrl(VRCUrl url, bool reload) {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override void LoadUrl(VRCUrl url, bool reload) {
             if (!Utilities.IsValid(loader)) loader = new VRCImageDownloader();
             if (url.Equals(currentUrl) && !reload && texture) {
                 isReady = true;
@@ -86,7 +111,12 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public override void Play() {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override void Play() {
             isPlaying = true;
             if (isActive) {
                 core.OnVideoPlay();
@@ -94,9 +124,19 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public override void Pause() => Play();
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override void Pause() => Play();
 
-        public override void Stop() {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override void Stop() {
             texture = null;
             currentUrl = null;
             isReady = false;
@@ -104,7 +144,12 @@ namespace JLChnToZ.VRC.VVMW {
             if (isActive) core.OnVideoEnd();
         }
 
-        public override int IsSupported(string urlStr) {
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override int IsSupported(string urlStr) {
             int index = urlStr.IndexOf('#');
             if (index < 0) {
                 index = urlStr.IndexOf('?');
@@ -121,10 +166,10 @@ namespace JLChnToZ.VRC.VVMW {
             return -1;
         }
 
-        #if UNITY_EDITOR && !COMPILER_UDONSHARP
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
         protected override void PreProcess() {
             if (Utilities.IsValid(applyTurstedUrl)) applyTurstedUrl(TrustedUrlTypes.ImageUrl, ref trustedUrlDomains);
         }
-        #endif
+#endif
     }
 }

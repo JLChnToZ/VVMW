@@ -30,14 +30,20 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void _OnURLChanged() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnURLChanged() {
             bool isEmpty = string.IsNullOrEmpty(urlInput.textComponent.text);
             if (Utilities.IsValid(otherObjectUnderUrlInput)) otherObjectUnderUrlInput.SetActive(isEmpty);
             if (Utilities.IsValid(videoPlayerSelectPanel)) videoPlayerSelectPanel.SetActive(!isEmpty);
             if (Utilities.IsValid(altUrlInput)) altUrlInput.gameObject.SetActive(!isEmpty);
         }
 
-        public void _OnURLEndEdit() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnURLEndEdit() {
             _OnURLChanged();
             if (!Utilities.IsValid(urlInputConfirmButton)) {
                 _InputConfirmClick();
@@ -50,7 +56,10 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void _InputConfirmClick() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _InputConfirmClick() {
             var url = urlInput.GetUrl();
             var altUrl = url;
             if (!VRCUrl.IsNullOrEmpty(url)) {
@@ -70,19 +79,28 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void _VideoPlayerSelect() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _VideoPlayerSelect() {
             if (!Utilities.IsValid(videoPlayerSelectRoot)) return;
             videoPlayerSelectRoot.SetActive(!videoPlayerSelectRoot.activeSelf);
         }
 
-        public void _InputCancelClick() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _InputCancelClick() {
             urlInput.SetUrl(VRCUrl.Empty);
             if (Utilities.IsValid(altUrlInput)) altUrlInput.SetUrl(VRCUrl.Empty);
             _OnUIUpdate();
             _OnURLChanged();
         }
 
-        public void _LoadPlayerClick() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _LoadPlayerClick() {
             selectedPlayer = loadWithIndex;
             UpdatePlayerText();
             if (Utilities.IsValid(videoPlayerSelectRoot)) videoPlayerSelectRoot.SetActive(false);
@@ -91,7 +109,10 @@ namespace JLChnToZ.VRC.VVMW {
         void UpdatePlayerText() =>
             SetLocalizedText(selectdPlayerText, selectdPlayerTMPro, videoPlayerSelectButtons[selectedPlayer - 1].Text);
 
-        public void _DeferUpdatePlayList() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _DeferUpdatePlayList() {
             if (playListUpdateRequired && !UpdatePlayList() && playListUpdateRequired)
                 SendCustomEventDelayedFrames(nameof(_DeferUpdatePlayList), 0);
         }
