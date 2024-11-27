@@ -20,7 +20,7 @@ jobs:
 
       - name: Update docfx.json with GitHub Pages URL
         env:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')
           sed -i "s|\$url|$url|g" docs/docfx.json
