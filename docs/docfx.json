@@ -1,0 +1,44 @@
+{
+    "metadata": [{
+        "src": [{ "src": "../Packages/idv.jlchntoz.vvmw/", "files": ["**/*.cs"] }],
+        "dest": "api",
+        "globalNamespaceId": "Global",
+        "allowCompilationErrors": true
+    }],
+    "build": {
+        "globalMetadata": {
+            "_appTitle": "VizVid",
+            "_appFooter": "<span>Made by <a href=\"https://linktr.ee/jlchntoz\" target=\"_blank\">Jeremy Lam aka. Viztanz</a> using <a href=\"https://dotnet.github.io/docfx\" target=\"_blank\">DocFX</a></span>",
+            "_enableSearch": true,
+            "_enableNewTab": false,
+            "_disableNewTab": true,
+            "_disableContribution": true,
+            "_disableNextArticle": true,
+            "_appLogoPath": "resources/logo.svg"
+        },
+        "fileMetadata": {
+            "_noindex": {
+                "docs/*.md": false
+            }
+        },
+        "globalMetadataFiles": [
+        ],
+        "content":  [
+            { "files": ["**/*.md", "**/toc.yml"] },
+            { "src": "license", "files": ["*.md"], "dest": "license" },
+            { "src": "api", "files": ["*.yml", "index.md"], "dest": "api" },
+            { "src": "documentation", "files": ["*.md"], "dest": "documentation" }
+        ],
+        "resource": [{ "files": ["resources/**/*"] }],
+        "template": ["default", "modern"],
+        "sitemap": { "baseUrl": "'http://localhost:8080/_site'" },
+        "xref": [
+            "'http://localhost:8080/_site'", 
+            "https://normanderwan.github.io/UnityXrefMaps/xrefmap.yml"
+        ],
+        "xrefService": [
+            "https://xref.docs.microsoft.com/query?uid={uid}"
+        ],
+        "dest": "../_site"
+    }
+}
