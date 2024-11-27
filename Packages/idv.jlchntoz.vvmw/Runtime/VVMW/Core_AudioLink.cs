@@ -5,6 +5,8 @@ using JLChnToZ.VRC.Foundation.I18N;
 
 #if AUDIOLINK_V1
 using AudioLink;
+#else
+using UdonSharp;
 #endif
 
 namespace JLChnToZ.VRC.VVMW {
