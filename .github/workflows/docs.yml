@@ -33,7 +33,7 @@ jobs:
       - name: Build the documentation
         run: |
           cd docs/
-          docfx build docfx.json
+          docfx
 
       - name: Deploy to GitHub Pages
         id: deployment
