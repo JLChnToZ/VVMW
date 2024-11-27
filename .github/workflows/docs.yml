@@ -7,7 +7,11 @@ jobs:
   config:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -22,9 +26,8 @@ jobs:
 
       - name: Update docfx.json with GitHub Pages URL
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          url: ${{ steps.deployment.outputs.page_url }}
         run: |
-          url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')
           sed -i "s|\$url|$url|g" docs/docfx.json
 
       - name: Build the documentation
@@ -33,10 +36,8 @@ jobs:
           docfx build docfx.json
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
+        id: deployment
+        uses: actions/deploy-pages@v4
 
       - name: Cleanup
         run: rm -rf _site
