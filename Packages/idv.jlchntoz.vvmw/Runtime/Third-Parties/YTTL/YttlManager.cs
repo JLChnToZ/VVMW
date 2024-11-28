@@ -4,6 +4,7 @@
  * License: CC0 - https://creativecommons.org/publicdomain/zero/1.0/deed
  * Modified by Vistanz
  */
+using System;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDK3.Data;
@@ -17,9 +18,24 @@ namespace VVMW.ThirdParties.Yttl {
     [AddComponentMenu("VizVid/Third-Parties/YTTL/YTTL Manager")]
     public class YttlManager : UdonSharpBehaviour {
         [SerializeField] YttlParser parser;
+        [SerializeField] float loadDelaySeconds = 5.1f;
         DataList labels;
         DataDictionary listeners;
         DataDictionary cache;
+        VRCUrl[] postDefineFileLoadUrls;
+        bool isDefineFileReady;
+    
+        private void Start() => SendCustomEventDelayedSeconds(nameof(LoadDefineFile), loadDelaySeconds);
+
+        public void LoadDefineFile() => parser.LoadDefineFile(this);
+
+        public void OnPostLoadDefineFile() {
+            isDefineFileReady = true;
+            if (Utilities.IsValid(postDefineFileLoadUrls))
+                foreach (var url in postDefineFileLoadUrls)
+                    VRCStringDownloader.LoadUrl(url, (IUdonEventReceiver)this);
+            postDefineFileLoadUrls = null;
+        }
 
         public void LoadData(VRCUrl url, UdonSharpBehaviour listener) {
             var urlStr = url.Get();
@@ -59,6 +75,19 @@ namespace VVMW.ThirdParties.Yttl {
             token.DataList.Add(listener);
 
             if (isRequesting) return;
+
+            if (!isDefineFileReady) {
+                if (Utilities.IsValid(postDefineFileLoadUrls)) {
+                    int length = postDefineFileLoadUrls.Length;
+                    var newQueue = new VRCUrl[length + 1];
+                    Array.Copy(postDefineFileLoadUrls, newQueue, length);
+                    newQueue[length] = url;
+                    postDefineFileLoadUrls = newQueue;
+                } else
+                    postDefineFileLoadUrls = new VRCUrl[] { url };
+                return;
+            }
+
             VRCStringDownloader.LoadUrl(url, (IUdonEventReceiver)this);
         }
 
@@ -74,7 +103,7 @@ namespace VVMW.ThirdParties.Yttl {
 
             parser.SetRawDataText(data);
 
-            if (!Utilities.IsValid(labels)) labels = new DataList(new DataToken[] { "author", "title", "viewCount", "description" });
+            if (!Utilities.IsValid(labels)) labels = new DataList("author", "title", "viewCount", "description");
 
             if (!parser.TryGetValue(host, labels, out var resultDict)) {
                 Debug.LogWarning("[YTTL] Error when getting information");
