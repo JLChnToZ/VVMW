@@ -103,7 +103,7 @@ namespace VVMW.ThirdParties.Yttl {
 
             parser.SetRawDataText(data);
 
-            if (!Utilities.IsValid(labels)) labels = new DataList("author", "title", "viewCount", "description");
+            if (!Utilities.IsValid(labels)) labels = new DataList(new DataToken[] { "author", "title", "viewCount", "description" });
 
             if (!parser.TryGetValue(host, labels, out var resultDict)) {
                 Debug.LogWarning("[YTTL] Error when getting information");
