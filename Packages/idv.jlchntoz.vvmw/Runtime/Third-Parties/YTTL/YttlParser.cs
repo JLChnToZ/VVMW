@@ -14,7 +14,7 @@ namespace VVMW.ThirdParties.Yttl {
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     [AddComponentMenu("VizVid/Third-Parties/YTTL/YTTL Parser")]
     public class YttlParser : UdonSharpBehaviour {
-        private VRCUrl defineFileUrl = new VRCUrl("https://xtlcdn.github.io/vrchat/yttl-data/yttl.txt");
+        private VRCUrl defineFileUrl = new VRCUrl("https://raw.githubusercontent.com/ureishi/yttl-data/v2/yttl.txt");
 
         private string rawDataText;
 
@@ -22,16 +22,17 @@ namespace VVMW.ThirdParties.Yttl {
 
         private DataDictionary dataJson;
 
-        private void Start() {
-            LoadDefineFile();
-        }
+        private YttlManager yttlManager;
 
-        public void LoadDefineFile() {
+        public void LoadDefineFile(YttlManager yttlManager) {
+            this.yttlManager = yttlManager;
             VRCStringDownloader.LoadUrl(defineFileUrl, (IUdonEventReceiver)this);
         }
 
         public override void OnStringLoadSuccess(IVRCStringDownload result) {
             Init(result.Result);
+            if (inited && Utilities.IsValid(yttlManager))
+                yttlManager.OnPostLoadDefineFile();
         }
 
         public override void OnStringLoadError(IVRCStringDownload result) {
