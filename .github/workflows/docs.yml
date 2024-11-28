@@ -4,8 +4,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  config:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -20,21 +26,31 @@ jobs:
 
       - name: Update docfx.json with GitHub Pages URL
         env:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          url: ${{ steps.deployment.outputs.page_url }}
         run: |
-          url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')
           sed -i "s|\$url|$url|g" docs/docfx.json
 
       - name: Build the documentation
         run: |
           cd docs/
-          docfx build docfx.json
+          docfx
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        id: deployment
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
+          path: _site
 
-      - name: Cleanup
-        run: rm -rf _site
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

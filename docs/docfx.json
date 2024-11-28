@@ -31,9 +31,9 @@
         ],
         "resource": [{ "files": ["resources/**/*"] }],
         "template": ["default", "modern"],
-        "sitemap": { "baseUrl": "'http://localhost:8080/_site'" },
+        "sitemap": { "baseUrl": "'$url'" },
         "xref": [
-            "'http://localhost:8080/_site'", 
+            "'$url'", 
             "https://normanderwan.github.io/UnityXrefMaps/xrefmap.yml"
         ],
         "xrefService": [
