@@ -258,5 +258,29 @@ namespace JLChnToZ.VRC.VVMW {
                     material.SetInt(avProPropertyIds[i], isAvPro ? 1 : 0);
             }
         }
+
+#if !COMPILER_UDONSHARP
+        void DrawScreenGizmos() {
+            for (int i = 0; i < screenTargets.Length; i++) {
+                Gizmos.color = Color.HSVToRGB(i * 0.35F % 1F, 1F, 1F);
+                if (screenTargets[i] is MeshRenderer meshRenderer) {
+                    if (meshRenderer.TryGetComponent(out MeshFilter meshFilter)) {
+                        var mesh = meshFilter.sharedMesh;
+                        if (mesh != null) {
+                            Gizmos.matrix = meshFilter.transform.localToWorldMatrix;
+                            Gizmos.DrawWireMesh(mesh, screenTargetIndeces[i]);
+                        }
+                    }
+                    continue;
+                }
+                if (screenTargets[i] is Renderer renderer) {
+                    var bounds = renderer.localBounds;
+                    Gizmos.matrix = renderer.transform.localToWorldMatrix;
+                    Gizmos.DrawWireCube(bounds.center, bounds.size);
+                    continue;
+                }
+            }
+        }
+#endif
     }
 }

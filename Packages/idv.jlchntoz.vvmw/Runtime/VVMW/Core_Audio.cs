@@ -59,5 +59,13 @@ namespace JLChnToZ.VRC.VVMW {
                 audioSource.pitch = speed;
             }
         }
+#if !COMPILER_UDONSHARP
+        void DrawAudioGizmos() {
+            foreach (var audioSource in audioSources) {
+                if (audioSource == null) continue;
+                Gizmos.DrawIcon(audioSource.transform.position, "AudioSource Gizmo", true, Color.green);
+            }
+        }
+#endif
     }
 }

@@ -701,5 +701,12 @@ namespace JLChnToZ.VRC.VVMW {
             RequestSerialization();
             return true;
         }
+
+#if !COMPILER_UDONSHARP
+        void OnDrawGizmosSelected() {
+            DrawScreenGizmos();
+            DrawAudioGizmos();
+        }
+#endif
     }
 }
