@@ -20,7 +20,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Core")]
     [DefaultExecutionOrder(0)]
-    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#vvmw-game-object")]
+    [HelpURL("https://xtlcdn.github.io/VizVid/docs/#vvmw-game-object")]
     public partial class Core : UdonSharpEventSender {
         const long OWNER_SYNC_COOLDOWN_TICKS = 3 * TimeSpan.TicksPerSecond;
         const long DOUBLE_CLICK_THRESHOLD_TICKS = 500 * TimeSpan.TicksPerMillisecond;

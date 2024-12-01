@@ -18,7 +18,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Components/Overlay Control")]
     [DefaultExecutionOrder(2)]
-    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-add-an-overlay-control")]
+    [HelpURL("https://xtlcdn.github.io/VizVid/docs/#how-to-add-an-overlay-control")]
     public class OverlayControl : VizVidBehaviour {
 
 #if VRC_ENABLE_PLAYER_PERSISTENCE

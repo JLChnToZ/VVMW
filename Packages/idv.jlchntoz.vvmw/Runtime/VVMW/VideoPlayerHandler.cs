@@ -24,7 +24,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Components/Video Player Handler")]
     [DefaultExecutionOrder(0)]
-    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#builtin-module--avpro-module")]
+    [HelpURL("https://xtlcdn.github.io/VizVid/docs/#builtin-module--avpro-module")]
     public class VideoPlayerHandler : AbstractMediaPlayerHandler {
         string[] realTimeProtocols = new string[] { "rtsp", "rtmp", "rtspt", "rtspu", "rtmps", "rtsps" };
         [SerializeField, LocalizedLabel] string texturePropertyName = "_MainTex";

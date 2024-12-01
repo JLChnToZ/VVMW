@@ -38,7 +38,10 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 Please visit the [official demo world](https://vrchat.com/home/world/wrld_7239d09c-7b25-43a5-8ccd-502d986b016a)!
 
 ## Documentation
-Please refer to [another readme](./Packages/idv.jlchntoz.vvmw/README.md) for details.
+- [English Manual](https://xtlcdn.github.io/VizVid/docs/)
+- [日本語マニュアル](https://xtlcdn.github.io/VizVid/docs/index_ja.html)
+- [中文說明文件](https://xtlcdn.github.io/VizVid/docs/index_zh.html)
+- [API References](https://xtlcdn.github.io/VizVid/api/Global.html)
 
 ## Installation
 You may use following methods:

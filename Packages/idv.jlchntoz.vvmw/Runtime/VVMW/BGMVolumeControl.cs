@@ -10,7 +10,7 @@ namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [AddComponentMenu("VizVid/Components/BGM Volume Control")]
     [RequireComponent(typeof(AudioSource))]
-    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-make-background-music-fade-out-when-video-is-playing")]
+    [HelpURL("https://xtlcdn.github.io/VizVid/docs/#how-to-make-background-music-fade-out-when-video-is-playing")]
     public class BGMVolumeControl : VizVidBehaviour {
         AudioSource audioSource;
         [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]

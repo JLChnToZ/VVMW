@@ -12,7 +12,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     [EditorOnly]
     [ExecuteInEditMode]
     [AddComponentMenu("VizVid/Color Configurator/Color Config")]
-    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-change-color")]
+    [HelpURL("https://xtlcdn.github.io/VizVid/docs/#how-to-change-color")]
     public class ColorConfig : MonoBehaviour {
         /// <summary>
         /// The color palette for all children components.

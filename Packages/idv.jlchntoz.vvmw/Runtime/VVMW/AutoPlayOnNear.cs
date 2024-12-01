@@ -10,7 +10,7 @@ namespace JLChnToZ.VRC.VVMW {
     /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [AddComponentMenu("VizVid/Components/Auto Play On Near")]
-    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-setup-auto-plays-when-a-user-goes-nearby")]
+    [HelpURL("https://xtlcdn.github.io/VizVid/docs/#how-to-setup-auto-plays-when-a-user-goes-nearby")]
     public class AutoPlayOnNear : VizVidBehaviour {
         [SerializeField, Locatable, LocalizedLabel(Key = "VVMW.Handler")] FrontendHandler handler;
         [SerializeField, LocalizedLabel] float distance = 0;
