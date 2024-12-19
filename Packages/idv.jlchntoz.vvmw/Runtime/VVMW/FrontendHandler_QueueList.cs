@@ -88,50 +88,63 @@ namespace JLChnToZ.VRC.VVMW {
             }
             if (string.IsNullOrEmpty(queuedTitle))
                 queuedTitle = $"{Networking.LocalPlayer.displayName}:\n{UnescapeUrl(pcUrl)}";
-            if (enableQueueList && (core.IsReady || core.IsLoading || (Utilities.IsValid(localQueuedUrls) && localQueuedUrls.Length > 0))) {
-                if (IsArrayNullOrEmpty(localQueuedUrls)) {
-                    localQueuedUrls = new VRCUrl[] { pcUrl };
-                } else {
-                    var newQueue = new VRCUrl[localQueuedUrls.Length + 1];
-                    Array.Copy(localQueuedUrls, newQueue, localQueuedUrls.Length);
-                    newQueue[localQueuedUrls.Length] = pcUrl;
-                    localQueuedUrls = newQueue;
+            if (enableQueueList) {
+                if (core.IsReady || core.IsLoading || Utilities.IsValid(localQueuedUrls) && localQueuedUrls.Length != 0) {
+                    EnqueueToQueueList(pcUrl, questUrl, queuedTitle, index);
+                    UpdateState();
+                    RequestSync();
+                    return;
                 }
-                bool isQuestQueueEmpty = IsArrayNullOrEmpty(localQueuedQuestUrls);
-                if (!pcUrl.Equals(questUrl) || !isQuestQueueEmpty) {
-                    if (isQuestQueueEmpty) {
-                        localQueuedQuestUrls = new VRCUrl[] { questUrl };
-                    } else {
-                        var newAltQueue = new VRCUrl[localQueuedQuestUrls.Length + 1];
-                        Array.Copy(localQueuedQuestUrls, newAltQueue, localQueuedQuestUrls.Length);
-                        newAltQueue[localQueuedQuestUrls.Length] = questUrl;
-                        localQueuedQuestUrls = newAltQueue;
-                    }
+                if (RepeatAll) {
+                    EnqueueToQueueList(pcUrl, questUrl, queuedTitle, index);
+                    UpdateState();
+                    shouldRequestSync = true;
                 }
-                if (IsArrayNullOrEmpty(localQueuedPlayerIndex)) {
-                    localQueuedPlayerIndex = new byte[] { index };
-                } else {
-                    var newPlayerIndexQueue = new byte[localQueuedPlayerIndex.Length + 1];
-                    Array.Copy(localQueuedPlayerIndex, newPlayerIndexQueue, localQueuedPlayerIndex.Length);
-                    newPlayerIndexQueue[localQueuedPlayerIndex.Length] = index;
-                    localQueuedPlayerIndex = newPlayerIndexQueue;
-                }
-                if (IsArrayNullOrEmpty(localQueuedTitles)) {
-                    localQueuedTitles = new string[] { queuedTitle };
-                } else {
-                    var newTitles = new string[localQueuedTitles.Length + 1];
-                    Array.Copy(localQueuedTitles, newTitles, localQueuedTitles.Length);
-                    newTitles[localQueuedTitles.Length] = queuedTitle;
-                    localQueuedTitles = newTitles;
-                }
-                RequestSync();
-                UpdateState();
-                return;
             }
             RecordPlaybackHistory(pcUrl, questUrl, index, queuedTitle);
             if (shouldRequestSync || historySize > 0) RequestSync();
             core.PlayUrl(pcUrl, questUrl, index);
             core._ResetTitle();
+            UpdateLoop();
+        }
+
+        void EnqueueToQueueList(VRCUrl pcUrl, VRCUrl questUrl, string queuedTitle, byte index) {
+            if (IsArrayNullOrEmpty(localQueuedUrls))
+                localQueuedUrls = new VRCUrl[] { pcUrl };
+            else {
+                var newQueue = new VRCUrl[localQueuedUrls.Length + 1];
+                Array.Copy(localQueuedUrls, newQueue, localQueuedUrls.Length);
+                newQueue[localQueuedUrls.Length] = pcUrl;
+                localQueuedUrls = newQueue;
+            }
+            bool isQuestQueueEmpty = IsArrayNullOrEmpty(localQueuedQuestUrls);
+            if (!pcUrl.Equals(questUrl) || !isQuestQueueEmpty) {
+                if (isQuestQueueEmpty)
+                    localQueuedQuestUrls = new VRCUrl[] { questUrl };
+                else {
+                    var newAltQueue = new VRCUrl[localQueuedQuestUrls.Length + 1];
+                    Array.Copy(localQueuedQuestUrls, newAltQueue, localQueuedQuestUrls.Length);
+                    newAltQueue[localQueuedQuestUrls.Length] = questUrl;
+                    localQueuedQuestUrls = newAltQueue;
+                }
+            }
+            if (IsArrayNullOrEmpty(localQueuedPlayerIndex))
+                localQueuedPlayerIndex = new byte[] { index };
+            else {
+                var newPlayerIndexQueue = new byte[localQueuedPlayerIndex.Length + 1];
+                Array.Copy(localQueuedPlayerIndex, newPlayerIndexQueue, localQueuedPlayerIndex.Length);
+                newPlayerIndexQueue[localQueuedPlayerIndex.Length] = index;
+                localQueuedPlayerIndex = newPlayerIndexQueue;
+            }
+            if (IsArrayNullOrEmpty(localQueuedTitles))
+                localQueuedTitles = new string[] { queuedTitle };
+            else {
+                var newTitles = new string[localQueuedTitles.Length + 1];
+                Array.Copy(localQueuedTitles, newTitles, localQueuedTitles.Length);
+                newTitles[localQueuedTitles.Length] = queuedTitle;
+                localQueuedTitles = newTitles;
+            }
+            UpdateLoop();
         }
 
         void PlayQueueList(int index, bool deleteOnly) {
@@ -145,13 +158,15 @@ namespace JLChnToZ.VRC.VVMW {
                     localQueuedQuestUrls = null;
                     localQueuedPlayerIndex = null;
                     localQueuedTitles = null;
+                    UpdateLoop();
                     RequestSync();
                     UpdateState();
                     return;
                 }
                 index = Shuffle ? UnityEngine.Random.Range(0, newLength) : 0;
             }
-            newLength--;
+            bool addToEnd = !deleteOnly && RepeatAll;
+            if (!addToEnd) newLength--;
             var url = localQueuedUrls[index];
             bool hasQuestUrl = !IsArrayNullOrEmpty(localQueuedQuestUrls);
             var questUrl = hasQuestUrl ? localQueuedQuestUrls[index] : url;
@@ -176,6 +191,13 @@ namespace JLChnToZ.VRC.VVMW {
             if (hasQuestUrl) Array.Copy(localQueuedQuestUrls, index + 1, newQuestQueue, index, copyCount);
             Array.Copy(localQueuedPlayerIndex, index + 1, newPlayerIndexQueue, index, copyCount);
             Array.Copy(localQueuedTitles, index + 1, newTitles, index, copyCount);
+            if (addToEnd) {
+                int lastIndex = newLength - 1;
+                newQueue[lastIndex] = url;
+                if (hasQuestUrl) newQuestQueue[lastIndex] = questUrl;
+                newPlayerIndexQueue[lastIndex] = playerIndex;
+                newTitles[lastIndex] = title;
+            }
             localQueuedUrls = newQueue;
             localQueuedQuestUrls = newQuestQueue;
             localQueuedPlayerIndex = newPlayerIndexQueue;
@@ -185,6 +207,7 @@ namespace JLChnToZ.VRC.VVMW {
                 core._ResetTitle();
                 RecordPlaybackHistory(url, questUrl, playerIndex, title);
             }
+            UpdateLoop();
             RequestSync();
             UpdateState();
         }
