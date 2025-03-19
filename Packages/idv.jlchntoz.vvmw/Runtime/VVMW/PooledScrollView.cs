@@ -16,6 +16,7 @@ namespace JLChnToZ.VRC.VVMW {
     [AddComponentMenu("VizVid/Components/Pooled Scroll View")]
     [DefaultExecutionOrder(2)]
     public partial class PooledScrollView : UdonSharpEventSender {
+        [SerializeField, HideInInspector, Resolve(".")]
         ScrollRect scrollRect;
         [FieldChangeCallback(nameof(EventPrefix))]
         [SerializeField] string eventPrefix = "_On";
@@ -37,7 +38,12 @@ namespace JLChnToZ.VRC.VVMW {
         bool isUpwards;
         public bool autoSelect = true;
         int offset, count;
-        RectTransform viewportRect, contentRect, templateRect;
+        [SerializeField, HideInInspector, Resolve(nameof(scrollRect) + "." + nameof(ScrollRect.viewport))]
+        RectTransform viewportRect;
+        [SerializeField, HideInInspector, Resolve(nameof(scrollRect) + "." + nameof(ScrollRect.content))]
+        RectTransform contentRect;
+        [SerializeField, HideInInspector, Resolve(nameof(template))]
+        RectTransform templateRect;
         Vector2 prevAnchorPosition;
         float entriesPerViewport;
         string entryClickEventName = "_OnEntryClick";
@@ -126,9 +132,6 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                     template = listEntry.gameObject;
                 }
-                scrollRect = GetComponent<ScrollRect>();
-                viewportRect = scrollRect.viewport;
-                contentRect = scrollRect.content;
                 isUpwards = contentRect.pivot.y < 0.5F;
                 var transformsAfterEntry = new Transform[contentRect.childCount];
                 int count = 0;
@@ -137,7 +140,6 @@ namespace JLChnToZ.VRC.VVMW {
                     if (child == template.transform) break;
                     transformsAfterEntry[count++] = child;
                 }
-                templateRect = template.GetComponent<RectTransform>();
                 var templateHeight = templateRect.rect.height;
                 var viewportHeight = viewportRect.rect.height;
                 entriesPerViewport = viewportHeight / templateHeight;

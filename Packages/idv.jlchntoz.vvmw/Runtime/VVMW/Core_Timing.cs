@@ -16,7 +16,8 @@ namespace JLChnToZ.VRC.VVMW {
         [FieldChangeCallback(nameof(SyncOffset))]
         float syncOffset = 0;
         [FieldChangeCallback(nameof(Speed))]
-        float speed = 1, actualSpeed = 1;
+        float speed = 1;
+        float actualSpeed = 1;
         float syncLatency;
         float lastSyncRawTime;
         bool isBuffering;
