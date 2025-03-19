@@ -23,7 +23,9 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, Resolve(nameof(deleteButton))]
         GameObject deleteButtonGO;
         [SerializeField] Color selectedColor, normalColor;
-        RectTransform rectTransform, parentRectTransform;
+        [SerializeField, HideInInspector, Resolve(".")]
+        RectTransform rectTransform;
+        RectTransform parentRectTransform;
         public UdonSharpBehaviour callbackTarget;
         public string callbackEventName;
         public string callbackVariableName;
@@ -39,7 +41,6 @@ namespace JLChnToZ.VRC.VVMW {
         [NonSerialized] public int pooledEntryOffset, pooledEntryCount;
         [NonSerialized] public bool isUpwards;
         [NonSerialized] public bool inverseOrder;
-        float height;
         int lastOffset = -1;
         bool isSelected;
 
@@ -90,12 +91,10 @@ namespace JLChnToZ.VRC.VVMW {
 
         void Start() {
             if (!Utilities.IsValid(callbackUserData)) callbackUserData = this;
-            rectTransform = GetComponent<RectTransform>();
         }
 
         bool UpdateIndex() {
-            if (!Utilities.IsValid(rectTransform)) rectTransform = GetComponent<RectTransform>();
-            if (!Utilities.IsValid(parentRectTransform)) parentRectTransform = rectTransform.parent.GetComponent<RectTransform>();
+            if (!Utilities.IsValid(parentRectTransform)) parentRectTransform = (RectTransform)rectTransform.parent;
             float anchoredPosition = parentRectTransform.anchoredPosition.y;
             if (isUpwards) anchoredPosition = -anchoredPosition;
             int newOffset = Mathf.FloorToInt((anchoredPosition / rectTransform.rect.height - entryOffset - 1) / spawnedEntryCount + 1) * spawnedEntryCount + entryOffset;
@@ -107,7 +106,6 @@ namespace JLChnToZ.VRC.VVMW {
 
         void UpdatePositionAndContent() {
             if (!asPooledEntry) return;
-            if (!Utilities.IsValid(rectTransform)) rectTransform = GetComponent<RectTransform>();
             if (lastOffset >= 0 && lastOffset < pooledEntryCount) {
                 _UpdateContent();
                 float offset = lastOffset;

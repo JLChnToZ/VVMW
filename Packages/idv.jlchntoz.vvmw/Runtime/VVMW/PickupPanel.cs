@@ -25,6 +25,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
         [BindEvent(nameof(Button.onClick), nameof(_MakeUpright))]
         [SerializeField, LocalizedLabel] Button uprightButton;
         [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager languageManager;
+        [SerializeField, HideInInspector, Resolve(".")]
         VRC_Pickup pickup;
         [LocalizedHeader("HEADER:PickupPanel.Settings")]
         [SerializeField, LocalizedLabel] float scaleSpeed = 1F;
@@ -57,7 +58,6 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
         }
 
         void Start() {
-            pickup = (VRC_Pickup)GetComponent(typeof(VRC_Pickup));
             var localPlayer = Networking.LocalPlayer;
             isVR = Utilities.IsValid(localPlayer) && localPlayer.IsUserInVR();
             instructionRenderer.sharedMaterial = isVR ? vrInstructionMaterial : pcInstructionMaterial;

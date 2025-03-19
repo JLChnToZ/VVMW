@@ -12,6 +12,7 @@ namespace JLChnToZ.VRC.VVMW {
     [RequireComponent(typeof(AudioSource))]
     [HelpURL("https://xtlcdn.github.io/VizVid/docs/#how-to-make-background-music-fade-out-when-video-is-playing")]
     public class BGMVolumeControl : VizVidBehaviour {
+        [SerializeField, HideInInspector, Resolve(".")]
         AudioSource audioSource;
         [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
         [SerializeField, Locatable, BindUdonSharpEvent] Core core;
@@ -26,10 +27,6 @@ namespace JLChnToZ.VRC.VVMW {
         [LocalizedLabel] public bool isMuted;
         [SerializeField, LocalizedLabel, Range(0, 10)] float fadeTime = 1;
         bool isVideoPlaying;
-
-        void Start() {
-            audioSource = GetComponent<AudioSource>();
-        }
 
         void OnEnable() {
             isVideoPlaying = core.enabled && coreGO.activeSelf && core.IsPlaying && !core.IsStatic;

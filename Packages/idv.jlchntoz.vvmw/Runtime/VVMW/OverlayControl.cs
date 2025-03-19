@@ -72,11 +72,12 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsReloadButtonKey2GO), NullOnly = false)] TextMeshProUGUI desktopHintsReloadButtonKey2TMPro;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsVolumeUpKey2GO), NullOnly = false)] TextMeshProUGUI desktopHintsVolumeUpKey2TMPro;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsVolumeDownKey2GO), NullOnly = false)] TextMeshProUGUI desktopHintsVolumeDownKey2TMPro;
-        Animator desktopModeAnim;
+        [SerializeField, HideInInspector, Resolve(nameof(desktopModeCanvas))] Animator desktopModeAnim;
         bool vrMode, afterFirstRun;
         VRCPlayerApi localPlayer;
         [System.NonSerialized] public bool isLeftHanded;
         float offset = 0.05F;
+        int reloadAnimKey, volumeChangeAnimKey;
 
         public float Volume {
             get => volume;
@@ -96,12 +97,13 @@ namespace JLChnToZ.VRC.VVMW {
                 enabled = false;
                 return;
             }
+            reloadAnimKey = Animator.StringToHash("Reload");
+            volumeChangeAnimKey = Animator.StringToHash("VolumeChange");
             vrMode = localPlayer.IsUserInVR();
             vrModeCanvas.SetActive(vrMode);
             vrModeOptionsCanvas.SetActive(vrMode);
             desktopModeCanvas.SetActive(!vrMode);
             desktopModeOptionsCanvas.SetActive(!vrMode);
-            desktopModeAnim = desktopModeCanvas.GetComponentInChildren<Animator>();
             _OnVolumeChange();
             offsetSliderVR.SetValueWithoutNotify(Mathf.Log(offset, 1.5F));
             vrModeCanvasTransform = vrModeCanvas.transform;
@@ -191,7 +193,7 @@ namespace JLChnToZ.VRC.VVMW {
                             ((UdonBehaviour)ub).SendCustomEvent("Resync");
                         break;
                     }
-            if (!vrMode) desktopModeAnim.SetTrigger("Reload");
+            if (!vrMode) desktopModeAnim.SetTrigger(reloadAnimKey);
         }
 
         public void _OnVolumeSliderChanged() {
@@ -205,7 +207,7 @@ namespace JLChnToZ.VRC.VVMW {
                 volumeSliderVR.SetValueWithoutNotify(volume);
             } else {
                 volumeSliderDesktop.anchorMax = new Vector2(volume, 1);
-                desktopModeAnim.SetTrigger("VolumeChange");
+                desktopModeAnim.SetTrigger(volumeChangeAnimKey);
             }
             if (Utilities.IsValid(audioSources))
                 foreach (var audioSource in audioSources)
