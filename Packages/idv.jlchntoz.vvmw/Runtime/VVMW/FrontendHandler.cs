@@ -392,7 +392,7 @@ namespace JLChnToZ.VRC.VVMW {
         public
 #endif
         void _AutoPlayNext() {
-            if (synced && !Networking.IsOwner(gameObject)) return;
+            if ((synced && !Networking.IsOwner(gameObject)) || core.IsLoading) return;
             if (localPlayListIndex == 0) {
                 if (IsArrayNullOrEmpty(localQueuedUrls) && !RepeatAll) {
                     if (autoPlayOnIdle) _AutoPlay();
