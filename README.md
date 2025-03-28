@@ -1,6 +1,6 @@
 # VizVid
 
-![Banner](Packages/idv.jlchntoz.vvmw/.tutorial/cover.png)
+![Banner](./docs/resources/imageas/cover.png)
 
 Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It aims to cover many use cases, from watch-together video/live stream player in lounges, to large event venue for music performances, or even booths for exhibitions or showcases. Due to its target customers, it has a flexible architecture, just like a factory made electronic but with a easy to open back lid, make it easier to let users mess them around for their needs.
 
