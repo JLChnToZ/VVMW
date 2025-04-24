@@ -25,6 +25,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] bool autoPlayOnIdle = false;
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core.autoPlayDelay")] float autoPlayDelay = 0;
         [SerializeField, LocalizedLabel] bool seedRandomBeforeShuffle = true;
+        InputFilterBase urlInputFilter;
         [UdonSynced] byte flags;
         int localPlayingPlaylistIndex = -1;
         bool forceStop;
@@ -154,6 +155,8 @@ namespace JLChnToZ.VRC.VVMW {
                     SendCustomEventDelayedFrames(nameof(_Init), 0);
                 return;
             }
+            urlInputFilter = core.urlInputFilter;
+            core.urlInputFilter = null;
             synced = core.IsSynced;
             for (int i = 0; i < playListUrlOffsets.Length; i++)
                 LoadDynamicPlaylist(i);

@@ -506,6 +506,7 @@ namespace JLChnToZ.VRC.VVMW {
                     altUrlInput.interactable = unlocked;
                     if (!unlocked) altUrlInput.SetUrl(VRCUrl.Empty);
                 }
+                InitShiftControl();
             }
             if (hasHandler) {
                 bool isRepeatOne = handler.RepeatOne;
@@ -536,12 +537,11 @@ namespace JLChnToZ.VRC.VVMW {
                 if (Utilities.IsValid(shuffleOnButton)) shuffleOnButtonObject.SetActive(false);
                 SetLocalizedText(queueModeText, queueModeTMPro, "QueueModeInstant");
             }
-            bool canChangeSpeed = unlocked && core.SupportSpeedAdjustment;
-            if (Utilities.IsValid(speedDownLButton)) speedDownLButton.interactable = canChangeSpeed;
-            if (Utilities.IsValid(speedDownSButton)) speedDownSButton.interactable = canChangeSpeed;
-            if (Utilities.IsValid(speedUpSButton)) speedUpSButton.interactable = canChangeSpeed;
-            if (Utilities.IsValid(speedUpLButton)) speedUpLButton.interactable = canChangeSpeed;
-            if (Utilities.IsValid(speedResetButton)) speedResetButton.interactable = canChangeSpeed;
+            if (Utilities.IsValid(speedDownLButton)) speedDownLButton.interactable = unlocked;
+            if (Utilities.IsValid(speedDownSButton)) speedDownSButton.interactable = unlocked;
+            if (Utilities.IsValid(speedUpSButton)) speedUpSButton.interactable = unlocked;
+            if (Utilities.IsValid(speedUpLButton)) speedUpLButton.interactable = unlocked;
+            if (Utilities.IsValid(speedResetButton)) speedResetButton.interactable = unlocked;
             if (Utilities.IsValid(performanceModeToggle)) {
                 performanceModeToggle.interactable = unlocked;
                 _OnPerformerChange();

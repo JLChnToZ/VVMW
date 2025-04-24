@@ -33,6 +33,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] int totalRetryCount = 3;
         [SerializeField, LocalizedLabel, Range(5, 20)] float retryDelay = 5.5F;
         [SerializeField, LocalizedLabel] float autoPlayDelay = 0;
+        [SerializeField, LocalizedLabel] internal InputFilterBase urlInputFilter;
         [UdonSynced] VRCUrl pcUrl, questUrl;
         VRCUrl localUrl, loadingUrl, lastUrl, altUrl, lastAltUrl;
         // When playing, it is the time when the video started playing;
@@ -285,6 +286,13 @@ namespace JLChnToZ.VRC.VVMW {
         public void PlayUrl(VRCUrl pcUrl, VRCUrl questUrl, byte playerType) {
             isError = false;
             VRCUrl url;
+            if (Utilities.IsValid(urlInputFilter)) {
+                urlInputFilter.pcUrl = pcUrl;
+                urlInputFilter.questUrl = questUrl;
+                urlInputFilter._ValidateUrls();
+                pcUrl = urlInputFilter.pcUrl;
+                questUrl = urlInputFilter.questUrl;
+            }
 #if UNITY_ANDROID || UNITY_IOS
             url = questUrl;
             if (VRCUrl.IsNullOrEmpty(url))
@@ -324,6 +332,10 @@ namespace JLChnToZ.VRC.VVMW {
 #if AUDIOLINK_V1
             SetAudioLinkPlayBackState(MediaPlaying.Loading);
 #endif
+            if (VRCUrl.IsNullOrEmpty(url)) {
+                OnVideoError(VideoError.InvalidURL);
+                return;
+            }
             activeHandler.LoadUrl(url, false);
             if (RequestSync()) state = LOADING;
             LoadYTTL();

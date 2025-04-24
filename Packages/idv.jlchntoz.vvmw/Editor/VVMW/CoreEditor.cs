@@ -49,6 +49,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty broadcastScreenTextureNameProperty;
         SerializedProperty realtimeGIUpdateIntervalProperty;
         SerializedProperty timeDriftDetectThresholdProperty;
+        SerializedProperty urlInputFilterProperty;
 #if VRC_ENABLE_PLAYER_PERSISTENCE
         SerializedProperty enablePersistenceProperty;
 #endif
@@ -90,6 +91,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             defaultTextureProperty = serializedObject.FindProperty("defaultTexture");
             realtimeGIUpdateIntervalProperty = serializedObject.FindProperty("realtimeGIUpdateInterval");
             timeDriftDetectThresholdProperty = serializedObject.FindProperty("timeDriftDetectThreshold");
+            urlInputFilterProperty = serializedObject.FindProperty("urlInputFilter");
 #if VRC_ENABLE_PLAYER_PERSISTENCE
             enablePersistenceProperty = serializedObject.FindProperty("enablePersistence");
 #endif
@@ -113,6 +115,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(totalRetryCountProperty);
             EditorGUILayout.PropertyField(retryDelayProperty);
             EditorGUILayout.PropertyField(timeDriftDetectThresholdProperty);
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(urlInputFilterProperty);
             EditorGUILayout.Space();
             DrawPlayerHandlers();
             DrawScreenList();

@@ -76,6 +76,13 @@ namespace JLChnToZ.VRC.VVMW {
         /// Except if it is playing an entry of a playlist, in this case will always intrrupts the current playback.
         /// </remarks>
         public void PlayUrl(VRCUrl pcUrl, VRCUrl questUrl, string queuedTitle, byte index) {
+            if (Utilities.IsValid(urlInputFilter)) {
+                urlInputFilter.pcUrl = pcUrl;
+                urlInputFilter.questUrl = questUrl;
+                urlInputFilter._ValidateUrls();
+                pcUrl = urlInputFilter.pcUrl;
+                questUrl = urlInputFilter.questUrl;
+            }
             if (VRCUrl.IsNullOrEmpty(pcUrl)) return;
             if (VRCUrl.IsNullOrEmpty(questUrl)) questUrl = pcUrl;
             if (localPlayListIndex > 0) {

@@ -51,7 +51,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void SetAudioPitch() {
-            if (!Utilities.IsValid(audioSources)) return;
+            if (!Utilities.IsValid(audioSources) || !Utilities.IsValid(activeHandler)) return;
             var speed = activeHandler.Speed;
             for (int i = 0; i < audioSources.Length; i++) {
                 var audioSource = audioSources[i];
