@@ -3,7 +3,7 @@
 嗨！VizVid 是一款為了 VRChat 所設計的多功能媒體播放器前端。它的用途廣泛，除了在地圖與朋友一起觀看影片或直播用的播放器、大型音樂表演的活動場地，甚至在展覽會或展示攤位都能使用。針對各式各樣的需求，VizVid 有著前所未有的靈活性。猶如電子零件廠販賣的電子用品般，只要打開後蓋，就能依各自所需，自由地進行調整。
 
 > [!NOTE]
-> 本說明文件內容，涵蓋了 v1.3.0 或往後更新的版本，一部分的說明與舊版會有所不同。
+> 本說明文件內容，涵蓋了 v1.4.0 或往後更新的版本，一部分的說明與舊版會有所不同。
 
 ## 安裝方法
 於 Hierarchy 空白處按下滑鼠右鍵，選擇`VizVid > Video Player`。  
@@ -159,6 +159,12 @@ VizVid 原生支援使用者進入特定區域時播放，離開時停止。適�
 (Key Count 與 Unique ID 長度選項，可基於串流服務的熱門程度進行調整，但通常 100 個 Stream Key 跟 5 個字元應該已滿足每個房間的隨機性。)
 4. 根據需求調整物件位置，搞定。
 
+### 反轉播放清單/待播清單顯示順序
+你可以選擇讓播放清單/待播清單以升序（從上到下）顯示，而不是預設的降序（從下到上）。
+1. 在 Hierarchy 標籤的搜尋欄中輸入 `Play List Entries` 或 `t:PooledScrollView`，找到並選擇 UI 控制項中的 **Play List Entries**。
+2. 在 Inspector 中找到 **Inverse Order** 屬性，並啟用它。
+![ ](../resources/images/ascending-order.png)
+
 ## VizVid 的構造
 VizVid 於 Hierarchy 中的 Prefab 構造如下：
 - VVMW
@@ -280,8 +286,12 @@ VizVid 於 Hierarchy 中的 Prefab 構造如下：
 ### Default Screen / Screen
 預設畫面。可自由進行縮放、移動。相關使用細節，請參考[新增額外螢幕](#新增額外螢幕)環節。
 
+#### Screen Configurator
+這是用於快速配置 VizVid 預設螢幕的元件。你可以將附帶的螢幕分配給不同的核心，並提供快速設定螢幕的選項。請參考 [VVMW (Game Object)](#VVMW-Game-Object) 的詳細說明。
+
 ### Default Audio Source
 預設 Audio Source。相關使用細節，請參考[新增額外 Audio Source](#新增額外-Audio-Source) 環節。
+
 ### Default UI / Screen with Overlay
 預設 UI。提供基礎的播放器操作介面。相關使用細節，請參考[新增額外控制面板](#新增額外控制面板)環節。
 
