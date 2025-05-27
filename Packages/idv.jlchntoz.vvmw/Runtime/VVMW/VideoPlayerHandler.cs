@@ -228,8 +228,12 @@ namespace JLChnToZ.VRC.VVMW {
                 Debug.Log($"[VVMW] Created temporary render texture for {playerName}: {width}x{height} {(useMipmap ? "with" : "without")} mipmap.");
                 var descriptor = new RenderTextureDescriptor(width, height, RenderTextureFormat.ARGB64, 0, useMipmap ? -1 : 0, RenderTextureReadWrite.sRGB);
                 descriptor.msaaSamples = 1;
+                descriptor.useMipMap = useMipmap;
+                descriptor.autoGenerateMips = useMipmap;
                 bufferedTexture = VRCRenderTexture.GetTemporary(descriptor);
                 bufferedTexture.wrapMode = TextureWrapMode.Clamp;
+                bufferedTexture.useMipMap = useMipmap;
+                bufferedTexture.autoGenerateMips = useMipmap;
                 core._OnTextureChanged();
             }
             if (Utilities.IsValid(blitMaterial))

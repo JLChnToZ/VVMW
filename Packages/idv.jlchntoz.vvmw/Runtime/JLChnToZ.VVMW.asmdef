@@ -9,7 +9,8 @@
         "JLChnToZ.VRC.Foundation",
         "AudioLink",
         "LTCGI_Assembly",
-        "at.pimaker.ltcgi.Editor"
+        "at.pimaker.ltcgi.Editor",
+        "red.sim.LightVolumesUdon"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -23,6 +24,11 @@
             "name": "at.pimaker.ltcgi",
             "expression": "",
             "define": "LTCGI_IMPORTED"
+        },
+        {
+            "name": "com.vrchat.worlds",
+            "expression": "3.8.1",
+            "define": "UDON_NETWORKING_UPDATED"
         }
     ],
     "noEngineReferences": false

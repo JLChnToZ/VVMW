@@ -1,0 +1,104 @@
+﻿using UnityEngine;
+using VRC.SDKBase;
+using VRC.SDK3.Rendering;
+using VRC.Udon.Common.Interfaces;
+using UdonSharp;
+using JLChnToZ.VRC.Foundation;
+using JLChnToZ.VRC.Foundation.I18N;
+
+#if VRC_LIGHT_VOLUMES
+using VRCLightVolumes;
+#endif
+
+namespace JLChnToZ.VRC.VVMW {
+    [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
+    [AddComponentMenu("VizVid/Light Volume Adaptor (VizVid)")]
+    public partial class LightVolumeAdaptor : VizVidBehaviour {
+        [SerializeField, BindUdonSharpEvent, Locatable, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")] Core core;
+#if VRC_LIGHT_VOLUMES
+        [SerializeField, Resolve("/**")] LightVolumeManager lightVolumeManager;
+        [SerializeField] LightVolumeInstance[] lightVolumes;
+#endif
+        Color32[] pixels;
+        bool isRunning;
+
+        void Start() {
+#if VRC_LIGHT_VOLUMES
+            core.enableMipmap = true;
+            _OnTextureChanged();
+#else
+            Debug.LogWarning("[LightVolumeAdaptor] VRC Light Volumes are not imported. Please import the package to use this feature.");
+            enabled = false;
+#endif
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnTextureChanged() {
+            if (!DoReadbackRequest() || isRunning) return;
+            isRunning = true;
+            SendCustomEventDelayedFrames(nameof(_DoReadbackRequest), 0);
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _DoReadbackRequest() {
+            if (DoReadbackRequest())
+                SendCustomEventDelayedFrames(nameof(_DoReadbackRequest), 0);
+            else
+                isRunning = false;
+        }
+
+        bool DoReadbackRequest() {
+            if (!enabled || !gameObject.activeInHierarchy)
+                return false;
+            var videoTexture = core.VideoTexture;
+            if (!Utilities.IsValid(videoTexture)) {
+                SetColor(Color.black);
+                return false;
+            }
+            VRCAsyncGPUReadback.Request(videoTexture, videoTexture.mipmapCount - 1, TextureFormat.RGBA32, (IUdonEventReceiver)this);
+            return !core.IsStatic;
+        }
+
+        public override void OnAsyncGpuReadbackComplete(VRCAsyncGPUReadbackRequest request) {
+            if (request.hasError) {
+                SetColor(Color.black);
+                return;
+            }
+            int dataSize = request.layerDataSize / 4; // Assuming Color32 is 4 bytes
+            if (dataSize <= 0) {
+                SetColor(Color.black);
+                return;
+            }
+            if (!Utilities.IsValid(pixels) || pixels.Length < dataSize)
+                pixels = new Color32[dataSize];
+            if (!request.TryGetData(pixels)) {
+                SetColor(Color.black);
+                return;
+            }
+            SetColor((Color)pixels[dataSize / 2]);
+        }
+
+        void SetColor(Color color) {
+#if VRC_LIGHT_VOLUMES
+            if (!Utilities.IsValid(lightVolumes) || lightVolumes.Length == 0) return;
+            foreach (var lightVolume in lightVolumes) {
+                if (!Utilities.IsValid(lightVolume)) continue;
+                lightVolume.Color = color;
+            }
+            if (Utilities.IsValid(lightVolumeManager) &&
+                !lightVolumeManager.AutoUpdateVolumes)
+                lightVolumeManager.UpdateVolumes();
+#endif
+        }
+    }
+
+#if !COMPILER_UDONSHARP
+    partial class LightVolumeAdaptor : IVizVidCompoonent {
+        Core IVizVidCompoonent.Core => core;
+    }
+#endif
+}
