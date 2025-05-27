@@ -3,6 +3,7 @@ using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.SDK3.Components.Video;
+using VRC.SDK3.UdonNetworkCalling;
 using VRC.Udon.Common;
 using VRC.Udon.Common.Interfaces;
 using JLChnToZ.VRC.Foundation;
@@ -36,8 +37,6 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] internal InputFilterBase urlInputFilter;
         [UdonSynced] VRCUrl pcUrl, questUrl;
         VRCUrl localUrl, loadingUrl, lastUrl, altUrl, lastAltUrl;
-        // When playing, it is the time when the video started playing;
-        // When paused, it is the progress of the video in ticks.
         [UdonSynced] byte activePlayer;
         byte localActivePlayer, lastActivePlayer;
         // 0: Idle, 1: Loading, 2: Playing, 3: Paused
@@ -416,6 +415,7 @@ namespace JLChnToZ.VRC.VVMW {
         /// <remarks>
         /// When this method is invoked twice in a short time, it will request the owner to sync the player.
         /// </remarks>
+        [NetworkCallable]
         public void LocalSync() {
             if (synced) {
                 var currentTime = Networking.GetNetworkDateTime();

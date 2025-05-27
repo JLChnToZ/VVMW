@@ -2,6 +2,9 @@ using System;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
+#if COMPILER_UDONSHARP && UDON_NETWORKING_UPDATED
+using VRC.SDK3.UdonNetworkCalling;
+#endif
 using VRC.Udon.Common.Interfaces;
 using JLChnToZ.VRC.Foundation.I18N;
 
@@ -9,6 +12,8 @@ namespace JLChnToZ.VRC.VVMW {
     public partial class Core {
         [SerializeField, LocalizedLabel, Range(0, 5)] float timeDriftDetectThreshold = 0.9F;
         [UdonSynced] long ownerServerTime;
+        // When playing, it is the time when the video started playing;
+        // When paused, it is the progress of the video in ticks.
         [UdonSynced] long time;
         [UdonSynced] float syncedSpeed = 1, syncedActualSpeed = 1;
         [FieldChangeCallback(nameof(PerformerId))]
@@ -267,6 +272,9 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
 #if COMPILER_UDONSHARP
+#if UDON_NETWORKING_UPDATED
+        [NetworkCallable]
+#endif
         public
 #endif
         void OwnerSync() {

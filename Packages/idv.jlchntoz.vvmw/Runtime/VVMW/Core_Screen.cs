@@ -20,6 +20,13 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] internal Texture[] screenTargetDefaultTextures;
         [SerializeField, LocalizedLabel] bool broadcastScreenTexture;
         [SerializeField, LocalizedLabel] string broadcastScreenTextureName = "_Udon_VideoTex";
+        [SerializeField, LocalizedLabel]
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal
+#endif
+        bool enableMipmap;
         int[] screenTargetPropertyIds, avProPropertyIds;
         MaterialPropertyBlock screenTargetPropertyBlock;
         int broadcastTextureId;

@@ -70,7 +70,12 @@ namespace JLChnToZ.VRC.VVMW {
                 if (isActive) core.OnVideoReady();
                 return;
             }
-            loader.DownloadImage(url, null, (IUdonEventReceiver)this);
+            var textureInfo = new TextureInfo();
+            textureInfo.WrapModeU = TextureWrapMode.Clamp;
+            textureInfo.WrapModeV = TextureWrapMode.Clamp;
+            textureInfo.WrapModeW = TextureWrapMode.Clamp;
+            textureInfo.GenerateMipMaps = core.enableMipmap;
+            loader.DownloadImage(url, null, (IUdonEventReceiver)this, textureInfo);
             currentUrl = url;
             texture = null;
             isReady = false;

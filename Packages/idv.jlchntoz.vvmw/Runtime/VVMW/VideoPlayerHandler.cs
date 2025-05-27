@@ -41,7 +41,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, Resolve(".")] BaseVRCVideoPlayer videoPlayer;
         [SerializeField, HideInInspector, Resolve(".")] new Renderer renderer;
         RenderTexture bufferedTexture;
-        bool isWaitingForTexture, isFlickerWorkaroundTextureRunning, isLoadUrlRequested;
+        bool isWaitingForTexture, isReblitRunning, isLoadUrlRequested;
         MaterialPropertyBlock propertyBlock;
         int texturePropertyID, speedParameterID;
         bool isRealTimeProtocol;
@@ -198,10 +198,10 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void BlitBufferScreen() {
-            if (!isAvPro || !useFlickerWorkaround || isFlickerWorkaroundTextureRunning ||
-                !Utilities.IsValid(blitMaterial) || !Utilities.IsValid(texture) || !videoPlayer.IsPlaying)
+            if (!(core.enableMipmap || (isAvPro && useFlickerWorkaround && Utilities.IsValid(blitMaterial))) ||
+                isReblitRunning || !Utilities.IsValid(texture) || !videoPlayer.IsPlaying)
                 return;
-            isFlickerWorkaroundTextureRunning = true;
+            isReblitRunning = true;
             SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
             if (Utilities.IsValid(bufferedTexture) && texture.width == bufferedTexture.width && texture.height == bufferedTexture.height)
                 return;
@@ -215,22 +215,27 @@ namespace JLChnToZ.VRC.VVMW {
 #endif
         void _BlitBufferScreen() {
             if (!isActive || !videoPlayer.IsPlaying || !Utilities.IsValid(texture)) {
-                isFlickerWorkaroundTextureRunning = false;
+                isReblitRunning = false;
                 return;
             }
             if (isPaused) // Special case: we render 1 more frame when paused.
-                isFlickerWorkaroundTextureRunning = false;
+                isReblitRunning = false;
             else
                 SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
             if (!Utilities.IsValid(bufferedTexture)) {
                 int width = texture.width, height = texture.height;
-                Debug.Log($"[VVMW] Created temporary render texture for {playerName}: {width}x{height}");
-                bufferedTexture = VRCRenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB64, RenderTextureReadWrite.sRGB, 1);
-                bufferedTexture.filterMode = FilterMode.Bilinear;
+                bool useMipmap = core.enableMipmap;
+                Debug.Log($"[VVMW] Created temporary render texture for {playerName}: {width}x{height} {(useMipmap ? "with" : "without")} mipmap.");
+                var descriptor = new RenderTextureDescriptor(width, height, RenderTextureFormat.ARGB64, 0, useMipmap ? -1 : 0, RenderTextureReadWrite.sRGB);
+                descriptor.msaaSamples = 1;
+                bufferedTexture = VRCRenderTexture.GetTemporary(descriptor);
                 bufferedTexture.wrapMode = TextureWrapMode.Clamp;
                 core._OnTextureChanged();
             }
-            VRCGraphics.Blit(texture, bufferedTexture, blitMaterial);
+            if (Utilities.IsValid(blitMaterial))
+                VRCGraphics.Blit(texture, bufferedTexture, blitMaterial);
+            else
+                VRCGraphics.Blit(texture, bufferedTexture);
         }
 
 #if COMPILER_UDONSHARP
