@@ -19,10 +19,11 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, Resolve("/**")] LightVolumeManager lightVolumeManager;
         [SerializeField] LightVolumeInstance[] lightVolumes;
 #endif
+        Texture videoTexture;
         Color32[] pixels;
         bool isRunning;
 
-        void Start() {
+        void OnEnable() {
 #if VRC_LIGHT_VOLUMES
             core.enableMipmap = true;
             _OnTextureChanged();
@@ -30,6 +31,19 @@ namespace JLChnToZ.VRC.VVMW {
             Debug.LogWarning("[LightVolumeAdaptor] VRC Light Volumes are not imported. Please import the package to use this feature.");
             enabled = false;
 #endif
+        }
+
+        void OnDisable() => SetColor(Color.black);
+
+        public override void OnVideoPlay() {
+            if (!isRunning) _OnTextureChanged();
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnTimeDrift() {
+            if (!isRunning) _OnTextureChanged();
         }
 
 #if COMPILER_UDONSHARP
@@ -54,17 +68,18 @@ namespace JLChnToZ.VRC.VVMW {
         bool DoReadbackRequest() {
             if (!enabled || !gameObject.activeInHierarchy)
                 return false;
-            var videoTexture = core.VideoTexture;
+            videoTexture = core.VideoTexture;
             if (!Utilities.IsValid(videoTexture)) {
                 SetColor(Color.black);
                 return false;
             }
             VRCAsyncGPUReadback.Request(videoTexture, videoTexture.mipmapCount - 1, TextureFormat.RGBA32, (IUdonEventReceiver)this);
-            return !core.IsStatic;
+            return !core.IsStatic && core.IsPlaying && !core.IsPaused;
         }
 
         public override void OnAsyncGpuReadbackComplete(VRCAsyncGPUReadbackRequest request) {
-            if (request.hasError) {
+            if (!enabled || !gameObject.activeInHierarchy) return;
+            if (request.hasError || !Utilities.IsValid(videoTexture)) {
                 SetColor(Color.black);
                 return;
             }
@@ -79,7 +94,7 @@ namespace JLChnToZ.VRC.VVMW {
                 SetColor(Color.black);
                 return;
             }
-            SetColor((Color)pixels[dataSize / 2]);
+            SetColor(pixels[dataSize / 2]);
         }
 
         void SetColor(Color color) {
