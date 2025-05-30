@@ -6,13 +6,14 @@
         [Enum(Stretch, 0, Contain, 1, Cover, 2)]
         _ScaleMode ("Scale Mode", Int) = 2
         _StereoShift ("Stereo Shift (XY = Left XY, ZW = Right XY)", Vector) = (0, 0, 0, 0)
-        _StereoExtend ("Stereo Extend (XY)", Vector) = (1, 1, 0, 0)
+        _StereoExtend ("Stereo Extend (XY, Z = Half Mode Flag)", Vector) = (1, 1, 0, 0)
         _AspectRatio ("Target Aspect Ratio", Float) = 1.777778
         [Toggle(_)] _IsMirror ("Mirror Flip", Int) = 1
         [Toggle(_HAS_EMISSION_INTENSITY)] _HasEmission ("Enable Emission Intensity", Int) = 0
         _EmissionIntensity ("Emission Intensity", Range(0, 10)) = 1.0
         [Toggle(_ALPHA_CLIP)] _AlphaClip ("Alpha Clip", Int) = 0
         _AlphaClipThreshold ("Alpha Clip Threshold", Range(0, 1)) = 0.5
+        [Toggle(_STEREO_DEBUG)] _StereoDebug ("Stereo Debug", Int) = 0
     }
     SubShader {
         Tags {
@@ -30,6 +31,7 @@
 
             #pragma multi_compile_local __ _HAS_EMISSION_INTENSITY
             #pragma multi_compile_local __ _ALPHA_CLIP
+            #pragma shader_feature_local __ _STEREO_DEBUG
 
             struct appdata {
                 float4 vertex : POSITION;
@@ -52,7 +54,7 @@
             float _AspectRatio;
             float4 _MainTex_TexelSize;
             float4 _StereoShift;
-            float2 _StereoExtend;
+            float3 _StereoExtend;
             #ifdef _HAS_EMISSION_INTENSITY
             float _EmissionIntensity;
             #endif
@@ -74,7 +76,7 @@
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 float2 uv = i.uv;
                 if (_IsMirror && _VRChatMirrorMode) uv.x = 1.0 - uv.x;
-                half4 c = getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
+                half4 c = getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend.xy, _StereoExtend.z > 0.0001);
                 #ifdef _HAS_EMISSION_INTENSITY
                 c.rgb *= _EmissionIntensity;
                 #endif

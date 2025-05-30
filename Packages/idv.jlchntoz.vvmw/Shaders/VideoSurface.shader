@@ -6,12 +6,13 @@
         [Enum(Stretch, 0, Contain, 1, Cover, 2)]
         _ScaleMode ("Scale Mode", Int) = 2
         _StereoShift ("Stereo Shift (XY = Left XY, ZW = Right XY)", Vector) = (0, 0, 0, 0)
-        _StereoExtend ("Stereo Extend (XY)", Vector) = (1, 1, 0, 0)
+        _StereoExtend ("Stereo Extend (XY, Z = Half Mode Flag)", Vector) = (1, 1, 0, 0)
         _AspectRatio ("Target Aspect Ratio", Float) = 1.777778
         [Toggle(_)] _IsMirror ("Mirror Flip", Int) = 1
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
         _EmissionIntensity ("Emission Intensity", Range(0, 10)) = 1.0
+        [Toggle(_STEREO_DEBUG)] _StereoDebug ("Stereo Debug", Int) = 0
     }
     SubShader {
         Tags {
@@ -27,6 +28,7 @@
         // Use shader model 3.0 target, to get nicer looking lighting
         #pragma target 3.0
         #pragma shader_feature _EMISSION
+        #pragma shader_feature_local __ _STEREO_DEBUG
         #include "./VideoShaderCommon.cginc"
 
         sampler2D _MainTex;
@@ -38,7 +40,7 @@
         float _AspectRatio;
         float4 _MainTex_TexelSize;
         float4 _StereoShift;
-        float2 _StereoExtend;
+        float3 _StereoExtend;
         half _Glossiness;
         half _Metallic;
         half _EmissionIntensity;
@@ -57,7 +59,7 @@
         void surf (Input IN, inout SurfaceOutputStandard o) {
             float2 uv = IN.uv_MainTex;
             if (_IsMirror && _VRChatMirrorMode) uv.x = 1.0 - uv.x;
-            half3 videoColor = getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
+            half3 videoColor = getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend.xy, _StereoExtend.z > 0.0001);
             o.Albedo = _Color.rgb + videoColor;
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;

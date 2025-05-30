@@ -26,39 +26,59 @@ inline half4 readAVProTexture(sampler2D videoTex, float2 uv) {
     return c;
 }
 
+float2 getUnstratchedUV(float2 uv, float4 texelSize, int sizeMode, float aspectRatio, float2 stereoExtend) {
+    float srcAspectRatio = texelSize.y * texelSize.z * stereoExtend.x / stereoExtend.y;
+    if (abs(srcAspectRatio - aspectRatio) > 0.001) {
+        float2 scale = float2(aspectRatio / srcAspectRatio, srcAspectRatio / aspectRatio);
+        float4 scale2 = 1;
+        if (srcAspectRatio > aspectRatio)
+            scale2.zy = scale;
+        else
+            scale2.xw = scale;
+        float4 uv2 = (uv.xyxy - 0.5) * scale2 + 0.5;
+        switch (sizeMode) {
+            case 1: uv = uv2.xy; break;
+            case 2: uv = uv2.zw; break;
+        }
+    }
+    return uv;
+}
+
+float2 getUnstratchedUV(float2 uv, float4 texelSize, int sizeMode, float aspectRatio) {
+    return getUnstratchedUV(uv, texelSize, sizeMode, aspectRatio, float2(1, 1));
+}
+
 float2 getStereoUV(float2 uv, float4 stereoShift, float2 stereoExtend) {
     return uv * stereoExtend + lerp(stereoShift.xy, stereoShift.zw, unity_StereoEyeIndex);
 }
 
 half4 getVideoTexture(sampler2D videoTex, float2 uv, bool avPro, float4 stereoShift, float2 stereoExtend) {
     #ifdef _STEREO_DEBUG
+        half4 leftTexture = half4(1, 0.5, 0, 0.5), rightTexture = half4(0, 0.5, 1, 0.5);
         uv *= stereoExtend;
-        return avPro ?
-            readAVProTexture(videoTex, uv + stereoShift.xy) * float4(1, 0.5, 0, 0.5) + readAVProTexture(videoTex, uv + stereoShift.zw) * float4(0, 0.5, 1, 0.5) :
-            readVideoTexture(videoTex, uv + stereoShift.xy) * float4(1, 0.5, 0, 0.5) + readVideoTexture(videoTex, uv + stereoShift.zw) * float4(0, 0.5, 1, 0.5);
+        stereoShift += uv.xyxy;
+        if (avPro) {
+            leftTexture *= readAVProTexture(videoTex, stereoShift.xy);
+            rightTexture *= readAVProTexture(videoTex, stereoShift.zw);
+        } else {
+            leftTexture *= readVideoTexture(videoTex, stereoShift.xy);
+            rightTexture *= readVideoTexture(videoTex, stereoShift.zw);
+        }
+        return leftTexture + rightTexture;
     #else
         uv = getStereoUV(uv, stereoShift, stereoExtend);
         return avPro ? readAVProTexture(videoTex, uv) : readVideoTexture(videoTex, uv);
     #endif
 }
 
+half4 getVideoTexture(sampler2D videoTex, float2 uv, float4 texelSize, bool avPro, int sizeMode, float aspectRatio, float4 stereoShift, float2 stereoExtend, bool halfWidth) {
+    if (sizeMode) uv = getUnstratchedUV(uv, texelSize, sizeMode, aspectRatio, halfWidth ? float2(1, 1) : stereoExtend);
+    if (any(uv < 0 || uv > 1)) return 0;
+    return getVideoTexture(videoTex, uv, avPro, stereoShift, stereoExtend);
+}
+
 half4 getVideoTexture(sampler2D videoTex, float2 uv, float4 texelSize, bool avPro, int sizeMode, float aspectRatio, float4 stereoShift, float2 stereoExtend) {
-    if (sizeMode) {
-        float srcAspectRatio = texelSize.y * texelSize.z * stereoExtend.x / stereoExtend.y;
-        if (abs(srcAspectRatio - aspectRatio) > 0.001) {
-            float2 scale = float2(aspectRatio / srcAspectRatio, srcAspectRatio / aspectRatio);
-            float4 scale2 = 1;
-            if (srcAspectRatio > aspectRatio)
-                scale2.zy = scale;
-            else
-                scale2.xw = scale;
-            float4 uv2 = (uv.xyxy - 0.5) * scale2 + 0.5;
-            switch (sizeMode) {
-                case 1: uv = uv2.xy; break;
-                case 2: uv = uv2.zw; break;
-            }
-        }
-    }
+    if (sizeMode) uv = getUnstratchedUV(uv, texelSize, sizeMode, aspectRatio, stereoExtend);
     if (any(uv < 0 || uv > 1)) return 0;
     return getVideoTexture(videoTex, uv, avPro, stereoShift, stereoExtend);
 }
