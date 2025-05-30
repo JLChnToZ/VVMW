@@ -76,7 +76,6 @@
             half4 frag (v2f i) : SV_Target {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 float2 uv = i.uv;
-                if (_IsMirror && _VRChatMirrorMode) uv.x = 1.0 - uv.x;
                 half4 c = frag_getVideoTexture(_MainTex, uv, _IsAVProVideo, _StereoShift, _StereoExtend);
                 #ifdef _HAS_EMISSION_INTENSITY
                 c.rgb *= _EmissionIntensity;
