@@ -23,7 +23,7 @@
 
         CGPROGRAM
         // Physically based Standard lighting model, and enable shadows on all light types
-        #pragma surface surf Standard fullforwardshadows
+        #pragma surface surf Standard fullforwardshadows vertex:vert
 
         // Use shader model 3.0 target, to get nicer looking lighting
         #pragma target 3.0
@@ -56,10 +56,13 @@
             // put more per-instance properties here
         UNITY_INSTANCING_BUFFER_END(Props)
 
+        void vert (inout appdata_full v) {
+            if (_IsMirror && _VRChatMirrorMode) v.texcoord.x = 1.0 - v.texcoord.x;
+            v.texcoord.xy = vert_getVideoUV(v.texcoord.xy, _MainTex_TexelSize, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
+        }
+
         void surf (Input IN, inout SurfaceOutputStandard o) {
-            float2 uv = IN.uv_MainTex;
-            if (_IsMirror && _VRChatMirrorMode) uv.x = 1.0 - uv.x;
-            half3 videoColor = getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend.xy, _StereoExtend.z > 0.0001);
+            half3 videoColor = frag_getVideoTexture(_MainTex, IN.uv_MainTex, _IsAVProVideo, _StereoShift, _StereoExtend);
             o.Albedo = _Color.rgb + videoColor;
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;

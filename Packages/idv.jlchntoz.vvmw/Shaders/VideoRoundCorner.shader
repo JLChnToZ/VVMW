@@ -41,7 +41,7 @@
             };
 
             struct v2f {
-                float2 uv : TEXCOORD0;
+                float4 uv : TEXCOORD0; // XY = modified UVs, ZW = original UVs
                 float4 vertex : SV_POSITION;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -75,16 +75,16 @@
                 UNITY_INITIALIZE_OUTPUT(v2f, o);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = v.uv;
+                o.uv = v.uv.xyxy;
+                if (_IsMirror && _VRChatMirrorMode) v.uv.x = 1.0 - v.uv.x;
+                o.uv.xy = vert_getVideoUV(v.uv.xy, _MainTex_TexelSize, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
                 return o;
             }
 
             half4 frag (v2f i) : SV_Target {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                float2 uv = i.uv;
-                clipRoundCorner(uv, _AspectRatio, _Radius);
-                if (_IsMirror && _VRChatMirrorMode) uv.x = 1.0 - uv.x;
-                half4 c = getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend.xy, _StereoExtend.z > 0.0001);
+                clipRoundCorner(i.uv.zw, _AspectRatio, _Radius);
+                half4 c = frag_getVideoTexture(_MainTex, i.uv.xy, _IsAVProVideo, _StereoShift, _StereoExtend);
                 #ifdef _HAS_EMISSION_INTENSITY
                 c.rgb *= _EmissionIntensity;
                 #endif

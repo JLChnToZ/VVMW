@@ -20,7 +20,7 @@
             Name "VideoCRT"
             CGPROGRAM
             #include "UnityCustomRenderTexture.cginc"
-            #pragma vertex CustomRenderTextureVertexShader
+            #pragma vertex vert
             #pragma fragment frag
             #pragma target 3.0
             #pragma shader_feature_local __ _STEREO_DEBUG
@@ -36,8 +36,14 @@
             float4 _StereoShift;
             float3 _StereoExtend;
 
+            v2f_customrendertexture vert (appdata_customrendertexture IN) {
+                v2f_customrendertexture OUT = CustomRenderTextureVertexShader(IN);
+                OUT.globalTexcoord.xy = vert_getVideoUV(OUT.globalTexcoord.xy, _MainTex_TexelSize, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
+                return OUT;
+            }
+
             half4 frag (v2f_customrendertexture i) : SV_Target {
-                return getVideoTexture(_MainTex, i.globalTexcoord.xy, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend.xy, _StereoExtend.z > 0.0001);
+                return frag_getVideoTexture(_MainTex, i.globalTexcoord.xy, _IsAVProVideo, _StereoShift, _StereoExtend) * _Color;
             }
             ENDCG
         }

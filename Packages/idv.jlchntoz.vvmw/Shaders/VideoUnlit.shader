@@ -68,7 +68,8 @@
                 UNITY_INITIALIZE_OUTPUT(v2f, o);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = v.uv;
+                if (_IsMirror && _VRChatMirrorMode) v.uv.x = 1.0 - v.uv.x;
+                o.uv = vert_getVideoUV(v.uv, _MainTex_TexelSize, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
                 return o;
             }
 
@@ -76,7 +77,7 @@
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 float2 uv = i.uv;
                 if (_IsMirror && _VRChatMirrorMode) uv.x = 1.0 - uv.x;
-                half4 c = getVideoTexture(_MainTex, uv, _MainTex_TexelSize, _IsAVProVideo, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend.xy, _StereoExtend.z > 0.0001);
+                half4 c = frag_getVideoTexture(_MainTex, uv, _IsAVProVideo, _StereoShift, _StereoExtend);
                 #ifdef _HAS_EMISSION_INTENSITY
                 c.rgb *= _EmissionIntensity;
                 #endif
