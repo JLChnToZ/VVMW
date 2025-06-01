@@ -349,6 +349,11 @@ If you are using version v1.3.1 or below, or any reason you are unable to use ab
 [YTTL (Video title viewer)](https://65536.booth.pm/items/4588619) is an addon for providing ability to display titles from several known sources (e.g. YouTube, Twitch, SoundCloud) in video players, it was created by ureishi and it is licensed with CC0. However, installing it on video players that are not originally supported, including VizVid, can be a bit tricky if you're not familiar with the technical side of things. To make it easier, we've included a modified version of YTTL, but you'll still need to follow a few steps to enable it:
 Right-click on the player object in hierarchy, and select `VizVid > YTTL`.
 
+### VRC Light Volumes
+[VRC Light Volumes](https://github.com/REDSIM/VRCLightVolumes) is an alternative to light probes for better environmental shading on avatars and other dynamic objects in world. VizVid has an dedicated component to better integrate with this system, which updates the light volume you want as the video screen updates.
+
+Since it is still in heavy development and lacks of detailed documentation, it is not straight forward to setup, but you can follow [this video](https://x.com/JLChnToZ/status/1925848509837680684/video/1) to do it. The main difference is you can use the "Light Volume Adaptor (VizVid)" instead of "Light Volume TVGI" when working with VizVid for sightly better performance.
+
 ### Topaz Chat / VRCDN (And Other Streaming Service)
 VizVid is capable to stream from Topaz Chat (and other streaming service).
 We don't recommend to make multiple video player switches for "live stream mode" as this will make your world performance heavier and might bring more synchronizing bugs.

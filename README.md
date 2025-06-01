@@ -31,6 +31,7 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 - Basic [Audio Link](https://github.com/llealloo/vrc-udon-audio-link) support, which will auto switch audio source when playing, also reports player state (playback progress, volume, loop, shuffle, etc.) on newer version (1.0.0+).
 - Basic [LTCGI](https://ltcgi.dev/) integration, provided CustomRenderTexture for use.
 - Bundled a modified version of [YTTL](https://65536.booth.pm/items/4588619) to display video title from known sources.
+- Dedicated updater for [VRC Light Volumes](https://github.com/REDSIM/VRCLightVolumes).
 - Simple API for [your own udons] integration.
 - Privacy first - We guarantee we do not include features that requires dedicated server to work; Also, features requires external resources are not opt-in by default.
 
@@ -88,6 +89,9 @@ You can't:
 
 You must:
 - Include the copyright notice / credits, **especially when copying any portion of source code / assets to other projects**. (As long as you keep the original credit section on the UI when included in your worlds, you don't need to take any action for this)
+
+## Changelog
+[Click here](./CHANGELOG.md)
 
 ***
 

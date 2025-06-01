@@ -346,6 +346,11 @@ VizVid 支援 [LTCGI](https://ltcgi.dev/)。
 [YTTL (Video title viewer)](https://65536.booth.pm/items/4588619) (由 ureishi 製作，遵循創用 CC0 授權方式) 可以從知名影片網站 (YouTube、Twitch、niconico 動畫、SoundCloud) 取得標題，並顯示於播放器上。VizVid 雖然內建官方認證相容版的 YTTL，但需要遵循以下步驟啟用：
 於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > YTTL`以啟用。
 
+### VRC Light Volumes
+[VRC Light Volumes](https://github.com/REDSIM/VRCLightVolumes) 是一種替代光照探針的方案，用於改善世界中 Avatar 和其他動態物件的環境陰影。VizVid 有一個專門的組件，可以更好地整合此系統，使影片畫面光照同步到您想要的範圍。
+
+由於它仍在密集開發中，且缺乏詳細的文檔，因此設置並不直觀，但您可以參考[此影片](https://x.com/JLChnToZ/status/1925848509837680684/video/1)來進行設置。主要區別在於，當與 VizVid 一起使用時，您可以使用 "Light Volume Adaptor (VizVid)" 而不是 "Light Volume TVGI"，以獲得略微更好的性能。  
+
 ### Topaz Chat / VRCDN (和其他串流服務)
 VizVid 支援 Topaz Chat、VRCDN 等等串流服務的播放。但在同個世界中，如果讓多個播放器同時進入串流模式，可能會導致世界的效能降低，並發生更多同步問題。要正確設定 Topaz Chat 與 VRCDN，請依照以下說明操作：
 
