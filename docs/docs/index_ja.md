@@ -309,7 +309,7 @@ VizVid v1.3.1以前、また他の事情で上記の方法で統合出来ない�
 ### YTTL<a name="yttl"></a>
 [YTTL (動画タイトル表示)](https://65536.booth.pm/items/4588619) はureishi様が製作し、CC0ライセンスで使用させて頂いており、有名なサイト (YouTube・Twitch・ニコニコ動画・SoundCloud) からタイトルを取得し、プレイヤーに表示するプラグインです。VizVidは公認対応版のYTTLをご用意しましたが、有効化するには、いくつかの手順が必要となります：Unityヒエラルキーにあるプレイヤーオブジェクトを右クリック、`VizVid > YTTL`を選択します。
 
-### VRC Light Volumes（日文）
+### VRC Light Volumes
 [VRC Light Volumes](https://github.com/REDSIM/VRCLightVolumes) は、アバターやその他の動的なオブジェクトの世界での環境陰影を改善するための、光プローブの代替手段です。VizVid には、このシステムとより良く統合するための専用コンポーネントがあり、ビデオ画面が更新されるたびに、 desired light volume を更新します。
 
 まだ開発が盛んで、詳細なドキュメントが不足しているため、セットアップは直感的ではありませんが、[この動画](https://x.com/JLChnToZ/status/1925848509837680684/video/1) を参考にしてください。主要な違いは、VizVid と一緒に使用する場合、 “Light Volume Adaptor (VizVid)” を “Light Volume TVGI” の代わりに使用することで、若干の性能向上を得られる点です。  
