@@ -13,6 +13,7 @@ using VRCLightVolumes;
 namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     [AddComponentMenu("VizVid/Light Volume Adaptor (VizVid)")]
+    [HelpURL("https://xtlcdn.github.io/VizVid/docs/#vrc-light-volumes")]
     public partial class LightVolumeAdaptor : VizVidBehaviour {
         [SerializeField, BindUdonSharpEvent, Locatable, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")] Core core;
 #if VRC_LIGHT_VOLUMES
