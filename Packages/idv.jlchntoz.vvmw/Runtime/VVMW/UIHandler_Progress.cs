@@ -41,7 +41,7 @@ namespace JLChnToZ.VRC.VVMW {
                     progressSlider.interactable = false;
                 }
             } else {
-                SetStatusEnabled(false);
+                SetStatusEnabled(!string.IsNullOrEmpty(core.title));
                 var time = TimeSpan.FromSeconds(core.Time);
                 var durationTS = TimeSpan.FromSeconds(duration);
                 SetText(durationText, durationTMPro, string.Format(languageManager.GetLocale("TimeFormat"), durationTS));
