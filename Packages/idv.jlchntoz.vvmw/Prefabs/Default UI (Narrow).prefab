@@ -2645,6 +2645,13 @@ MonoBehaviour:
   shiftOffsetObject: {fileID: 5267076307367120199}
   shiftOffsetText: {fileID: 4039770487602343759}
   shiftOffsetTMPro: {fileID: 0}
+  performanceModeToggle: {fileID: 0}
+  performanceModeSelf: {fileID: 0}
+  performanceModeOthers: {fileID: 0}
+  performanceModeOff: {fileID: 0}
+  performerDisplay: {fileID: 0}
+  performerText: {fileID: 0}
+  performerTMPro: {fileID: 0}
   speedControlsRoot: {fileID: 0}
   speedDownLButton: {fileID: 5798492823202812226}
   speedDownLButtonObject: {fileID: 0}
@@ -2782,7 +2789,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 2
   m_TargetDisplay: 0
 --- !u!114 &6165191218853122114
 MonoBehaviour:
@@ -3161,7 +3168,10 @@ MonoBehaviour:
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: 5802333995413407533}
   manager: {fileID: 0}
+  dynamicBinding: 0
   key: Reload
+  text: {fileID: 0}
+  textMeshPro: {fileID: 0}
 --- !u!114 &2402123855389299665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3535,7 +3545,10 @@ MonoBehaviour:
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: 6948397041025613592}
   manager: {fileID: 0}
+  dynamicBinding: 0
   key: URLInput
+  text: {fileID: 0}
+  textMeshPro: {fileID: 0}
 --- !u!114 &6948397041025613592
 MonoBehaviour:
   m_ObjectHideFlags: 0

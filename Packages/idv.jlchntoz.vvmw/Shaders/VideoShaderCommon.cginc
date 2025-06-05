@@ -87,20 +87,17 @@ half4 getVideoTexture(sampler2D videoTex, float2 uv, float4 texelSize, bool avPr
     return getVideoTexture(videoTex, uv, texelSize, avPro, sizeMode, aspectRatio, 0, 1);
 }
 
-float2 vert_getVideoUV(float2 uv, float4 texelSize, int sizeMode, float aspectRatio, float4 stereoShift, float3 stereoExtendAndHalfWidth) {
+inline float2 vert_getVideoUV(float2 uv, float4 texelSize, int sizeMode, float aspectRatio, float3 stereoExtendAndHalfWidth) {
     if (sizeMode) uv = getUnstratchedUV(uv, texelSize, sizeMode, aspectRatio, stereoExtendAndHalfWidth.z > 0.0001 ? float2(1, 1) : stereoExtendAndHalfWidth.xy);
-    #ifndef _STEREO_DEBUG
-        uv = getStereoUV(uv, stereoShift, stereoExtendAndHalfWidth.xy);
-    #endif
     return uv;
 }
 
-half4 frag_getVideoTexture(sampler2D videoTex, float2 uv, bool avPro, float4 stereoShift, float3 stereoExtend) {
+inline float2 vert_getVideoUV(float2 uv, float4 texelSize, int sizeMode, float aspectRatio, float4 stereoShift, float3 stereoExtendAndHalfWidth) {
+    return vert_getVideoUV(uv, texelSize, sizeMode, aspectRatio, stereoExtendAndHalfWidth);
+}
+
+inline half4 frag_getVideoTexture(sampler2D videoTex, float2 uv, bool avPro, float4 stereoShift, float3 stereoExtend) {
     if (any(uv < 0 || uv > 1)) return 0;
-    #ifdef _STEREO_DEBUG
-        return getVideoTexture(videoTex, uv, avPro, stereoShift, stereoExtend.xy);
-    #else
-        return avPro ? readAVProTexture(videoTex, uv) : readVideoTexture(videoTex, uv);
-    #endif
+    return getVideoTexture(videoTex, uv, avPro, stereoShift, stereoExtend.xy);
 }
 #endif
