@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UdonSharpEditor;
 using JLChnToZ.VRC.Foundation.Editors;
@@ -21,6 +22,20 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     changed = true;
                 }
 #endif
+                var audioControllers = new List<AbstractAudioController>();
+                var audioSources = new HashSet<AudioSource>(core.audioSources);
+                foreach (var audioSource in core.audioSources) {
+                    if (audioSource == null || !audioSource.TryGetComponent(out AbstractAudioController controller))
+                        continue;
+                    controller.core = core;
+                    audioSources.Remove(audioSource);
+                    audioControllers.Add(controller);
+                    changed = true;
+                    UdonSharpEditorUtility.CopyProxyToUdon(controller);
+                }
+                core.audioSources = new AudioSource[audioSources.Count];
+                audioSources.CopyTo(core.audioSources);
+                core.audioControllers = audioControllers.ToArray();
                 if (changed) UdonSharpEditorUtility.CopyProxyToUdon(core);
             }
         }

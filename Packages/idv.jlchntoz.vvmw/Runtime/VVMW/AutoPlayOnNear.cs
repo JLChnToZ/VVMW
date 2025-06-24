@@ -3,6 +3,7 @@ using UnityEngine;
 using VRC.SDKBase;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
+using VRC.SDK3.Data;
 
 namespace JLChnToZ.VRC.VVMW {
     /// <summary>
@@ -14,9 +15,20 @@ namespace JLChnToZ.VRC.VVMW {
     public class AutoPlayOnNear : VizVidBehaviour {
         [SerializeField, Locatable, LocalizedLabel(Key = "VVMW.Handler")] FrontendHandler handler;
         [SerializeField, LocalizedLabel] float distance = 0;
+        DataDictionary enteredPlayers;
+        VRCPlayerApi localPlayer;
+        bool isSynced;
         bool wasPlaying;
 
         void OnEnable() {
+            if (Utilities.IsValid(handler)) isSynced = handler.core.IsSynced;
+            localPlayer = Networking.LocalPlayer;
+            if (isSynced) {
+                if (Utilities.IsValid(enteredPlayers))
+                    enteredPlayers.Clear();
+                else
+                    enteredPlayers = new DataDictionary();
+            }
             if (distance > 0) SendCustomEventDelayedFrames(nameof(_SlowUpdate), 0);
             Stop();
         }
@@ -27,9 +39,8 @@ namespace JLChnToZ.VRC.VVMW {
         void _SlowUpdate() {
             if (!enabled || !gameObject.activeInHierarchy) return;
             SendCustomEventDelayedSeconds(nameof(_SlowUpdate), 0.5F);
-            var player = Networking.LocalPlayer;
-            if (!Utilities.IsValid(player)) return;
-            if (Vector3.Distance(player.GetPosition(), transform.position) <= distance) {
+            if (!Utilities.IsValid(localPlayer)) return;
+            if (Vector3.Distance(localPlayer.GetPosition(), transform.position) <= distance) {
                 if (!wasPlaying) Play();
             } else {
                 if (wasPlaying) Stop();
@@ -37,20 +48,32 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public override void OnPlayerTriggerEnter(VRCPlayerApi player) {
-            if (player.isLocal && distance <= 0) Play();
+            if (distance > 0) return;
+            if (isSynced) {
+                if (enteredPlayers.Count == 0) Play();
+                enteredPlayers[player.playerId] = true;
+            } else if (player.isLocal)
+                Play();
         }
 
         public override void OnPlayerTriggerExit(VRCPlayerApi player) {
-            if (player.isLocal && distance <= 0) Stop();
+            if (distance > 0) return;
+            if (isSynced) {
+                if (enteredPlayers.Remove(player.playerId) && enteredPlayers.Count == 0)
+                    Stop();
+            } else if (player.isLocal)
+                Stop();
         }
 
         void Play() {
-            if (Utilities.IsValid(handler)) handler._AutoPlay();
+            if (Utilities.IsValid(handler) && (!isSynced || Networking.IsOwner(Networking.LocalPlayer, handler.gameObject)))
+                handler._AutoPlay();
             wasPlaying = true;
         }
 
         void Stop() {
-            if (Utilities.IsValid(handler)) handler._Stop();
+            if (Utilities.IsValid(handler) && (!isSynced || Networking.IsOwner(Networking.LocalPlayer, handler.gameObject)))
+                handler._Stop();
             wasPlaying = false;
         }
     }
