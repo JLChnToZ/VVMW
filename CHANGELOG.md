@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Add Audio Controller allows external scripts to control individual audio volumes without interference with video player volume control.
+
+### Changed
+- Auto Play on Near now partially works when synchronization enabled.
+
 ## 1.4.5
 ### Added
 - Support for half stereo mode
