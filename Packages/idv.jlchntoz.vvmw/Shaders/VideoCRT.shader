@@ -5,8 +5,8 @@
         [Toggle(_)] _IsAVProVideo ("AVPro Video", Int) = 0
         [Enum(Stretch, 0, Contain, 1, Cover, 2)]
         _ScaleMode ("Scale Mode", Int) = 2
-        _StereoShift ("Stereo Shift (XY = Left XY, ZW = Right XY)", Vector) = (0, 0, 0, 0)
-        _StereoExtend ("Stereo Extend (XY, Z = Half Mode Flag)", Vector) = (1, 1, 0, 0)
+        [Vector(Left X, Left Y, Right X, Right Y)] _StereoShift ("Stereo Shift", Vector) = (0, 0, 0, 0)
+        [Vector(X, Y, Half Mode)] _StereoExtend ("Stereo Extend", Vector) = (1, 1, 0, 0)
         _AspectRatio ("Target Aspect Ratio", Float) = 1.777778
         [Toggle(_STEREO_DEBUG)] _StereoDebug ("Stereo Debug", Int) = 0
     }
