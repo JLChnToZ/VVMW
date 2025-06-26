@@ -15,6 +15,11 @@ namespace JLChnToZ.VRC.VVMW {
     public class AutoPlayOnNear : VizVidBehaviour {
         [SerializeField, Locatable, LocalizedLabel(Key = "VVMW.Handler")] FrontendHandler handler;
         [SerializeField, LocalizedLabel] float distance = 0;
+        [SerializeField] bool interruptOnEnter = true;
+        [SerializeField] bool stopOnLeave = true;
+        [SerializeField] bool unmuteOnEnter = false;
+        [SerializeField] bool muteOnLeave = false;
+        [SerializeField, Range(0, 1)] float unmuteVolume = 0.5F;
         DataDictionary enteredPlayers;
         VRCPlayerApi localPlayer;
         bool isSynced;
@@ -41,9 +46,17 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomEventDelayedSeconds(nameof(_SlowUpdate), 0.5F);
             if (!Utilities.IsValid(localPlayer)) return;
             if (Vector3.Distance(localPlayer.GetPosition(), transform.position) <= distance) {
-                if (!wasPlaying) Play();
+                if (!wasPlaying) {
+                    Play();
+                    if (unmuteOnEnter) SetVolumes(unmuteVolume);
+                    wasPlaying = true;
+                }
             } else {
-                if (wasPlaying) Stop();
+                if (wasPlaying) {
+                    Stop();
+                    if (muteOnLeave) SetVolumes(0);
+                    wasPlaying = false;
+                }
             }
         }
 
@@ -54,6 +67,7 @@ namespace JLChnToZ.VRC.VVMW {
                 enteredPlayers[player.playerId] = true;
             } else if (player.isLocal)
                 Play();
+            if (unmuteOnEnter && player.isLocal) SetVolumes(unmuteVolume);
         }
 
         public override void OnPlayerTriggerExit(VRCPlayerApi player) {
@@ -63,18 +77,27 @@ namespace JLChnToZ.VRC.VVMW {
                     Stop();
             } else if (player.isLocal)
                 Stop();
+            if (muteOnLeave && player.isLocal)
+                SetVolumes(0);
         }
 
         void Play() {
-            if (Utilities.IsValid(handler) && (!isSynced || Networking.IsOwner(Networking.LocalPlayer, handler.gameObject)))
+            if (Utilities.IsValid(handler) && (!isSynced || Networking.IsOwner(Networking.LocalPlayer, handler.gameObject)) && (interruptOnEnter || !handler.core.IsPlaying))
                 handler._AutoPlay();
-            wasPlaying = true;
         }
 
         void Stop() {
-            if (Utilities.IsValid(handler) && (!isSynced || Networking.IsOwner(Networking.LocalPlayer, handler.gameObject)))
+            if (Utilities.IsValid(handler) && (!isSynced || Networking.IsOwner(Networking.LocalPlayer, handler.gameObject)) && stopOnLeave)
                 handler._Stop();
-            wasPlaying = false;
+        }
+
+        void SetVolumes(float volume) {
+            if (!Utilities.IsValid(handler)) return;
+            var audioControllers = handler.core.audioControllers;
+            if (!Utilities.IsValid(audioControllers)) return;
+            foreach (var audioController in audioControllers)
+                if (Utilities.IsValid(audioController))
+                    audioController.Volume = volume;
         }
     }
 }
