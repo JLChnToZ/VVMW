@@ -5,13 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## 1.4.6-beta.1 - 2025-06-27
+### Fixed
+- Unable to compile on older VRCSDK (despite updating is recommended).
+
 ### Added
 - Add Audio Controller allows external scripts to control individual audio volumes without interference with video player volume control.
 
 ### Changed
-- Auto Play on Near now partially works when synchronization enabled.
+- Auto Play on Near now partially works when synchronization enabled, alongside with some new options.
 
-## 1.4.5
+## 1.4.5 - 2025-06-01
 ### Added
 - Support for half stereo mode
 - A proper changelog
