@@ -3,7 +3,9 @@ using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.SDK3.Components.Video;
+#if VRCSDK_3_8_1_OR_NEWER
 using VRC.SDK3.UdonNetworkCalling;
+#endif
 using VRC.Udon.Common;
 using VRC.Udon.Common.Interfaces;
 using JLChnToZ.VRC.Foundation;
@@ -415,7 +417,9 @@ namespace JLChnToZ.VRC.VVMW {
         /// <remarks>
         /// When this method is invoked twice in a short time, it will request the owner to sync the player.
         /// </remarks>
+#if VRCSDK_3_8_1_OR_NEWER
         [NetworkCallable]
+#endif
         public void LocalSync() {
             if (synced) {
                 var currentTime = Networking.GetNetworkDateTime();
