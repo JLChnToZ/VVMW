@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- Selective rendering on all video shaders for mirrors and/or VRC cameras.
+
 ## 1.4.6-beta.1 - 2025-06-27
 ### Fixed
 - Unable to compile on older VRCSDK (despite updating is recommended).

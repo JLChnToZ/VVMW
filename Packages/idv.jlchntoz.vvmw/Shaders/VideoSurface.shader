@@ -9,6 +9,8 @@
         [Vector(X, Y, Half Mode)] _StereoExtend ("Stereo Extend", Vector) = (1, 1, 0, 0)
         _AspectRatio ("Target Aspect Ratio", Float) = 1.777778
         [Toggle(_)] _IsMirror ("Mirror Flip", Int) = 1
+        [EnumMask(Direct Look, VR Handheld Camera, Desktop Handheld Camera, Screenshot, VR Mirror, VR Handheld Camera in Mirror, _, VR Screenshot in Mirror, Desktop Mirror, _, Desktop Handheld Camera in Mirror, Desktop Screenshot in Mirror)]
+        _RenderMode ("Visible Modes", Int) = 4095
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
         _EmissionIntensity ("Emission Intensity", Range(0, 10)) = 1.0
@@ -29,6 +31,7 @@
         #pragma target 3.0
         #pragma shader_feature _EMISSION
         #pragma shader_feature_local __ _STEREO_DEBUG
+        #include "Packages/idv.jlchntoz.vrcw-foundation/Shaders/VRCMirrorCameraSelector.cginc"
         #include "./VideoShaderCommon.cginc"
 
         sampler2D _MainTex;
@@ -36,7 +39,6 @@
         int _IsAVProVideo;
         int _ScaleMode;
         int _IsMirror;
-        int _VRChatMirrorMode;
         float _AspectRatio;
         float4 _MainTex_TexelSize;
         float4 _StereoShift;
@@ -57,7 +59,12 @@
         UNITY_INSTANCING_BUFFER_END(Props)
 
         void vert (inout appdata_full v) {
-            if (_IsMirror && _VRChatMirrorMode) v.texcoord.x = 1.0 - v.texcoord.x;
+            if (!isVisibleInVRC()) {
+                v.vertex = float4(0, 0, 0, 1);
+                v.texcoord.xy = float2(0, 0);
+                return;
+            }
+            if (_IsMirror && isInVRCMirror()) v.texcoord.x = 1.0 - v.texcoord.x;
             v.texcoord.xy = vert_getVideoUV(v.texcoord.xy, _MainTex_TexelSize, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
         }
 

@@ -10,6 +10,8 @@
         _AspectRatio ("Target Aspect Ratio", Float) = 1.777778
         _Radius ("Corner Radius", Range(0, 0.5)) = 0.05
         [Toggle(_)] _IsMirror ("Mirror Flip", Int) = 1
+        [EnumMask(Direct Look, VR Handheld Camera, Desktop Handheld Camera, Screenshot, VR Mirror, VR Handheld Camera in Mirror, _, VR Screenshot in Mirror, Desktop Mirror, _, Desktop Handheld Camera in Mirror, Desktop Screenshot in Mirror)]
+        _RenderMode ("Visible Modes", Int) = 4095
         [Toggle(_HAS_EMISSION_INTENSITY)] _HasEmission ("Enable Emission Intensity", Int) = 0
         _EmissionIntensity ("Emission Intensity", Range(0, 10)) = 1.0
         [Toggle(_ALPHA_CLIP)] _AlphaClip ("Alpha Clip", Int) = 0
@@ -28,6 +30,7 @@
             #pragma fragment frag
 
             #include "UnityCG.cginc"
+            #include "Packages/idv.jlchntoz.vrcw-foundation/Shaders/VRCMirrorCameraSelector.cginc"
             #include "./VideoShaderCommon.cginc"
 
             #pragma multi_compile_local __ _HAS_EMISSION_INTENSITY
@@ -51,7 +54,6 @@
             int _IsAVProVideo;
             int _ScaleMode;
             int _IsMirror;
-            int _VRChatMirrorMode;
             float _AspectRatio;
             float _Radius;
             float4 _MainTex_TexelSize;
@@ -73,10 +75,11 @@
                 v2f o;
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_INITIALIZE_OUTPUT(v2f, o);
+                if (!isVisibleInVRC()) return o;
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv.xyxy;
-                if (_IsMirror && _VRChatMirrorMode) v.uv.x = 1.0 - v.uv.x;
+                if (_IsMirror && isInVRCMirror()) v.uv.x = 1.0 - v.uv.x;
                 o.uv.xy = vert_getVideoUV(v.uv.xy, _MainTex_TexelSize, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
                 return o;
             }
