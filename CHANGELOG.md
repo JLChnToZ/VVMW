@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## 1.4.6 - 2025-07-05
+Nothing changed since last beta version.
+
 ## 1.4.6-beta.2 - 2025-07-02
 ### Added
 - Selective rendering on all video shaders for mirrors and/or VRC cameras.
