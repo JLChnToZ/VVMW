@@ -54,7 +54,7 @@ namespace JLChnToZ.VRC.VVMW {
                     SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("Playing"), time, durationTS));
                 if (Utilities.IsValid(progressSlider)) {
                     progressSlider.SetValueWithoutNotify(core.Progress);
-                    progressSlider.interactable = true;
+                    progressSlider.interactable = !Utilities.IsValid(handler) || !handler.Locked;
                 }
             }
         }

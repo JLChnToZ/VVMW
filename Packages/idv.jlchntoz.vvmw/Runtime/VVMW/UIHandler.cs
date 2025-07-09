@@ -480,8 +480,8 @@ namespace JLChnToZ.VRC.VVMW {
                     if (!hasUpdate) {
                         hasUpdate = true;
                         _UpdateProgress();
-                    }
-                    progressSlider.interactable = unlocked;
+                    } else
+                        progressSlider.interactable = unlocked;
                 } else {
                     progressSlider.SetValueWithoutNotify(1);
                     progressSlider.interactable = false;
