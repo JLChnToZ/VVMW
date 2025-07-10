@@ -5,7 +5,7 @@ using JLChnToZ.VRC.Foundation;
 namespace JLChnToZ.VRC.VVMW {
     [RequireComponent(typeof(AudioSource))]
     public abstract class AbstractAudioController : UdonSharpBehaviour {
-        [Resolve("."), HideInInspector] protected AudioSource audioSource;
+        [SerializeField, Resolve("."), HideInInspector] protected AudioSource audioSource;
         [SerializeField, HideInInspector] internal protected Core core;
         [SerializeField, Range(0, 1), FieldChangeCallback(nameof(Volume))] protected float volume = 1;
         float internalVolume = 1;
