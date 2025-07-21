@@ -225,7 +225,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (!createIfNotFound) return null;
             var lvSetup = FindAnyObjectByType<LightVolumeSetup>();
             if (lvSetup == null) {
-                var go = new GameObject("Light Volume Manager", typeof(LightVolumeSetup), typeof(LightVolumeManager));
+                var go = new GameObject("Light Volume Manager", typeof(LightVolumeSetup));
                 go.TryGetComponent(out lvSetup);
                 lvSetup.SyncUdonScript();
                 Undo.RegisterCreatedObjectUndo(go, "Create Light Volume Manager");
