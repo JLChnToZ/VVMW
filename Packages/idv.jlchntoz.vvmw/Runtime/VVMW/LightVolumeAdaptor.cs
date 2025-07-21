@@ -15,10 +15,13 @@ namespace JLChnToZ.VRC.VVMW {
     [AddComponentMenu("VizVid/Light Volume Adaptor (VizVid)")]
     [HelpURL("https://xtlcdn.github.io/VizVid/docs/#vrc-light-volumes")]
     public partial class LightVolumeAdaptor : VizVidBehaviour {
-        [SerializeField, BindUdonSharpEvent, Locatable, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")] Core core;
+        [SerializeField, BindUdonSharpEvent, Locatable, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")] internal Core core;
 #if VRC_LIGHT_VOLUMES
         [SerializeField, Resolve("/**")] LightVolumeManager lightVolumeManager;
-        [SerializeField] LightVolumeInstance[] lightVolumes;
+        [SerializeField] internal LightVolumeInstance[] lightVolumes;
+#if VRC_LIGHT_VOLUMES_V2
+        [SerializeField] internal PointLightVolumeInstance[] pointLightVolumes;
+#endif
 #endif
         Texture videoTexture;
         Color32[] pixels;
@@ -100,14 +103,23 @@ namespace JLChnToZ.VRC.VVMW {
 
         void SetColor(Color color) {
 #if VRC_LIGHT_VOLUMES
-            if (!Utilities.IsValid(lightVolumes) || lightVolumes.Length == 0) return;
-            foreach (var lightVolume in lightVolumes) {
-                if (!Utilities.IsValid(lightVolume)) continue;
-                lightVolume.Color = color;
-            }
+            if (Utilities.IsValid(lightVolumes))
+                foreach (var lightVolume in lightVolumes) {
+                    if (!Utilities.IsValid(lightVolume)) continue;
+                    lightVolume.Color = color;
+                }
+#if VRC_LIGHT_VOLUMES_V2
+            if (Utilities.IsValid(pointLightVolumes))
+                foreach (var pointLightVolume in pointLightVolumes) {
+                    if (!Utilities.IsValid(pointLightVolume)) continue;
+                    pointLightVolume.Color = color;
+                }
+#else
+            else return;
             if (Utilities.IsValid(lightVolumeManager) &&
                 !lightVolumeManager.AutoUpdateVolumes)
                 lightVolumeManager.UpdateVolumes();
+#endif
 #endif
         }
     }

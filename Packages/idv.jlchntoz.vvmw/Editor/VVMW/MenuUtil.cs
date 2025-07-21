@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
+#if VRC_LIGHT_VOLUMES_V2
+using VRCLightVolumes;
+#endif
 using JLChnToZ.VRC.Foundation.Editors;
 using JLChnToZ.VRC.Foundation.I18N;
 using JLChnToZ.VRC.Foundation.I18N.Editors;
@@ -146,7 +149,95 @@ namespace JLChnToZ.VRC.VVMW {
         [MenuItem(createMenuRoot + "Additional Controls/Auto Play On Near (Local Only)", false, 49)]
         static void CreateAutoPlayOnNear() => SpawnPrefab(prefabRoot + "Auto Play On Near.prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Streem Key Assigner", false, 49)]
-        static void CreateStreemAssigner() => SpawnPrefab(prefabRoot + "Stream Key Assigner.prefab");
+        [MenuItem(createMenuRoot + "Additional Controls/Stream Key Assigner", false, 49)]
+        static void CreateStreamAssigner() => SpawnPrefab(prefabRoot + "Stream Key Assigner.prefab");
+
+#if VRC_LIGHT_VOLUMES_V2
+        [MenuItem(createMenuRoot + "Light Volume for Screen", false, 55)]
+        static void CreateLightVolumeForScreen() {
+            foreach (var screenObject in Selection.gameObjects)
+                CreateLightVolumeForScreen(screenObject);
+            Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
+        }
+
+        static void CreateLightVolumeForScreen(GameObject screenObject) {
+            if (screenObject == null) return;
+            var core = TryGetCoreFromScreenTarget(screenObject, out var targetTransform);
+            if (core == null) return;
+            var adaptor = TryGetAttachedAdaptor(core);
+            var lvObject = new GameObject("Light Volume for Screen", typeof(PointLightVolume));
+            var lvTransform = lvObject.transform;
+            lvTransform.SetParent(targetTransform, false);
+            if (targetTransform.TryGetComponent(out Renderer renderer)) {
+                var bounds = renderer.localBounds;
+                lvTransform.localPosition = bounds.center;
+                lvTransform.localScale = bounds.size;
+            } else {
+                lvTransform.localPosition = Vector3.zero;
+                lvTransform.localScale = Vector3.one;
+            }
+            lvTransform.localRotation = Quaternion.Euler(0, 180, 0);
+            lvObject.TryGetComponent(out PointLightVolume lv);
+            lv.Type = PointLightVolume.LightType.AreaLight;
+            lv.SyncUdonScript();
+
+            var array = adaptor.pointLightVolumes;
+            if (array == null || array.Length == 0)
+                array = new PointLightVolumeInstance[1];
+            else
+                Array.Resize(ref array, array.Length + 1);
+            lvObject.TryGetComponent(out array[^1]);
+            adaptor.pointLightVolumes = array;
+
+            EditorUtility.SetDirty(adaptor);
+            Undo.RegisterCreatedObjectUndo(lvObject, "Create Light Volume for Screen");
+        }
+
+        [MenuItem(createMenuRoot + "Light Volume for Screen", true, 55)]
+        static bool CreateLightVolumeForScreenValidate() {
+            var selectedGameObject = Selection.activeGameObject;
+            if (selectedGameObject == null) return false;
+            var core = TryGetCoreFromScreenTarget(selectedGameObject, out _);
+            return core != null;
+        }
+
+        static Core TryGetCoreFromScreenTarget(GameObject target, out Transform targetTransform) {
+            if (target.TryGetComponent(out ScreenConfigurator screenConfigurator)) {
+                targetTransform = screenConfigurator.screenRenderer != null ? screenConfigurator.screenRenderer.transform : target.transform;
+                return screenConfigurator.core;
+            }
+            foreach (var c in FindObjectsByType<Core>(FindObjectsSortMode.None))
+                foreach (var screenTarget in c.screenTargets)
+                    if (screenTarget is Component component && component.gameObject == target) {
+                        targetTransform = target.transform;
+                        return c;
+                    }
+            targetTransform = null;
+            return null;
+        }
+
+        static LightVolumeAdaptor TryGetAttachedAdaptor(Core core, bool createIfNotFound = true) {
+            foreach (var adaptor in FindObjectsByType<LightVolumeAdaptor>(FindObjectsSortMode.None))
+                if (adaptor.core == core) {
+                    if (createIfNotFound) Undo.RegisterCompleteObjectUndo(adaptor, "Update Light Volume Adaptor");
+                    return adaptor;
+                }
+            if (!createIfNotFound) return null;
+            var lvSetup = FindAnyObjectByType<LightVolumeSetup>();
+            if (lvSetup == null) {
+                var go = new GameObject("Light Volume Manager", typeof(LightVolumeSetup), typeof(LightVolumeManager));
+                go.TryGetComponent(out lvSetup);
+                lvSetup.SyncUdonScript();
+                Undo.RegisterCreatedObjectUndo(go, "Create Light Volume Manager");
+            }
+            var newAdaptorObject = new GameObject("Light Volume Adaptor", typeof(LightVolumeAdaptor));
+            newAdaptorObject.TryGetComponent(out LightVolumeAdaptor newAdaptor);
+            GameObjectUtility.SetParentAndAlign(newAdaptorObject, core.gameObject);
+            newAdaptor.core = core;
+            EditorUtility.SetDirty(newAdaptor);
+            Undo.RegisterCreatedObjectUndo(newAdaptorObject, "Create Light Volume Adaptor");
+            return newAdaptor;
+        }
+#endif
     }
 }
