@@ -352,7 +352,10 @@ Right-click on the player object in hierarchy, and select `VizVid > YTTL`.
 ### VRC Light Volumes
 [VRC Light Volumes](https://github.com/REDSIM/VRCLightVolumes) is an alternative to light probes for better environmental shading on avatars and other dynamic objects in world. VizVid has an dedicated component to better integrate with this system, which updates the light volume you want as the video screen updates.
 
-Since it is still in heavy development and lacks of detailed documentation, it is not straight forward to setup, but you can follow [this video](https://x.com/JLChnToZ/status/1925848509837680684/video/1) to do it. The main difference is you can use the "Light Volume Adaptor (VizVid)" instead of "Light Volume TVGI" when working with VizVid for sightly better performance.
+There are 2 ways to setup:
+
+1. One-click setup (VRC Light Volumes V2.0 or later, only supports video screen from VizVid prefabs): Right-click the video screen you want to add light volumes to it, select `VizVid > Light Volume for Screen`.
+2. Manual way: Follow [this video](https://x.com/JLChnToZ/status/1925848509837680684/video/1) to do it, but you can use the "Light Volume Adaptor (VizVid)" instead of "Light Volume TVGI".
 
 ### Topaz Chat / VRCDN (And Other Streaming Service)
 VizVid is capable to stream from Topaz Chat (and other streaming service).
