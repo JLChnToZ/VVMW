@@ -3,7 +3,7 @@
 嗨！VizVid 是一款為了 VRChat 所設計的多功能媒體播放器前端。它的用途廣泛，除了在地圖與朋友一起觀看影片或直播用的播放器、大型音樂表演的活動場地，甚至在展覽會或展示攤位都能使用。針對各式各樣的需求，VizVid 有著前所未有的靈活性。猶如電子零件廠販賣的電子用品般，只要打開後蓋，就能依各自所需，自由地進行調整。
 
 > [!NOTE]
-> 本說明文件內容，涵蓋了 v1.4.0 或往後更新的版本，一部分的說明與舊版會有所不同。
+> 本說明文件內容，涵蓋了 v1.4.7 或往後更新的版本，一部分的說明與舊版會有所不同。
 
 ## 安裝方法
 於 Hierarchy 空白處按下滑鼠右鍵，選擇`VizVid > Video Player`。  
@@ -347,9 +347,14 @@ VizVid 支援 [LTCGI](https://ltcgi.dev/)。
 於 Hierarchy 中的播放器物件上按下滑鼠右鍵，選擇`VizVid > YTTL`以啟用。
 
 ### VRC Light Volumes
-[VRC Light Volumes](https://github.com/REDSIM/VRCLightVolumes) 是一種替代光照探針的方案，用於改善世界中 Avatar 和其他動態物件的環境陰影。VizVid 有一個專門的組件，可以更好地整合此系統，使影片畫面光照同步到您想要的範圍。
+[VRC Light Volumes](https://github.com/REDSIM/VRCLightVolumes) 是別於 Light Probes，為角色與其他動態物件，提供更好的環境光上色方案。VizVid 已包含與該方案快速整合的元件，能讓其附近的 Light Volume 隨著螢幕更新。
 
-由於它仍在密集開發中，且缺乏詳細的文檔，因此設置並不直觀，但您可以參考[此影片](https://x.com/JLChnToZ/status/1925848509837680684/video/1)來進行設置。主要區別在於，當與 VizVid 一起使用時，您可以使用 "Light Volume Adaptor (VizVid)" 而不是 "Light Volume TVGI"，以獲得略微更好的性能。  
+以下提供兩種實裝方案：
+
+1. 一鍵設定
+    (僅支援 VRC Light Volumes 2.0 或往後版本，與 VizVid 的螢幕 Prefab)：
+    對要新增 Light Volumes 的 VizVid 螢幕物件點選滑鼠右鍵，選擇 `VizVid > Light Volume for Screen` 即可。
+2. 手動設定：依循[本影片](https://x.com/JLChnToZ/status/1925848509837680684/video/1)進行設定。除了「Light Volume TVGI」，也可以使用「Light Volume Adaptor (VizVid)」。
 
 ### Topaz Chat / VRCDN (和其他串流服務)
 VizVid 支援 Topaz Chat、VRCDN 等等串流服務的播放。但在同個世界中，如果讓多個播放器同時進入串流模式，可能會導致世界的效能降低，並發生更多同步問題。要正確設定 Topaz Chat 與 VRCDN，請依照以下說明操作：
