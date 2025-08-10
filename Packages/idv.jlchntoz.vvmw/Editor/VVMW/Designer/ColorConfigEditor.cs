@@ -10,11 +10,13 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     [CustomEditor(typeof(ColorConfig))]
     public class ColorConfigEditor : VVMWEditorBase {
         SerializedProperty colorsProperty;
+        SerializedProperty autoApplyOnBuildProperty;
         bool addRemoveFoldout;
 
         protected override void OnEnable() {
             base.OnEnable();
             colorsProperty = serializedObject.FindProperty("colors");
+            autoApplyOnBuildProperty = serializedObject.FindProperty("autoApplyOnBuild");
         }
 
         public override void DrawEmbeddedInspectorGUI() {
@@ -35,6 +37,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                         if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.removePalette")))
                             FUtils.DeleteElement(colorsProperty, colorsProperty.arraySize - 1);
                 }
+            EditorGUILayout.PropertyField(autoApplyOnBuildProperty);
         }
 
         public override void DrawInspectorGUI() {
