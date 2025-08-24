@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 ### Added
 - Option to auto apply color config on build
+- Option to auto detect aspect ratio on shader (PC only)
 
 ## 1.4.7 - 2025-07-24
 ### Added
