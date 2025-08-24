@@ -34,9 +34,9 @@
             #pragma target 4.0
             #pragma exclude_renderers gles gles3 glcore metal
 
-            #pragma multi_compile_local __ _HAS_EMISSION_INTENSITY
-            #pragma multi_compile_local __ _ALPHA_CLIP
-            #pragma shader_feature_local __ _STEREO_DEBUG
+            #pragma multi_compile_local_frag __ _HAS_EMISSION_INTENSITY
+            #pragma multi_compile_local_frag __ _ALPHA_CLIP
+            #pragma shader_feature_local_frag __ _STEREO_DEBUG
             #pragma shader_feature_local __ _ESTIMATE_ASPECT_RATIO
             #pragma multi_compile_fog
 
@@ -59,9 +59,9 @@
             #pragma vertex vert
             #pragma fragment frag
 
-            #pragma multi_compile_local __ _HAS_EMISSION_INTENSITY
-            #pragma multi_compile_local __ _ALPHA_CLIP
-            #pragma shader_feature_local __ _STEREO_DEBUG
+            #pragma multi_compile_local_frag __ _HAS_EMISSION_INTENSITY
+            #pragma multi_compile_local_frag __ _ALPHA_CLIP
+            #pragma shader_feature_local_frag __ _STEREO_DEBUG
             #pragma multi_compile_fog
 
             #define _ROUND_CORNER
