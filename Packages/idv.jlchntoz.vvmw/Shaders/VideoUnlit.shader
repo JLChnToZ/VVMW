@@ -19,13 +19,13 @@
         [Toggle(_STEREO_DEBUG)] _StereoDebug ("Stereo Debug", Int) = 0
     }
     SubShader {
+        Name "Full"
         Tags {
             "RenderType" = "Opaque"
             "VideoScreenFeatures" = "Brightness,AutoScale,Stereo"
         }
         LOD 100
         Pass {
-            Name "Full"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -46,13 +46,13 @@
         }
     }
     SubShader {
+        Name "Fallback"
         Tags {
             "RenderType" = "Opaque"
             "VideoScreenFeatures" = "Brightness,AutoScale,Stereo"
         }
         LOD 100
         Pass {
-            Name "Fallback"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag

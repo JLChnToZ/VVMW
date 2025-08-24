@@ -34,6 +34,7 @@ struct appdata {
         float4 vertex : SV_POSITION;
         float2 uv : TEXCOORD0;
         float3 worldPos : TEXCOORD1;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
     };
 
@@ -48,6 +49,7 @@ struct appdata {
         #ifdef _ESTIMATE_ASPECT_RATIO
             float aspectRatio : TEXCOORD2;
         #endif
+        UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
     };
 
@@ -62,7 +64,8 @@ struct appdata {
         for (uint i = 0; i < 3; i++) {
             g2f o;
             UNITY_INITIALIZE_OUTPUT(g2f, o);
-            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+            UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(IN[i], o);
+            UNITY_TRANSFER_INSTANCE_ID(IN[i], o);
             o.vertex = IN[i].vertex;
             #ifdef _ESTIMATE_ASPECT_RATIO
                 o.aspectRatio = aspectRatio;
@@ -88,6 +91,7 @@ struct appdata {
             float2 uv : TEXCOORD0;
         #endif
         UNITY_FOG_COORDS(1)
+        UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
     };
 #endif
