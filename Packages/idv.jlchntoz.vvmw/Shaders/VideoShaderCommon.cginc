@@ -39,8 +39,8 @@ inline float estimateAspectRatio(float3 p1, float2 uv1, float3 p2, float2 uv2, f
             deltaUV2.y, -deltaUV2.x,
             -deltaUV1.y, deltaUV1.x
         );
-        float3 dPosDU = float3(deltaPos1 * invUV._11 + deltaPos2 * invUV._12);
-        float3 dPosDV = float3(deltaPos1 * invUV._21 + deltaPos2 * invUV._22);
+        float3 dPosDU = deltaPos1 * invUV._11 + deltaPos2 * invUV._12;
+        float3 dPosDV = deltaPos1 * invUV._21 + deltaPos2 * invUV._22;
         float sqrW = dot(dPosDU, dPosDU), invW = 0;
         float3 tangent = float3(1, 0, 0);
         if (sqrW > 1e-6) {
@@ -48,9 +48,7 @@ inline float estimateAspectRatio(float3 p1, float2 uv1, float3 p2, float2 uv2, f
             tangent = dPosDU * invW;
         }
         aspect = 1 / max(length(dPosDV - dot(dPosDV, tangent) * tangent), 1e-6) / invW;
-        float2 minUV = min(min(uv1, uv2), uv3);
-        float2 maxUV = max(max(uv1, uv2), uv3);
-        float2 deltaUV = maxUV - minUV;
+        float2 deltaUV = max(max(uv1, uv2), uv3) - min(min(uv1, uv2), uv3);
         if (deltaUV.y > 1e-6) aspect *= deltaUV.x / deltaUV.y;
     }
     return aspect;
