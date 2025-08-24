@@ -29,8 +29,8 @@
 
         // Use shader model 3.0 target, to get nicer looking lighting
         #pragma target 3.0
-        #pragma shader_feature_frag _EMISSION
-        #pragma shader_feature_local_frag __ _STEREO_DEBUG
+        #pragma shader_feature_fragment _EMISSION
+        #pragma shader_feature_local_fragment __ _STEREO_DEBUG
         #include "Packages/idv.jlchntoz.vrcw-foundation/Shaders/VRCMirrorCameraSelector.cginc"
         #include "./VideoShaderCommon.cginc"
 
