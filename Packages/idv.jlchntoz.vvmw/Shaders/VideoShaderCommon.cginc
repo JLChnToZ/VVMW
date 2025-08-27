@@ -33,7 +33,7 @@ inline float estimateAspectRatio(float3 p1, float2 uv1, float3 p2, float2 uv2, f
     float2 deltaUV2 = uv3 - uv1;
     float det = deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x;
     float aspect = 1;
-    if (abs(det) > 1e-6) {
+    UNITY_BRANCH if (abs(det) > 1e-6) {
         float invDet = 1 / det;
         float2x2 invUV = invDet * float2x2(
             deltaUV2.y, -deltaUV2.x,
@@ -43,20 +43,20 @@ inline float estimateAspectRatio(float3 p1, float2 uv1, float3 p2, float2 uv2, f
         float3 dPosDV = deltaPos1 * invUV._21 + deltaPos2 * invUV._22;
         float sqrW = dot(dPosDU, dPosDU), invW = 0;
         float3 tangent = float3(1, 0, 0);
-        if (sqrW > 1e-6) {
+        UNITY_BRANCH if (sqrW > 1e-6) {
             invW = rsqrt(sqrW);
             tangent = dPosDU * invW;
         }
-        aspect = 1 / max(length(dPosDV - dot(dPosDV, tangent) * tangent), 1e-6) / invW;
+        aspect = length(dPosDV - dot(dPosDV, tangent) * tangent) * invW;
         float2 deltaUV = max(max(uv1, uv2), uv3) - min(min(uv1, uv2), uv3);
-        if (deltaUV.y > 1e-6) aspect *= deltaUV.x / deltaUV.y;
+        if (deltaUV.x > 1e-6) aspect *= deltaUV.y / deltaUV.x;
     }
-    return aspect;
+    return 1 / max(aspect, 1e-6);
 }
 
 float2 getUnstratchedUV(float2 uv, float4 texelSize, int sizeMode, float aspectRatio, float2 stereoExtend) {
     float srcAspectRatio = texelSize.y * texelSize.z * stereoExtend.x / stereoExtend.y;
-    if (abs(srcAspectRatio - aspectRatio) > 0.001) {
+    UNITY_BRANCH if (abs(srcAspectRatio - aspectRatio) > 0.001) {
         float2 scale = float2(aspectRatio / srcAspectRatio, srcAspectRatio / aspectRatio);
         float4 scale2 = 1;
         if (srcAspectRatio > aspectRatio)

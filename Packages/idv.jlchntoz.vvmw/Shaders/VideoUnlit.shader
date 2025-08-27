@@ -24,7 +24,7 @@
             "RenderType" = "Opaque"
             "VideoScreenFeatures" = "Brightness,AutoScale,Stereo"
         }
-        LOD 100
+        LOD 200
         Pass {
             CGPROGRAM
             #pragma vertex vert
@@ -33,11 +33,12 @@
             #pragma target 4.0
             #pragma exclude_renderers gles gles3 glcore metal
 
-            #pragma multi_compile_local_fragment __ _HAS_EMISSION_INTENSITY
-            #pragma multi_compile_local_fragment __ _ALPHA_CLIP
-            #pragma shader_feature_local_fragment __ _STEREO_DEBUG
-            #pragma shader_feature_local __ _ESTIMATE_ASPECT_RATIO
+            #pragma multi_compile_local_fragment _ _HAS_EMISSION_INTENSITY
+            #pragma multi_compile_local_fragment _ _ALPHA_CLIP
+            #pragma shader_feature_local_fragment _ _STEREO_DEBUG
+            #pragma shader_feature_local _ _ESTIMATE_ASPECT_RATIO
             #pragma multi_compile_fog
+            #pragma multi_compile_instancing
 
             #define GEOM_SUPPORT
 
@@ -57,10 +58,11 @@
             #pragma vertex vert
             #pragma fragment frag
 
-            #pragma multi_compile_local_fragment __ _HAS_EMISSION_INTENSITY
-            #pragma multi_compile_local_fragment __ _ALPHA_CLIP
-            #pragma shader_feature_local_fragment __ _STEREO_DEBUG
+            #pragma multi_compile_local_fragment _ _HAS_EMISSION_INTENSITY
+            #pragma multi_compile_local_fragment _ _ALPHA_CLIP
+            #pragma shader_feature_local_fragment _ _STEREO_DEBUG
             #pragma multi_compile_fog
+            #pragma multi_compile_instancing
 
             #include "./VideoUnlit.cginc"
             ENDCG
