@@ -121,8 +121,10 @@ namespace JLChnToZ.VRC.VVMW {
             if (Utilities.IsValid(videoPlayerSelectRoot)) videoPlayerSelectRoot.SetActive(false);
         }
 
-        void UpdatePlayerText() =>
+        void UpdatePlayerText() {
+            if (!Utilities.IsValid(videoPlayerSelectButtons)) return;
             SetLocalizedText(selectdPlayerText, selectdPlayerTMPro, videoPlayerSelectButtons[selectedPlayer - 1].Text);
+        }
 
 #if COMPILER_UDONSHARP
         public

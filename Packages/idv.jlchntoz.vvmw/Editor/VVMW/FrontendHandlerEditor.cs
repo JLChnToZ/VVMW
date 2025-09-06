@@ -94,14 +94,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 rect = EditorGUI.PrefixLabel(rect, tempContent);
                 var index = defaultPlayListIndexProperty.intValue;
-                bool forceUpdate = false;
                 if (!enableQueueListProperty.boolValue) index--;
                 if (index < 0 || index >= playListNames.Length) {
                     index = 0;
-                    forceUpdate = defaultPlayListIndexProperty.intValue != index;
+                    defaultPlayListIndexProperty.intValue = enableQueueListProperty.boolValue ? index + 1 : index;
                 }
                 index = EditorGUI.Popup(rect, index, playListNames);
-                if (forceUpdate || changed.changed) {
+                if (changed.changed) {
                     if (!enableQueueListProperty.boolValue && playListNames.Length > 0) index++;
                     defaultPlayListIndexProperty.intValue = index;
                 }

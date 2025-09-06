@@ -13,6 +13,9 @@ namespace JLChnToZ.VRC.VVMW {
     [AddComponentMenu("VizVid/Components/Auto Play On Near")]
     [HelpURL("https://xtlcdn.github.io/VizVid/docs/#how-to-setup-auto-plays-when-a-user-goes-nearby")]
     public class AutoPlayOnNear : VizVidBehaviour {
+        [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
+        [Resolve(nameof(handler) + "." + nameof(FrontendHandler.core), HideInInspectorIfResolvable = true)]
+        [Locatable] Core core;
         [SerializeField, Locatable, LocalizedLabel(Key = "VVMW.Handler")] FrontendHandler handler;
         [SerializeField, LocalizedLabel] float distance = 0;
         [SerializeField] bool interruptOnEnter = true;
@@ -26,7 +29,7 @@ namespace JLChnToZ.VRC.VVMW {
         bool wasPlaying;
 
         void OnEnable() {
-            if (Utilities.IsValid(handler)) isSynced = handler.core.IsSynced;
+            if (Utilities.IsValid(core)) isSynced = core.IsSynced;
             localPlayer = Networking.LocalPlayer;
             if (isSynced) {
                 if (Utilities.IsValid(enteredPlayers))
@@ -61,6 +64,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         public override void OnPlayerTriggerEnter(VRCPlayerApi player) {
+            Debug.Log($"OnPlayerTriggerEnter: {player.displayName}");
             if (distance > 0) return;
             if (isSynced) {
                 if (enteredPlayers.Count == 0) Play();
@@ -82,18 +86,28 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void Play() {
-            if (Utilities.IsValid(handler) && (!isSynced || Networking.IsOwner(Networking.LocalPlayer, handler.gameObject)) && (interruptOnEnter || !handler.core.IsPlaying))
-                handler._AutoPlay();
+            if (Utilities.IsValid(handler)) {
+                if ((!isSynced || Networking.IsOwner(Networking.LocalPlayer, handler.gameObject)) && (interruptOnEnter || !core.IsPlaying))
+                    handler._AutoPlay();
+            } else if (Utilities.IsValid(core)) {
+                if ((!isSynced || Networking.IsOwner(Networking.LocalPlayer, core.gameObject)) && (interruptOnEnter || !core.IsPlaying))
+                    core._PlayDefaultUrl();
+            }
         }
 
         void Stop() {
-            if (Utilities.IsValid(handler) && (!isSynced || Networking.IsOwner(Networking.LocalPlayer, handler.gameObject)) && stopOnLeave)
-                handler._Stop();
+            if (Utilities.IsValid(handler)) {
+                if ((!isSynced || Networking.IsOwner(Networking.LocalPlayer, handler.gameObject)) && stopOnLeave)
+                    handler._Stop();
+            } else if (Utilities.IsValid(core)) {
+                if ((!isSynced || Networking.IsOwner(Networking.LocalPlayer, core.gameObject)) && stopOnLeave)
+                    core.Stop();
+            }
         }
 
         void SetVolumes(float volume) {
-            if (!Utilities.IsValid(handler)) return;
-            var audioControllers = handler.core.audioControllers;
+            if (!Utilities.IsValid(core)) return;
+            var audioControllers = core.audioControllers;
             if (!Utilities.IsValid(audioControllers)) return;
             foreach (var audioController in audioControllers)
                 if (Utilities.IsValid(audioController))

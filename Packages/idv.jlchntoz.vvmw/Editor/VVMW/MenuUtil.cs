@@ -55,17 +55,20 @@ namespace JLChnToZ.VRC.VVMW {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(ResyncButtonConfigurator), "core"), true, true);
                 } else if (component is AutoPlayOnNear) {
                     var handler = LocatableAttributeDrawer.Locate(component, GetField(typeof(AutoPlayOnNear), "handler"), true, true) as FrontendHandler;
-                    if (handler != null) {
+                    Core core;
+                    if (handler == null)
+                        core = LocatableAttributeDrawer.Locate(component, GetField(typeof(AutoPlayOnNear), "core"), true, true) as Core;
+                    else {
                         using (var so = new SerializedObject(handler)) {
                             so.FindProperty("autoPlay").boolValue = false;
                             so.ApplyModifiedProperties();
                         }
                         LocatableAttributeDrawer.Locate(handler, GetField(typeof(FrontendHandler), "core"), true, true);
-                        var core = handler.core;
-                        using (var so = new SerializedObject(core)) {
-                            so.FindProperty("synced").boolValue = false;
-                            so.ApplyModifiedProperties();
-                        }
+                        core = handler.core;
+                    }
+                    using (var so = new SerializedObject(core)) {
+                        so.FindProperty("synced").boolValue = false;
+                        so.ApplyModifiedProperties();
                     }
                 } else if (component is StreamLinkAssigner) {
                     if (!LocatableAttributeDrawer.Locate(component, GetField(typeof(StreamLinkAssigner), "frontendHandler"), false, true))
@@ -100,6 +103,12 @@ namespace JLChnToZ.VRC.VVMW {
 
         [MenuItem(createMenuRoot + "Video Player (On-Screen Controls)", false, 49)]
         static void CreateOnScreenControls() => SpawnPrefab(packageRoot + "VVMW (On-Screen Controls).prefab");
+
+        [MenuItem(createMenuRoot + "Video Player (For Single Video Exhibition)", false, 49)]
+        static void CreateSingleVideoExhibition() => SpawnPrefab(packageRoot + "VVMW (Single Video Exhibition Setup).prefab");
+
+        [MenuItem(createMenuRoot + "Video Player (For Multiple Video Exhibition)", false, 49)]
+        static void CreateMultiVideoExhibition() => SpawnPrefab(packageRoot + "VVMW (Multiple Video Exhibition Setup).prefab");
 
         [MenuItem(createMenuRoot + "YTTL", false, 49)]
         static void CreateYTTL() {

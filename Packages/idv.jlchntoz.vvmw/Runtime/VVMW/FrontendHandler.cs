@@ -185,10 +185,15 @@ namespace JLChnToZ.VRC.VVMW {
                 SeedRandomBeforeShuffle();
             }
             localPlayListIndex = defaultPlayListIndex;
-            int length = (localPlayListIndex == playListUrlOffsets.Length ?
-                playListUrls.Length : playListUrlOffsets[localPlayListIndex]
-            ) - playListUrlOffsets[localPlayListIndex - 1];
-            PlayPlayList(defaultShuffle && length > 0 ? UnityEngine.Random.Range(0, length) : 0);
+            int index = 0;
+            if (defaultShuffle) {
+                int length = localPlayListIndex == playListUrlOffsets.Length ?
+                    playListUrls.Length :
+                    playListUrlOffsets[localPlayListIndex];
+                if (localPlayListIndex > 0) length -= playListUrlOffsets[localPlayListIndex - 1];
+                if (length > 0) index = UnityEngine.Random.Range(0, length);
+            }
+            PlayPlayList(index);
         }
 
         protected void UpdateState() {
