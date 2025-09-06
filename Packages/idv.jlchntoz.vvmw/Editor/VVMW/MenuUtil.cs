@@ -47,37 +47,52 @@ namespace JLChnToZ.VRC.VVMW {
                 } else if (component is FrontendHandler) {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(FrontendHandler), "core"), true, true);
                 } else if (component is UIHandler) {
-                    if (!LocatableAttributeDrawer.Locate(component, GetField(typeof(UIHandler), "handler"), false, true))
-                        LocatableAttributeDrawer.Locate(component, GetField(typeof(UIHandler), "core"), true, true);
+                    Resolve(component);
                 } else if (component is OverlayControl) {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(OverlayControl), "core"), true, true);
                 } else if (component is ResyncButtonConfigurator) {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(ResyncButtonConfigurator), "core"), true, true);
                 } else if (component is AutoPlayOnNear) {
-                    var handler = LocatableAttributeDrawer.Locate(component, GetField(typeof(AutoPlayOnNear), "handler"), true, true) as FrontendHandler;
-                    Core core;
-                    if (handler == null)
-                        core = LocatableAttributeDrawer.Locate(component, GetField(typeof(AutoPlayOnNear), "core"), true, true) as Core;
-                    else {
+                    var (core, handler) = Resolve(component);
+                    if (handler != null)
                         using (var so = new SerializedObject(handler)) {
                             so.FindProperty("autoPlay").boolValue = false;
                             so.ApplyModifiedProperties();
                         }
-                        LocatableAttributeDrawer.Locate(handler, GetField(typeof(FrontendHandler), "core"), true, true);
-                        core = handler.core;
-                    }
-                    using (var so = new SerializedObject(core)) {
-                        so.FindProperty("synced").boolValue = false;
-                        so.ApplyModifiedProperties();
-                    }
+                    if (core != null)
+                        using (var so = new SerializedObject(core)) {
+                            so.FindProperty("synced").boolValue = false;
+                            so.ApplyModifiedProperties();
+                        }
                 } else if (component is StreamLinkAssigner) {
-                    if (!LocatableAttributeDrawer.Locate(component, GetField(typeof(StreamLinkAssigner), "frontendHandler"), false, true))
-                        LocatableAttributeDrawer.Locate(component, GetField(typeof(StreamLinkAssigner), "core"), true, true);
+                    Resolve(component, frontendHandlerFieldName: "frontendHandler");
                 }
             }
             Undo.RegisterCreatedObjectUndo(go, $"Create {go.name}");
             Selection.activeGameObject = go;
             return go;
+        }
+
+        static (Core, FrontendHandler) Resolve(Component component, string coreFieldName = "core", string frontendHandlerFieldName = "handler", bool autoCreate = false) {
+            var type = component.GetType();
+            var frontendHandlerField = GetField(type, frontendHandlerFieldName);
+            var coreField = GetField(type, coreFieldName);
+            var core = coreField.GetValue(component) as Core;
+            var frontendHandler = frontendHandlerField.GetValue(component) as FrontendHandler;
+            if (core == null && frontendHandler == null) {
+                core = LocatableAttributeDrawer.Locate(component, coreField, false, true) as Core;
+                frontendHandler = LocatableAttributeDrawer.Locate(component, frontendHandlerField, false, true) as FrontendHandler;
+            }
+            if (core == null && frontendHandler == null) {
+                if (autoCreate) {
+                    frontendHandler = LocatableAttributeDrawer.Locate(component, frontendHandlerField, true, true) as FrontendHandler;
+                    core = LocatableAttributeDrawer.Locate(frontendHandler, GetField(typeof(FrontendHandler), "core"), true, true) as Core;
+                }
+            } else if (core != null && frontendHandler != null) {
+                core = LocatableAttributeDrawer.Locate(frontendHandler, GetField(typeof(FrontendHandler), "core"), true, true) as Core;
+                coreField.SetValue(component, null);
+            }
+            return (core, frontendHandler);
         }
 
         static GameObject SpawnSingletonPrefab<T>(string path) where T : Component {
