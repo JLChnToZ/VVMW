@@ -1,6 +1,4 @@
 // Configurations
-// Upgrade NOTE: excluded shader from OpenGL ES 2.0 because it uses non-square matrices
-#pragma exclude_renderers gles
 // 2D: stereoShift = float4(0, 0, 0, 0), stereoExtend = float2(1, 1)
 // SBS (LR): stereoShift = float4(0, 0, 0.5, 0), stereoExtend = float2(0.5, 1)
 // SBS (RL): stereoShift = float4(0.5, 0, 0, 0), stereoExtend = float2(0.5, 1)
