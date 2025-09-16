@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 - Default playlist dropdown bugged when unchecking queuelist
+- Fragmented aspect ratio calculation result in some cases
 
 ### Changed
 - Auto Play On Near now also works without frontend handler (playlist/queue list/history features)

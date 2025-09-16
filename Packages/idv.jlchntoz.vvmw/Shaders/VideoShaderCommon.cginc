@@ -1,4 +1,6 @@
 // Configurations
+// Upgrade NOTE: excluded shader from OpenGL ES 2.0 because it uses non-square matrices
+#pragma exclude_renderers gles
 // 2D: stereoShift = float4(0, 0, 0, 0), stereoExtend = float2(1, 1)
 // SBS (LR): stereoShift = float4(0, 0, 0.5, 0), stereoExtend = float2(0.5, 1)
 // SBS (RL): stereoShift = float4(0.5, 0, 0, 0), stereoExtend = float2(0.5, 1)
@@ -27,31 +29,12 @@ inline half4 readAVProTexture(sampler2D videoTex, float2 uv) {
 }
 
 inline float estimateAspectRatio(float3 p1, float2 uv1, float3 p2, float2 uv2, float3 p3, float2 uv3) {
-    float3 deltaPos1 = p2 - p1;
-    float3 deltaPos2 = p3 - p1;
-    float2 deltaUV1 = uv2 - uv1;
-    float2 deltaUV2 = uv3 - uv1;
-    float det = deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x;
-    float aspect = 1;
-    UNITY_BRANCH if (abs(det) > 1e-6) {
-        float invDet = 1 / det;
-        float2x2 invUV = invDet * float2x2(
-            deltaUV2.y, -deltaUV2.x,
-            -deltaUV1.y, deltaUV1.x
-        );
-        float3 dPosDU = deltaPos1 * invUV._11 + deltaPos2 * invUV._12;
-        float3 dPosDV = deltaPos1 * invUV._21 + deltaPos2 * invUV._22;
-        float sqrW = dot(dPosDU, dPosDU), invW = 0;
-        float3 tangent = float3(1, 0, 0);
-        UNITY_BRANCH if (sqrW > 1e-6) {
-            invW = rsqrt(sqrW);
-            tangent = dPosDU * invW;
-        }
-        aspect = length(dPosDV - dot(dPosDV, tangent) * tangent) * invW;
-        float2 deltaUV = max(max(uv1, uv2), uv3) - min(min(uv1, uv2), uv3);
-        if (deltaUV.x > 1e-6) aspect *= deltaUV.y / deltaUV.x;
-    }
-    return 1 / max(aspect, 1e-6);
+    float4 duv = float4(uv2, uv3) - uv1.xyxy;
+    float3x3 r = mul(
+        float3x3(duv.w, -duv.y, 0, -duv.z, duv.x, 0, 0, 0, 0),
+        float3x3(p2 - p1, p3 - p1, 0, 0, 0)
+    );
+    return length(r._11_12_13) / length(r._21_22_23);
 }
 
 float2 getUnstratchedUV(float2 uv, float4 texelSize, int sizeMode, float aspectRatio, float2 stereoExtend) {
