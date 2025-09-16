@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
 #if VRC_LIGHT_VOLUMES_V2
+using VRC.SDKBase;
 using VRCLightVolumes;
 #endif
 using JLChnToZ.VRC.Foundation.Editors;
@@ -203,6 +204,7 @@ namespace JLChnToZ.VRC.VVMW {
             lvTransform.localRotation = Quaternion.Euler(0, 180, 0);
             lvObject.TryGetComponent(out PointLightVolume lv);
             lv.Type = PointLightVolume.LightType.AreaLight;
+            lv.Dynamic = screenObject.GetComponentInParent<VRC_Pickup>(true) != null;
             lv.SyncUdonScript();
 
             var array = adaptor.pointLightVolumes;

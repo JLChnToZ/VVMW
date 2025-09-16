@@ -11,8 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 - Default playlist dropdown bugged when unchecking queuelist
 
-### Changesd
+### Changed
 - Auto Play On Near now also works without frontend handler (playlist/queue list/history features)
+- Light volumes will by default set dynamic to true if the screen is under pickupable object when created
 
 ## 1.4.8 - 2025-09-02
 ### Added
