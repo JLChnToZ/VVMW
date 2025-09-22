@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 - Auto Play On Near now also works without frontend handler (playlist/queue list/history features)
 - Light volumes will by default set dynamic to true if the screen is under pickupable object when created
+- Reworked inspector UI
 
 ## 1.4.8 - 2025-09-02
 ### Added
