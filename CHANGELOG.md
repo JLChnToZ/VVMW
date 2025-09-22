@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## 1.4.9-beta.2 - 2025-09-23
+### Added
+- Prefab files missed in previous release
+
+### Fixed
+- Compiler in previous release
+
 ## 1.4.9-beta.1 - 2025-09-23
 ### Added
 - 2 new presets for exhibition usage (local only, arbitrary URL input is disabled, auto play on near)

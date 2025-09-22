@@ -8,20 +8,17 @@ using UnityEditor;
 using VRC.SDKBase;
 using VRCLightVolumes;
 #endif
+using VRC.SDK3.Video.Components;
+using VRC.SDK3.Video.Components.AVPro;
 using JLChnToZ.VRC.Foundation.Editors;
 using JLChnToZ.VRC.Foundation.I18N;
 using JLChnToZ.VRC.Foundation.I18N.Editors;
 using JLChnToZ.VRC.VVMW.Designer;
-using JLChnToZ.VRC.VVMW.Editors;
 using VVMW.ThirdParties.Yttl;
 
 using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
 
 using static UnityEngine.Object;
-using Mono.Posix;
-using UnityEngine.XR;
-using VRC.SDK3.Video.Components.AVPro;
-using VRC.SDK3.Video.Components;
 
 namespace JLChnToZ.VRC.VVMW {
     public static class MenuUtil {
