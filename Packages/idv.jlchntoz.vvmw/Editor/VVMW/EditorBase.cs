@@ -33,6 +33,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             GatherControlledTypes();
         }
 
+        public static void HorizontalLine() {
+            var padding = EditorGUIUtility.singleLineHeight;
+            var rect = EditorGUILayout.GetControlRect(GUILayout.Height(padding));
+            rect.height = 1f;
+            rect.y += padding * 0.5f;
+            EditorGUI.DrawRect(rect, Color.gray);
+        }
+
         public static void UpdateTitle(GUIContent titleContent, string languageKey, bool unsaved = false) {
             var iconPath = AssetDatabase.GUIDToAssetPath(iconGUID);
             if (iconPath != null) {
@@ -160,7 +168,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     break;
                 }
             if (isUdonSharp) {
-                using (new EditorGUILayout.VerticalScope(GUI.skin.box)) 
+                using (new EditorGUILayout.VerticalScope(GUI.skin.box))
                 using (new EditorGUI.IndentLevelScope()) {
                     if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, true, false))
                         return;

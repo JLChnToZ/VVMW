@@ -18,6 +18,10 @@ using VVMW.ThirdParties.Yttl;
 using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
 
 using static UnityEngine.Object;
+using Mono.Posix;
+using UnityEngine.XR;
+using VRC.SDK3.Video.Components.AVPro;
+using VRC.SDK3.Video.Components;
 
 namespace JLChnToZ.VRC.VVMW {
     public static class MenuUtil {
@@ -111,74 +115,125 @@ namespace JLChnToZ.VRC.VVMW {
             return result;
         }
 
-        [MenuItem(createMenuRoot + "Video Player (Core only)", false, 49)]
-        static void CreateNoControls() => SpawnPrefab(packageRoot + "VVMW (No Controls).prefab");
-
-        [MenuItem(createMenuRoot + "Video Player (Separated Controls)", false, 49)]
-        static void CreateSeparateControls() => SpawnPrefab(packageRoot + "VVMW (Separated Controls).prefab");
-
         [MenuItem(createMenuRoot + "Video Player (On-Screen Controls)", false, 49)]
         static void CreateOnScreenControls() => SpawnPrefab(packageRoot + "VVMW (On-Screen Controls).prefab");
 
-        [MenuItem(createMenuRoot + "Video Player (For Single Video Exhibition)", false, 49)]
+        [MenuItem(createMenuRoot + "Video Player (Separated Controls)", false, 50)]
+        static void CreateSeparateControls() => SpawnPrefab(packageRoot + "VVMW (Separated Controls).prefab");
+
+        [MenuItem(createMenuRoot + "Video Player (For Single Video Exhibition)", false, 61)]
         static void CreateSingleVideoExhibition() => SpawnPrefab(packageRoot + "VVMW (Single Video Exhibition Setup).prefab");
 
-        [MenuItem(createMenuRoot + "Video Player (For Multiple Video Exhibition)", false, 49)]
+        [MenuItem(createMenuRoot + "Video Player (For Multiple Video Exhibition)", false, 62)]
         static void CreateMultiVideoExhibition() => SpawnPrefab(packageRoot + "VVMW (Multiple Video Exhibition Setup).prefab");
 
-        [MenuItem(createMenuRoot + "YTTL", false, 49)]
+        [MenuItem(createMenuRoot + "Recommend Setups/YTTL", false, 73)]
         static void CreateYTTL() {
             SpawnSingletonPrefab<YttlManager>(prefabRoot + "Third-Parties/YTTL/YTTL Manager.prefab");
             foreach (var core in SceneManager.GetActiveScene().IterateAllComponents<Core>(true))
                 LocatableAttributeDrawer.Locate(core, GetField(typeof(Core), "yttl"), true, true);
         }
 
-        [MenuItem(createMenuRoot + "Additional Controls/Screen", false, 49)]
-        static void CreateScreen() => SpawnPrefab(prefabRoot + "Default Screen.prefab");
+        [MenuItem(createMenuRoot + "Modules/VizVid Core", false, 84)]
+        static void CreateNoControls() => SpawnPrefab(packageRoot + "VVMW (No Controls).prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Pickupable Screen", false, 49)]
-        static void CreatePickupScreen() => SpawnPrefab(prefabRoot + "Pickup Screen.prefab");
+        [MenuItem(createMenuRoot + "Modules/On-Screen Controls With Screen", false, 95)]
+        static void CreateOnScreenControlsMenu() => SpawnPrefab(prefabRoot + "Screen With Overlay.prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Audio Source", false, 49)]
-        static void CreateAudioSource() {
-            var go = SpawnPrefab(prefabRoot + "Default Audio Source.prefab");
-            var core = FUtils.FindClosestComponentInHierarchy<Core>(go.transform);
-            if (core != null) CoreEditor.AddTarget(core, go.GetComponent<AudioSource>());
-        }
+        [MenuItem(createMenuRoot + "Modules/Separated Controls", false, 96)]
+        static void CreateSeparateControlsMenu() => SpawnPrefab(prefabRoot + "Default UI.prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Separated Controls", false, 49)]
-        static void CreateSeparateContols() => SpawnPrefab(prefabRoot + "Default UI.prefab");
+        [MenuItem(createMenuRoot + "Modules/Separated Controls (Narrow)", false, 97)]
+        static void CreateSeparateNarrowControls() => SpawnPrefab(prefabRoot + "Default UI (Narrow).prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Separated Controls (Narrow)", false, 49)]
-        static void CreateSeparateNarrowContols() => SpawnPrefab(prefabRoot + "Default UI (Narrow).prefab");
+        [MenuItem(createMenuRoot + "Modules/Separated Controls (With Alt. URL Input, Narrow)", false, 98)]
+        static void CreateSeparateNarrowControlsDual() => SpawnPrefab(prefabRoot + "Default UI Dual Input (Narrow).prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Separated Controls (With Alt. URL Input, Narrow)", false, 49)]
-        static void CreateSeparateNarrowContolsDual() => SpawnPrefab(prefabRoot + "Default UI Dual Input (Narrow).prefab");
-
-        [MenuItem(createMenuRoot + "Additional Controls/On-Screen Controls With Screen", false, 49)]
-        static void CreateOnScreenContols() => SpawnPrefab(prefabRoot + "Screen With Overlay.prefab");
-
-        [MenuItem(createMenuRoot + "Additional Controls/Overlay Controls", false, 49)]
+        [MenuItem(createMenuRoot + "Modules/Overlay Controls", false, 99)]
         static void CreateOverlayControls() {
             if (FindObjectOfType<OverlayControl>() != null &&
                 !EditorI18N.Instance.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.Pickups.PickupPanel.multiple_message")) return;
             SpawnPrefab(prefabRoot + "Overlay Control.prefab");
         }
 
-        [MenuItem(createMenuRoot + "Additional Controls/Resync Button", false, 49)]
+        [MenuItem(createMenuRoot + "Modules/Pickupable Screen", false, 110)]
+        static void CreatePickupScreen() => SpawnPrefab(prefabRoot + "Pickup Screen.prefab");
+
+        [MenuItem(createMenuRoot + "Modules/Screen", false, 111)]
+        static void CreateScreen() => SpawnPrefab(prefabRoot + "Default Screen.prefab");
+
+        [MenuItem(createMenuRoot + "Modules/Resync Button", false, 122)]
         static void CreateResyncButton() => SpawnPrefab(prefabRoot + "Re-Sync Button.prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Global Resync Button", false, 49)]
+        [MenuItem(createMenuRoot + "Modules/Global Resync Button", false, 123)]
         static void CreateGlobalSyncButton() => SpawnPrefab(prefabRoot + "Global Sync Button.prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Auto Play On Near (Local Only)", false, 49)]
-        static void CreateAutoPlayOnNear() => SpawnPrefab(prefabRoot + "Auto Play On Near.prefab");
-
-        [MenuItem(createMenuRoot + "Additional Controls/Stream Key Assigner", false, 49)]
+        [MenuItem(createMenuRoot + "Modules/Stream Key Assigner", false, 124)]
         static void CreateStreamAssigner() => SpawnPrefab(prefabRoot + "Stream Key Assigner.prefab");
 
+        [MenuItem(createMenuRoot + "Modules/Audio Source (Mono)", false, 135)]
+        static void CreateMonoAudioSource() {
+            var go = SpawnPrefab(prefabRoot + "Default Audio Source.prefab");
+            AppendAudioSource(go, true);
+        }
+
+        [MenuItem(createMenuRoot + "Modules/Audio Source (Stereo)", false, 136)]
+        static void CreateStereoAudioSource() {
+            var go = SpawnPrefab(prefabRoot + "Stereo Audio Source.prefab");
+            AppendAudioSource(go, true);
+        }
+
+        [MenuItem(createMenuRoot + "Modules/Audio Source (5.1 Surround)", false, 137)]
+        static void CreateSurroundAudioSource() {
+            var go = SpawnPrefab(prefabRoot + "Surround Audio Source.prefab");
+            AppendAudioSource(go, true);
+        }
+
+        static void AppendAudioSource(GameObject go, bool removeDefaultAudioSource = false) {
+            var core = FUtils.FindClosestComponentInHierarchy<Core>(go.transform);
+            if (core == null) return;
+            var audioSources = go.GetComponentsInChildren<AudioSource>(true);
+            Undo.RecordObject(core, "Add Audio Source");
+            if (core.audioSources == null) {
+                core.audioSources = audioSources;
+            } else {
+                Array.Resize(ref core.audioSources, core.audioSources.Length + audioSources.Length);
+                Array.Copy(audioSources, 0, core.audioSources, core.audioSources.Length - audioSources.Length, audioSources.Length);
+            }
+            EditorUtility.SetDirty(core);
+            if (core.playerHandlers == null || core.playerHandlers.Length == 0) return;
+            foreach (var handler in core.playerHandlers) {
+                var vph = handler as VideoPlayerHandler;
+                if (vph == null) continue;
+                if (vph.TryGetComponent(out VRCAVProVideoPlayer avpro)) {
+                    foreach (var audioSource in audioSources) {
+                        if (!audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) continue;
+                        using (var so = new SerializedObject(speaker)) {
+                            so.FindProperty("videoPlayer").objectReferenceValue = avpro;
+                            so.ApplyModifiedProperties();
+                        }
+                    }
+                    continue;
+                }
+                if (removeDefaultAudioSource && vph.TryGetComponent(out VRCUnityVideoPlayer unity)) {
+                    using (var so = new SerializedObject(unity)) {
+                        var prop = so.FindProperty("targetAudioSources");
+                        for (int i = 0; i < prop.arraySize; i++) {
+                            var audioSource = prop.GetArrayElementAtIndex(i).objectReferenceValue as AudioSource;
+                            if (audioSource == null || !audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) continue;
+                            Undo.DestroyObjectImmediate(speaker);
+                        }
+                    }
+                    continue;
+                }
+            }
+        }
+
+        [MenuItem(createMenuRoot + "Modules/Auto Play On Near (Local Only)", false, 148)]
+        static void CreateAutoPlayOnNear() => SpawnPrefab(prefabRoot + "Auto Play On Near.prefab");
+
 #if VRC_LIGHT_VOLUMES_V2
-        [MenuItem(createMenuRoot + "Light Volume for Screen", false, 55)]
+        [MenuItem(createMenuRoot + "Modules/Light Volume for Screen", false, 159)]
         static void CreateLightVolumeForScreen() {
             foreach (var screenObject in Selection.gameObjects)
                 CreateLightVolumeForScreen(screenObject);
@@ -219,7 +274,7 @@ namespace JLChnToZ.VRC.VVMW {
             Undo.RegisterCreatedObjectUndo(lvObject, "Create Light Volume for Screen");
         }
 
-        [MenuItem(createMenuRoot + "Light Volume for Screen", true, 55)]
+        [MenuItem(createMenuRoot + "Modules/Light Volume for Screen", true, 159)]
         static bool CreateLightVolumeForScreenValidate() {
             var selectedGameObject = Selection.activeGameObject;
             if (selectedGameObject == null) return false;

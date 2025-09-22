@@ -57,6 +57,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         List<bool> screenTargetVisibilityState;
         Editor autoPlayControllerEditor;
         Editor[] playerHandlerEditors;
+        bool errorHandlingFoldout, playerHandlersFoldout, moduleSettingsFoldout, otherSettingsFoldout, extraSettingsFoldout;
 
         protected override void OnEnable() {
             base.OnEnable();
@@ -111,23 +112,79 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         public override void DrawEmbeddedInspectorGUI() {
-            DrawAutoPlayField();
+            var autoPlayControllerEditor = GetAutoPlayControllerEditor();
+            if (autoPlayControllerEditor != null)
+                autoPlayControllerEditor.serializedObject.Update();
+            DrawCommonSettings(autoPlayControllerEditor);
+            HorizontalLine();
+            DrawDefaultBehaviourSettings(autoPlayControllerEditor);
+            HorizontalLine();
+            DrawAdvancedSettings(autoPlayControllerEditor);
+            if (autoPlayControllerEditor != null)
+                autoPlayControllerEditor.serializedObject.ApplyModifiedProperties();
+        }
+
+        void DrawCommonSettings(VVMWEditorBase controllerEditor) {
+            EditorGUILayout.LabelField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.commonSettings"), EditorStyles.boldLabel);
+            if (controllerEditor is FrontendHandlerEditor frontendHandlerEditor)
+                frontendHandlerEditor.DrawCommonSettings();
+            else if (controllerEditor != null)
+                controllerEditor.DrawEmbeddedInspectorGUI();
+        }
+
+        void DrawDefaultBehaviourSettings(VVMWEditorBase controllerEditor) {
+            EditorGUILayout.LabelField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.defaultBehaviourSettings"), EditorStyles.boldLabel);
+            if (controllerEditor is FrontendHandlerEditor frontendHandlerEditor) {
+                frontendHandlerEditor.DrawAutoPlaySettings();
+                frontendHandlerEditor.DrawDefaultPlaylist();
+            } else {
+                frontendHandlerEditor = null;
+                DrawAutoPlayField();
+            }
+            EditorGUILayout.PropertyField(defaultVolumeProperty);
+            EditorGUILayout.PropertyField(defaultMutedProperty);
+            if (frontendHandlerEditor != null)
+                frontendHandlerEditor.DrawRepeatShuffleProperty();
+            else {
+                EditorGUILayout.PropertyField(loopProperty);
+                EditorGUILayout.PropertyField(autoPlayDelayProperty);
+                if (autoPlayDelayProperty.floatValue < 0) autoPlayDelayProperty.floatValue = 0;
+            }
+        }
+
+        void DrawAutoPlayField() {
+            int autoPlayPlayerType = autoPlayPlayerTypeProperty.intValue - 1;
+            var playerType = playerTypes != null && autoPlayPlayerType >= 0 && autoPlayPlayerType < playerTypes.Length ? playerTypes[autoPlayPlayerType] : PlayerType.Unknown;
+            TrustedUrlUtils.DrawUrlField(defaultUrlProperty, playerType.ToTrustUrlType(BuildTarget.StandaloneWindows64));
+            if (!string.IsNullOrEmpty(defaultUrlProperty.FindPropertyRelative("url").stringValue)) {
+                TrustedUrlUtils.DrawUrlField(defaultQuestUrlProperty, playerType.ToTrustUrlType(BuildTarget.Android));
+                if (DrawPlayerDropdown(playerHandlersProperty, autoPlayPlayerTypeProperty, ref autoPlayPlayerType))
+                    autoPlayPlayerTypeProperty.intValue = autoPlayPlayerType + 1;
+            }
+        }
+
+        void DrawAdvancedSettings(VVMWEditorBase controllerEditor) {
+            EditorGUILayout.LabelField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.advancedSettings"), EditorStyles.boldLabel);
+            DrawErrorHandlingSettings();
+            DrawPlayerHandlers();
+            DrawModuleSettings();
+            DrawOtherSettings();
+            DrawExtraSettings(controllerEditor);
+            targetsList.DoLayoutList();
+        }
+
+        void DrawErrorHandlingSettings() {
+            errorHandlingFoldout = EditorGUILayout.Foldout(errorHandlingFoldout, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.errorHandlingSettings"), true);
+            if (!errorHandlingFoldout) return;
             EditorGUILayout.PropertyField(totalRetryCountProperty);
             EditorGUILayout.PropertyField(retryDelayProperty);
             EditorGUILayout.PropertyField(timeDriftDetectThresholdProperty);
-            EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(urlInputFilterProperty);
-            EditorGUILayout.Space();
-            DrawPlayerHandlers();
+        }
+
+        void DrawModuleSettings() {
+            moduleSettingsFoldout = EditorGUILayout.Foldout(moduleSettingsFoldout, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.moduleSettings"), true);
+            if (!moduleSettingsFoldout) return;
             DrawScreenList();
-            EditorGUILayout.PropertyField(defaultTextureProperty);
-            if (defaultTextureProperty.objectReferenceValue == null)
-                EditorGUILayout.HelpBox(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.Core.defaultTexture:empty_message"), MessageType.Error);
-            EditorGUILayout.PropertyField(broadcastScreenTextureProperty);
-            if (broadcastScreenTextureProperty.boolValue)
-                EditorGUILayout.PropertyField(broadcastScreenTextureNameProperty);
-            EditorGUILayout.PropertyField(realtimeGIUpdateIntervalProperty);
-            EditorGUILayout.Space();
             audioSourcesList.DoLayoutList();
             var newAudioSource = EditorGUILayout.ObjectField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.audioSources:add"), null, typeof(AudioSource), true) as AudioSource;
             if (newAudioSource != null) {
@@ -142,42 +199,32 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     audioSourcesProperty.GetArrayElementAtIndex(index).objectReferenceValue = newAudioSource;
                 }
             }
-            EditorGUILayout.PropertyField(defaultVolumeProperty);
-            EditorGUILayout.PropertyField(defaultMutedProperty);
+            EditorGUILayout.PropertyField(audioLinkProperty);
+            EditorGUILayout.PropertyField(yttlManagerProperty);
+            EditorGUILayout.PropertyField(broadcastScreenTextureProperty);
+            if (broadcastScreenTextureProperty.boolValue)
+                EditorGUILayout.PropertyField(broadcastScreenTextureNameProperty);
+            EditorGUILayout.PropertyField(realtimeGIUpdateIntervalProperty);
+        }
+
+        void DrawOtherSettings() {
+            otherSettingsFoldout = EditorGUILayout.Foldout(otherSettingsFoldout, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.otherSettings"), true);
+            if (!otherSettingsFoldout) return;
+            EditorGUILayout.PropertyField(urlInputFilterProperty);
+            EditorGUILayout.PropertyField(defaultTextureProperty);
+            if (defaultTextureProperty.objectReferenceValue == null)
+                EditorGUILayout.HelpBox(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.Core.defaultTexture:empty_message"), MessageType.Error);
             EditorGUILayout.PropertyField(syncedProperty);
 #if VRC_ENABLE_PLAYER_PERSISTENCE
             EditorGUILayout.PropertyField(enablePersistenceProperty);
 #endif
-            EditorGUILayout.PropertyField(audioLinkProperty);
-            EditorGUILayout.PropertyField(yttlManagerProperty);
-            EditorGUILayout.Space();
-            targetsList.DoLayoutList();
         }
 
-        void DrawAutoPlayField() {
-            if (autoPlayControllers.TryGetValue(target as Core, out var controller)) {
-                if (controllableTypes.TryGetValue(controller.GetType(), out var pair))
-                    CreateCachedEditor(controller, pair.editorType, ref autoPlayControllerEditor);
-                if (autoPlayControllerEditor is VVMWEditorBase controllerEditor) {
-                    controllerEditor.serializedObject.Update();
-                    controllerEditor.DrawEmbeddedInspectorGUI();
-                    controllerEditor.serializedObject.ApplyModifiedProperties();
-                    EditorGUILayout.Space();
-                } else if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.EditUrlsIn", controller.name)))
-                    Selection.activeGameObject = controller.gameObject;
-                return;
-            }
-            int autoPlayPlayerType = autoPlayPlayerTypeProperty.intValue - 1;
-            var playerType = playerTypes != null && autoPlayPlayerType >= 0 && autoPlayPlayerType < playerTypes.Length ? playerTypes[autoPlayPlayerType] : PlayerType.Unknown;
-            TrustedUrlUtils.DrawUrlField(defaultUrlProperty, playerType.ToTrustUrlType(BuildTarget.StandaloneWindows64));
-            if (!string.IsNullOrEmpty(defaultUrlProperty.FindPropertyRelative("url").stringValue)) {
-                TrustedUrlUtils.DrawUrlField(defaultQuestUrlProperty, playerType.ToTrustUrlType(BuildTarget.Android));
-                if (DrawPlayerDropdown(playerHandlersProperty, autoPlayPlayerTypeProperty, ref autoPlayPlayerType))
-                    autoPlayPlayerTypeProperty.intValue = autoPlayPlayerType + 1;
-            }
-            EditorGUILayout.PropertyField(loopProperty);
-            EditorGUILayout.PropertyField(autoPlayDelayProperty);
-            if (autoPlayDelayProperty.floatValue < 0) autoPlayDelayProperty.floatValue = 0;
+        void DrawExtraSettings(VVMWEditorBase controllerEditor) {
+            extraSettingsFoldout = EditorGUILayout.Foldout(extraSettingsFoldout, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.extraSettings"), true);
+            if (!extraSettingsFoldout) return;
+            if (controllerEditor is FrontendHandlerEditor frontendHandlerEditor)
+                frontendHandlerEditor.DrawExtraSettings();
         }
 
         internal static bool DrawPlayerDropdown(SerializedProperty playerHandlersProperty, SerializedProperty autoPlayPlayerTypeProperty, ref int autoPlayPlayerType, string localeKey = "") {
@@ -681,6 +728,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             foreach (var controller in SceneManager.GetActiveScene().IterateAllComponents<UdonSharpBehaviour>())
                 if (controllableTypes.TryGetValue(controller.GetType(), out var result) && result.fieldInfo.GetValue(controller) is Core coreComponent)
                     autoPlayControllers[coreComponent] = controller;
+        }
+
+        VVMWEditorBase GetAutoPlayControllerEditor() {
+            if (!autoPlayControllers.TryGetValue(target as Core, out var controller)) return null;
+            if (controllableTypes.TryGetValue(controller.GetType(), out var pair))
+                CreateCachedEditor(controller, pair.editorType, ref autoPlayControllerEditor);
+            return autoPlayControllerEditor as VVMWEditorBase;
         }
 
         struct ScreenProperties {
