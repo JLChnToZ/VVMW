@@ -33,7 +33,7 @@ Booth にて、VizVid の UnityPackage をダウンロードし、開くと、Vi
 1. Unity ヒエラルキーを右クリック。  
 2. VizVid の項目を展開。  
 3. VizVid のプリセットから選ぶ。  
-![image](../resources/images/ByGpuNghgg.png)
+![image](https://hackmd.io/_uploads/ByGpuNghgg.png)
 
 #### よく使うプリセット  
 汎用性の高い VizVid です。  
@@ -54,12 +54,12 @@ Booth にて、VizVid の UnityPackage をダウンロードし、開くと、Vi
 #### 再生速度制御の有効化  
 本機能は AVPro Stub に依存しています。  
 下記の画像に参考し、設定を行ってください。  
-![image](../resources/images/rkfJHSe2xg.png)
+![image](https://hackmd.io/_uploads/rkfJHSe2xg.png)
 
 #### YTTL の有効化  
 YouTube 動画を再生する場合、動画タイトルを表示させる機能です。  
 下記の画像に参考し、設定を行ってください。  
-![image](../resources/images/HyUJUSxnxx.png)
+![image](https://hackmd.io/_uploads/HyUJUSxnxx.png)
 
 ### 基本設定  
 #### よく使う設定  
@@ -80,7 +80,7 @@ VizVid のデフォルト値を設定します。
 もしワールド内に、VizVid 以外の動画プレイヤーがなかったら、`0` のままにしておいでください。  
 * **アイドル時に自動再生**  
 現在プレイリストの再生が終了後、デフォルトプレイリストを再生されます。  
-デフォルトプレイリスト**  
+* **デフォルトプレイリスト**  
 作成済みのプレイリストから、デフォルトで再生するものを選択します。  
 * **デフォルト音量**  
 プレイヤーがワールドに Join 時の初期音量を設定します。  
@@ -98,12 +98,12 @@ VizVid のデフォルト値を設定します。
 1. VizVid のスクリーン子オブジェクトを選択します。  
 2. UI Handler と Screen Configurator を縮小表示にします。  
 3. Color Config コンポーネントで VizVid の配色を自由に調整できます。  
-![image](../resources/images/HJVoHvlheg.png)
+![image](https://hackmd.io/_uploads/HJVoHvlheg.png)
 
 ---
 ### プレイリストの編集  
 以下ではプレイリスト編集画面の各機能を説明します。  
-![image](../resources/images/BJSKBwe2lx.png)  
+![image](https://hackmd.io/_uploads/BJSKBwe2lx.png)  
 
 * **左側のプレイリスト**  
     * <kbd>＋</kbd> または <kbd>ー</kbd> を押してプレイリストを追加 / 削除します。  
