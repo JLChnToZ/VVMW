@@ -1,6 +1,7 @@
 # VizVid Installation Guide
 Here's the quick guide for importing VizVid into your VRChat World.
 
+---
 ## Table of Contents
 * [Importing VizVid](#Importing-VizVid)
     * [Import via VCC (recommended)](#Import-via-VCC-recommended)
@@ -17,6 +18,7 @@ Here's the quick guide for importing VizVid into your VRChat World.
 * [UI](#UI)
 * [Editing Playlists](#Editing-Playlists)
 
+---
 ## Importing VizVid
 
 ### Import via VCC (recommended)
@@ -24,10 +26,10 @@ Click the link below or copy the URL, add VizVid's repository into VCC.
 [VCC import link](vcc://vpm/addRepo?url=https%3A%2F%2Fxtlcdn.github.io%2Fvpm%2Findex.json)
 
 ### Import via UnityPackage
-Download the UnityPackage from Booth or GitHub and import it into your Unity project.
-https://booth.pm/ja/items/5056077
-https://github.com/JLChnToZ/VVMW/releases
+Download the UnityPackage from Booth, and import it into your Unity project.
+[Booth link](https://booth.pm/ja/items/5056077)
 
+---
 ## How to Add VizVid into Your World
 1. Right-click on the hierarchy.
 2. Find VizVid in the menu.
@@ -48,6 +50,7 @@ Designed to play a single video with playlist module disabled.
 * **For Multiple Video Exhibition**
 Designed to play multiple videos and supports playlists.
 
+---
 ## Recommended Settings
 ### Enable Playback Speed Control
 This feature depends on AVPro Stub.
@@ -59,6 +62,7 @@ Support showing video titles for YouTube videos.
 Follow the steps on the image below to install it.
 ![image](../resources/images/HyUJUSxnxx.png)
 
+---
 ## Basic Settings
 ### Common Settings
 * **Edit Playlists...**
@@ -70,7 +74,6 @@ When enabled, URLs you input can be queued into the queue list.
 Set how many playback URLs are stored in history. Set `0` to disable it.
 *Note: Contents played from playlists will not be recorded in history.*
 
----
 ### Default Behavior
 Adjust VizVid's default values for this world.
 * **Auto Play on Join**
@@ -92,12 +95,14 @@ Shuffle is enable by default when players join the world.
 * **Seed Random Before Shuffle**
 Regenerate random seed for shuffle playback when VizVid plays a playlist.
 
+---
 ## UI
 1. Select the VizVid's Screen child object.
 2. Collapse the UI Handler and Screen Configurator.
 3. Use the Color Config component to customize VizVid's color scheme.
 ![image](../resources/images/Sy-MZZz2le.png)
 
+---
 ## Editing Playlists
 Here's the detailed guide for playlist editor.
 ![image](../resources/images/HJqTZ-znxx.png)
