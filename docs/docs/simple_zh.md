@@ -4,18 +4,18 @@
 ---
 ## 目錄
 * [導入 VizVid](#導入-VizVid)  
-    * [透過 VCC 導入 (推薦)](#透過-VCC-導入-推薦)  
-    * [透過 UnityPackage 導入](#透過-Unity-Package-導入)  
-* [VizVid 安裝方式](#VizVid-安裝方式)  
+    * [透過 VCC 導入 (推薦)](#透過-vcc-導入-推薦)  
+    * [透過 UnityPackage 導入](#透過-unity-package-導入)  
+* [VizVid 安裝方式](#vizvid-安裝方式)  
     * [常用預設組](#常用預設組)  
     * [展場用預設組](#展場用預設組)  
 * [推薦設定](#推薦設定)  
     * [啟用播放速度控制](#啟用播放速度控制)  
-    * [啟用 YTTL](#啟用-YTTL)  
+    * [啟用 YTTL](#啟用-yttl)  
 * [基本設定](#基本設定)  
     * [常用設定](#常用設定)  
     * [預設行為](#預設行為)  
-* [UI](#UI)  
+* [UI](#ui)  
 * [編輯播放清單](#編輯播放清單)  
 
 ---
@@ -129,4 +129,4 @@
     * <kbd>反轉播放清單</kbd>：反轉播放清單排序。  
     
 ---
-關於 VizVid 的完整功能說明，請參閱[說明文件](https://code.moka-rin.moe/VVMW/docs/index_zh.html)。  
+關於 VizVid 的完整功能說明，請參閱[說明文件](index_zh.html)。  

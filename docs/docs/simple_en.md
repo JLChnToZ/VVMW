@@ -2,48 +2,48 @@
 Here's the quick guide for importing VizVid into your VRChat World.  
 
 ---
-### Table of Contents  
-* [Importing VizVid](#Importing-VizVid)  
-    * [Import via VCC (recommended)](#Import-via-VCC-recommended)  
-    * [Import via UnityPackage](#Import-via-UnityPackage)  
-* [How to Add VizVid into Your World](#How-to-Add-VizVid-into-Your-World)  
-    * [Common Presets](#Common-Presets)  
-    * [Exhibition Presets](#Exhibition-Presets)  
-* [Recommended Settings](#Recommended-Settings)  
-    * [Enable Playback Speed Control](#Enable-Playback-Speed-Control)  
-    * [Enable YTTL](#Enable-YTTL)  
-* [Basic Settings](#Basic-Settings)  
-    * [Common Settings](#Common-Settings)  
-    * [Default Behavior](#Default-Behavior)  
-* [UI](#UI)  
-* [Editing Playlists](#Editing-Playlists)  
+## Table of Contents  
+* [Importing VizVid](#importing-vizvid)  
+    * [Import via VCC (recommended)](#import-via-vcc-recommended)  
+    * [Import via UnityPackage](#import-via-unitypackage)  
+* [How to Add VizVid into Your World](#how-to-add-vizvid-into-your-world)  
+    * [Common Presets](#common-presets)  
+    * [Exhibition Presets](#exhibition-presets)  
+* [Recommended Settings](#recommended-settings)  
+    * [Enable Playback Speed Control](#enable-playback-speed-control)  
+    * [Enable YTTL](#enable-yttl)  
+* [Basic Settings](#basic-settings)  
+    * [Common Settings](#common-settings)  
+    * [Default Behavior](#default-behavior)  
+* [UI](#ui)  
+* [Editing Playlists](#editing-playlists)  
 
 ---
-### Importing VizVid  
+## Importing VizVid  
 
-#### Import via VCC (recommended)  
+### Import via VCC (recommended)  
 Click the link below or copy the URL, add VizVid's repository into VCC.  
 [VCC import link](vcc://vpm/addRepo?url=https%3A%2F%2Fxtlcdn.github.io%2Fvpm%2Findex.json)  
 
-#### Import via UnityPackage  
+### Import via UnityPackage  
 Download the UnityPackage from Booth, and import it into your Unity project.  
 [Booth link](https://booth.pm/ja/items/5056077)  
 
 ---
-### How to Add VizVid into Your World  
+## How to Add VizVid into Your World  
 1. Right-click on the hierarchy.  
 2. Find VizVid in the menu.  
 3. Choose the player preset you want to add.  
 ![image](../resources/images/ByGpuNghgg.png)  
 
-#### Common Presets  
+### Common Presets  
 General-purpose presets for most uses.  
 * **On-Screen Controls**  
 The simplest version — controllers embedded on the screen. No extra spaces needed.  
 * **Separated Controls**  
 Controller and playlist panels can be placed independently if you didn't prefer touchscreen-like controlls.  
 
-#### Exhibition Presets  
+### Exhibition Presets  
 Designed for exhibition use. VizVid runs in local mode. Includes a proximity-based autoplay feature.  
 * **For Single Video Exhibition**  
 Designed to play a single video with playlist module disabled.  
@@ -51,30 +51,30 @@ Designed to play a single video with playlist module disabled.
 Designed to play multiple videos and supports playlists.  
 
 ---
-### Recommended Settings  
-#### Enable Playback Speed Control  
+## Recommended Settings  
+### Enable Playback Speed Control  
 This feature depends on AVPro Stub.  
 Follow the steps on the image below to install it.  
 ![image](../resources/images/rkfJHSe2xg.png)  
 
-#### Enable YTTL  
+### Enable YTTL  
 Support showing video titles for YouTube videos.  
 Follow the steps on the image below to install it.  
 ![image](../resources/images/HyUJUSxnxx.png)  
 
 ---
-### Basic Settings  
-#### Common Settings  
+## Basic Settings  
+### Common Settings  
 * **Edit Playlists...**  
 Opens the playlist editor window. You can create, edit, and import playlists.  
-For detailed usage, ckeck on [Editing Playlists](#Editing-Playlists).  
+For detailed usage, ckeck on [Editing Playlists](#editing-playlists).  
 * **Enable Queue List**  
 When enabled, URLs you input can be queued into the queue list.  
 * **History Size**  
 Set how many playback URLs are stored in history. Set `0` to disable it.  
 *Note: Contents played from playlists will not be recorded in history.*  
 
-#### Default Behavior  
+### Default Behavior  
 Adjust VizVid's default values for this world.  
 * **Auto Play on Join**  
 Auto play the default playlist when the first player joined the world.  
@@ -96,14 +96,14 @@ Shuffle is enable by default when players join the world.
 Regenerate random seed for shuffle playback when VizVid plays a playlist.  
 
 ---
-### UI  
+## UI  
 1. Select the VizVid's Screen child object.  
 2. Collapse the UI Handler and Screen Configurator.  
 3. Use the Color Config component to customize VizVid's color scheme.  
 ![image](../resources/images/Sy-MZZz2le.png)  
 
 ---
-### Editing Playlists  
+## Editing Playlists  
 Here's the detailed guide for playlist editor.  
 ![image](../resources/images/HJqTZ-znxx.png)  
 
@@ -130,4 +130,4 @@ URL (PC) and URL (Quest) let you set different URLs for different platforms (use
     * <kbd>Reverse Playlist</kbd>: Reverse the order of the playlist.  
 
 ---
-Please refer [this documentation](https://code.moka-rin.moe/VVMW/docs/index.html) for full guide of VizVid.
+Please refer [this documentation](index.html) for full guide of VizVid.

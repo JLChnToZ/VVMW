@@ -2,47 +2,47 @@
 ここから、VizVid の導入について説明します。  
 
 ---
-### 目次  
+## 目次  
 * [VizVid の導入](#VizVid-の導入)  
-    * [VCC 経由 (おすすめ)](#VCC-経由-おすすめ)  
-    * [UnityPackage 経由](#UnityPackage-経由)  
-* [VizVid の設置](#VizVid-の設置)  
+    * [VCC 経由 (おすすめ)](#vcc-経由-おすすめ)  
+    * [UnityPackage 経由](#unitypackage-経由)  
+* [VizVid の設置](#vizvid-の設置)  
     * [よく使うプリセット](#よく使うプリセット)  
     * [展示会用プリセット](#展示会用プリセット)  
 * [おすすめ設定](#おすすめ設定)  
     * [再生速度制御の有効化](#再生速度制御)  
-    * [YTTL の有効化](#YTTL-の有効化)  
+    * [YTTL の有効化](#yttl-の有効化)  
 * [基本設定](#基本設定)  
     * [よく使う設定](#よく使う設定)  
     * [デフォルト動作](#デフォルト動作)  
-* [UI](#UI)  
+* [UI](#ui)  
 * [プレイリストの編集](#プレイリストの編集)  
 
 ---
-### VizVid の導入  
-#### VCC 経由 (推奨)  
+## VizVid の導入  
+### VCC 経由 (推奨)  
 下記のリンクをクリックするか、URL をコピーし、VCC に貼り付けると、VizVid が VCC にインポートされます。  
 [VCC 用リンク](vcc://vpm/addRepo?url=https%3A%2F%2Fxtlcdn.github.io%2Fvpm%2Findex.json)
 
-#### UnityPackage 経由  
+### UnityPackage 経由  
 Booth にて、VizVid の UnityPackage をダウンロードし、開くと、VizVid が Unity にインポートされます。  
 [Boothリンク](https://booth.pm/ja/items/5056077)
 
 ---
-### VizVid の設置  
+## VizVid の設置  
 1. Unity ヒエラルキーを右クリック。  
 2. VizVid の項目を展開。  
 3. VizVid のプリセットから選ぶ。  
-![image](https://hackmd.io/_uploads/ByGpuNghgg.png)
+![image](../resources/images/ByGpuNghgg.png)
 
-#### よく使うプリセット  
+### よく使うプリセット  
 汎用性の高い VizVid です。  
 * **On-Screen Controls**  
 最もシンプルなプリセット。コントローラーがスクリーンに内蔵されます。  
 * **Separated Controls**  
 他のビデオプレーヤーによく使う形式。コントローラーとスクリーンの配置が自由に調整することができます。  
 
-#### 展示会用プリセット  
+### 展示会用プリセット  
 展示会仕様になった VizVid です。ローカル動作で、接近すると自動再生します。  
 * **For Single Video Exhibition**  
 一本の動画を再生します。プレイリスト機能抜き。  
@@ -50,19 +50,19 @@ Booth にて、VizVid の UnityPackage をダウンロードし、開くと、Vi
 複数の動画を再生します。プレイリスト機能付き。  
 
 ---
-### おすすめ設定  
-#### 再生速度制御の有効化  
+## おすすめ設定  
+### 再生速度制御の有効化  
 本機能は AVPro Stub に依存しています。  
 下記の画像に参考し、設定を行ってください。  
-![image](https://hackmd.io/_uploads/rkfJHSe2xg.png)
+![image](../resources/images/rkfJHSe2xg.png)
 
-#### YTTL の有効化  
+### YTTL の有効化  
 YouTube 動画を再生する場合、動画タイトルを表示させる機能です。  
 下記の画像に参考し、設定を行ってください。  
-![image](https://hackmd.io/_uploads/HyUJUSxnxx.png)
+![image](../resources/images/HyUJUSxnxx.png)
 
-### 基本設定  
-#### よく使う設定  
+## 基本設定  
+### よく使う設定  
 * **プレイリストを編集...**  
 プレイリスト編集ウィンドウが表示されます。プレイリストの作成、編集、インポートを行えます。  
 詳しい情報は[プレイリストの編集](#プレイリストの編集)にご参照ください。  
@@ -72,7 +72,7 @@ YouTube 動画を再生する場合、動画タイトルを表示させる機能
 再生した URL を記録する数を調整します。  
 *※プレイリストからの再生は記録されません。*  
 
-#### デフォルト動作  
+### デフォルト動作  
 VizVid のデフォルト値を設定します。  
 * **Join する時自動再生**  
 プレイヤーが Join する時、デフォルトプレイリストを再生されます。  
@@ -94,16 +94,16 @@ VizVid のデフォルト値を設定します。
 プレイリストを再生するたびにシードが再生成し、ランダム性を高めます。  
 
 ---
-### UI  
+## UI  
 1. VizVid のスクリーン子オブジェクトを選択します。  
 2. UI Handler と Screen Configurator を縮小表示にします。  
 3. Color Config コンポーネントで VizVid の配色を自由に調整できます。  
-![image](https://hackmd.io/_uploads/HJVoHvlheg.png)
+![image](../resources/images/HJVoHvlheg.png)
 
 ---
-### プレイリストの編集  
+## プレイリストの編集  
 以下ではプレイリスト編集画面の各機能を説明します。  
-![image](https://hackmd.io/_uploads/BJSKBwe2lx.png)  
+![image](../resources/images/BJSKBwe2lx.png)  
 
 * **左側のプレイリスト**  
     * <kbd>＋</kbd> または <kbd>ー</kbd> を押してプレイリストを追加 / 削除します。  
@@ -127,4 +127,4 @@ VizVid のデフォルト値を設定します。
     * <kbd>プレイリストを反転</kbd>：プレイリストの順序を反転します。  
 
 ---
-VizVid すべての機能説明について、こちらの[マニュアル](https://code.moka-rin.moe/VVMW/docs/index_ja.html)にご参照ください。
+VizVid すべての機能説明について、こちらの[マニュアル](index_ja.html)にご参照ください。
