@@ -2,6 +2,9 @@ name: Build Docs
 
 on: 
   workflow_dispatch:
+  push:
+    paths:
+      - 'docs/**'
 
 jobs:
   build:
