@@ -2,23 +2,6 @@
 Here's the quick guide for importing VizVid into your VRChat World.  
 
 ---
-## Table of Contents  
-* [Importing VizVid](#importing-vizvid)  
-    * [Import via VCC (recommended)](#import-via-vcc-recommended)  
-    * [Import via UnityPackage](#import-via-unitypackage)  
-* [How to Add VizVid into Your World](#how-to-add-vizvid-into-your-world)  
-    * [Common Presets](#common-presets)  
-    * [Exhibition Presets](#exhibition-presets)  
-* [Recommended Settings](#recommended-settings)  
-    * [Enable Playback Speed Control](#enable-playback-speed-control)  
-    * [Enable YTTL](#enable-yttl)  
-* [Basic Settings](#basic-settings)  
-    * [Common Settings](#common-settings)  
-    * [Default Behavior](#default-behavior)  
-* [UI](#ui)  
-* [Editing Playlists](#editing-playlists)  
-
----
 ## Importing VizVid  
 
 ### Import via VCC (recommended)  
