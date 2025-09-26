@@ -3,7 +3,7 @@
 Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It aims to cover many use cases, from watch-together video/live stream player in lounges, to large event venue for music performances, or even booths for exhibitions or showcases. Due to its target customers, it has a flexible architecture, just like a factory made electronic but with a easy to open back lid, make it easier to let users mess them around for their needs.
 
 > [!NOTE]
-> This documentation is for V1.4.7 or later, some guidelines are different to older versions.
+> This documentation is for versions between v1.4.7 and v1.4.8 (newer version is work in progress), some guidelines are different to older versions.
 
 ## How to install?
 You may just right-click anywhere in hierarchy, and select `VizVid > Video Player`.  
