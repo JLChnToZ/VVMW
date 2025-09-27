@@ -474,17 +474,14 @@ namespace JLChnToZ.VRC.VVMW {
             if (Utilities.IsValid(pauseButtonObject)) pauseButtonObject.SetActive(canPause);
             if (Utilities.IsValid(stopButtonObject)) stopButtonObject.SetActive(canStop);
             if (Utilities.IsValid(reloadButtonObject)) reloadButtonObject.SetActive(canLocalSync);
-            if (Utilities.IsValid(progressSlider)) {
-                if (canSeek) {
-                    UpdateProgressOnce();
-                    if (!hasUpdate) {
-                        hasUpdate = true;
-                        _UpdateProgress();
-                    } else
-                        progressSlider.interactable = unlocked;
-                } else {
-                    progressSlider.SetValueWithoutNotify(1);
-                    progressSlider.interactable = false;
+            if (Utilities.IsValid(progressSlider) ||
+                Utilities.IsValid(timeText) || Utilities.IsValid(timeTMPro) ||
+                Utilities.IsValid(durationText) || Utilities.IsValid(durationTMPro) ||
+                Utilities.IsValid(statusText) || Utilities.IsValid(statusTMPro)) {
+                UpdateProgressOnce();
+                if (canSeek && !hasUpdate) {
+                    hasUpdate = true;
+                    SendCustomEventDelayedSeconds(nameof(_UpdateProgress), 0.25F);
                 }
             }
             if (wasUnlocked != unlocked || !hasUnlockInit) {
