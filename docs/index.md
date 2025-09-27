@@ -42,23 +42,8 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 ## Demo
 Please visit the [official demo world](https://vrchat.com/home/world/wrld_7239d09c-7b25-43a5-8ccd-502d986b016a)!
 
-## Installation
-You may use following methods:
-
-- Via VCC (Recommend):
-  1. Ensure you have installed VRChat Creator Companion, if not, [download here](https://vrchat.com/download/vcc).
-  2. Go to [my package listings landing page](https://xtlcdn.github.io/vpm/), click "Add to VCC" button under the banner and follow instructions.
-  3. You can then go to "Manage Project" of your own world project, click on the "+" button to add the player component.
-  4. Enjoy!
-- Via Command Line:  
-  Alternatively, instead of VCC, if you are an advanced geek like to use command line, you may use a tool called [`vrc-get`](https://github.com/vrc-get/vrc-get):
-  ```powershell
-  cd path/to/your/world/project/folder
-  vrc-get repo add https://xtlcdn.github.io/vpm/index.json
-  vrc-get install idv.jlchntoz.vvmw
-  ```
-- Via Booth: [Click here](https://xtl.booth.pm/items/5056077).
-- Via GitHub Releases: [Click here](https://github.com/JLChnToZ/VVMW/releases/latest).
+## Getting Started
+[English](./docs/simple_en.md) | [日本語](./docs/simple_ja.md) | [中文](./docs/simple_zh.md)
 
 ## Issues
 For any issues, please contact me on [Discord server](https://discord.gg/fkDueQMbj8) or [file an issue on GitHub](https://github.com/JLChnToZ/VVMW/issues/new) if you believe there is a bug.
