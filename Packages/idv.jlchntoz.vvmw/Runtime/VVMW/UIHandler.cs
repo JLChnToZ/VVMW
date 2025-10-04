@@ -486,7 +486,7 @@ namespace JLChnToZ.VRC.VVMW {
                     SendCustomEventDelayedSeconds(nameof(_UpdateProgress), 0.25F);
                 }
             } else if (Utilities.IsValid(progressSlider)) {
-                progressSlider.SetValueWithoutNotify(0);
+                progressSlider.SetValueWithoutNotify(state == 1 ? 1 : 0);
                 progressSlider.interactable = false;
             }
             if (wasUnlocked != unlocked || !hasUnlockInit) {
