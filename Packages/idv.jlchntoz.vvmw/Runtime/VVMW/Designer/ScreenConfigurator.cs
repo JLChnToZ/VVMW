@@ -73,6 +73,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             RemoveIndexFromArray(ref core.screenTargetPropertyNames, index);
             RemoveIndexFromArray(ref core.avProPropertyNames, index);
             RemoveIndexFromArray(ref core.screenTargetDefaultTextures, index);
+            if (PrefabUtility.IsPartOfPrefabInstance(core))
+                PrefabUtility.RecordPrefabInstancePropertyModifications(core);
         }
 
         public static ScreenConfigurator GetInstance(Renderer renderer, int index = -1) {
@@ -201,6 +203,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             core.screenTargetPropertyNames = new[] { targetPropertyName };
             core.avProPropertyNames = new[] { avProPropertyName };
             core.screenTargetDefaultTextures = new[] { defaultTexture };
+            if (PrefabUtility.IsPartOfPrefabInstance(core))
+                PrefabUtility.RecordPrefabInstancePropertyModifications(core);
             return true;
         }
 
@@ -222,6 +226,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             core.avProPropertyNames[index] = avProPropertyName;
             Array.Resize(ref core.screenTargetDefaultTextures, size);
             core.screenTargetDefaultTextures[index] = defaultTexture;
+            if (PrefabUtility.IsPartOfPrefabInstance(core))
+                PrefabUtility.RecordPrefabInstancePropertyModifications(core);
         }
     }
 }
