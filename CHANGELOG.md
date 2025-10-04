@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Screen configurator not work well when used alone and core is a prefab instance
+- Progress bar "flashing" effects disappeared since last fix of status text
+
+### Changed
+- Removed emoji fallback font for smaller build size
 
 ## 1.4.9 - 2025-09-27
 ### Fixed
