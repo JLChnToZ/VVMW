@@ -218,8 +218,8 @@ namespace JLChnToZ.VRC.VVMW {
                 isReblitRunning = false;
                 return;
             }
-            if (isPaused) // Special case: we render 1 more frame when paused.
-                isReblitRunning = false;
+            if (isPaused)
+                SendCustomEventDelayedSeconds(nameof(_BlitBufferScreen), 0.2F, EventTiming.LateUpdate);
             else
                 SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
             if (!Utilities.IsValid(bufferedTexture)) {

@@ -81,13 +81,13 @@ namespace JLChnToZ.VRC.VVMW {
             get {
                 if (!Utilities.IsValid(activeHandler)) return 0;
                 var duration = activeHandler.Duration;
-                if (activeHandler.Duration <= 0 || float.IsInfinity(duration)) return 0;
-                return activeHandler.Time / activeHandler.Duration;
+                if (duration <= 0 || float.IsInfinity(duration)) return 0;
+                return activeHandler.Time / duration;
             }
             set {
                 if (!Utilities.IsValid(activeHandler)) return;
                 var duration = activeHandler.Duration;
-                if (activeHandler.Duration <= 0 || float.IsInfinity(duration)) return;
+                if (duration <= 0 || float.IsInfinity(duration)) return;
                 Time = duration * value;
                 RequestSync();
             }
