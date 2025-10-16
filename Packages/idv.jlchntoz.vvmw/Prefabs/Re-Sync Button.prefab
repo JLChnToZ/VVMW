@@ -355,6 +355,7 @@ MonoBehaviour:
   - {r: 0.21568628, g: 0.25882354, b: 0.30980393, a: 1}
   - {r: 0.27450982, g: 0.34509805, b: 0.43137255, a: 1}
   appliedAutoConfigurators: []
+  autoApplyOnBuild: 1
 --- !u!114 &8864345470932819874
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -439,7 +440,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 4
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &6589996199566909317
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -647,7 +648,10 @@ MonoBehaviour:
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: 1171956549033244990}
   manager: {fileID: 0}
+  dynamicBinding: 0
   key: Reload
+  text: {fileID: 0}
+  textMeshPro: {fileID: 0}
 --- !u!114 &300849701644167627
 MonoBehaviour:
   m_ObjectHideFlags: 0
