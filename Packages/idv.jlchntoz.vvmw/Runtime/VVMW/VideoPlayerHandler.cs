@@ -58,7 +58,7 @@ namespace JLChnToZ.VRC.VVMW {
             get => isActive;
             set {
                 isActive = value;
-                if (!isActive && videoPlayer.IsPlaying) videoPlayer.Stop();
+                if (!isActive) videoPlayer.Stop();
             }
         }
 
@@ -343,7 +343,10 @@ namespace JLChnToZ.VRC.VVMW {
             UpdatePrimaryAudioSourcePitch();
             isPaused = false;
             isReady = true;
-            if (!isActive) return;
+            if (!isActive) {
+                videoPlayer.Stop(); // No longer your turn
+                return;
+            }
             if (!isRealTimeProtocol) {
                 float duration = videoPlayer.GetDuration();
                 if (duration <= 0 || float.IsInfinity(duration)) {
