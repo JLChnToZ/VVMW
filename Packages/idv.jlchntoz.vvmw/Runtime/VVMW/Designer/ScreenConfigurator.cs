@@ -27,7 +27,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         Renderer previousRenderer;
         Core previousCore;
         int lastIndex;
-        [NonSerialized] bool firstRun;
+        [NonSerialized] bool firstRun, isPendingApply;
 
         Core IVizVidCompoonent.Core => core;
 
@@ -45,13 +45,20 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         internal bool IsPrefabEditingMode {
             get {
 #if UNITY_EDITOR
-                return PrefabStageUtility.GetPrefabStage(gameObject) != null;
+                return PrefabStageUtility.GetPrefabStage(gameObject) != null || !gameObject.scene.IsValid();
 #else
                 return false;
 #endif
             }
         }
 
+        public static ScreenConfigurator GetInstance(Renderer renderer, int index = -1) {
+            if (renderer && instances.TryGetValue((renderer, index), out var instance))
+                return instance;
+            return null;
+        }
+
+#if UNITY_EDITOR
         static void RemoveIndexFromArray<T>(ref T[] array, int index) {
             if (index < 0 || index >= array.Length) return;
             var newArray = new T[array.Length - 1];
@@ -61,28 +68,17 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 
         static void RemoveFromCore(Core core, Renderer renderer) {
-            if (!core) return;
+            if (core == null) return;
             int index = Array.IndexOf(core.screenTargets, renderer);
             if (index < 0) return;
-#if UNITY_EDITOR
             Undo.RecordObject(core, "Screen Configurator");
-#endif
             RemoveIndexFromArray(ref core.screenTargets, index);
             RemoveIndexFromArray(ref core.screenTargetModes, index);
             RemoveIndexFromArray(ref core.screenTargetIndeces, index);
             RemoveIndexFromArray(ref core.screenTargetPropertyNames, index);
             RemoveIndexFromArray(ref core.avProPropertyNames, index);
             RemoveIndexFromArray(ref core.screenTargetDefaultTextures, index);
-#if UNITY_EDITOR
-            if (PrefabUtility.IsPartOfPrefabInstance(core))
-                PrefabUtility.RecordPrefabInstancePropertyModifications(core);
-#endif
-        }
-
-        public static ScreenConfigurator GetInstance(Renderer renderer, int index = -1) {
-            if (renderer && instances.TryGetValue((renderer, index), out var instance))
-                return instance;
-            return null;
+            SavePrefabModifications(core);
         }
 
         void Awake() {
@@ -90,27 +86,26 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             if (firstRun) return;
             firstRun = true;
             previousRenderer = screenRenderer;
-            if (core) previousCore = core;
+            if (core != null) previousCore = core;
             var renderer = Renderer;
-            if (!renderer) return;
+            if (renderer == null) return;
             lastIndex = targetIndex;
             instances[(renderer, targetIndex)] = this;
-            if (core) return;
+            if (core != null) return;
             var cores = FindObjectsOfType<Core>(true);
             foreach (var c in cores) {
                 if (c.screenTargets == null || Array.IndexOf(c.screenTargets, renderer) < 0) continue;
-#if UNITY_EDITOR
                 Undo.RecordObject(this, "Screen Configurator");
-#endif
                 core = c;
             }
-            if (!core) {
+            if (core == null) {
                 core = GetComponentInParent<Core>(true);
-                if (!core) {
+                if (core == null) {
                     if (cores.Length > 0) core = cores[0];
                     else return;
                 }
-                if (!AddToCoreIfEmpty(renderer)) AppendToCore(renderer);
+                // Defer to avoid race condition with U# initial deserialization.
+                EditorApplication.delayCall += DeferAddCore;
             }
             previousCore = core;
         }
@@ -124,9 +119,24 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 instances[(screenRenderer, targetIndex)] = this;
             }
             if (Application.isPlaying || IsPrefabEditingMode) return;
-#if UNITY_EDITOR
             if (PrefabUtility.IsPartOfPrefabAsset(this)) return;
-#endif
+            if (isPendingApply) return;
+            isPendingApply = true;
+            // Defer to prevent multiple updates during a single frame,
+            // also avoids race condition with U# initial deserialization.
+            EditorApplication.delayCall += DeferUpdateCore;
+        }
+
+        void DeferAddCore() {
+            if (this == null) return; // This may happen if the object is destroyed after delayCall is scheduled.
+            var renderer = Renderer;
+            if (renderer == null) return;
+            if (!AddToCoreIfEmpty(renderer)) AppendToCore(renderer);
+        }
+
+        void DeferUpdateCore() {
+            isPendingApply = false;
+            if (this == null) return; // This may happen if the object is destroyed after delayCall is scheduled.
             GetComponents(monoBehaviours);
             foreach (var mb in monoBehaviours)
                 if (mb is IVizVidCompoonent compoonent) {
@@ -138,21 +148,19 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 RemoveFromCore(previousCore, previousRenderer);
                 previousCore = core;
             }
-            if (!core) return;
+            if (core == null) return;
             var renderer = Renderer;
-            if (!renderer) return;
+            if (renderer == null) return;
             try {
                 if (renderer != screenRenderer) {
-#if UNITY_EDITOR
                     Undo.RecordObject(this, "Screen Configurator");
-#endif
                     screenRenderer = renderer;
                 }
                 if (AddToCoreIfEmpty(renderer)) {
                     previousRenderer = renderer;
                     return;
                 }
-                if (!previousRenderer) previousRenderer = renderer;
+                if (previousRenderer == null) previousRenderer = renderer;
                 index = Array.IndexOf(core.screenTargets, previousRenderer);
                 if (index < 0) {
                     AppendToCore(renderer);
@@ -165,9 +173,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     avProPropertyName != core.avProPropertyNames[index] ||
                     defaultTexture != core.screenTargetDefaultTextures[index]
                 ) {
-#if UNITY_EDITOR
                     Undo.RecordObject(this, "Screen Configurator");
-#endif
                     targetMode = core.screenTargetModes[index];
                     targetIndex = core.screenTargetIndeces[index];
                     targetPropertyName = core.screenTargetPropertyNames[index];
@@ -175,9 +181,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     defaultTexture = core.screenTargetDefaultTextures[index];
                 }
                 if (previousRenderer != renderer) {
-#if UNITY_EDITOR
                     Undo.RecordObject(core, "Screen Configurator");
-#endif
                     core.screenTargets[index] = renderer;
                 }
             } finally {
@@ -187,37 +191,28 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     if (renderer) instances[(renderer, targetIndex)] = this;
                     previousRenderer = renderer;
                 }
-#if UNITY_EDITOR
                 Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
-#endif
             }
         }
 
         bool AddToCoreIfEmpty(Renderer renderer) {
             if (core.screenTargets != null && core.screenTargets.Length > 0)
                 return false;
-#if UNITY_EDITOR
             Undo.RecordObject(core, "Screen Configurator");
-#endif
             core.screenTargets = new[] { renderer };
             core.screenTargetModes = new[] { targetMode };
             core.screenTargetIndeces = new[] { targetIndex };
             core.screenTargetPropertyNames = new[] { targetPropertyName };
             core.avProPropertyNames = new[] { avProPropertyName };
             core.screenTargetDefaultTextures = new[] { defaultTexture };
-#if UNITY_EDITOR
-            if (PrefabUtility.IsPartOfPrefabInstance(core))
-                PrefabUtility.RecordPrefabInstancePropertyModifications(core);
-#endif
+            SaveCoreModifications();
             return true;
         }
 
         void AppendToCore(Renderer renderer) {
             int index = core.screenTargets.Length;
             int size = index + 1;
-#if UNITY_EDITOR
             Undo.RecordObject(core, "Screen Configurator");
-#endif
             Array.Resize(ref core.screenTargets, size);
             core.screenTargets[index] = renderer;
             Array.Resize(ref core.screenTargetModes, size);
@@ -230,10 +225,15 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             core.avProPropertyNames[index] = avProPropertyName;
             Array.Resize(ref core.screenTargetDefaultTextures, size);
             core.screenTargetDefaultTextures[index] = defaultTexture;
-#if UNITY_EDITOR
-            if (PrefabUtility.IsPartOfPrefabInstance(core))
-                PrefabUtility.RecordPrefabInstancePropertyModifications(core);
-#endif
+            SaveCoreModifications();
         }
+
+        static void SavePrefabModifications(UnityEngine.Object obj) {
+            if (PrefabUtility.IsPartOfPrefabInstance(obj))
+                PrefabUtility.RecordPrefabInstancePropertyModifications(obj);
+        }
+
+        void SaveCoreModifications() => SavePrefabModifications(core);
+#endif
     }
 }
