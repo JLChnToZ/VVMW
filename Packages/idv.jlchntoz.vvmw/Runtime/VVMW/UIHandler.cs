@@ -523,7 +523,7 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 if (Utilities.IsValid(shuffleOnButtonObject)) shuffleOnButtonObject.SetActive(isShuffle);
                 UpdatePlayList();
-                bool willPlayNext = handler.PlayListIndex == 0 && handler.HasQueueList && (core.IsReady || core.IsLoading || handler.QueueUrls.Length > 0);
+                bool willPlayNext = handler.HasQueueList && (core.IsReady || core.IsLoading || handler.QueueUrls.Length > 0);
                 if (Utilities.IsValid(urlInputConfirmButton) && Utilities.IsValid(enforcePlayImmediatelyButton))
                     urlInputConfirmButtonObject.SetActive(willPlayNext);
                 SetLocalizedText(queueModeText, queueModeTMPro, willPlayNext ? "QueueModeNext" : "QueueModeInstant");

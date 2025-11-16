@@ -91,7 +91,7 @@ namespace JLChnToZ.VRC.VVMW {
                 localQueuedQuestUrls = null;
                 localQueuedPlayerIndex = null;
                 localQueuedTitles = null;
-                core.Stop();
+                if (!enableQueueList) core.Stop();
             }
             if (string.IsNullOrEmpty(queuedTitle))
                 queuedTitle = $"{Networking.LocalPlayer.displayName}:\n{UnescapeUrl(pcUrl)}";
