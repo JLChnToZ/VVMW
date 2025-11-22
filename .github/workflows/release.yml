@@ -58,6 +58,23 @@ jobs:
             echo "is_prerelease=false" >> $GITHUB_ENV
           fi
 
+      # Draft release notes based on the CHANGELOG differences
+      - name: Draft Release Notes
+        run: |
+          git fetch --tags --force
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          CURR_TAG="${{ env.version }}"
+          echo "" > changelog_diff.md
+          if [[ "${{ env.version }}" == *-* ]]; then
+            echo "This is a beta release." >> changelog_diff.md
+          fi
+          if [[ -n $PREV_TAG ]]; then
+            git diff $PREV_TAG..HEAD -- CHANGELOG.md >> changelog_diff.md
+          fi
+          echo "**Full Changelog**: ${{ github.repositoryUrl }}/compare/$PREV_TAG...$CURR_TAG" >> changelog_diff.md
+          echo "Download/update with VCC: https://xtlcdn.github.io/vpm/" >> changelog_diff.md
+          echo "WE DO NOT RECOMMEND MANUALLY DOWNLOAD AND IMPORT FOLLOWING ASSETS AS YOU WILL MISS DEPENDENCIES!" >> changelog_diff.md
+
       # Zip the Package for release
       - name: Create Package Zip
         working-directory: "${{ env.packagePath }}"
@@ -80,23 +97,6 @@ jobs:
         uses: rickstaa/action-create-tag@88dbf7ff6fe2405f8e8f6c6fdfd78829bc631f83
         with:
           tag: "${{ env.version }}"
-
-      # Draft release notes based on the CHANGELOG differences
-      - name: Draft Release Notes
-        run: |
-          git fetch --tags --force
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-          CURR_TAG=${{ env.version }}
-          echo "" > changelog_diff.md
-          if [[ "${{ env.is_prerelease }}" == "true" ]]; then
-            echo "This is a beta release." >> changelog_diff.md
-          fi
-          if [[ -n $PREV_TAG ]]; then
-            git diff $PREV_TAG..HEAD -- CHANGELOG.md >> changelog_diff.md
-          fi
-          echo "**Full Changelog**: ${{ github.repositoryUrl }}/compare/$PREV_TAG...$CURR_TAG" >> changelog_diff.md
-          echo "Download/update with VCC: https://xtlcdn.github.io/vpm/" >> changelog_diff.md
-          echo "WE DO NOT RECOMMEND MANUALLY DOWNLOAD AND IMPORT FOLLOWING ASSETS AS YOU WILL MISS DEPENDENCIES!" >> changelog_diff.md
 
       # Publish the Release to GitHub
       - name: Make Release
