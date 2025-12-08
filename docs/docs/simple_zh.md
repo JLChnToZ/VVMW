@@ -43,6 +43,11 @@
 在播放 YouTube 影片時，可以顯示影片標題。依附圖說明操作即可安裝。  
 ![image](../resources/images/HyUJUSxnxx.png)  
 
+### 遷移至 Text Mesh Pro
+可使 VizVid 的字體顯示更加清晰。  
+選擇所有 VizVid 的 Prefab，依附圖說明操作即可套用。  
+![image](../resources/images/S1Bar91MWe.png)
+
 ---
 ## 基本設定  
 ### 常用設定  

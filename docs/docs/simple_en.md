@@ -45,6 +45,12 @@ Support showing video titles for YouTube videos.
 Follow the steps on the image below to install it.  
 ![image](../resources/images/HyUJUSxnxx.png)  
 
+### Migrate to Text Mesh Pro
+Using Text Mesh Pro will make fonts on VizVid even clearer.。  
+Select all VizVid prefabs in hierarchy.  
+And follow the steps on the image below to migrate.  
+![image](../resources/images/S1Bar91MWe.png)
+
 ---
 ## Basic Settings  
 ### Common Settings  

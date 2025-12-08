@@ -44,6 +44,12 @@ YouTube 動画を再生する場合、動画タイトルを表示させる機能
 下記の画像に参考し、設定を行ってください。  
 ![image](../resources/images/HyUJUSxnxx.png)
 
+### Text Mesh Pro への移行  
+Text Mesh Pro に移行すると、よりきれいなテキストの表示ができます。  
+VizVid 関連のプレハブを選択し、  
+下記の画像に参考し、設定を行ってください。  
+![image](../resources/images/S1Bar91MWe.png)
+
 ## 基本設定  
 ### よく使う設定  
 * **プレイリストを編集...**  
