@@ -53,13 +53,17 @@ For any issues, please contact me on [Discord server](https://discord.gg/fkDueQM
 - **山の豚** ([@yama_buta](https://x.com/yama_buta)) - Art
 
 ## Special Thanks
-- **LR163** / **Cross** - Early Stage Functionality & (Live Streaming) Latency Test
-- **HsiaoTzuOWO** - UI & Implementation Test
-- **Yan**-K - UI / UX Consultant
-- **六森** - Advertisement Materials & Demo World
-- **水鳥waterbird** - Naming & Japanese Documentation Proofreading
-- **Kuriko** - Japanese Documentation
-- **[All GitHub Contributors](https://github.com/JLChnToZ/VVMW/graphs/contributors)**
+- **LR163** / **Cross** - Make this Project Happens, Early Tester
+- **HsiaoTzuOWO** - Early Tester
+- **Yan-K** - UI / UX Consultant
+- **六森** - Advertisement Materials, Demo World
+- **水鳥 Waterbird** - Naming, Japanese Documentation Proofreading
+- **Kuriko** - Assisted Documentations, Assisted Japanese / Traditional Chinese Localization
+- **奈良阪 Narazaka** - Assisted Japanese Localization
+- **Sonic853** - Assisted Simplified Chinese Localization
+- **Krislyz** - Assisted Hebrew Localization
+- **はるる早苗 HaruruSanae** - Assisted Japanese Documentation
+- **[All Other GitHub Contributors](https://github.com/JLChnToZ/VVMW/graphs/contributors)**
 
 ## License
 [MIT](license/)
