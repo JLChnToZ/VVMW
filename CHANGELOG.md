@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 ### Changed
 - Hebrew localization adjustments ([#79](https://github.com/JLChnToZ/VVMW/pull/79))
+- Thai localization adjustments (Thanks JustTemTem & Meiji)
 - Adjusted overlay screen UI to proper dismisses opened dropdown on hiding it.
 
 ## 1.4.13-beta.4 - 2025-12-04
