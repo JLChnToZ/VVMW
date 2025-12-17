@@ -79,7 +79,7 @@ For any issues, please contact me on [Discord server](https://discord.gg/fkDueQM
 - **奈良阪 Narazaka** - Assisted Japanese Localization
 - **Sonic853** - Assisted Simplified Chinese Localization
 - **Krislyz** - Assisted Hebrew Localization
-- **JustTemTem** & **Meji** - Assisted Thai Localization
+- **JustTemTem** & **Meiji** - Assisted Thai Localization
 - **はるる早苗 HaruruSanae** - Assisted Japanese Documentation
 - **[All Other GitHub Contributors](https://github.com/JLChnToZ/VVMW/graphs/contributors)**
 
