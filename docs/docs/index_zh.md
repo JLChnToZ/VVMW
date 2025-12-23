@@ -108,11 +108,11 @@ VizVid 也提供各式各樣的模組，供使用者自由組合屬於自己的 
 ---
 * **On-Screen Controls with Screen**  
 觸控螢幕型控制器。本 Prefab 包含一個螢幕物件。  
-* **Saparated Controls**  
+* **Separated Controls**  
 獨立型控制器，可與螢幕分開放置。  
-* **Saparated Controls (Narrow)**  
+* **Separated Controls (Narrow)**  
 縮小版獨立型控制器，適用小空間。  
-* **Saparated Controls (with Alt. URL Input, Narrow)**  
+* **Separated Controls (with Alt. URL Input, Narrow)**  
 縮小版獨立型控制器，支援輸入行動平台用的替代網址。  
 * **Overlay Controls**  
 跟隨使用者的控制器。  
@@ -296,7 +296,7 @@ VizVid 用螢幕，可與控制器分開放置。
 VizVid 提供以下三種方式套用串流網址。  
 以下以 [TopazChat](https://github.com/TopazChat/TopazChat) 舉例。  
 #### Stream Key Assigner<a id="streamkeyassigner"></a>  
-可自動為串流服務，生成、套用串流金鑰。
+可自動為串流服務，生成、套用串流金鑰。  
 ![image](../resources/images/H1w9i-w7-g.png)
 * **播放器核心**  
 負責連接 `Core` 元件。  
@@ -320,7 +320,7 @@ VizVid 提供以下三種方式套用串流網址。
 生成金鑰的字元數  
 
 
-#### Saparated Controls (with Alt. URL Input, Narrow)  
+#### Separated Controls (with Alt. URL Input, Narrow)  
 可於 VRChat 端，手動輸入串流網址，及行動平台用之替代網址。  
 示意圖如下：  
 ![image](../resources/images/Hk7zNsr7bl.png)  
