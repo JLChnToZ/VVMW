@@ -229,7 +229,7 @@ VizVid 用螢幕，可與控制器分開放置。
         設定是否儲存 VizVid 的設定 (音量等)。預設啟動。  
     * **額外功能**  
         * **已鎖定**  
-        預設鎖定播放器。可編寫[相容腳本](https://xtlcdn.github.io/VizVid/api/JLChnToZ.VRC.VVMW.FrontendHandler.html?q=locked#JLChnToZ_VRC_VVMW_FrontendHandler_Locked)，或選購 [Udon Auth](https://xtl.booth.pm/items/3826907) 進行設定。  
+        預設鎖定播放器。可編寫[相容腳本](../api/JLChnToZ.VRC.VVMW.FrontendHandler.html?q=locked#JLChnToZ_VRC_VVMW_FrontendHandler_Locked)，或選購 [Udon Auth](https://xtl.booth.pm/items/3826907) 進行設定。  
     * **事件目標**  
     可針對設定在此的 Udon Sharp 傳送事件資料，整合自訂腳本。  
 #### Frontend Handler  
@@ -375,7 +375,7 @@ VizVid 的語言管理元件，是位於 Locale 物件中的 Language Manager。
 ![image](../resources/images/rJFl6WvXZl.png)  
 
 ### API Reference  
-請參考[本頁面](https://xtlcdn.github.io/VizVid/api/Global.html)，串接需要的功能至 VizVid。  
+請參考[本頁面](../api/Global.html)，串接需要的功能至 VizVid。  
 
 
 ---

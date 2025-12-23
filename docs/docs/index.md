@@ -232,7 +232,7 @@ Sets whether VizVid operates globally. Enabled by default.
 Sets whether to save VizVid settings (such as volume). Enabled by default.  
 * **Extra Features**  
     * **Locked**  
-Locks the player by default. You can configure this by writing a [compatible script](https://xtlcdn.github.io/VizVid/api/JLChnToZ.VRC.VVMW.FrontendHandler.html?q=locked#JLChnToZ_VRC_VVMW_FrontendHandler_Locked) or purchasing [Udon Auth](https://xtl.booth.pm/items/3826907).  
+Locks the player by default. You can configure this by writing a [compatible script](../api/JLChnToZ.VRC.VVMW.FrontendHandler.html?q=locked#JLChnToZ_VRC_VVMW_FrontendHandler_Locked) or purchasing [Udon Auth](https://xtl.booth.pm/items/3826907).  
 * **Event Targets**  
 Sends event data to Udon Sharp scripts set here to integrate custom scripts.  
 
@@ -408,7 +408,7 @@ It also supports Text Mesh Pro UI elements outside of VizVid.
 
 ### API Reference  
 
-Please refer to [this page](https://xtlcdn.github.io/VizVid/api/Global.html) to link custom functions to VizVid.  
+Please refer to [this page](../api/Global.html) to link custom functions to VizVid.  
 
 ---
 ## Q&A  

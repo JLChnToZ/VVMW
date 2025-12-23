@@ -235,7 +235,7 @@ VizVid のデフォルト値を設定します。
     * **追加設定**  
         * **ロック**  
         プレイヤーをロックします。    
-        [対応スクリプト](https://xtlcdn.github.io/VizVid/api/JLChnToZ.VRC.VVMW.FrontendHandler.html?q=locked#JLChnToZ_VRC_VVMW_FrontendHandler_Locked)を作成するか、[Udon Auth](https://xtl.booth.pm/items/3826907) を導入することで制御可能です。  
+        [対応スクリプト](../api/JLChnToZ.VRC.VVMW.FrontendHandler.html?q=locked#JLChnToZ_VRC_VVMW_FrontendHandler_Locked)を作成するか、[Udon Auth](https://xtl.booth.pm/items/3826907) を導入することで制御可能です。  
     * **イベントターゲット**  
     ここに指定した Udon Sharp スクリプトにイベントデータを送信し、カスタムスクリプトと連携させることができます。  
 
@@ -389,7 +389,7 @@ VizVid の言語管理コンポーネントは、Locale オブジェクトにあ
 ![image](../resources/images/Hynj1VDm-l.png)  
 
 ### API リファレンス  
-必要な機能を VizVid と連携させる際は、[こちらのページ](https://xtlcdn.github.io/VizVid/api/Global.html) (英語) を参照してください。  
+必要な機能を VizVid と連携させる際は、[こちらのページ](../api/Global.html) (英語) を参照してください。  
 
 ---
 
