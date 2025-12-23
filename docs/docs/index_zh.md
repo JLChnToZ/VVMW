@@ -279,7 +279,7 @@ VizVid 用螢幕，可與控制器分開放置。
 1. 參考 [LTCGI 說明文件](https://ltcgi.dev/Getting%20Started/Setup/Controller)，將 LTCGI 控制器放入場景中。  
 2. 在 LTCGI 的 Inspector，會自動出現「Auto-Configure XXX」的按鈕  
 3. 請確認「XXX」是你的 VizVid Core，即可按下上述按鈕，使 LTCGI 接收 VizVid 的影像訊號。
-> [!Important]
+> [!Note]
 > 需注意，LTCGI 需要使用支援的著色器，才可正常顯示效果。  
 > 請參考[該說明文件](https://ltcgi.dev/Getting%20Started/Installation/Compatible_Shaders)，選擇適合的著色器。  
 
@@ -288,7 +288,7 @@ VizVid 用螢幕，可與控制器分開放置。
 2. 依照以下附圖進行設定，即可在 VizVid 螢幕上啟用 VRC Light Volume。  
 ![image](../resources/images/SyEubsBm-e.png)  
 
-> [!Important]
+> [!Note]
 > 需注意，VRC Light Volume 需要使用支援的著色器，才可正常顯示效果。  
 
 ### 影音串流相關  
@@ -312,7 +312,7 @@ VizVid 提供以下三種方式套用串流網址。
 主要串流網址，預設使用 TopazChat 服務，可根據需求自由更動。  
 * **替代串流網址模板**  
 供行動平台用替代網址，預設使用 TopazChat 服務，請跟上方網址使用相同伺服器。  
-> [!Important]
+> [!Note]
 > `{0}` 為串流金鑰唯一 ID 套用處，請記得保留於模板中。
 * **金鑰數量**  
 欲產生的金鑰數量  
@@ -356,7 +356,7 @@ VRChat 的 AVPro 後端，可以在 VRChat 提供 5.1 環繞音效的聲音輸�
 4. 取消勾選 `Inverse Order`，並儲存該 Prefab。  
 ![image](../resources/images/S1P8nNB7Zl.png)  
 5. 完成！  
-> [!Important]
+> [!Note]
 > 該操作為一次設定所有播放清單之排序，若要個別設定，請於 Hierarchy 相關 UI 物件中，找到該 Prefab 並進行更改。  
 
 ### 在地化  

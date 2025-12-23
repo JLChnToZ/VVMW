@@ -296,7 +296,7 @@ Supported video players in the following:
 2. In the LTCGI Inspector, an "Auto-Configure XXX" button will automatically appear.  
 3. Confirm that "XXX" is your VizVid Core, then click the button to allow LTCGI to receive the video signal from VizVid.  
 
-> [!Important]  
+> [!Note]  
 > LTCGI requires the use of supported shaders to display effects correctly.  
 > Refer to [this documentation](https://ltcgi.dev/Getting%20Started/Installation/Compatible_Shaders) to select a suitable shader.  
 
@@ -306,7 +306,7 @@ Supported video players in the following:
 2. Follow the settings shown in the attached image to enable VRC Light Volume for VizVid:  
 ![image](../resources/images/SyEubsBm-e.png)  
 
-> [!Important]  
+> [!Note]  
 > Please note that VRC Light Volume requires the use of supported shaders to display effects correctly.  
 
 ### Audio/Video Streaming  
@@ -334,7 +334,7 @@ The primary stream URL. Defaults to the TopazChat service and can be changed as 
 * **Alt. Stream URL Template**  
 Alternative link for mobile platforms.  
 Defaults to the TopazChat service; please use the same server as the URL above.  
-> [!Important]  
+> [!Note]  
 > `{0}` represents the unique ID for stream key; please ensure it is kept in the template.  
 * **Key Count**  
 The number of keys to be generated.  
@@ -385,7 +385,7 @@ If you prefer not to use VizVid’s default reverse-order (descending) playlist,
 ![image](../resources/images/S1P8nNB7Zl.png)  
 5. Done!  
 
-> [!Important]  
+> [!Note]  
 > This operation sets the order for all playlists at once. To configure a specific playlist individually, locate the corresponding prefab instance within the Hierarchy UI objects and modify it there.  
 
 ### Locale  
