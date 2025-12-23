@@ -1,390 +1,442 @@
-# VizVid Documentation
-
-Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It aims to cover many use cases, from watch-together video/live stream player in lounges, to large event venue for music performances, or even booths for exhibitions or showcases. Due to its target customers, it has a flexible architecture, just like a factory made electronic but with a easy to open back lid, make it easier to let users mess them around for their needs.
-
-> [!NOTE]
-> This documentation is for versions between v1.4.7 and v1.4.8 (newer version is work in progress), some guidelines are different to older versions.
-
-## How to install?
-You may just right-click anywhere in hierarchy, and select `VizVid > Video Player`.  
-![ ](../resources/images/add-player-simple.png)
-
-Here is a glance of the difference between the variants:  
-![ ](../resources/images/basic-install-type-1.png)
-![ ](../resources/images/basic-install-type-2.png)
-
-Alternatively, the playlist attached on separated controls can be moved or disabled like this:  
-![ ](../resources/images/basic-install-type-2-no-playlist.png)
-
-### How to Make Playback Speed Option Working?
-VizVid supports adjust playback speed for non-live videos, but it requies AVPro or a "stub program" (a minimal piece of code that make sures the things properly wired up) to be imported.
-
-You have these options:
-- Install the stub program to your project (only require doing this once)
-  ![ ](../resources/images/install-avpro-stubs.png)
-- Import [AVPro trial version](https://github.com/RenderHeads/UnityPlugin-AVProVideo/releases)
-- Import [AVPro paid version](https://assetstore.unity.com/packages/tools/video/avpro-video-v3-core-edition-278893) if you have purchased one.  
-  (The plugin itself is not cheap, I don't recommend you to spend money just for this feature to work.)
-
-### How to Add Extra Screen?
-You may just right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Screen`.  
-![ ](../resources/images/add-controls-simple.png)
-
-> [!NOTE]
-> Extra: If your screen has special configuration such as using a custom shader, you may need to change the values in the inspector. If you are adopting shaders that designed to work with [iwaSync3](https://hoshinolabs.booth.pm/items/2666275), you could leave it as-is, VizVid defaults to a configuration which compatible with those shaders.
-
-![ ](../resources/images/add-screen-3.png)
-
-### How to Add Extra Audio Source?
-You can add more audio sources (speakers) to make something like multi-channel surrounded audio, but these extra audio sources only works with AVPro player but not Built-in Unity video players.
-
-To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Audio Source`.  
-![ ](../resources/images/add-controls-simple.png)
-
-Then, click the "Setup Speakers" button on the player component inspector.  
-![ ](../resources/images/add-audio-simple.png)
-
-### How to Add Extra Controllers?
-VizVid is aim to be flexible, so do the controllers. We have provide 3 variants to fit in different cases, and these controllers can be linked to one single core. Before we started, let me introduce these 3 variants:
-- On-screen: Don't require extra spaces to put the controls, suitable for chilling worlds.  
-  The prefab name is `Screen With Overlay`.  
-  ![ ](../resources/images/controls-onscreen.png)
-- Separated: Good alternative if you don't want to interact on the screen, but require some spaces under the screen.  
-  The prefab name is `Default UI`.  
-  ![ ](../resources/images/controls-separated.png)
-- Narrow: Suitable for the controls don't come along with the screen (or even without any screen).  
-  The prefab name is `Default UI (Narrow)`.  
-  ![ ](../resources/images/controls-narrow.png)
-- Narrow with Alt. URL Input: Almost same as above, but with 2 input fields that allows user to enter mobile (Quest) specific alternative links. Most common usage is ad-hoc input live streaming URLs for a cross-platform event venue, which requires different protocol for each platform (RTSP and RTSPT).
-  The prefab name is `Default UI Dual Input (Narrow)`.  
-  ![ ](../resources/images/controls-narrow-dual.png)
-
-To add them, right-click on the player object in hierarchy, and select one of these depends which type of controls you want to add:
-- `VizVid > Additional Controls > On Screen With Controls with Overlay`
-- `VizVid > Additional Controls > Separated Controls`
-- `VizVid > Additional Controls > Separated Controls (Narrow)`
-- `VizVid > Additional Controls > Separated Controls (With Alt. URL Input, Narrow)`
-
-![ ](../resources/images/add-controls-simple.png)
-
-### How to Add/Import/Export a Playlist?
-Playlists are pre-defined lists that the player will plays. All playlists associated to a video player instance are defined and controlled in a "Playlist Queue Handler" game object, unlike how some other video player designs, whatever amount of controllers you added for a player, you are still interacting with the same list of the queued videos. Here is how you can manipulate Playlists:
-1. Select "VVMW" or "Play List Queue Handler" game object in hierarchy.
-2. Click "Edit Playlists..." button.
-   ![ ](../resources/images/add-playlist-1.png)
-3. In the new popup window, you can:
-    a. Create/remove a Playlist
-    b. Import Playlist from other video players and YouTube
-    c. Import/Export Playlist to/from JSON file
-4. After editing, remember to click the "save" button on the top of the window.
-
-Current supported Playlists / video players to be imported directly:
-- VizVid (Yes, you can pour the Playlists from other instances within the world as well)
-- USharp Video
-- Yama Player
-- KineL Video Player
-- iwaSync 3
-- JT Playlist
-- ProTV by ArchiTech
-- VideoTXL
-
-To import above listed Playlists, drag the game object containing their Playlists to this Playlist editor.
-
-> [!NOTE]
-> Beware it is sightly different when you drop it between the left panel and the right: If you dropped on the left, new Playlists will be added; and if you dropped on the right, it will append to current selected Playlist if applicable.
-
-### How to Add a Pickupable Screen?
-This component was [originally created by Yama Buta](https://yamabuta.booth.pm/items/4189997), which is a local-only pickupable screen with scaling feature, and it is rewrited to use with VizVid.
-
-To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Pickupable Screen`.  
-![ ](../resources/images/add-controls-simple.png)
-
-### How to Add an Overlay Control?
-This is a component that spawns a mini controller on every user's wrist (VR mode) or a overlay UI on screen (PC mode). User can adjust the players volume and reload current video using laser pointer (VR) or keyboard input (PC).  
-![ ](../resources/images/overlay-sample.png)
-
-To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Overlay Controls`.  
-![ ](../resources/images/add-controls-simple.png)
-
-### How to Add a Resync Button?
-This component is an alternative to the wrist / overlay UI screen resync button control, to let users resyncs your live stream in an event venue. There are 2 variants: `Re-Sync Button` and `Global Sync Button`, the difference is one is local only and another one is a global trigger.
-
-To add it, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Resync Button` or `Global Resync Button`.  
-![ ](../resources/images/add-controls-simple.png)
-
-### How to Change color?
-Yes, you can change the UI color in nearly one-click. Every UI components comes with VizVid has attached a component called `Color Config`, what you have to do is change the color you like in this component, and click the `Apply` or `Apply to All` button below. The `Apply` button only applies the color to current selected UI, and `Apply to All` will copy the settings to other VizVid UIs and apply to them as well.  
-![ ](../resources/images/change-color.png)
-
-### How to Setup Auto Plays When a User Goes Nearby?
-VizVid built-in supports auto plays when a user goes into a specific region and stops when exits, it is for video playback in exhibition venues.
-
-To enable this feature, right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Auto Play On Near (Local Only)`. You can then either set the distance (if you don't want to use the collider), or adjust the size of the collider to match your needs.  
-![ ](../resources/images/add-controls-simple.png)
-
-### How to Make Background Music Fade Out When Video is Playing?
-As we all know, leaving background music playing in the world while watching/listening other video/music within the player is not a good experience. To solve this problem, we introduce BGM Volume Control component. This component is designed to attach to any background music audio source in your world.
-
-To add this, select your existing background music audio source game object, then click "Add Component" in inspector, select `VizVid > Components > BGM Volume Control`.  
-![ ](../resources/images/add-bgm-control-1.png)
-
-Next, click on the "Find" button next to the core field, or drag your video player to here. And you may want to change the volume and/or other settings here.  
-![ ](../resources/images/add-bgm-control-2.png)
-
-And thats it!
-
-### How to Upgrade to Text Mesh Pro?
-
-Both Unity and VRChat SDK encourages to use TextMeshPro (TMPro) instead of legacy Text components for all UIs in your scene for readability and aesthetics in VR. To upgrade VizVid to use TMPro instead of legacy Text, starting from v1.0.32, you can do the following:
-
-1. Select the outermost UI game objects of VizVid you want to migrate, such as Default UI, Overlay Control, Re-Sync Button.
-2. Select `Tools > JLChnToZ VRCW Foundation > Migrate TMPro Components` in menu, the script will do the thing.
-3. That's it!
-
-> [!NOTE]
-> Please note this only applies to currently what you have on the scene, if the player is upgraded in the future and new UI components are added, or you have added/replaced any UIs of the player afterwards, you will have to do this again.
-
-If you want to test the player within Unity Editor but find out all non-English text become tofu after migration, you may refer to this article: [TextMeshPro in VRChat](https://hai-vr.notion.site/TextMeshPro-in-VRChat-91561782adea47a78569cec641fd5ee9#88dd13b80e4d4caeafc00f26b4aa2ae1).
-
-### How to Automatically Assigns Unique Stream Links for Each Event Performer or Instance?
-
-As we are also music event organizers/performers, we all know the pain to find a convenient place to start our streaming, better with provided stream keys to copy, but also not interfere with other instances or users. This component is the solution already built with the video player, starting from v1.3.0. To use this, you can follow this instructions:
-1. Right-click on the player object in hierarchy, and select `VizVid > Additional Controls > Stream Key Assigner`.
-2. The newly spawned object should be selected by default, head in to inspector, you will see following panel:  
-![ ](../resources/images/add-streamkey.png)
-3. Change the **Stream Key Template**, **Stream URL Template** and **Alt Stream URL Template** according to your streaming sevice, and click **Generate**. (For Key Count and Unique ID Length option, it depends on how popular your world does, but normally 100 streaming keys and 5 characters length is enough for per-instance random)
-4. Adjust the object placement as you like, then you are done.
-
-### How to Reverse the Playlist/Queue List Display Order?
-
-You can choose to let the playlist/queue list display in ascending order (top goes first) instead of by default descending order (bottom goes first).
-1. Find and select the **Play List Entries** inside the UI Controls, you can do it by typing `Play List Entries` or `t:PooledScrollView` in the search bar in hierarchy tab.
-2. Go to the inspector, find the **Inverse Order** property, enable it.
-![ ](../resources/images/ascending-order.png)
-
-## Details in the Bundle
-In the prefab, it should look like this in hierarchy:
-- VVMW
-    - Builtin Module
-    - AVPro Module
-    - Play List Queue Handler
-    - Locale
-    - *(Not exists in Overlay Version)* Default Screen
-    - Default Audio Source
-    - Default UI / Screen With Overlay
-        - *(Only in Overlay Version)* Screen
-
-Let me explain one by one.
-
-### VVMW (Game Object)
-This is the "brain" of the system, it controls and synchronizes the player (if enabled) between users within the same world instance. If you open the inspector, you will find theres many options that let you to fiddle around:
-- These options only appears when you are not using with Playlist queue handler and unlinked it:
-  - **Default URL**: The URL will be played automatically when user joins your world.
-  - **Default Quest URL**: The optional alternative URL will be played for Quest/Android clients. Leave empty to use default URL.
-  - **Auto Play Player Type**: The "module" to use to play the above URL.
-  - **Loop**: Is default the player loops (can be toggled via UI)
-- **Auto Play Delay Time**: The delay to start playing the default video when the scene is loaded.
-  This is to prevent rate limit between video players in same instance.  
-  You can leave this value as-is if VizVid is the only video player(s) in your world,
-  as [Rate Limit Resolver](#rate-limit-resolver) will gracefully handle the requests.
-- **Total Retry Count**: How many times should retry when video failed to load.
-- **Retry Delay**: Delay to retry when video failed to load.
-- **Time Drift Detect Threshold**: The player will adjust the time to sync with the owner's time when the time drift is greater than this value.
-  Recommend keep this value not too low or too high, as it may cause the video to jump back and forth,
-  or timing between players may drift too far.
-- **Player Handlers**: The "modules" of actual the player components.
-  You usually don't need to change this, unless you want to disable unused player systems. See "Builtin Module" and "AVPro Module" for the modules.
-- **Default Texture**: The default texture displays when the player is not playing anything. You can change to any texture here, but if you want it to be simple, just leave it in default value.
-- **Video Screen Target X**: Components that will receives the video screen texture. It can be any material, renderer, UI raw image components.
-  The options collapsed with the triangle are advanced options, you usually don't need to change them unless you are using third-party shaders to receive video screen textures.
-- **Add Video Screen Target**: Drag any accepted components to here for additional video screen targets.
-- **Audio Sources**: List of audio sources that plays the audio from the playing video, also they will be controlled by the player's volume control.
-  For built-in video player, it only supports 1 audio source output, and the system will uses the first entry to play its audio.
-  For AVPro player, it supports by-channel audio sources up to 8 channels, which means you can put multiple audio sources on the scene but playing independent audio channel, such as the left one playing left channel, vice versa.
-  Unless you have multiple AVPro player handlers (which required to manually set up the audio sources), you can click on the "Setup Speakers" after you change the audio source layout to auto setup the speakers.
-- **Default Volume**: Default audio volume level.
-- **Synced**: Whether the player should be synced. For some cases, you may want the player not to synchronized between users (such as in a exhibition booth).
-  If this option is turned off, every users in the instances can control the playback by their own (unless you removed the UI).
-- **Audio Link**: [Audio Link](https://github.com/llealloo/vrc-udon-audio-link) support. It will wire the audio to provided Audio Link instance when the player is playing.
-- **Targets**: For integration to custom scripts, it will sends out events to any Udon (sharp) behaviours assignaed here.
-  I don't provide source-code level documentation so please read the source code if you want to integrate with your scripts.
-- **Realtime GI Update Interval**: The interval to update realtime GI, set to 0 to disable realtime GI update.
-  This features requires setup the light probes and realtime GI in the scene and the screen renderers.
-
-This inspector will also contains options find in [Builtin Module, AVPro Module, Image Module](#builtin-module--avpro-module--image-module), [Playlist Queue Handler](#playlist-queue-handler), it is basically the same as editing them by select respective components.
-
-### Builtin Module / AVPro Module / Image Module
-These are the video player / image viewer modules. The purpose of these game objects are interfaces from the undely video player / image loader components to the core.
-The following are the options could be changed here:
-
-- **Player Name**: The video player name to be displayed in UI, you can put literal name or just a key mapped inside a file called **lang.json** for localized.
-- **Materials**, **Texture Property Name**: You usually don't need to change these values, these are for fetching video screen from the undely video player component.
-- **Maximum Resolution**: Maximum resolution to be loaded if the video has this option to select, it is the height of the video. Default is `1080`.
-- **Use Low Latency**: AVPro module only option. If you need to use this player for live streaming, this option could lower the latency between server and client.
-- **Primary Audio Source**: The audio source that the player primary outputs.
-  If it is built-in player module, this will be the only audio output.
-  If you have Audio Link set up, this audio source will be sent to Audio Link when playing.
-- **Use Flicker Workaround**: This option is only for AVPro video player.
-  It will use a workaround with a little performance cost to attempt to fix the screen flickering issue.
-  Technically speaking, this will also fix the flipped upside-down and colorspace of the output video screen texture,
-  make it be able to display correctly even no proper shader support.
-- **Blit Material**: This material will be used to blit the screen to a temporary render texture for the flickering workaround. Don't change it unless needed.
-
-### Playlist Queue Handler
-This is an optional component that manages the queue of the playback. You can pre-define playlist and/or enabling player queue options here.
-
-- **Core**: Reference to the VVMW main component. If it is empty, you can click the "Find" button to resolve it.
-- **Enable Queue List**: If enabled, while user want to play a video and it is playing other video, the video url will be queued.  
-  Recommend as this is more polite to everyone.
-- **History Size**: How many recent user entered URL entries will be recorded.  
-  If this value is greater than `0`, a "Playback History" entry beside queue list and playlists will appeared. When the player plays a user-input URL, the URL and who entered will append here, allowing it to be quickly re-queued afterwards.  
-  Setting this value to `0` will entirely disable this feature.
-  (URLs selected in playlists will not recorded)
-- **Edit Playlists...**: Edit the Playlists defined in this component.  
-  The options below are in the Playlist editor window now:
-    - **Reload**: Discard any changes to the playlist and reload to inspector.
-    - **Save**: Save changes to the component. **REQUIRED TO CLICK AFTER EDIT OR YOUR CHANGES WILL BE LOST!**
-    - **Export All**: Export all Playlists to a JSON file.
-    - **Export Selected**: Export selected Playlist to a JSON file.
-    - **Import from JSON**: Import previously saved JSON file back to Playlists. You will be prompted to append or replace after selecting a JSON file.
-    - **Playlists**: The list of pre-defined Playlists. You can add/remove/reorder/rename them here.
-    - **&lt;Your Playlist Name&gt;**: When you selects a Playlist, you can edit the Playlist here.
-        - **Title**: The title to be displayed.
-        - **URL (PC)**: The url to the video, can be YouTube, Twitch, SoundCloud, RTSP, RTMP links.
-        - **URL (Quest)**: The url to be loaded on Quest/Android clients, useful when RTSP/RTMP links won't work and need an alternative to those clients.
-        - **&lt;Builtin / AVPro Player / Image Viewer&gt;**: The player module to play / view this link.
-        If it is a live stream or soundcloud, it is required to use AVPro player module.
-        - **Load Playlist from YouTube**: You can enter the Playlist URL from YouTube to append it to current selected Playlist. It requires a selected Playlist to operate with.
-        - **Fetch Titles**: Fetch titles automatically if not filled. Currently only supports YouTube.
-- **Dafault Playlist**: The Playlist default selected when user joins the world.
-- **Auto Play**: If you want the above Playlist to be played automatically, enable it.
-  But if you want it [auto play on user nearby](#how-to-setup-auto-plays-when-a-user-goes-nearby) feature,
-  you should disable it and follow the instruction above.
-- **Auto Play Delay Time**: The delay to start playing the default video when the scene is loaded.
-  This is to prevent rate limit between video players in same instance.
-  If you have multiple video players (not limited to VizVid) which will auto plays in the same world
-  you should set this to a value at least in multiple of `5` to stagger the loading time.
-- **Default Loop**: Is default the player loops (can be toggled via UI).
-  The difference to loop option in VVMW (Core) is this option will loop over whole Playlist / user queue list.
-- **Default Shuffle**: Is default the player plays randomly instead of the queued order (can be toggled via UI).
-- **Locked**: Is default the player locked up.
-  This feature is designed to use with [Udon Auth](https://xtl.booth.pm/items/3826907) (paid asset) or other compatible scripts.
-- **Targets**: Same as above, it is for integration to custom scripts.
-
-On tutorial on how to add playlist, plese see [How to Add a New Playlist?](#how-to-add-a-new-playlist) section.
-
-### Locale
-The locale manager. You can add/modify the texts in it with the language editor.
-
-Also for advanced usage, it is capable to use without the VizVid player. You may use the `Language Receiver` with any text components to make your own localized interface.
-
-### Rate Limit Resolver
-This module is for reducing rate limit errors by debouncing (on holds and wait for certain time) video switching requests across VizVid instances.
-There is no adjustable options for this module.
-
-### Default Screen / Screen
-This is the default screen, you can resize and move it to anywhere you want. For details and guides, please see [How to Add Extra Screen](#how-to-add-extra-screen) section above.
-
-#### Screen Configurator
-This is the component for quickly configurate VizVid default screens. You can assign the attached screen with different core. Also includes options for quickly setup the screen.
-Please refer to [VVMW (Game Object)](#vvmw-game-object).
-
-### Default Audio Source
-This is the default audio source. For details and guides, please see [How to Add Extra Audio Source](#how-to-add-extra-audio-source) section above.
-
-### Default UI / Screen with Overlay
-This is default UI, it provides all basic interface of the player to let user interact with it. For details and guides, please see [How to Add Extra Controllers](#how-to-add-extra-controllers) section above.
-
-## Third Party Support
-
-### Udon Auth
-VizVid built-in supports integration with Udon Auth, the later one is a paid asset available on my [Booth](https://xtl.booth.pm/items/3826907), which is an OTP solution for locking out certain gimmicks in your world, typically staff-only locks for event venues.
-
-![ ](../resources/images/udonauth-1.png)
-![ ](../resources/images/udonauth-2.png)
-
-1. Assume you have set up Udon Auth in your scene, select the lock panel, click + button at custom callbacks field.
-2. Find the "Playlist Queue Handler" inside the player, drag it to custom callbacks field.
-3. Select "Playlist Queue Handler"
-4. Enable "Lock" option.
-
-In the other hand, you can program your own locks instead of using my paid asset, just send the `_OnUnlock` custom event to the Udon attached on Playlist Queue Handler, and it will become unlocked.
-
-### Audio Link
-This player provides basic integration to Audio Link, basic setup please refer to the "Audio Link" option above.  
-![ ](../resources/images/add-audiolink.png)
-
-Additionally, if you want to use together with multiple channel audio sources provided from AVPro, you will need an audio source that don't controlled by the player, which will emits basic stereo output.
-
-You have 2 ways to do this:
-1. Use the provided "Audio Input" in Audio Link:
-    - Drag the AVPro player module to the Video Source property in VRC AVPro Video Speaker component in "Audio Input" under AudioLink game object.
-    - Select the AVPro player module, set the Primary Audio Source to "Audio Input".
-2. Use an additional audio source:
-    - Duplicate or drag Default Audio Source object to the scene.
-    - Remove VRC Spatial Audio Source component.
-    - Set volume to `0.01`.
-    - Set the position to very far away from origin, something like `-999999`.
-    - Set Video Source property in VRC AVPro Video Speaker component to AVPro player module.
-    - Select the AVPro player module, set the Primary Audio Source to this newly created audio source.
-
-### LTCGI
-VizVid provides integration to [LTCGI](https://ltcgi.dev/).
-
-Since v1.3.2, the most simple way to integrate LTCGI with VizVid is using the one-click setup button.
-First, assume you have already setup your VizVid screens and added LTCGI Controller to your scene according to [LTCGI documentation](https://ltcgi.dev/Getting%20Started/Setup/Controller),
-then you will find there are extra button(s) says "Auto-Configure XXX" on the LTCGI Controller's inspector.  
-![ ](../resources/images/add-ltcgi-new.png)  
-Make sure the "XXX" matches your player's name (if you have multiple of them), and click on it,
-VizVid is now ready to serve LTCGI with video signals.
-
-If you are not using built-in screens, this one-click auto setup may not detect it and you may need to add [LTCGI Screen](https://ltcgi.dev/Getting%20Started/Setup/LTCGI_Screen) manually.
-
-You may need to configurate the reflected objects to use [supported shaders](https://ltcgi.dev/Getting%20Started/Installation/Compatible_Shaders), also for screen intensity settings and optionally [bake shadow map](https://ltcgi.dev/Advanced/Shadowmaps), but for these parts, please refer to their documention.
-
-If you are using version v1.3.1 or below, or any reason you are unable to use above method, please use the provided "VideoCRT" CustomRenderTexture in Materials folder as video texture input inside LTCGI controller, then assigns this CustomRenderTexture to "Add Video Screen Target" option in the VVMW core to integrate with LTCGI.  
-![ ](../resources/images/add-ltcgi.png)
-
-### YTTL
-[YTTL (Video title viewer)](https://65536.booth.pm/items/4588619) is an addon for providing ability to display titles from several known sources (e.g. YouTube, Twitch, SoundCloud) in video players, it was created by ureishi and it is licensed with CC0. However, installing it on video players that are not originally supported, including VizVid, can be a bit tricky if you're not familiar with the technical side of things. To make it easier, we've included a modified version of YTTL, but you'll still need to follow a few steps to enable it:
-Right-click on the player object in hierarchy, and select `VizVid > YTTL`.
-
-### VRC Light Volumes
-[VRC Light Volumes](https://github.com/REDSIM/VRCLightVolumes) is an alternative to light probes for better environmental shading on avatars and other dynamic objects in world. VizVid has an dedicated component to better integrate with this system, which updates the light volume you want as the video screen updates.
-
-There are 2 ways to setup:
-
-1. One-click setup (VRC Light Volumes V2.0 or later, only supports video screen from VizVid prefabs): Right-click the video screen you want to add light volumes to it, select `VizVid > Light Volume for Screen`.
-2. Manual way: Follow [this video](https://x.com/JLChnToZ/status/1925848509837680684/video/1) to do it, but you can use the "Light Volume Adaptor (VizVid)" instead of "Light Volume TVGI".
-
-### Topaz Chat / VRCDN (And Other Streaming Service)
-VizVid is capable to stream from Topaz Chat (and other streaming service).
-We don't recommend to make multiple video player switches for "live stream mode" as this will make your world performance heavier and might bring more synchronizing bugs.
-To properly setup for Topaz Chat, you can follow the following instructions:
-
-1. Make sure you have enabled "Use low latency" option in the AVPro module.
-   ![ ](../resources/images/topaz-1.png)
-2. Select "Play List Queue Handler" game object in hierarchy.
-3. Click "Edit Playlists..." button.
-   ![ ](../resources/images/add-playlist-1.png)
-4. Click the '+' on the left hand side
-5. Enter the playlist name you like
-6. Click the '+' on the right hand side
-7. Fill in the blanks
-   - **Title**: Enter anything you want, if you want the others know your stream key, you can paste it here.
-   - **URL for Topaz Chat**: Replace `<Key>` to your stream key
-     - **URL (PC)**: `rtspt://topaz.chat/live/<Key>`
-     - **URL (Quest)**: `rtsp://topaz.chat/live/<Key>`
-        It is differ from PC version, as Quest (or other Android clients) don't support RTSPT protocol.
-   - **URL for VRCDN**: Replace `<Key>` to the public key provided by VRCDN.
-     - **URL (PC)**: `rtspt://stream.vrcdn.live/live/<Key>` (RTSP URL provided by VRCDN)
-     - **URL (Quest)**: `https://stream.vrcdn.live/live/<Key>.live.ts` (MPEG-TS URL provided by VRCDN)
-8. Click save button on the menu.
-   ![ ](../resources/images/add-playlist-2.png)
-
-> [!NOTE]
-> Please read the streaming providers' documentations as we can't guarantee above endpoint are valid all the time.
-> - [Topaz Chat](https://booth.pm/ja/items/1752066)
-> - [VRCDN](https://wiki.vrcdn.live/en/stream/Getting-Started)
-
-When user want to live stream in your world, they can use the stream key you provided and select the entry in the playlist to get started.
+# VizVid Documentation  
+
+**VizVid** is a versatile multimedia player frontend designed specifically for VRChat. Whether you are watching videos with friends, hosting music performances, or setting up a gallery exhibition, VizVid provides a robust solution for any scenario.  
+
+Built with a modular design, VizVid allows you to pick and choose the exact components you need to build a custom player tailored to your world.  
+
+> [!NOTE]  
+> This documentation covers version v1.4.13 and later. Some features or instructions may differ in older versions.  
+
+---
+## Quick Start  
+### How to Add VizVid into Your World  
+1. Right-click on the hierarchy.  
+![image](../resources/images/B1j_Aa87Ze.png)  
+2. Find VizVid in the menu.  
+3. Choose the player preset you want to add.  
+![image](../resources/images/ByGpuNghgg.png)  
+
+#### Common Presets  
+General-purpose presets for most uses.  
+* **On-Screen Controls**  
+The simplest version — controllers embedded on the screen. No extra spaces needed.  
+![VRChat_2025-12-22_01-32-37.218_3840x2160](../resources/images/Bkzll3Hmbg.jpg)  
+* **Separated Controls**  
+Controller and playlist panels can be placed independently if you didn't prefer touchscreen-like controlls.  
+![VRChat_2025-12-22_01-31-45.190_3840x2160](../resources/images/SJJ6yhBX-e.jpg)  
+
+#### Exhibition Presets  
+Designed for exhibition use. VizVid runs in local mode. Includes a proximity-based autoplay feature.  
+* **For Single Video Exhibition**  
+Designed to play a single video with playlist module disabled.  
+* **For Multiple Video Exhibition**  
+Designed to play multiple videos and supports playlists.  
+
+---
+### Recommended Settings  
+#### Enable Playback Speed Control  
+This feature depends on AVPro Stub.  
+Follow the steps on the image below to install it.  
+![image](../resources/images/rkfJHSe2xg.png)  
+
+#### Enable YTTL  
+Support showing video titles for YouTube videos.  
+Follow the steps on the image below to install it.  
+![image](../resources/images/HyUJUSxnxx.png)  
+
+#### Migrate to Text Mesh Pro
+Using Text Mesh Pro will make fonts on VizVid even clearer.  
+Select all VizVid prefabs in hierarchy.  
+And follow the steps on the image below to migrate.  
+![image](../resources/images/S1Bar91MWe.png)
+
+---
+### Editing Playlists  
+Here's the detailed guide for playlist editor.  
+![image](../resources/images/HJqTZ-znxx.png)  
+
+* **Left-side playlist column**  
+    * Click <kbd>＋</kbd> or <kbd>ー</kbd> to add / remove playlists.  
+    * You can store multiple playlists. Drag on the left <kbd>＝</kbd> icon to reorder playlists.  
+* **Right-side playlist contents**  
+    * Click <kbd>＋</kbd> or <kbd>ー</kbd> to add / remove contents.  
+    * Titles can be set manually, or after entering a YouTube URL, use the <kbd>Fetch Titles</kbd> 
+    below to auto-fill the title.  
+    * Enter a PC URL, the Quest URL will be auto-filled.  
+URL (PC) and URL (Quest) let you set different URLs for different platforms (useful for live streams).  
+    * Choose a different backend depending on media type; `AVProPlayer` is set by default.  
+    * Drag on the left <kbd>＝</kbd> icon to reorder contents.  
+* **Top toolbar**  
+    * <kbd>Reload</kbd>: Restore the last saved playlist.  
+    * <kbd>Save</kbd>: Save the current playlist to the player.  
+    * <kbd>Export All</kbd>: Export all playlists to a JSON file.  
+    * <kbd>Export Selected</kbd>: Export the currently selected playlist to a JSON file.  
+    * <kbd>Load from JSON</kbd>: Import an external JSON playlist.  
+    * <kbd>Download/Update YT-DLP</kbd>: Install or update yt-dlp (for fetching video titles).  
+* **Bottom toolbar**  
+    * <kbd>Load Playlist from YouTube</kbd>: Paste a YouTube playlist URL into the left column to import it into the current playlist. Supports Public and Unlisted playlists (accessible via link); Private playlists are not supported.  
+    * <kbd>Fetch Titles</kbd>: Read a YouTube link and automatically fill in the title.  
+    * <kbd>Reverse Playlist</kbd>: Reverse the order of the playlist.  
+
+
+
+---
+
+## Modules  
+Beyond the standard templates, VizVid provides various modules that can be mixed and matched.  
+
+### Key Concepts  
+Before proceeding, distinguish between these two terms first:  
+
+1. **Prefab**  
+The objects visible in your **Hierarchy**. These are pre-configured containers of components.  
+![image](../resources/images/rJXWl0IXZg.png)  
+2. **Component**  
+The scripts visible in the **Inspector**. These are the functional building blocks of VizVid.  
+![image](../resources/images/SJ8M-ALQWl.png)  
+
+### Prefabs  
+
+Right-click in the Hierarchy and navigate to `VizVid > Modules` to find these prefabs:  
+
+* **VizVid Core**  
+The "Brain" of VizVid.  
+Every independent player instance requires one **Core**.  
+By default, it includes the prefabs in the follow:  
+    * AVPro Module  
+    * Builtin Modile  
+    * Image Module  
+    * Playlist Queue Handler  
+    * Locale  
+    * Rate Limit Resolver  
+    * Dafault Audio Source  
+
+---
+* **On-Screen Controls with Screen**  
+A touchscreen-style controller bundled with a screen object.  
+* **Separated Controls**  
+A standalone controller that can be placed anywhere without video screen.  
+* **Separated Controls (Narrow)**  
+A compact version for tight spaces.  
+* **Separated Controls (with Alt. URL Input, Narrow)**  
+Compact controller with support for entering alternative URLs on mobile platforms.  
+* **Overlay Controls**  
+A HUD controller providing extra control for both Desktop and VR users.  
+
+---
+* **Pickupable Screen**  
+A portable screen that can be moved and resized. It is set to **Local** by default (other users won't see your personal screen).  
+* **Screen**  
+A standard screen object that can be placed independently from the controls.  
+
+---
+* **Resync Button**  
+A standalone button to force synchronization. Highly recommended for live events.  
+* **Stream Key Assigner**  
+Automatically generates stream keys for services like TopazChat. Useful for music events.  
+> [!Note]  
+> See [Stream Key Assigner](#streamkeyassigner) for more details.  
+
+---
+* **Audio Source (Mono / Stereo / 5.1 Surround)**  
+Adds specialized audio outputs for VizVid.  
+*(See [5.1 Surround Configuration](#51-Surround-Configuration) for setup details).*  
+
+---
+* **Auto Play on Near (Local Only)**  
+Triggers a default video when a user approaches and stops it when they leave. Ideal for exhibition booths.  
+
+---
+
+### Components  
+
+> [!Note]  
+> This section covers settings relevant to most users.  
+> For advanced usage, go check [OtherScenarios](#Other-Scenarios), [Q&A](#QampA), or [join our Discord server](https://discord.gg/fkDueQMbj8).  
+
+#### **Core**  
+
+This component manages VizVid's playback logic.  
+*(Note: Some options only appear when a `Frontend Handler` is specified).*
+* **Common Settings**  
+    * **Edit Playlists...**  
+Opens the playlist editor window. You can create, edit, and import playlists.  
+For detailed usage, ckeck on [Editing Playlists](#editing-playlists).  
+    * **Enable Queue List**  
+When enabled, URLs you input can be queued into the queue list.  
+    * **History Size**  
+Set how many playback URLs are stored in history. Set `0` to disable it.  
+*Note: Contents played from playlists will not be recorded in history.*  
+
+* **Default Behavior**  
+Adjust VizVid's default values for this world.  
+    * **Auto Play on Join**  
+Auto play the default playlist when the first player joined the world.  
+    * **Auto Play Delay**  
+If there are no other video players besides VizVid in the world, you don't need adjust this.  
+    * **Auto Play on Idle**  
+If the current playlist finishes, VizVid will continue play the default playlist.  
+    * **Default Playlist**  
+Choose a playlist to use as the default from your saved playlists.  
+    * **Default Volume**  
+The default volume level for players when they join the world.  
+    * **Default Muted**  
+VizVid's volume are muted by default when players join the world.  
+    * **Default Repeat Mode**  
+Choose from: None, Repeat One, Repeat All.  
+    * **Default Shuffle**  
+Shuffle is enable by default when players join the world.  
+    * **Seed Random Before Shuffle**  
+Regenerate random seed for shuffle playback when VizVid plays a playlist.  
+
+* **Advanced Settings**  
+    * **Exception Handling**  
+        * **Total Retry Count**  
+        The maximum number of retry attempts when loading fails.  
+        * **Retry Delay**  
+        The interval time between retries when loading fails.  
+        * **Time Drift Detect Threshold**  
+        Detects playback latency between all users.  
+        Playback progress will be auto-adjust if the threshold is exceeded.  
+
+
+* **Player Handlers**  
+Manages the backends connected to VizVid.  
+AVPro, Builtin, and Image are provided by default.  
+* **Module Related**  
+Manages the module's specifications on VizVid.  
+    * **Video Screen Target**  
+Specifies the screen object containing the `Screen Configurator` component.  
+    * **Audio Sources**  
+Specifies the `Audio Source` for VizVid’s sound output.  
+Multiple Audio Sources can be specified for multi-channel setups.  
+    * **Audio Link**  
+Specifies the `AudioLink` component.  
+If you already had AudioLink in the project, you can click <kbd>Auto Find</kbd> to specify.  
+    * **Video Title Viewer (YTTL)**  
+Specifies the `YTTL Manager` component.  
+    * **Broadcast Screen Texture**  
+Enables broadcast screen textures, allowing supported shaders (e.g., [Poiyomi](https://www.poiyomi.com/color-and-normals/decals#video-texture)) to display VizVid's video signals.  
+    * **Realtime GI Update Interval**  
+The update interval for Realtime Global Illumination. Set to `0` to disable.  
+* **Others**  
+    * **URL Input Filter**  
+URL filtering settings.  
+Implementation can be based on inheritance by referring to this [Udon Script](https://github.com/JLChnToZ/VVMW/blob/develop/Packages/idv.jlchntoz.vvmw/Runtime/VVMW/InputFilterBase.cs).  
+    * **Global Default Texture**  
+The texture displayed by default on all screens when VizVid has no video content.  
+This can be changed individually in each `Screen Configurator`.  
+    * **Synced**  
+Sets whether VizVid operates globally. Enabled by default.  
+    * **Enable Persistence**  
+Sets whether to save VizVid settings (such as volume). Enabled by default.  
+* **Extra Features**  
+    * **Locked**  
+Locks the player by default. You can configure this by writing a [compatible script](https://xtlcdn.github.io/VizVid/api/JLChnToZ.VRC.VVMW.FrontendHandler.html?q=locked#JLChnToZ_VRC_VVMW_FrontendHandler_Locked) or purchasing [Udon Auth](https://xtl.booth.pm/items/3826907).  
+* **Event Targets**  
+Sends event data to Udon Sharp scripts set here to integrate custom scripts.  
+
+#### Frontend Handler  
+This component manages playlists and VizVid's default behavior.  
+
+The options for this component are integrated into the `Core` component.  
+Please refer to the [Core](#Core) section.  
+
+#### **UI Handler**  
+This component manages VizVid’s UI element's specification.  
+
+* **Main References**  
+    * **Core Handler**  
+    Responsible for connecting to the `Core` component.  
+If the reference is missing, you can click <kbd>Auto Find</kbd> to link it to the `Core` component in the scene.  
+    * **Playlist Handler**  
+    Responsible for connecting to the `Playlist Queue Handler` component.  
+    If the reference is missing, you can click <kbd>Auto Find</kbd> to link it to the `Playlist Queue Handler` component in the scene.  
+
+
+
+#### Color Config  
+
+This component manages UI color and usually appears alongside the `UI Handler`.  
+
+* **Color Palette**  
+Provides six default colors that can be assigned to different UI parts of VizVid.  
+* **Apply on Build**  
+Enabled by default. The currently modified colors will be applied automatically when Unity builds the scene.  
+* **Apply**  
+Allows you to apply colors to only the current `Color Config` component, or to all `Color Config` components in the scene.  
+
+#### Screen Configurator  
+
+This component is made for linking the video screen output to a specified shader.  
+
+* **Core Handler**  
+Specifies the linked VizVid core.  
+If it displays "None (Core)", you can click <kbd>Auto Find</kbd> to specify the VizVid core in the scene.  
+* **Screen Renderer**  
+Specifies the Mesh Renderer where the video content will be output.  
+
+---
+## Other Scenarios  
+### Import　Playlist from Other Video Players  
+Just drag video player's object, drop in VizVid's playlist editor.  
+Supported video players in the following:  
+* VizVid  
+* USharp Video  
+* Yama Player  
+* KineL Video Player  
+* iwaSync 3  
+* JT Playlist  
+* ProTV by ArchiTech  
+* VideoTXL  
+
+### Lighting & Visuals  
+#### LTCGI  
+1. Refer to the [LTCGI Documentation](https://ltcgi.dev/Getting%20Started/Setup/Controller) and place the LTCGI Controller into your scene.  
+2. In the LTCGI Inspector, an "Auto-Configure XXX" button will automatically appear.  
+3. Confirm that "XXX" is your VizVid Core, then click the button to allow LTCGI to receive the video signal from VizVid.  
+
+> [!Important]  
+> LTCGI requires the use of supported shaders to display effects correctly.  
+> Refer to [this documentation](https://ltcgi.dev/Getting%20Started/Installation/Compatible_Shaders) to select a suitable shader.  
+
+#### VRC Light Volume (VRCLV)  
+
+1. In the Hierarchy, right-click the VizVid screen object  
+2. Follow the settings shown in the attached image to enable VRC Light Volume for VizVid:  
+![image](../resources/images/SyEubsBm-e.png)  
+
+> [!Important]  
+> Please note that VRC Light Volume requires the use of supported shaders to display effects correctly.  
+
+### Audio/Video Streaming  
+
+Many performance-based events uses external RTMP/RTSP services for low-latency stream into VRChat.  
+VizVid provides 3 methods in the following of stream URLs for performers and users.  
+Let's use [TopazChat](https://github.com/TopazChat/TopazChat) as an example.  
+
+#### Stream Key Assigner<a id="streamkeyassigner"></a>  
+
+Automatically generates and applies stream keys for streaming services.  
+![image](../resources/images/r16wobv7-x.png)  
+* **Core Handler**  
+    Responsible for connecting to the `Core` component.  
+If the reference is missing, you can click <kbd>Auto Find</kbd> to link it to the `Core` component in the scene.  
+* **Playlist Queue Handler**  
+    Responsible for connecting to the `Playlist Queue Handler` component.  
+    If the reference is missing, you can click <kbd>Auto Find</kbd> to link it to the `Playlist Queue Handler` component in the scene.  
+* **Player Backend Type**  
+Select the designated player backend. Streaming events typically use `AvProPlayer`.  
+* **Stream Key Template**  
+The format of the stream key. This can be modified as needed.  
+* **Stream URL Template**  
+The primary stream URL. Defaults to the TopazChat service and can be changed as needed.  
+* **Alt. Stream URL Template**  
+Alternative link for mobile platforms.  
+Defaults to the TopazChat service; please use the same server as the URL above.  
+> [!Important]  
+> `{0}` represents the unique ID for stream key; please ensure it is kept in the template.  
+* **Key Count**  
+The number of keys to be generated.  
+* **Unique ID Length**  
+The number of characters for the generated keys.  
+
+#### Separated Controls (with Alt. URL Input, Narrow)  
+
+Allows manual input of the stream URL and an alternative mobile platform URL directly within VRChat.  
+Reference image below:  
+![image](../resources/images/Hk7zNsr7bl.png)  
+
+#### Playlist Editing  
+
+Stream using a fixed stream key via the playlist.  
+Configuration reference image below:  
+![image](../resources/images/rykrj9Bm-e.png)  
+
+### Audio  
+
+#### BGM Volume Control  
+
+If your world has background music or ambient sounds, you can add this component to allow VizVid to automatically mute these Audio Sources when media content is playing. They will be unmuted when playback stops.  
+
+1. Select the Audio Source you want to auto-mute.  
+2. In the Inspector, add the `BGM Volume Control` component.  
+3. Specify the core to be used.  
+![image](../resources/images/HkOf5cr7bl.png)  
+4. Done!  
+
+#### 5.1 Surround Configuration  
+
+VRChat's AVPro backend supports 5.1 surround sound output within VRChat.  
+This is commonly used in cinema scenes or similar environments.  
+After adding `Audio Source (5.1 Surround)` via the menu, it will automatically link to VizVid.  
+Finally, adjust the positions of the Audio Sources as needed.  
+![image](../resources/images/By3PPiBXbx.png)  
+
+### Reversing Playlist Order  
+
+If you prefer not to use VizVid’s default reverse-order (descending) playlist, you can change it using the following method:  
+
+1. Locate the `Scroll View` prefab in your project at this path:  
+`Packages > VizVid > Prefabs > UI Elements`  
+2. Double-click the prefab to edit it.  
+3. In the Inspector on the right, find the `Pooled Scroll View` component.  
+4. Uncheck `Inverse Order` and save the prefab.  
+![image](../resources/images/S1P8nNB7Zl.png)  
+5. Done!  
+
+> [!Important]  
+> This operation sets the order for all playlists at once. To configure a specific playlist individually, locate the corresponding prefab instance within the Hierarchy UI objects and modify it there.  
+
+### Locale  
+
+**Language Manager** is located under the **Locale** object to manage locales.  
+It also supports Text Mesh Pro UI elements outside of VizVid.  
+
+1. In the Language Manager, refer to the JSON format to add a custom JSON file, edit the Language Keys, and enter the corresponding translations.  
+2. Add the `Language Receiver` component to the Text Mesh Pro UI object you want to translate.  
+3. Enter the corresponding Language Key.  
+4. Done.  
+
+> [!Tip]  
+> Language Manager can operate without VizVid. You can remove related objects (including the Core) if you don't need VizVid.  
+> Keep the language menu, you can still switching between languages.  
+
+> [!Note]  
+> Language Manager supports importing multiple JSON files. If you are concerned about overwriting VizVid's built-in JSON lists, you can create a separate JSON and import it into this component.  
+> ![image](../resources/images/rk6ChErX-l.png)  
+
+### API Reference  
+
+Please refer to [this page](https://xtlcdn.github.io/VizVid/api/Global.html) to link custom functions to VizVid.  
+
+---
+## Q&A  
+
+(Continuously Updated)  
+
+---
+**Q1**: I configured LTCGI according to the instructions, but it didn't work.  
+**A1**: Your screen shader is likely not provided by VizVid. Please [manually add an LTCGI Screen](https://ltcgi.dev/Getting%20Started/Setup/LTCGI_Screen) component.  
+
+---
+**Q2**: I changed the default volume for VizVid, but it doesn't seem to reflect in VRChat?  
+**A2**: VRChat will use user's data first if they visited the world when `Enable Persistence` is checked in the VizVid Core.  
+To reset this and apply new default values, users must reset their data for that world in VRChat.  
+![image](../resources/images/ryr1oWvQZg.png)  
+
+---
+**Q3**: I can't find `Core` option in some components.  
+![image](../resources/images/rka-vEPQ-x.png)  
+**A3**: Remove the `Playlist Queue Handler` object for once from the reference field, and the `Core` option will appear.  
+Due to the limitations of Unity's inspector editor, if the component has already found the `Playlist Queue Handler`, the `Core` option will be hidden by default.  
+
+---
+**Q4**: No video, sound during playback  
+**A4**: Make sure your screen, audio source objects are specified in your `Core` component.  
+![image](../resources/images/B1Ru0WuXbx.png)  
+
+---
+> [!Note]  
+> If this section didn't solve your problem.  
+> Just [join our Discord server](https://discord.gg/fkDueQMbj8) look for help.  

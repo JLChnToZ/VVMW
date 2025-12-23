@@ -30,7 +30,7 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 - Dedicated component assigns random stream link per-instance/user (since v1.3.0)
 - Custom shader with various display modes built-in (Stretch, Contain, Cover, Stereographic Video Source), can be configurated on material options
 - Luminance adjustment for screens using built-in materials (sice v1.1.0)
-- Localization system with auto language detection (English, Chinese, Japanese & Korean)
+- Localization system with auto language detection (English, Chinese, Japanese, Korean, and 10 more languages)
 - Locked UI with [Udon Auth](https://xtl.booth.pm/items/3826907).
 - Basic [Audio Link](https://github.com/llealloo/vrc-udon-audio-link) support, which will auto switch audio source when playing, also reports player state (playback progress, volume, loop, shuffle, etc.) on newer version (1.0.0+).
 - Basic [LTCGI](https://ltcgi.dev/) integration, provided CustomRenderTexture for use.
