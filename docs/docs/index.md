@@ -278,7 +278,7 @@ Specifies the Mesh Renderer where the video content will be output.
 
 ---
 ## Other Scenarios  
-### Import　Playlist from Other Video Players  
+### Import Playlist from Other Video Players  
 Just drag video player's object, drop in VizVid's playlist editor.  
 Supported video players in the following:  
 * VizVid  
