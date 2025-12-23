@@ -1,3 +1,7 @@
+---
+TITLE: VizVid 安裝方法
+LOCALE: zh-tw
+---
 # VizVid 安裝方法  
 以下會進行 VizVid 的基礎安裝說明。  
 
