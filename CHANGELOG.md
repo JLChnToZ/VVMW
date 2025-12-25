@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## 1.4.14 - 2025-12-25
+
 ### Fixed
 - Some Japanese editor localization (by Kuriko)
 - Language UI hard to scroll
@@ -14,7 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 - Hebrew localization adjustments ([#79](https://github.com/JLChnToZ/VVMW/pull/79))
 - Thai localization adjustments (Thanks JustTemTem & Meiji)
-- Adjusted overlay screen UI to proper dismisses opened dropdown on hiding it.
+- Adjusted overlay screen UI to properly dismiss opened dropdown on hiding it.
 
 ## 1.4.13-beta.4 - 2025-12-04
 ### Added
@@ -37,17 +40,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## 1.4.12 - 2025-10-29
 ### Fixed
-- Screen configurator resolution logic mess up with U# initial deserialization (race condition)
+- Screen configurator resolution logic messed up with U# initial deserialization (race condition)
 
 ## 1.4.11 - 2025-10-21
 ### Fixed
-- No sound when try to load and play a video with built-in backend while another video still loading with AVPro.
-- U# serialization bug on some object (automation fixer code bundled in foundation pacakge)
+- No sound when trying to load and play a video with built-in backend while another video is still loading with AVPro.
+- U# serialization bug on some object (automation fixer code bundled in foundation package)
 
 ## 1.4.10 - 2025-10-16
 ### Fixed
-- Screen configurator not work well when used alone and core is a prefab instance
-- Progress bar "flashing" effects disappeared since last fix of status text
+- Screen configurator does not work well when used alone and core is a prefab instance
+- Progress bar "flashing" effects disappeared after last fix of status text
 
 ### Changed
 - Removed emoji fallback font for smaller build size
@@ -70,7 +73,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## 1.4.9-beta.1 - 2025-09-23
 ### Added
 - 2 new presets for exhibition usage (local only, arbitrary URL input is disabled, auto play on near)
-- 2 new audio source presets (separaed stereo, 5.1 surround)
+- 2 new audio source presets (separated stereo, 5.1 surround)
 
 ### Fixed
 - Default playlist dropdown bugged when unchecking queuelist
@@ -78,7 +81,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 - Auto Play On Near now also works without frontend handler (playlist/queue list/history features)
-- Light volumes will by default set dynamic to true if the screen is under pickupable object when created
+- Light volumes will be by default set dynamic to true if the screen is under pickupable object when created
 - Reworked inspector UI
 
 ## 1.4.8 - 2025-09-02
@@ -151,7 +154,7 @@ Nothing changed since last beta version.
 - Internal refactoring (no functional impact)
 
 ## 1.4.1 - 2025-03-09
-### Improved
+### Changed
 - Enhanced synchronization handling for buffering under poor network conditions or high-bitrate videos
   - Reduced instances of player stalling and potential empty screen issues at playback start
 
@@ -415,7 +418,7 @@ Nothing changed since last beta version.
 
 ## 1.0.36 - 2024-05-05
 ### Fixed
-- Import errors for Unity 2019 / no VCC (#36, #37)
+- Import errors for Unity 2019 / no VCC ([#36](https://github.com/JLChnToZ/VVMW/issues/36), [#37](https://github.com/JLChnToZ/VVMW/issues/37))
 - Font resolution bug in TMPro migration
 
 ### Changed
@@ -424,8 +427,8 @@ Nothing changed since last beta version.
 ## 1.0.34 - 2024-04-28
 ### Changed
 - Tweaked TMPro font asset for wider character range (European Glyphs)
-- Adjusted playback position timing window for low-end machines/weak networks (#31, #29)
-- Updated Japanese wordings (#32, #33, #34)
+- Adjusted playback position timing window for low-end machines/weak networks ([#31](https://github.com/JLChnToZ/VVMW/issues/31), [#29](https://github.com/JLChnToZ/VVMW/issues/29))
+- Updated Japanese wordings ([#32](https://github.com/JLChnToZ/VVMW/issues/32), [#33](https://github.com/JLChnToZ/VVMW/issues/33), [#34](https://github.com/JLChnToZ/VVMW/issues/34))
 
 ### Fixed
 - Internal TMPro migration logic
@@ -523,7 +526,9 @@ Nothing changed since last beta version.
 ### Changed
 - Updated to Unity 2022 (backward compatible with 2019)
 - Minor tweaks in inspector UI for AVPro flags
-- Fixed playlist import error ([#22](https://github.com/JLChnToZ/VVMW/issues/22))
+
+### Fixed
+- Playlist import error ([#22](https://github.com/JLChnToZ/VVMW/issues/22))
 
 ## 1.0.21 - 2023-11-25
 ### Fixed
