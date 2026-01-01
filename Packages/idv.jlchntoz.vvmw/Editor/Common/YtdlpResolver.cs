@@ -94,7 +94,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             await DownLoadYtDlpIfNotExists();
             if (!HasYtDlp()) return new List<YtdlpPlayListEntry>();
             var text = EditorI18N.Instance["YTDLPResolver.get_playlists"];
-            using var progress = new CancellableProgressBar(text, text);
+            using var progress = new CancelableProgressBar(text, text);
             return await Fetch(url, progress);
         }
 
@@ -102,7 +102,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             await DownLoadYtDlpIfNotExists();
             if (!HasYtDlp()) return;
             var text = EditorI18N.Instance["YTDLPResolver.get_titles"];
-            using var progress = new CancellableProgressBar(text, text);
+            using var progress = new CancelableProgressBar(text, text);
             var token = progress.CancelToken;
             if (token.IsCancellationRequested) return;
             for (int i = 0; i < entries.Length; i++) {
@@ -120,7 +120,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
         }
 
-        static async UniTask<List<YtdlpPlayListEntry>> Fetch(string url, CancellableProgressBar progress, float startProgress = 0F, float endProgress = 1F) {
+        static async UniTask<List<YtdlpPlayListEntry>> Fetch(string url, CancelableProgressBar progress, float startProgress = 0F, float endProgress = 1F) {
             var cancelToken = progress.CancelToken;
             var orgInfo = progress.Info;
             var results = new List<YtdlpPlayListEntry>();
@@ -163,17 +163,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         public string url;
     }
 
-    class CancellableProgressBar : IDisposable, IProgress<float> {
+    class CancelableProgressBar : IDisposable, IProgress<float> {
         readonly CancellationTokenSource cts;
-        string title;
-        string info;
+        string title, info;
         float progress;
 
         public string Title {
             get => title;
             set {
                 title = value;
-                Report(progress);
+                Report();
             }
         }
 
@@ -181,13 +180,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             get => info;
             set {
                 info = value;
-                Report(progress);
+                Report();
             }
         }
 
         public CancellationToken CancelToken => cts.Token;
 
-        public CancellableProgressBar(string title, string info, float initialProgress = 0) {
+        public CancelableProgressBar(string title, string info, float initialProgress = 0) {
             cts = new CancellationTokenSource();
             this.title = title;
             this.info = info;
@@ -196,7 +195,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         public void Report(float value) {
             progress = value;
-            if (EditorUtility.DisplayCancelableProgressBar(title, info, value))
+            Report();
+        }
+
+        void Report() {
+            if (EditorUtility.DisplayCancelableProgressBar(title, info, progress))
                 cts.Cancel();
         }
 
