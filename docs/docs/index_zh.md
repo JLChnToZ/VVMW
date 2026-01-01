@@ -1,6 +1,7 @@
 ---
-TITLE: VizVid 說明文件
-LOCALE: zh-tw
+title: VizVid 說明文件
+locale: zh-TW
+lang: zh-TW
 ---
 # VizVid 說明文件  
 VizVid 是一款為 VRChat 所設計，用途廣泛的多媒體播放器前端。除了跟朋友一起看影片、直播，大音樂表演活動場地，展示會場也能使用，用途極為廣泛。  
@@ -405,6 +406,11 @@ VizVid 的語言管理元件，是位於 Locale 物件中的 Language Manager。
 **Q4**: 播放時螢幕沒影像？聲音出不來？  
 **A4**: 檢查 `Core` 元件，確認模組串接有沒有遺失。  
 ![image](../resources/images/SJnadbd7-l.png)  
+
+---
+**Q5**: YouTube 播放清單一次只能讀 100 個？  
+**A5**: 可能是 YT-DLP 版本過舊導致，按一下 <kbd>下載/更新 YT-DLP</kbd> 更新，應該可以改善。  
+![image](../resources/images/H1TP6F-NZe.png)
 
 ---
 > [!Note]

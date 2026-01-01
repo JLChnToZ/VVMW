@@ -1,6 +1,7 @@
 ---
-TITLE: VizVid 導入方法
-LOCALE: ja-jp
+title: VizVid 導入方法
+locale: ja-JP
+lang: ja-JP
 ---
 # VizVid 導入方法  
 ここから、VizVid の導入について説明します。  

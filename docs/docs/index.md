@@ -1,10 +1,11 @@
 ---
-TITLE: VizVid Documentation
-LOCALE: en-us
+title: VizVid Documentation
+locale: en-US
+lang: en-US
 ---
 # VizVid Documentation  
 
-**VizVid** is a versatile multimedia player frontend designed specifically for VRChat. Whether you are watching videos with friends, hosting music performances, or setting up a gallery exhibition, VizVid provides a robust solution for any scenario.  
+VizVid is a versatile multimedia player frontend designed specifically for VRChat. Whether you are watching videos with friends, hosting music performances, or setting up a gallery exhibition, VizVid provides a robust solution for any scenario.  
 
 Built with a modular design, VizVid allows you to pick and choose the exact components you need to build a custom player tailored to your world.  
 
@@ -142,8 +143,12 @@ Automatically generates stream keys for services like TopazChat. Useful for musi
 > See [Stream Key Assigner](#streamkeyassigner) for more details.  
 
 ---
-* **Audio Source (Mono / Stereo / 5.1 Surround)**  
-Adds specialized audio outputs for VizVid.  
+* **Audio Source (Mono)**  
+Add a mono audio source for VizVid.  
+* **Audio Source (Stereo)**  
+Add a stereo audio source set for VizVid.  
+* **Audio Source (5.1 Surround)**  
+Add a 5.1 sorround audio source set for VizVid.  
 *(See [5.1 Surround Configuration](#51-Surround-Configuration) for setup details).*  
 
 ---
@@ -282,7 +287,7 @@ Specifies the Mesh Renderer where the video content will be output.
 
 ---
 ## Other Scenarios  
-### Import Playlist from Other Video Players  
+### Import　Playlist from Other Video Players  
 Just drag video player's object, drop in VizVid's playlist editor.  
 Supported video players in the following:  
 * VizVid  
@@ -439,6 +444,11 @@ Due to the limitations of Unity's inspector editor, if the component has already
 **Q4**: No video, sound during playback  
 **A4**: Make sure your screen, audio source objects are specified in your `Core` component.  
 ![image](../resources/images/B1Ru0WuXbx.png)  
+
+---
+**Q5**: I can't load over 100 videos from YouTube's playlist.  
+**A5**: Maybe you've got an outdated YT-DLP. Trying click <kbd>Download/Update YT-DLP</kbd> to fix it.  
+![image](../resources/images/rJg8y9Z4be.png)
 
 ---
 > [!Note]  
