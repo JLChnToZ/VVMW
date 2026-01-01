@@ -411,8 +411,8 @@ VizVid 的語言管理元件，是位於 Locale 物件中的 Language Manager。
 ![image](../resources/images/H1TP6F-NZe.png)
 
 ---
-**Q6**: 我想讓觸控螢幕只要被游標碰到就有反應，而不是只有下半部。
-**A6**: 根據附圖，將 `Laser Targer Resizer` 移除即可。
+**Q6**: 我想讓觸控螢幕只要被游標碰到就有反應，而不是只有下半部。  
+**A6**: 根據附圖，將 `Laser Targer Resizer` 移除即可。  
 ![image](../resources/images/Syu6EzV4Wg.png)
 
 ---
