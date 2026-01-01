@@ -1,7 +1,5 @@
 ---
-title: VizVid 說明文件
-locale: zh-TW
-lang: zh-TW
+_lang: zh-TW
 ---
 # VizVid 說明文件  
 VizVid 是一款為 VRChat 所設計，用途廣泛的多媒體播放器前端。除了跟朋友一起看影片、直播，大音樂表演活動場地，展示會場也能使用，用途極為廣泛。  

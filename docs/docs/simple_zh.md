@@ -1,7 +1,5 @@
 ---
-title: VizVid 安裝方法
-locale: zh-TW
-lang: zh-TW
+_lang: zh-TW
 ---
 # VizVid 安裝方法  
 以下會進行 VizVid 的基礎安裝說明。  

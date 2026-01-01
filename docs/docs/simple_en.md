@@ -1,7 +1,5 @@
 ---
-title: VizVid Installation Guide
-locale: en-US
-lang: en-US
+_lang: en-US
 ---
 # VizVid Installation Guide  
 Here's the quick guide for importing VizVid into your VRChat World.  

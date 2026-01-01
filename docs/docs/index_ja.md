@@ -1,7 +1,5 @@
 ---
-title: VizVid マニュアル
-locale: ja-JP
-lang: ja-JP
+_lang: ja-JP
 ---
 # VizVid マニュアル  
 VizVid は、VRChat 向けに設計された多機能なビデオプレイヤー・フロントエンドです。みんなと動画鑑賞やライブ配信の視聴はもちろん、音楽イベントの会場や展示会など、幅広いシーンで活用できます。  

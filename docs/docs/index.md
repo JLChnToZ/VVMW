@@ -1,7 +1,5 @@
 ---
-title: VizVid Documentation
-locale: en-US
-lang: en-US
+_lang: en-US
 ---
 # VizVid Documentation  
 
