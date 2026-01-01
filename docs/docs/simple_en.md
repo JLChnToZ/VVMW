@@ -122,4 +122,4 @@ URL (PC) and URL (Quest) let you set different URLs for different platforms (use
     * <kbd>Reverse Playlist</kbd>: Reverse the order of the playlist.  
 
 ---
-Please refer [this documentation](index.html) for full guide of VizVid.
+Please refer [this documentation](index.md) for full guide of VizVid.

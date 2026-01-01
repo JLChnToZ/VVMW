@@ -443,10 +443,16 @@ Due to the limitations of Unity's inspector editor, if the component has already
 **A4**: Make sure your screen, audio source objects are specified in your `Core` component.  
 ![image](../resources/images/B1Ru0WuXbx.png)  
 
+
 ---
-**Q5**: I can't load over 100 videos from YouTube's playlist.  
-**A5**: Maybe you've got an outdated YT-DLP. Trying click <kbd>Download/Update YT-DLP</kbd> to fix it.  
+**Q5**: It's feels buggy when fetching YouTube related contents. (Title, Playlist, etc.)  
+**A5**: Maybe you've got an outdated YT-DLP. Click on <kbd>Download/Update YT-DLP</kbd> might fix it.  
 ![image](../resources/images/rJg8y9Z4be.png)
+
+---
+**Q6**: I want VizVid's touchscreen have respond wherever my laser/cursor pointed to it.  
+**A6**: Follow the image below, remove the `Laser Target Resizer` component.
+![image](../resources/images/Syu6EzV4Wg.png)
 
 ---
 > [!Note]  

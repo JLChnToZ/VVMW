@@ -421,11 +421,16 @@ VizVid の言語管理コンポーネントは、Locale オブジェクトにあ
 ![image](../resources/images/SySFYbOXWg.png)  
 
 ---
-**Q5**: YouTubeプレイリストから100曲しか読み込めない？  
+**Q5**: YouTube関連の読み込めなんか行かない？  
+(タイトル、プレイリストの取得が制限され、バグった感じ)  
 **A5**: YT-DLP が古いかもしれません。<kbd>YT-DLP のダウンロード/更新</kbd> をクリックして、YT-DLP をアップデートしてみましょう。改善できるはずです。  
 ![image](../resources/images/Sy9v0FZ4Wl.png)  
 
 ---
+**Q6**: VizVidのタッチパネルに、ポインターが下半部に与えないと反応しない。  
+**A6**: タッチパネルをどこでも反応させるには、下記の画像に参考し、`Laser Targer Resizer` コンポーネントを外してください。
+![image](../resources/images/Syu6EzV4Wg.png)
+
 > [!Note]  
 > 上記に載ってない問題、サポートがほしい場合、  
 > 遠慮なく [Discord サーバー](https://discord.gg/fkDueQMbj8)にてお問い合わせください。  

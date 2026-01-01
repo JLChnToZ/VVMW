@@ -120,4 +120,4 @@ _lang: zh-TW
     * <kbd>反轉播放清單</kbd>：反轉播放清單排序。  
     
 ---
-關於 VizVid 的完整功能說明，請參閱[說明文件](index_zh.html)。  
+關於 VizVid 的完整功能說明，請參閱[說明文件](index_zh.md)。  

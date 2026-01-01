@@ -406,9 +406,14 @@ VizVid 的語言管理元件，是位於 Locale 物件中的 Language Manager。
 ![image](../resources/images/SJnadbd7-l.png)  
 
 ---
-**Q5**: YouTube 播放清單一次只能讀 100 個？  
+**Q5**: 載入 YouTube 相關的東西好像都怪怪的 (取得標題、播放清單等等)  
 **A5**: 可能是 YT-DLP 版本過舊導致，按一下 <kbd>下載/更新 YT-DLP</kbd> 更新，應該可以改善。  
 ![image](../resources/images/H1TP6F-NZe.png)
+
+---
+**Q6**: 我想讓觸控螢幕只要被游標碰到就有反應，而不是只有下半部。
+**A6**: 根據附圖，將 `Laser Targer Resizer` 移除即可。
+![image](../resources/images/Syu6EzV4Wg.png)
 
 ---
 > [!Note]
