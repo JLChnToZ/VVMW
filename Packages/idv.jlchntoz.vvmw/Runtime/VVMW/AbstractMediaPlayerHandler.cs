@@ -26,6 +26,12 @@ namespace JLChnToZ.VRC.VVMW {
         protected Texture texture;
         protected VRCUrl currentUrl;
         [HideInInspector, SerializeField] protected string[] trustedUrlDomains = new string[0]; // This list will be fetched on build, via VRChat SDK
+#if COMPILER_UDONSHARP
+        public
+#else
+        [SerializeField] internal
+#endif
+        AbstractMediaPlayerHandler fallbackHandler;
 
 #if COMPILER_UDONSHARP
         public

@@ -63,6 +63,7 @@ MonoBehaviour:
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: -7058936528202053670}
   targets: []
+  logEvents: 0
   playerHandlers:
   - {fileID: 3390069487340633333}
   - {fileID: 8750286140246044709}
@@ -74,11 +75,14 @@ MonoBehaviour:
   autoPlayPlayerType: 1
   synced: 1
   totalRetryCount: 3
+  fallbackRetryCount: 1
   retryDelay: 5.5
   autoPlayDelay: 0
+  urlInputFilter: {fileID: 0}
   loop: 0
   audioSources:
   - {fileID: 6288594590390066030}
+  audioControllers: []
   defaultVolume: 0.5
   defaultMuted: 0
   audioLink: {fileID: 0}
@@ -95,6 +99,7 @@ MonoBehaviour:
   screenTargetDefaultTextures: []
   broadcastScreenTexture: 0
   broadcastScreenTextureName: _Udon_VideoTex
+  enableMipmap: 0
   timeDriftDetectThreshold: 0.9
   yttl: {fileID: 0}
 --- !u!114 &-7058936528202053670
@@ -537,6 +542,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3326701708841087452, guid: c3e27e64bc480724b9c19fa60b7203ca,
         type: 3}
+      propertyPath: fallbackHandler
+      value: 
+      objectReference: {fileID: 3390069487340633333}
+    - target: {fileID: 3326701708841087452, guid: c3e27e64bc480724b9c19fa60b7203ca,
+        type: 3}
       propertyPath: primaryAudioSource
       value: 
       objectReference: {fileID: 6288594590390066030}
@@ -805,6 +815,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: AVPro Module
       objectReference: {fileID: 0}
+    - target: {fileID: 6236179273397461378, guid: 545c2b36f7803b44eba81cc0cc8acf4c,
+        type: 3}
+      propertyPath: fallbackHandler
+      value: 
+      objectReference: {fileID: 8750286140246044709}
     - target: {fileID: 6236179273397461378, guid: 545c2b36f7803b44eba81cc0cc8acf4c,
         type: 3}
       propertyPath: primaryAudioSource

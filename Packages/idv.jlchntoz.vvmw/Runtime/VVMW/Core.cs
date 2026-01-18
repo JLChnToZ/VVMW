@@ -6,6 +6,7 @@ using VRC.SDK3.Components.Video;
 #if VRCSDK_3_8_1_OR_NEWER
 using VRC.SDK3.UdonNetworkCalling;
 #endif
+using VRC.SDK3.Data;
 using VRC.Udon.Common;
 using VRC.Udon.Common.Interfaces;
 using JLChnToZ.VRC.Foundation;
@@ -33,7 +34,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] VRCUrl defaultQuestUrl;
         [SerializeField, LocalizedLabel, Range(0, 255)] int autoPlayPlayerType = 1;
         [SerializeField, LocalizedLabel] bool synced = true;
-        [SerializeField, LocalizedLabel] int totalRetryCount = 3;
+        [SerializeField, LocalizedLabel] int totalRetryCount = 3, fallbackRetryCount = 1;
         [SerializeField, LocalizedLabel, Range(5, 20)] float retryDelay = 5.5F;
         [SerializeField, LocalizedLabel] float autoPlayDelay = 0;
         [SerializeField, LocalizedLabel] internal InputFilterBase urlInputFilter;
@@ -55,6 +56,7 @@ namespace JLChnToZ.VRC.VVMW {
         internal bool afterFirstRun;
         bool isOwnerSyncRequested, isReloadRequested;
         DateTime lastClickResyncTime;
+        DataDictionary retryUsedPlayers = new DataDictionary();
 
         /// <summary>
         /// The video player backend names.
@@ -80,6 +82,7 @@ namespace JLChnToZ.VRC.VVMW {
                 if (value == localActivePlayer && activeHandler == (value == 0 ? null : playerHandlers[value - 1]))
                     return;
                 localActivePlayer = value;
+                retryUsedPlayers.Clear();
                 var lastActiveHandler = activeHandler;
                 bool wasPlaying = Utilities.IsValid(lastActiveHandler) && lastActiveHandler.IsPlaying;
                 activeHandler = null;
@@ -324,6 +327,7 @@ namespace JLChnToZ.VRC.VVMW {
             time = 0;
             ActivePlayer = playerType;
             loadingUrl = null;
+            retryUsedPlayers.Clear();
             retryCount = 0;
             lastError = VideoError.Unknown;
             trustUpdated = false;
@@ -359,18 +363,46 @@ namespace JLChnToZ.VRC.VVMW {
             SetAudioLinkPlayBackState(MediaPlaying.Error);
 #endif
             if (retryCount < totalRetryCount) {
-                retryCount++;
                 loadingUrl = localUrl;
-                switch (videoError) {
-                    case VideoError.InvalidURL:
-                        retryCount = 0;
-                        break;
-                    default:
-                        SendCustomEventDelayedSeconds(nameof(_ReloadUrl), retryDelay);
-                        return;
+                if (videoError == VideoError.InvalidURL) {
+                    retryUsedPlayers.Clear();
+                    retryCount = 0;
+                } else {
+                    if (retryCount >= fallbackRetryCount) {
+                        int retryFallbackCount = retryUsedPlayers.Count;
+                        if (retryFallbackCount == 0) retryUsedPlayers[activeHandler] = true;
+                        var fallback = activeHandler.fallbackHandler;
+                        var urlstr = loadingUrl.ToString();
+                        while (Utilities.IsValid(fallback)) {
+                            if (retryUsedPlayers.ContainsKey(fallback)) {
+                                fallback = null;
+                                break;
+                            }
+                            retryUsedPlayers[fallback] = true;
+                            if (fallback.IsSupported(urlstr) >= 0) {
+                                SwitchActiveHandler(fallback);
+                                break;
+                            }
+                            fallback = fallback.fallbackHandler;
+                        }
+                        if (!Utilities.IsValid(fallback)) {
+                            retryUsedPlayers.Clear();
+                            SwitchActiveHandler(playerHandlers[activePlayer - 1]);
+                            retryCount++;
+                        }
+                    } else
+                        retryCount++;
+                    SendCustomEventDelayedSeconds(nameof(_ReloadUrl), retryDelay);
                 }
             }
             isLoading = false;
+        }
+
+        void SwitchActiveHandler(AbstractMediaPlayerHandler newHandler) {
+            if (activeHandler == newHandler) return;
+            activeHandler.IsActive = false;
+            activeHandler = newHandler;
+            activeHandler.IsActive = true;
         }
 
 #if COMPILER_UDONSHARP
@@ -386,9 +418,11 @@ namespace JLChnToZ.VRC.VVMW {
             if (VRCUrl.IsNullOrEmpty(loadingUrl) ||
                 (synced && state == IDLE) ||
                 !loadingUrl.Equals(localUrl)) {
+                retryUsedPlayers.Clear();
                 return;
             }
             if (!synced && localUrl.Equals(defaultUrl)) {
+                retryUsedPlayers.Clear();
                 PlayUrl(null, 0);
                 return;
             }
@@ -451,6 +485,7 @@ namespace JLChnToZ.VRC.VVMW {
             loadingUrl = localUrl;
             trustUpdated = false;
             if (VRCUrl.IsNullOrEmpty(loadingUrl)) return;
+            retryUsedPlayers.Clear();
             retryCount = 0;
             _ReloadUrl();
         }
@@ -517,6 +552,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override void OnVideoReady() {
             loadingUrl = null;
             lastError = VideoError.Unknown;
+            retryUsedPlayers.Clear();
             retryCount = 0;
             isLoading = false;
             isError = false;
@@ -661,7 +697,7 @@ namespace JLChnToZ.VRC.VVMW {
         /// <param name="result"></param>
         public override void OnDeserialization(DeserializationResult result) {
             if (!synced) return;
-            ActivePlayer = activePlayer;
+            if (localActivePlayer != activePlayer) ActivePlayer = activePlayer;
             float sendTime = result.sendTime;
             syncLatency = sendTime > 0 ? // if send time is negative, which means it was sent before join thus this is not valid.
                 (float)(ownerServerTime - Networking.GetNetworkDateTime().Ticks) / TimeSpan.TicksPerSecond +
@@ -690,6 +726,7 @@ namespace JLChnToZ.VRC.VVMW {
                     return;
                 }
                 loadingUrl = null;
+                retryUsedPlayers.Clear();
                 retryCount = 0;
                 lastError = VideoError.Unknown;
                 isLoading = true;

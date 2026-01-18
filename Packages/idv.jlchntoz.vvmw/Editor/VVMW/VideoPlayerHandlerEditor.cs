@@ -16,7 +16,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             playerNameProperty,
             primaryAudioSourceProperty,
             useFlickerWorkaroundProperty,
-            blitMaterialProperty;
+            blitMaterialProperty,
+            fallbackHandlerProperty;
         Material[] materials;
 
         [InitializeOnLoadMethod]
@@ -32,6 +33,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             primaryAudioSourceProperty = serializedObject.FindProperty("primaryAudioSource");
             useFlickerWorkaroundProperty = serializedObject.FindProperty("useFlickerWorkaround");
             blitMaterialProperty = serializedObject.FindProperty("blitMaterial");
+            fallbackHandlerProperty = serializedObject.FindProperty("fallbackHandler");
             materials = null;
         }
 
@@ -105,6 +107,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (useFlickerWorkaroundProperty.boolValue)
                     EditorGUILayout.PropertyField(blitMaterialProperty);
             }
+            EditorGUILayout.PropertyField(fallbackHandlerProperty);
         }
 
         static void HideControlledComponent(Component component) {

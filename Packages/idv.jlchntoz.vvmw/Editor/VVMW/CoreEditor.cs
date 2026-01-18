@@ -31,6 +31,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty autoPlayPlayerTypeProperty;
         SerializedProperty syncedProperty;
         SerializedProperty totalRetryCountProperty;
+        SerializedProperty fallbackRetryCountProperty;
         SerializedProperty retryDelayProperty;
         SerializedProperty autoPlayDelayProperty;
         SerializedProperty defaultVolumeProperty;
@@ -74,6 +75,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             autoPlayPlayerTypeProperty = serializedObject.FindProperty("autoPlayPlayerType");
             syncedProperty = serializedObject.FindProperty("synced");
             totalRetryCountProperty = serializedObject.FindProperty("totalRetryCount");
+            fallbackRetryCountProperty = serializedObject.FindProperty("fallbackRetryCount");
             retryDelayProperty = serializedObject.FindProperty("retryDelay");
             autoPlayDelayProperty = serializedObject.FindProperty("autoPlayDelay");
             defaultVolumeProperty = serializedObject.FindProperty("defaultVolume");
@@ -177,6 +179,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             errorHandlingFoldout = EditorGUILayout.Foldout(errorHandlingFoldout, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.errorHandlingSettings"), true);
             if (!errorHandlingFoldout) return;
             EditorGUILayout.PropertyField(totalRetryCountProperty);
+            EditorGUILayout.PropertyField(fallbackRetryCountProperty);
             EditorGUILayout.PropertyField(retryDelayProperty);
             EditorGUILayout.PropertyField(timeDriftDetectThresholdProperty);
         }
