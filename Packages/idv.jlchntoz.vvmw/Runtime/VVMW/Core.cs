@@ -79,23 +79,25 @@ namespace JLChnToZ.VRC.VVMW {
         public byte ActivePlayer {
             get => localActivePlayer;
             private set {
-                if (value == localActivePlayer && activeHandler == (value == 0 ? null : playerHandlers[value - 1]))
+                bool valueUnchanged = value == localActivePlayer;
+                if (valueUnchanged && activeHandler == (value == 0 ? null : playerHandlers[value - 1]))
                     return;
                 localActivePlayer = value;
                 retryUsedPlayers.Clear();
-                var lastActiveHandler = activeHandler;
-                bool wasPlaying = Utilities.IsValid(lastActiveHandler) && lastActiveHandler.IsPlaying;
+                bool wasPlaying = Utilities.IsValid(activeHandler) && activeHandler.IsPlaying;
                 activeHandler = null;
-                for (int i = 0; i < playerHandlers.Length; i++) {
+                for (int i = 0, l = playerHandlers.Length; i < l; i++) {
                     var handler = playerHandlers[i];
-                    if (i + 1 == value) {
-                        handler.IsActive = true;
+                    if (i + 1 == value)
                         activeHandler = handler;
-                        SyncSpeed();
-                    } else
+                    else
                         handler.IsActive = false;
                 }
-                if (value == 0 && wasPlaying && !isLocalReloading && VRCUrl.IsNullOrEmpty(loadingUrl))
+                if (Utilities.IsValid(activeHandler)) {
+                    if (!valueUnchanged) activeHandler.IsActive = false; // This will stop the previous handler
+                    activeHandler.IsActive = true;
+                    SyncSpeed();
+                } else if (wasPlaying && !isLocalReloading && VRCUrl.IsNullOrEmpty(loadingUrl))
                     SendEvent("_onVideoEnd");
                 _OnTextureChanged();
             }
@@ -327,7 +329,6 @@ namespace JLChnToZ.VRC.VVMW {
             time = 0;
             ActivePlayer = playerType;
             loadingUrl = null;
-            retryUsedPlayers.Clear();
             retryCount = 0;
             lastError = VideoError.Unknown;
             trustUpdated = false;
@@ -697,7 +698,9 @@ namespace JLChnToZ.VRC.VVMW {
         /// <param name="result"></param>
         public override void OnDeserialization(DeserializationResult result) {
             if (!synced) return;
-            if (localActivePlayer != activePlayer) ActivePlayer = activePlayer;
+            Debug.Log($"[VVMW] Deserialized: Player={activePlayer}, State={state}, Time={time}, Speed={speed}, URL(PC)={pcUrl}, URL(Quest)={questUrl}");
+            bool activePlayerChanged = localActivePlayer != activePlayer;
+            if (activePlayerChanged) ActivePlayer = activePlayer;
             float sendTime = result.sendTime;
             syncLatency = sendTime > 0 ? // if send time is negative, which means it was sent before join thus this is not valid.
                 (float)(ownerServerTime - Networking.GetNetworkDateTime().Ticks) / TimeSpan.TicksPerSecond +
@@ -718,7 +721,7 @@ namespace JLChnToZ.VRC.VVMW {
                 url = pcUrl;
                 altUrl = questUrl;
             }
-            bool shouldReload = state != IDLE && localUrl != url && (VRCUrl.IsNullOrEmpty(localUrl) || VRCUrl.IsNullOrEmpty(url) || !localUrl.Equals(url));
+            bool shouldReload = state != IDLE && (activePlayerChanged || (localUrl != url && (VRCUrl.IsNullOrEmpty(localUrl) || VRCUrl.IsNullOrEmpty(url) || !localUrl.Equals(url))));
             if (shouldReload) {
                 if (!Utilities.IsValid(activeHandler)) {
                     Debug.LogWarning($"[VVMW] Owner serialization incomplete, will queue a sync request.");

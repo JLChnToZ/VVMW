@@ -58,7 +58,10 @@ namespace JLChnToZ.VRC.VVMW {
             get => isActive;
             set {
                 isActive = value;
-                if (!isActive) videoPlayer.Stop();
+                if (!isActive) {
+                    videoPlayer.Stop();
+                    isReady = false;
+                }
             }
         }
 
@@ -401,6 +404,7 @@ namespace JLChnToZ.VRC.VVMW {
             //    so we have to stop it manually.
             if (videoPlayer.IsPlaying) videoPlayer.Stop();
             isPaused = false;
+            isReady = false;
             if (!isActive) return;
             ClearTexture();
             core.OnVideoEnd();
