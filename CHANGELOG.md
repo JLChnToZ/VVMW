@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-## 1.5.0
+## 1.5.0 - 2026-01-21
 
 ### Added
 - Fallback flow try to load failed-to-load videos with other backends after several retries.
