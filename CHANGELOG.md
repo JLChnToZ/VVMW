@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## 1.5.1 - 2026-01-21
+
+### Fixed
+- Current owner skips retry and play next video on playlist
+- Fallback handler label localization in inspector
+
 ## 1.5.0 - 2026-01-21
 
 ### Added

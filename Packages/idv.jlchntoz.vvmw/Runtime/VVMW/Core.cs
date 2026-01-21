@@ -394,6 +394,7 @@ namespace JLChnToZ.VRC.VVMW {
                     } else
                         retryCount++;
                     SendCustomEventDelayedSeconds(nameof(_ReloadUrl), retryDelay);
+                    return;
                 }
             }
             isLoading = false;
