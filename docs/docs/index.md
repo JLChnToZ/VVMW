@@ -8,7 +8,7 @@ VizVid is a versatile multimedia player frontend designed specifically for VRCha
 Built with a modular design, VizVid allows you to pick and choose the exact components you need to build a custom player tailored to your world.  
 
 > [!NOTE]  
-> This documentation covers version v1.4.13 and later. Some features or instructions may differ in older versions.  
+> This documentation covers version v1.5.1 and later. Some features or instructions may differ in older versions.  
 
 ---
 ## Quick Start  
@@ -200,6 +200,8 @@ Regenerate random seed for shuffle playback when VizVid plays a playlist.
     * **Exception Handling**  
         * **Total Retry Count**  
         The maximum number of retry attempts when loading fails.  
+        * **Fallback Retry Count**  
+        Playback backend will auto-switch if the threshold is exceeded.  
         * **Retry Delay**  
         The interval time between retries when loading fails.  
         * **Time Drift Detect Threshold**  
