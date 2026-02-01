@@ -9,12 +9,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - Help button in credits page
 
+### Fixed
+- When reverse order been used, there is an empty slot appeared at the top of playlist.
+
 ### Changed
 - Enhance AVPro stubs installation script.
 - Make inspector object selector able to select assets inside package.
 - Removed timezone based langauge detection due to inaccuracy.
 - Adjusted VR mode overlay control UI orientation.
-- Make reversed playlist order (top-to-down) the default.
+- Make reversed playlist order (top-to-down) the default, with UI adjustments.
 
 ## 1.5.1 - 2026-01-21
 
