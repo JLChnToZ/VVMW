@@ -98,7 +98,7 @@ namespace JLChnToZ.VRC.VVMW {
             float anchoredPosition = parentRectTransform.anchoredPosition.y;
             if (isUpwards) anchoredPosition = -anchoredPosition;
             int newOffset = Mathf.FloorToInt((anchoredPosition / rectTransform.rect.height - entryOffset - 1) / spawnedEntryCount + 1) * spawnedEntryCount + entryOffset;
-            if (inverseOrder) newOffset = pooledEntryCount - newOffset;
+            if (inverseOrder) newOffset = pooledEntryCount - newOffset - 1;
             if (lastOffset == newOffset) return false;
             lastOffset = newOffset;
             return true;
