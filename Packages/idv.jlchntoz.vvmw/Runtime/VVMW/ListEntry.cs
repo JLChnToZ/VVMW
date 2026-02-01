@@ -22,6 +22,9 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] Button deleteButton;
         [SerializeField, HideInInspector, Resolve(nameof(deleteButton))]
         GameObject deleteButtonGO;
+        [SerializeField] InputField inputField;
+        [SerializeField, HideInInspector, Resolve(nameof(inputField))]
+        GameObject inputFieldGO;
         [SerializeField] Color selectedColor, normalColor;
         [SerializeField, HideInInspector, Resolve(".")]
         RectTransform rectTransform;
@@ -33,7 +36,7 @@ namespace JLChnToZ.VRC.VVMW {
         public string deleteEventName;
         [NonSerialized] public bool asPooledEntry;
         [NonSerialized] public bool indexAsUserData;
-        [NonSerialized] public string[] pooledEntryNames;
+        [NonSerialized] public string[] pooledEntryNames, pooledEntryCopyContents;
         [NonSerialized] public object[] callbackUserDatas;
         [NonSerialized] public int selectedEntryIndex;
         [NonSerialized] public int entryOffset;
@@ -50,9 +53,22 @@ namespace JLChnToZ.VRC.VVMW {
                 if (Utilities.IsValid(contentTMPro)) return contentTMPro.text;
                 return "";
             }
-            set {
+            private set {
                 if (Utilities.IsValid(content)) content.text = value;
                 if (Utilities.IsValid(contentTMPro)) contentTMPro.text = value;
+            }
+        }
+
+        public string CopyContent {
+            get {
+                if (Utilities.IsValid(inputField))
+                    return inputField.text;
+                return "";
+            }
+            set {
+                if (!Utilities.IsValid(inputFieldGO)) return;
+                inputField.text = value;
+                inputFieldGO.SetActive(!string.IsNullOrWhiteSpace(value));
             }
         }
 
@@ -153,7 +169,9 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _UpdateContent() {
             if (!asPooledEntry || lastOffset < 0 || lastOffset >= pooledEntryCount) return;
-            TextContent = pooledEntryNames[lastOffset + pooledEntryOffset];
+            int currentIndex = lastOffset + pooledEntryOffset;
+            TextContent = pooledEntryNames[currentIndex];
+            CopyContent = Utilities.IsValid(pooledEntryCopyContents) ? pooledEntryCopyContents[currentIndex] : "";
             Selected = lastOffset == selectedEntryIndex;
         }
     }

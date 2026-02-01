@@ -30,6 +30,8 @@ namespace JLChnToZ.VRC.VVMW {
         ListEntry[] entries;
         [FieldChangeCallback(nameof(EntryNames))]
         string[] entryNames;
+        [FieldChangeCallback(nameof(EntryCopyContent))]
+        string[] entryCopyContent;
         bool hasInit;
         [FieldChangeCallback(nameof(CanDelete))]
         bool canDelete = true;
@@ -84,6 +86,24 @@ namespace JLChnToZ.VRC.VVMW {
                 entryNames = value;
                 offset = 0;
                 count = Utilities.IsValid(entryNames) ? entryNames.Length : 0;
+                if (hasInit && gameObject.activeInHierarchy)
+                    UpdateEntryState();
+            }
+        }
+
+        public string[] EntryCopyContent {
+            get {
+                if (!Utilities.IsValid(entryCopyContent)) return null;
+                if (offset == 0 && count == entryCopyContent.Length)
+                    return entryCopyContent;
+                var result = new string[count];
+                Array.Copy(entryCopyContent, offset, result, 0, count);
+                return result;
+            }
+            set {
+                entryCopyContent = value;
+                offset = 0;
+                count = Utilities.IsValid(entryCopyContent) ? entryCopyContent.Length : 0;
                 if (hasInit && gameObject.activeInHierarchy)
                     UpdateEntryState();
             }
@@ -191,6 +211,7 @@ namespace JLChnToZ.VRC.VVMW {
             for (var i = 0; i < entries.Length; i++) {
                 var entry = entries[i];
                 entry.pooledEntryNames = entryNames;
+                entry.pooledEntryCopyContents = entryCopyContent;
                 entry.selectedEntryIndex = selectedIndex;
                 entry.pooledEntryOffset = offset;
                 entry.pooledEntryCount = count;
@@ -198,10 +219,20 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void SetEntries(string[] entries, int offset, int count) {
+        public void SetEntries(string[] entries, string[] entryCopyContents, int offset, int count) {
             entryNames = entries;
+            entryCopyContent = entryCopyContents;
             this.offset = offset;
             this.count = count;
+            if (hasInit && gameObject.activeInHierarchy)
+                UpdateEntryState();
+        }
+
+        public void SetEntries(string[] entries, string[] entryCopyContents) {
+            entryNames = entries;
+            entryCopyContent = entryCopyContents;
+            offset = 0;
+            count = Utilities.IsValid(entryNames) ? entryNames.Length : 0;
             if (hasInit && gameObject.activeInHierarchy)
                 UpdateEntryState();
         }

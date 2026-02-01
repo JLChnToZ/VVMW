@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - Help button in credits page
+- Copy button on playback history
 
 ### Fixed
 - When reverse order been used, there is an empty slot appeared at the top of playlist.

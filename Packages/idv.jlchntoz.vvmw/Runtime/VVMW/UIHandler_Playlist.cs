@@ -4,6 +4,7 @@ using VRC.SDKBase;
 namespace JLChnToZ.VRC.VVMW {
     public partial class UIHandler {
         string[] playListNames;
+        string[] historyCopyContents;
         [NonSerialized] public byte loadWithIndex;
         int lastSelectedPlayListIndex, lastPlayingIndex;
         int lastDisplayCount;
@@ -114,7 +115,7 @@ namespace JLChnToZ.VRC.VVMW {
             int playingIndex = handler.CurrentPlayingIndex;
             int displayCount, offset;
             int pendingCount = handler.PendingCount;
-            VRCUrl[] queuedUrls = handler.QueueUrls, playListUrls = handler.PlayListUrls;
+            VRCUrl[] queuedUrls = handler.QueueUrls, playListUrls = handler.PlayListUrls, historyUrls = handler.HistoryUrls;
             string[] entryTitles = handler.PlayListEntryTitles, queuedTitles = handler.QueueTitles, historyTitles = handler.HistoryTitles;
             int[] urlOffsets = handler.PlayListUrlOffsets;
             if (playListIndex > 0) {
@@ -168,15 +169,19 @@ namespace JLChnToZ.VRC.VVMW {
             }
             if (selectedPlayListIndex == 0) {
                 queueListScrollView.CanDelete = true;
-                queueListScrollView.EntryNames = queuedTitles;
+                queueListScrollView.SetEntries(queuedTitles, null);
                 queueListScrollView.SetIndexWithoutScroll(-1);
             } else if (selectedPlayListIndex == -1) {
+                if (!Utilities.IsValid(historyCopyContents) || historyCopyContents.Length < historyTitles.Length)
+                    historyCopyContents = new string[historyTitles.Length];
+                for (int i = 0; i < historyTitles.Length; i++)
+                    historyCopyContents[i] = historyUrls[i].ToString();
                 queueListScrollView.CanDelete = false;
-                queueListScrollView.EntryNames = historyTitles;
+                queueListScrollView.SetEntries(historyTitles, historyCopyContents);
                 queueListScrollView.SetIndexWithoutScroll(-1);
             } else {
                 queueListScrollView.CanDelete = false;
-                queueListScrollView.SetEntries(entryTitles, offset, displayCount);
+                queueListScrollView.SetEntries(entryTitles, null, offset, displayCount);
                 queueListScrollView.SetIndexWithoutScroll(playingIndex);
             }
             if (isNotCoolingDown) queueListScrollView.ScrollToSelected();
