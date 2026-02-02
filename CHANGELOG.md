@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Removed timezone based langauge detection due to inaccuracy.
 - Adjusted VR mode overlay control UI orientation.
 - Make reversed playlist order (top-to-down) the default, with UI adjustments.
+- Updated German localization. ([#81](https://github.com/JLChnToZ/VVMW/pull/81))
 
 ## 1.5.1 - 2026-01-21
 
