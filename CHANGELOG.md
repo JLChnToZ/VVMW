@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## 1.5.2-beta.2 - 2026-02-04
+
 ### Fixed
 - A warning regards on UI shader in VRCSDK
 - Unable to auto colorize copy button
