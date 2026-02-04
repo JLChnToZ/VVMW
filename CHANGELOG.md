@@ -7,7 +7,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ## 1.5.2-beta.2 - 2026-02-04
-
 ### Fixed
 - A warning regards on UI shader in VRCSDK
 - Unable to auto colorize copy button
@@ -16,7 +15,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Reworked on overlay control options UI
 
 ## 1.5.2-beta.1 - 2026-02-02
-
 ### Added
 - Help button in credits page
 - Copy button on playback history
@@ -33,13 +31,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Updated German localization. ([#81](https://github.com/JLChnToZ/VVMW/pull/81))
 
 ## 1.5.1 - 2026-01-21
-
 ### Fixed
 - Current owner skips retry and play next video on playlist
 - Fallback handler label localization in inspector
 
 ## 1.5.0 - 2026-01-21
-
 ### Added
 - Fallback flow try to load failed-to-load videos with other backends after several retries.
 
@@ -48,13 +44,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Adjusted language selection UI
 
 ## 1.4.14 - 2025-12-25
-
 ### Fixed
 - Some Japanese editor localization (by Kuriko)
 - Language UI hard to scroll
 
 ## 1.4.13 - 2025-12-17
-
 ### Changed
 - Hebrew localization adjustments ([#79](https://github.com/JLChnToZ/VVMW/pull/79))
 - Thai localization adjustments (Thanks JustTemTem & Meiji)
