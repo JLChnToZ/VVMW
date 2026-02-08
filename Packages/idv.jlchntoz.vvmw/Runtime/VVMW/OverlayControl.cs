@@ -146,7 +146,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (PlayerData.HasKey(player, PlayerPersistenceHandKey)) {
                 int hand = PlayerData.GetByte(player, PlayerPersistenceHandKey);
                 disableHandControls = hand == 0;
-                isLeftHanded = hand == 1;
+                isLeftHanded = hand == 2;
                 leftHandToggle.SetIsOnWithoutNotify(hand == 1);
                 rightHandToggle.SetIsOnWithoutNotify(hand == 2);
             }
