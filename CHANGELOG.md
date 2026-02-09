@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## 1.5.3 - 2026-02-09
+### Fixed
+- Missing animation for the new indicator
+
 ## 1.5.2 - 2026-02-09
 ### Added
 - A small flashing semi-transparent indicator on screen overlay UI hinting users can open the menu by hovering laser pointer at there.
