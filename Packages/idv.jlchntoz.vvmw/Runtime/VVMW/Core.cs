@@ -327,6 +327,7 @@ namespace JLChnToZ.VRC.VVMW {
                 altUrl = questUrl;
             }
             time = 0;
+            SetRangeInternal(-1, -1);
             ActivePlayer = playerType;
             loadingUrl = null;
             retryCount = 0;
@@ -536,6 +537,7 @@ namespace JLChnToZ.VRC.VVMW {
             var handler = activeHandler;
             if (!Utilities.IsValid(handler)) return;
             handler.Stop();
+            SetRangeInternal(-1, -1);
             if (!handler.IsReady) { // Cancel loading if it is still loading
                 ActivePlayer = 0;
                 loadingUrl = null;
@@ -690,6 +692,8 @@ namespace JLChnToZ.VRC.VVMW {
                 }
             }
             syncedActualSpeed = actualSpeed;
+            rangeLoopStart = localRangeLoopStart;
+            rangeLoopEnd = localRangeLoopEnd;
         }
 
         /// <summary>
@@ -707,6 +711,7 @@ namespace JLChnToZ.VRC.VVMW {
                 (float)(ownerServerTime - Networking.GetNetworkDateTime().Ticks) / TimeSpan.TicksPerSecond +
                 UnityEngine.Time.realtimeSinceStartup - sendTime : 0;
             actualSpeed = syncedActualSpeed;
+            SetRangeInternal(rangeLoopStart, rangeLoopEnd);
             if (speed != syncedSpeed) {
                 speed = syncedSpeed;
                 SyncSpeed();

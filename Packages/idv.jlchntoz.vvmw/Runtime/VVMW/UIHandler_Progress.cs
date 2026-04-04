@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 using VRC.SDKBase;
 
 namespace JLChnToZ.VRC.VVMW {
@@ -56,6 +57,34 @@ namespace JLChnToZ.VRC.VVMW {
                     progressSlider.SetValueWithoutNotify(core.Progress);
                     progressSlider.interactable = !Utilities.IsValid(handler) || !handler.Locked;
                 }
+            }
+        }
+
+        void InitABLoopSlider() {
+            if (!Utilities.IsValid(abLoopSlider)) return;
+            abLoopSlider.callbackEventName = nameof(_OnABLoopSliderChange);
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnABLoopSliderChange() {
+            var duration = core.Duration;
+            if (duration <= 0 || float.IsInfinity(duration)) return;
+            core.SetRangeLoop(abLoopSlider.RangeStart * duration, abLoopSlider.RangeEnd * duration);
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnRangeLoopChange() {
+            var duration = core.Duration;
+            if (duration <= 0 || float.IsInfinity(duration)) {
+                abLoopSlider.SetRange(0, 1);
+                abLoopSlider.Interactable = false;
+            } else {
+                abLoopSlider.SetRange(core.RangeLoopStart / duration, core.RangeLoopEnd / duration);
+                abLoopSlider.Interactable = true;
             }
         }
     }

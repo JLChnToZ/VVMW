@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- Fullscreen unlock mode
+- An option to switch on different unlock mode on screen overlay UI
+- Fullscreen mode for overlay controls
+- AB loop mode
+
+### Changed
+- Reworked on playlist/queuelist selection dropdown
+- Reworked on normal (bar) unlock mode for more clear and undistracted UX
+- Minor UI tweaks
+
 ## 1.5.3 - 2026-02-09
 ### Fixed
 - Missing animation for the new indicator

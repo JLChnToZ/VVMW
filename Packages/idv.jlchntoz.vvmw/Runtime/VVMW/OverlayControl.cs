@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System;
+using TMPro;
 using UdonSharp;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,6 +9,9 @@ using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
 #if VRC_ENABLE_PLAYER_PERSISTENCE
 using VRC.SDK3.Persistence;
+#endif
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+using System.Collections.Generic;
 #endif
 
 namespace JLChnToZ.VRC.VVMW {
@@ -34,11 +38,26 @@ namespace JLChnToZ.VRC.VVMW {
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
         ), BindUdonSharpEvent, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
         Core core;
+        #if !COMPILER_UDONSHARP
+        [SerializeField, LocalizedLabel] AdditionalCoresData additionalCores;
+        #else
+        // Placeholder to avoid compile error in UdonSharp.
+        // The actual data will be dumped into arrays on build time, and this field will not be used.
+        [SerializeField] object additionalCores;
+        #endif
+        [SerializeField, LocalizedLabel, LocalizedEnum]
+        CoreMatchingStrategy coreControlStrategy = CoreMatchingStrategy.All;
+        [SerializeField, HideInInspector, BindUdonSharpEvent] Core[] cores;
+        [SerializeField, HideInInspector] Bounds[] coreBounds;
+        [SerializeField, HideInInspector] Transform[] coreBoundsReferenceTransforms;
+        [SerializeField, HideInInspector] int[] coreBoundsMatchOffset;
+        [SerializeField, HideInInspector] int coreCount, boundsCount;
         [LocalizedHeader("HEADER:Non_VizVid_References")]
         [SerializeField, LocalizedLabel] AudioSource[] audioSources;
         [SerializeField, LocalizedLabel] GameObject[] resyncTargets;
         [SerializeField, LocalizedLabel, Range(0, 1)] float volume = 1;
         [LocalizedHeader("HEADER:Options")]
+        [SerializeField, LocalizedLabel] KeyCode fullscreenScreenKey = KeyCode.F8;
         [SerializeField, LocalizedLabel] KeyCode reloadKey = KeyCode.F9;
         [SerializeField, LocalizedLabel] KeyCode volumeUpKey = KeyCode.F11;
         [SerializeField, LocalizedLabel] KeyCode volumeDownKey = KeyCode.F10;
@@ -58,35 +77,55 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] Slider volumeSliderVR;
         [SerializeField, LocalizedLabel] RectTransform volumeSliderDesktop;
         [SerializeField, LocalizedLabel] GameObject
-            desktopHintsReloadButtonKeyGO, desktopHintsVolumeUpKeyGO, desktopHintsVolumeDownKeyGO,
-            desktopHintsReloadButtonKey2GO, desktopHintsVolumeUpKey2GO, desktopHintsVolumeDownKey2GO;
+            desktopHintsReloadButtonKeyGO, desktopHintsVolumeUpKeyGO, desktopHintsVolumeDownKeyGO, desktopHintsFullscreenKeyGO,
+            desktopHintsReloadButtonKey2GO, desktopHintsVolumeUpKey2GO, desktopHintsVolumeDownKey2GO, desktopHintsFullscreenKey2GO,
+            escapeFullscreenHintGO;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsReloadButtonKeyGO), NullOnly = false)] Text desktopHintsReloadButtonKey;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsVolumeUpKeyGO), NullOnly = false)] Text desktopHintsVolumeUpKey;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsVolumeDownKeyGO), NullOnly = false)] Text desktopHintsVolumeDownKey;
+        [SerializeField, HideInInspector, Resolve(nameof(desktopHintsFullscreenKeyGO), NullOnly = false)] Text desktopHintsFullscreenKey;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsReloadButtonKey2GO), NullOnly = false)] Text desktopHintsReloadButtonKey2;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsVolumeUpKey2GO), NullOnly = false)] Text desktopHintsVolumeUpKey2;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsVolumeDownKey2GO), NullOnly = false)] Text desktopHintsVolumeDownKey2;
+        [SerializeField, HideInInspector, Resolve(nameof(desktopHintsFullscreenKey2GO), NullOnly = false)] Text desktopHintsFullscreenKey2;
+        [SerializeField, HideInInspector, Resolve(nameof(escapeFullscreenHintGO), NullOnly = false)] Text escapeFullscreenHint;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsReloadButtonKeyGO), NullOnly = false)] TextMeshProUGUI desktopHintsReloadButtonKeyTMPro;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsVolumeUpKeyGO), NullOnly = false)] TextMeshProUGUI desktopHintsVolumeUpKeyTMPro;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsVolumeDownKeyGO), NullOnly = false)] TextMeshProUGUI desktopHintsVolumeDownKeyTMPro;
+        [SerializeField, HideInInspector, Resolve(nameof(desktopHintsFullscreenKeyGO), NullOnly = false)] TextMeshProUGUI desktopHintsFullscreenKeyTMPro;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsReloadButtonKey2GO), NullOnly = false)] TextMeshProUGUI desktopHintsReloadButtonKey2TMPro;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsVolumeUpKey2GO), NullOnly = false)] TextMeshProUGUI desktopHintsVolumeUpKey2TMPro;
         [SerializeField, HideInInspector, Resolve(nameof(desktopHintsVolumeDownKey2GO), NullOnly = false)] TextMeshProUGUI desktopHintsVolumeDownKey2TMPro;
+        [SerializeField, HideInInspector, Resolve(nameof(desktopHintsFullscreenKey2GO), NullOnly = false)] TextMeshProUGUI desktopHintsFullscreenKey2TMPro;
+        [SerializeField, HideInInspector, Resolve(nameof(escapeFullscreenHintGO), NullOnly = false)] TextMeshProUGUI escapeFullscreenHintTMPro;
         [SerializeField, HideInInspector, Resolve(nameof(desktopModeCanvas))] Animator desktopModeAnim;
+        [SerializeField, LocalizedLabel] RawImage desktopModeFullscreenOverlay;
+        [SerializeField, HideInInspector, Resolve(nameof(desktopModeFullscreenOverlay))] AspectRatioFitter desktopModeFullscreenOverlayAspectFitter;
+        [SerializeField, HideInInspector, Resolve(nameof(desktopModeFullscreenOverlay))] GameObject desktopModeFullscreenOverlayGO;
+        [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager languageManager;
+        Rect normalRect = new Rect(0, 0, 1, 1), flippedRect = new Rect(0, 1, 1, -1);
         bool vrMode, afterFirstRun;
         VRCPlayerApi localPlayer;
-        [System.NonSerialized] public bool isLeftHanded;
+        [NonSerialized] public bool isLeftHanded;
         float offset = 0.05F;
-        int reloadAnimKey, volumeChangeAnimKey;
+        int reloadAnimKey, volumeChangeAnimKey, fullscreenAnimKey;
+        Core[] matchingCores;
+        int matchingCoreCount;
+        bool fullscreen;
 
         public float Volume {
             get => volume;
             set {
                 volume = value;
-                if (Utilities.IsValid(core))
-                    core.Volume = value;
-                else
-                    _OnVolumeChange();
+                bool hasCoreMatch = false;
+                for (int i = 0; i < matchingCoreCount; i++) {
+                    var core = matchingCores[i];
+                    if (Utilities.IsValid(core)) {
+                        core.Volume = volume;
+                        hasCoreMatch = true;
+                    }
+                }
+                if (!hasCoreMatch) _OnVolumeChange();
             }
         }
 
@@ -99,6 +138,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             reloadAnimKey = Animator.StringToHash("Reload");
             volumeChangeAnimKey = Animator.StringToHash("VolumeChange");
+            fullscreenAnimKey = Animator.StringToHash("Fullscreen");
             vrMode = localPlayer.IsUserInVR();
             vrModeCanvas.SetActive(vrMode);
             vrModeOptionsCanvas.SetActive(vrMode);
@@ -138,6 +178,38 @@ namespace JLChnToZ.VRC.VVMW {
                 desktopHintsVolumeDownKey2.text = volumeDownKey.ToString();
             if (Utilities.IsValid(desktopHintsVolumeDownKey2TMPro))
                 desktopHintsVolumeDownKey2TMPro.text = volumeDownKey.ToString();
+            if (fullscreenScreenKey == KeyCode.None) {
+                if (Utilities.IsValid(desktopHintsFullscreenKeyGO))
+                    desktopHintsFullscreenKeyGO.SetActive(false);
+                if (Utilities.IsValid(desktopHintsFullscreenKey2GO))
+                    desktopHintsFullscreenKey2GO.SetActive(false);
+            } else {
+                if (Utilities.IsValid(desktopHintsFullscreenKey))
+                    desktopHintsFullscreenKey.text = fullscreenScreenKey.ToString();
+                if (Utilities.IsValid(desktopHintsFullscreenKeyTMPro))
+                    desktopHintsFullscreenKeyTMPro.text = fullscreenScreenKey.ToString();
+                if (Utilities.IsValid(desktopHintsFullscreenKey2))
+                    desktopHintsFullscreenKey2.text = fullscreenScreenKey.ToString();
+                if (Utilities.IsValid(desktopHintsFullscreenKey2TMPro))
+                    desktopHintsFullscreenKey2TMPro.text = fullscreenScreenKey.ToString();
+                UpdateHintText();
+            }
+            if (!Utilities.IsValid(matchingCores)) {
+                if (coreControlStrategy == CoreMatchingStrategy.All) {
+                    matchingCores = cores;
+                    matchingCoreCount = coreCount;
+                } else {
+                    matchingCores = new Core[coreCount];
+                }
+            }
+        }
+
+        void UpdateHintText() {
+            var escapeHintText = string.Format(languageManager.GetLocale("OverlayEscapeHint"), fullscreenScreenKey);
+            if (Utilities.IsValid(escapeFullscreenHint))
+                escapeFullscreenHint.text = escapeHintText;
+            if (Utilities.IsValid(escapeFullscreenHintTMPro))
+                escapeFullscreenHintTMPro.text = escapeHintText;
         }
 
 #if VRC_ENABLE_PLAYER_PERSISTENCE
@@ -165,30 +237,84 @@ namespace JLChnToZ.VRC.VVMW {
                     return;
                 }
                 var head = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
+                var headPos = head.position;
+                if (coreControlStrategy >= CoreMatchingStrategy.Bounds && !MatchAllCores(headPos)) {
+                    vrModeCanvas.SetActive(false);
+                    return;
+                }
                 var hand = localPlayer.GetTrackingData(
                     isLeftHanded ? VRCPlayerApi.TrackingDataType.RightHand : VRCPlayerApi.TrackingDataType.LeftHand
                 );
                 var canvasRotation = hand.rotation * (isLeftHanded ? rightHandRotation : leftHandRotation);
                 var canvasPosition = hand.position + canvasRotation * (offsetDirection * offset);
                 vrModeCanvasTransform.SetPositionAndRotation(canvasPosition, canvasRotation);
-                vrModeCanvas.SetActive(Vector3.Angle(head.rotation * Vector3.forward, (canvasPosition - head.position).normalized) < 30);
-            } else if (Input.anyKey) {
+                vrModeCanvas.SetActive(Vector3.Angle(head.rotation * Vector3.forward, (canvasPosition - headPos).normalized) < 30);
+                return;
+            }
+            if (coreControlStrategy >= CoreMatchingStrategy.Bounds)
+                MatchAllCores(localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position);
+            if (Input.anyKey) {
                 if (Input.GetKeyDown(reloadKey))
                     _OnReload();
-                if (Input.GetKey(volumeDownKey))
+                else if (Input.GetKey(volumeDownKey))
                     Volume -= 0.3F * Time.deltaTime;
-                if (Input.GetKey(volumeUpKey))
+                else if (Input.GetKey(volumeUpKey))
                     Volume += 0.3F * Time.deltaTime;
+                else if (fullscreenScreenKey != KeyCode.None && Input.GetKeyDown(fullscreenScreenKey)) {
+                    fullscreen = !fullscreen;
+                    _OnTextureChanged();
+                } else if (Input.GetKeyDown(KeyCode.Escape) && fullscreen) {
+                    fullscreen = false;
+                    _OnTextureChanged();
+                }
             }
         }
 
+        // Find this code useful to your project? You are welcome to adopt it.
+        // If you are respectful, please kindly leave a credit that you got inspired here;
+        // or you can be an asshole who just rip it off, refactor it and then claim you made it.
+        bool MatchAllCores(Vector3 headPos) {
+            Core closestCore = null;
+            float closestDist = float.PositiveInfinity;
+            matchingCoreCount = 0;
+            for (int i = 0, j = 0; i < boundsCount; i++) {
+                int matchIndex;
+                do {
+                    matchIndex = coreBoundsMatchOffset[j];
+                } while (i >= matchIndex && ++j < coreCount);
+                var bounds = coreBounds[i];
+                var refTransform = coreBoundsReferenceTransforms[i];
+                var localPos = Utilities.IsValid(refTransform) ? refTransform.InverseTransformPoint(headPos) : headPos;
+                if (bounds.Contains(localPos)) {
+                    closestDist = -1;
+                    closestCore = cores[j - 1];
+                    matchingCores[matchingCoreCount++] = closestCore;
+                    continue;
+                }
+                if (closestDist <= 0) continue;
+                float dist = bounds.SqrDistance(localPos);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closestCore = cores[j - 1];
+                }
+            }
+            if (!Utilities.IsValid(closestCore)) return false;
+            if (matchingCoreCount == 0 && coreControlStrategy == CoreMatchingStrategy.Nearest)
+                matchingCores[matchingCoreCount++] = closestCore;
+            if (closestCore != core) {
+                core = closestCore;
+                _OnVolumeChange();
+            }
+            return true;
+        }
+
         public void _OnReload() {
-            bool hasCore = Utilities.IsValid(core);
-            if (hasCore && core.IsPlaying)
-                core.LocalSync();
-            else if (!(hasCore && core.IsLoading) && Utilities.IsValid(resyncTargets))
+            bool hasCoreMatch = false;
+            for (int i = 0; i < matchingCoreCount; i++)
+                hasCoreMatch |= ReloadCore(matchingCores[i]);
+            if (!hasCoreMatch && Utilities.IsValid(resyncTargets))
                 foreach (var target in resyncTargets)
-                    if (target.gameObject.activeInHierarchy) {
+                    if (target.activeInHierarchy) {
                         foreach (var ub in target.GetComponents(typeof(UdonBehaviour)))
                             ((UdonBehaviour)ub).SendCustomEvent("Resync");
                         break;
@@ -196,25 +322,84 @@ namespace JLChnToZ.VRC.VVMW {
             if (!vrMode) desktopModeAnim.SetTrigger(reloadAnimKey);
         }
 
-        public void _OnVolumeSliderChanged() {
-            Volume = volumeSliderVR.value;
+        bool ReloadCore(Core coreToReload) {
+            bool hasCore = Utilities.IsValid(coreToReload);
+            if (hasCore && coreToReload.IsPlaying) {
+                coreToReload.LocalSync();
+                return true;
+            }
+            return false;
         }
 
-        public void _OnVolumeChange() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnLanguageChanged() {
+            if (fullscreenScreenKey != KeyCode.None)
+                UpdateHintText();
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnVolumeSliderChanged() =>
+            Volume = volumeSliderVR.value;
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnVolumeChange() {
             if (!afterFirstRun) return;
-            if (Utilities.IsValid(core)) volume = core.Volume;
+            for (int i = 0; i < matchingCoreCount; i++) {
+                var core = matchingCores[i];
+                if (Utilities.IsValid(core))
+                    core.Volume = volume;
+            }
             if (vrMode) {
                 volumeSliderVR.SetValueWithoutNotify(volume);
             } else {
                 volumeSliderDesktop.anchorMax = new Vector2(volume, 1);
                 desktopModeAnim.SetTrigger(volumeChangeAnimKey);
             }
-            if (Utilities.IsValid(audioSources))
+            if (Utilities.IsValid(audioSources) && audioSources.Length > 0) {
+                var normalizedVolume = volume * volume; // Volume is not linear
                 foreach (var audioSource in audioSources)
-                    audioSource.volume = volume;
+                    audioSource.volume = normalizedVolume;
+            }
         }
 
-        public void _OnHandToggle() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnTextureChanged() {
+            if (!Utilities.IsValid(desktopModeFullscreenOverlay)) return;
+            bool wasVisible = desktopModeFullscreenOverlayGO.activeSelf;
+            if (!fullscreen) {
+                if (wasVisible) desktopModeFullscreenOverlayGO.SetActive(false);
+                return;
+            }
+            for (int i = 0; i < matchingCoreCount; i++) {
+                var core = matchingCores[i];
+                if (!Utilities.IsValid(core)) continue;
+                var texture = core.VideoTexture;
+                if (!Utilities.IsValid(texture)) break;
+                desktopModeFullscreenOverlay.texture = texture;
+                if (Utilities.IsValid(desktopModeFullscreenOverlayAspectFitter))
+                    desktopModeFullscreenOverlayAspectFitter.aspectRatio = (float)texture.width / texture.height;
+#if UNITY_STANDALONE_WIN
+                desktopModeFullscreenOverlay.uvRect = core.IsAVPro ? flippedRect : normalRect;
+#endif
+                desktopModeFullscreenOverlayGO.SetActive(true);
+                if (!wasVisible) desktopModeAnim.SetTrigger(fullscreenAnimKey);
+                return;
+            }
+            desktopModeFullscreenOverlayGO.SetActive(false);
+        }
+        
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnHandToggle() {
             if (leftHandToggle.isOn) {
                 disableHandControls = false;
                 isLeftHanded = false;
@@ -235,7 +420,10 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void _OnOffsetChange() {
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnOffsetChange() {
             offset = Mathf.Pow(1.5F, offsetSliderVR.value);
 #if VRC_ENABLE_PLAYER_PERSISTENCE
             PlayerData.SetFloat(PlayerPersistenceDistanceKey, offset);
@@ -244,8 +432,99 @@ namespace JLChnToZ.VRC.VVMW {
     }
 
 #if !COMPILER_UDONSHARP
-    public partial class OverlayControl : IVizVidCompoonent {
+    public partial class OverlayControl : IVizVidCompoonent, ISelfPreProcess {
         Core IVizVidCompoonent.Core => core;
+
+        int IPrioritizedPreProcessor.Priority => -1;
+
+        [Serializable]
+        internal class AdditionalCoresData {
+            public CoreData[] cores;
+        }
+
+        [Serializable]
+        internal struct CoreData {
+            [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")] public Core core;
+            public CoreBoundsData[] boundsData;
+        }
+
+        [Serializable]
+        internal struct CoreBoundsData {
+            [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.OverlayControl.CoreBoundsData.bounds")]
+            public Bounds bounds;
+            [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.OverlayControl.CoreBoundsData.referenceTransform")]
+            public Transform referenceTransform;
+        }
+
+        // Find this code useful to your project? You are welcome to adopt it.
+        // If you are respectful, please kindly leave a credit that you got inspired here;
+        // or you can be an asshole who just rip it off, refactor it and then claim you made it.
+        void ISelfPreProcess.PreProcess() {
+#if UNITY_EDITOR
+            if (additionalCores is AdditionalCoresData data) {
+                var orgCores = data.cores;
+                int length = orgCores.Length;
+                var bounds = new List<Bounds>(length);
+                var coreList = new List<Core>(length);
+                var coreBoundsOffsetList = new List<int>(length + 1);
+                var boundsRefTransforms = new List<Transform>();
+                coreBoundsOffsetList.Add(0);
+                if (core != null) {
+                    bool hasOriginalCore = false;
+                    for (int i = 0; i < length; i++) {
+                        if (orgCores[i].core == core) {
+                            hasOriginalCore = true;
+                            break;
+                        }
+                    }
+                    if (!hasOriginalCore) coreList.Add(core);
+                }
+                for (int i = 0; i < length; i++) {
+                    ref var coreData = ref orgCores[i];
+                    if (coreData.core == null) continue;
+                    coreList.Add(coreData.core);
+                    if (coreData.boundsData == null) continue;
+                    foreach (var boundData in coreData.boundsData) {
+                        bounds.Add(boundData.bounds);
+                        boundsRefTransforms.Add(boundData.referenceTransform);
+                    }
+                    coreBoundsOffsetList.Add(coreBoundsOffsetList[^1] + coreData.boundsData.Length);
+                }
+                coreCount = coreList.Count;
+                cores = coreList.ToArray();
+                coreBoundsMatchOffset = coreBoundsOffsetList.ToArray();
+                coreBounds = bounds.ToArray();
+                coreBoundsReferenceTransforms = boundsRefTransforms.ToArray();
+                boundsCount = coreBounds.Length;
+                additionalCores = null; // Clear the additional cores data to save memory, since it's no longer needed after processing.
+            }
+#endif
+        }
+
+        void OnDrawGizmosSelected() {
+            if (additionalCores == null || coreControlStrategy == CoreMatchingStrategy.All) return;
+            var orgCores = additionalCores.cores;
+            if (orgCores == null) return;
+            foreach (var coreData in orgCores) {
+                if (coreData.core == null || coreData.boundsData == null) continue;
+                for (int i = 0; i < coreData.boundsData.Length; i++) {
+                    ref var boundData = ref coreData.boundsData[i];
+                    Gizmos.color = Color.HSVToRGB(i * 0.35F % 1F, 1F, 1F);
+                    Gizmos.matrix = boundData.referenceTransform != null ? boundData.referenceTransform.localToWorldMatrix : Matrix4x4.identity;
+                    var size = boundData.bounds.size;
+                    if (Mathf.Approximately(size.sqrMagnitude, 0))
+                        Gizmos.DrawSphere(boundData.bounds.center, 0.1F);
+                    else
+                        Gizmos.DrawWireCube(boundData.bounds.center, size);
+                }
+            }
+        }
     }
 #endif
+
+    public enum CoreMatchingStrategy {
+        All,
+        Bounds,
+        Nearest,
+    }
 }

@@ -9,6 +9,7 @@ using VRC.SDK3.Components;
 using VRC.SDK3.Components.Video;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
+using UnityEngine.XR;
 
 namespace JLChnToZ.VRC.VVMW {
     /// <summary>
@@ -93,10 +94,13 @@ namespace JLChnToZ.VRC.VVMW {
         [BindEvent(nameof(Button.onClick), nameof(_RepeatAll))]
         [SerializeField, LocalizedLabel] Button repeatOneButton;
         [SerializeField, HideInInspector, Resolve(nameof(repeatOneButton), NullOnly = false)] GameObject repeatOneButtonObject;
-        [BindEvent(nameof(Button.onClick), nameof(_RepeatOff))]
+        [BindEvent(nameof(Button.onClick), nameof(_RepeatAB))]
         [FormerlySerializedAs("RepeatAllButton")]
         [SerializeField, LocalizedLabel] Button repeatAllButton;
         [SerializeField, HideInInspector, Resolve(nameof(repeatAllButton), NullOnly = false)] GameObject repeatAllButtonObject;
+        [BindEvent(nameof(Button.onClick), nameof(_RepeatOff))]
+        [SerializeField, LocalizedLabel] Button repeatABButton;
+        [SerializeField, HideInInspector, Resolve(nameof(repeatABButton), NullOnly = false)] GameObject repeatABButtonObject;
         [BindEvent(nameof(Button.onClick), nameof(_ShuffleOn))]
         [SerializeField, LocalizedLabel] Button shuffleOffButton;
         [SerializeField, HideInInspector, Resolve(nameof(shuffleOffButton), NullOnly = false)] GameObject shuffleOffButtonObject;
@@ -105,7 +109,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, Resolve(nameof(shuffleOnButton), NullOnly = false)] GameObject shuffleOnButtonObject;
         [BindEvent(nameof(Toggle.onValueChanged), nameof(_PlayListToggle))]
         [SerializeField, LocalizedLabel] Toggle playlistToggle;
-        [BindEvent(nameof(Slider.onValueChanged), nameof(_OnSeek))]
+        [BindEvent("m_OnValueChanged", nameof(_OnSeek))]
         [SerializeField, LocalizedLabel] Slider progressSlider;
         [SerializeField, LocalizedLabel] GameObject statusObject, timeObject, durationObject;
         [SerializeField, HideInInspector, Resolve(nameof(statusObject), NullOnly = false)] Text statusText;
@@ -115,9 +119,11 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, Resolve(nameof(timeObject), NullOnly = false)] TextMeshProUGUI timeTMPro;
         [SerializeField, HideInInspector, Resolve(nameof(durationObject), NullOnly = false)] TextMeshProUGUI durationTMPro;
         [SerializeField, LocalizedLabel] GameObject timeContainer;
+        [SerializeField, LocalizedLabel, BindUdonSharpEvent] RangeSlider abLoopSlider;
+        [SerializeField, HideInInspector, Resolve(nameof(abLoopSlider), NullOnly = false)] GameObject abLoopSliderObject;
 
         [LocalizedHeader("HEADER:Volume_Control")]
-        [BindEvent(nameof(Slider.onValueChanged), nameof(_OnVolumeSlide))]
+        [BindEvent("m_OnValueChanged", nameof(_OnVolumeSlide))]
         [SerializeField, LocalizedLabel] Slider volumeSlider;
         [BindEvent(nameof(Button.onClick), nameof(_OnMute))]
         [SerializeField, LocalizedLabel] Button muteButton, unmuteButton;
@@ -133,6 +139,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, Resolve(nameof(playListScrollView), NullOnly = false)] GameObject playListGameObject;
         [BindEvent(nameof(Button.onClick), nameof(_PlayListTogglePanel))]
         [SerializeField, LocalizedLabel] Button playListTogglePanelButton;
+        [SerializeField, HideInInspector, Resolve(nameof(playListTogglePanelButton), NullOnly = false)] GameObject playListTogglePanelButtonObject;
         [SerializeField, LocalizedLabel, BindUdonSharpEvent] PooledScrollView queueListScrollView;
         [SerializeField, HideInInspector, Resolve(nameof(queueListScrollView), NullOnly = false)] GameObject queueListScrollViewObject;
         [SerializeField, LocalizedLabel] GameObject playNextIndicator;
@@ -142,6 +149,17 @@ namespace JLChnToZ.VRC.VVMW {
         [BindEvent(nameof(Button.onClick), nameof(_OnCurrentPlayListSelectClick))]
         [SerializeField, LocalizedLabel] Button currentPlayListButton;
         [SerializeField, HideInInspector, Resolve(nameof(currentPlayListButton), NullOnly = false)] GameObject currentPlayListButtonObject;
+        [BindEvent(nameof(Button.onClick), nameof(_OnPlayListSelect))]
+        [SerializeField, LocalizedLabel] Button currentPlayListSelectButton;
+        [SerializeField, HideInInspector, Resolve(nameof(currentPlayListSelectButton), NullOnly = false)] GameObject currentPlayListSelectButtonObject;
+        [BindEvent(nameof(Button.onClick), nameof(_OnQueueListSelect))]
+        [SerializeField, LocalizedLabel] Button queueListSelectButton;
+        [SerializeField, HideInInspector, Resolve(nameof(queueListSelectButton), NullOnly = false)] GameObject queueListSelectButtonObject;
+        [SerializeField, LocalizedLabel] GameObject queueListSelectedIndicator;
+        [BindEvent(nameof(Button.onClick), nameof(_OnHistorySelect))]
+        [SerializeField, LocalizedLabel] Button historySelectButton;
+        [SerializeField, HideInInspector, Resolve(nameof(historySelectButton), NullOnly = false)] GameObject historySelectButtonObject;
+        [SerializeField, LocalizedLabel] GameObject historySelectedIndicator;
         [SerializeField, LocalizedLabel] bool autoHideCurrentPlayListButton = true;
 
         [LocalizedHeader("HEADER:Sync_Offset_Controls")]
@@ -194,7 +212,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, Resolve(nameof(speedOffsetObject), NullOnly = false)] TextMeshProUGUI speedOffsetTMPro;
 
         [LocalizedHeader("HEADER:Screen_Controls")]
-        [BindEvent(nameof(Slider.onValueChanged), nameof(_OnLuminanceSliderChanged))]
+        [BindEvent("m_OnValueChanged", nameof(_OnLuminanceSliderChanged))]
         [SerializeField, LocalizedLabel] Slider luminanceSlider;
         [SerializeField, LocalizedLabel] string luminancePropertyName = "_EmissionIntensity";
         int luminancePropertyId;
@@ -224,6 +242,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             InitPlayQueueList();
             InitPlayerSelect();
+            InitABLoopSlider();
             if (Utilities.IsValid(playNextIndicator)) playNextIndicator.SetActive(false);
             InitShiftControl();
             _OnUIUpdate();
@@ -285,6 +304,7 @@ namespace JLChnToZ.VRC.VVMW {
                 handler.NoRepeat();
             else
                 core.Loop = false;
+            core._ClearRangeLoop();
         }
 
 #if COMPILER_UDONSHARP
@@ -305,6 +325,17 @@ namespace JLChnToZ.VRC.VVMW {
                 handler.RepeatAll = true;
             else
                 core.Loop = true;
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _RepeatAB() {
+            var duration = core.Duration;
+            if (Utilities.IsValid(repeatABButton) && duration > 0 && !float.IsInfinity(duration))
+                core.SetRangeLoop(0, float.PositiveInfinity);
+            else
+                _RepeatOff();
         }
 
 #if COMPILER_UDONSHARP
@@ -497,6 +528,7 @@ namespace JLChnToZ.VRC.VVMW {
                 if (Utilities.IsValid(repeatOffButton)) repeatOffButton.interactable = unlocked;
                 if (Utilities.IsValid(repeatOneButton)) repeatOneButton.interactable = unlocked;
                 if (Utilities.IsValid(repeatAllButton)) repeatAllButton.interactable = unlocked;
+                if (Utilities.IsValid(repeatABButton)) repeatABButton.interactable = unlocked;
                 if (Utilities.IsValid(shuffleOnButton)) shuffleOnButton.interactable = unlocked;
                 if (Utilities.IsValid(playNextButton)) playNextButton.interactable = unlocked;
                 if (Utilities.IsValid(playListTogglePanelButton)) playListTogglePanelButton.interactable = unlocked && Utilities.IsValid(playListNames) && playListNames.Length > 1;
@@ -510,13 +542,14 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 InitShiftControl();
             }
+            bool isRangeLooping = core.IsRangeLooping && Utilities.IsValid(repeatABButtonObject);
             if (hasHandler) {
                 bool isRepeatOne = handler.RepeatOne;
                 bool isRepeatAll = handler.RepeatAll;
                 bool isShuffle = handler.Shuffle;
-                if (Utilities.IsValid(repeatOffButtonObject)) repeatOffButtonObject.SetActive(!isRepeatOne && !isRepeatAll);
-                if (Utilities.IsValid(repeatOneButtonObject)) repeatOneButtonObject.SetActive(isRepeatOne);
-                if (Utilities.IsValid(repeatAllButtonObject)) repeatAllButtonObject.SetActive(isRepeatAll);
+                if (Utilities.IsValid(repeatOffButtonObject)) repeatOffButtonObject.SetActive(!isRepeatOne && !isRepeatAll && !isRangeLooping);
+                if (Utilities.IsValid(repeatOneButtonObject)) repeatOneButtonObject.SetActive(isRepeatOne && !isRangeLooping);
+                if (Utilities.IsValid(repeatAllButtonObject)) repeatAllButtonObject.SetActive(isRepeatAll && !isRangeLooping);
                 if (Utilities.IsValid(shuffleOffButton)) {
                     shuffleOffButtonObject.SetActive(!isShuffle);
                     shuffleOffButton.interactable = unlocked;
@@ -529,8 +562,8 @@ namespace JLChnToZ.VRC.VVMW {
                 SetLocalizedText(queueModeText, queueModeTMPro, willPlayNext ? "QueueModeNext" : "QueueModeInstant");
             } else {
                 bool isRepeatOne = core.Loop;
-                if (Utilities.IsValid(repeatOffButtonObject)) repeatOffButtonObject.SetActive(!isRepeatOne);
-                if (Utilities.IsValid(repeatOneButtonObject)) repeatOneButtonObject.SetActive(isRepeatOne);
+                if (Utilities.IsValid(repeatOffButtonObject)) repeatOffButtonObject.SetActive(!isRepeatOne && !isRangeLooping);
+                if (Utilities.IsValid(repeatOneButtonObject)) repeatOneButtonObject.SetActive(isRepeatOne && !isRangeLooping);
                 if (Utilities.IsValid(repeatAllButtonObject)) repeatAllButtonObject.SetActive(false);
                 if (Utilities.IsValid(shuffleOffButtonObject)) {
                     shuffleOffButtonObject.SetActive(true);
@@ -539,6 +572,7 @@ namespace JLChnToZ.VRC.VVMW {
                 if (Utilities.IsValid(shuffleOnButton)) shuffleOnButtonObject.SetActive(false);
                 SetLocalizedText(queueModeText, queueModeTMPro, "QueueModeInstant");
             }
+            if (Utilities.IsValid(repeatABButtonObject)) repeatABButtonObject.SetActive(isRangeLooping);
             if (Utilities.IsValid(speedDownLButton)) speedDownLButton.interactable = unlocked;
             if (Utilities.IsValid(speedDownSButton)) speedDownSButton.interactable = unlocked;
             if (Utilities.IsValid(speedUpSButton)) speedUpSButton.interactable = unlocked;
@@ -548,6 +582,7 @@ namespace JLChnToZ.VRC.VVMW {
                 performanceModeToggle.interactable = unlocked;
                 _OnPerformerChange();
             }
+            if (Utilities.IsValid(abLoopSlider)) abLoopSliderObject.SetActive(isRangeLooping && unlocked);
         }
 
         void SetLocalizedText(Text text, TextMeshProUGUI tmp, string locale) {

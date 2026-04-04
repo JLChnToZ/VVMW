@@ -487,6 +487,11 @@ namespace JLChnToZ.VRC.VVMW {
         public void _OnTitleData() => UpdateState();
 
         bool IsArrayNullOrEmpty(Array array) => !Utilities.IsValid(array) || array.Length == 0;
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnRangeLoopToggled() => UpdateState();
     }
 
 #if !COMPILER_UDONSHARP

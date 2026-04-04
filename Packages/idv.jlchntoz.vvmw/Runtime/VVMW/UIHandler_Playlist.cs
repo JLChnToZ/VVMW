@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 using VRC.SDKBase;
 
 namespace JLChnToZ.VRC.VVMW {
@@ -7,6 +8,7 @@ namespace JLChnToZ.VRC.VVMW {
         string[] historyCopyContents;
         [NonSerialized] public byte loadWithIndex;
         int lastSelectedPlayListIndex, lastPlayingIndex;
+        int selectedPlaylistTabIndex;
         int lastDisplayCount;
         string enqueueCountFormat;
         bool playListUpdateRequired;
@@ -16,27 +18,49 @@ namespace JLChnToZ.VRC.VVMW {
                 if (!Utilities.IsValid(playListScrollView)) return 0;
                 int selectedIndex = playListScrollView.SelectedIndex;
                 if (Utilities.IsValid(handler)) {
-                    if (handler.HistorySize > 0) {
+                    bool hasHistoryButton = Utilities.IsValid(historySelectButton);
+                    if (hasHistoryButton && selectedPlaylistTabIndex < 0) return -1;
+                    bool hasQueueListButton = Utilities.IsValid(queueListSelectButton);
+                    if (hasQueueListButton && selectedPlaylistTabIndex == 0) return 0;
+                    if (handler.HistorySize > 0 && !hasHistoryButton) {
                         if (selectedIndex == 0) return -1;
-                        if (handler.HasQueueList) selectedIndex--;
-                    } else if (!handler.HasQueueList)
+                        if (handler.HasQueueList && !hasQueueListButton) selectedIndex--;
+                    } else if (!handler.HasQueueList || hasQueueListButton)
                         selectedIndex++;
                 }
                 return selectedIndex;
             }
             set {
-                if (!Utilities.IsValid(playListScrollView)) return;
-                if (value < 0) {
-                    playListScrollView.SelectedIndex = 0;
-                    return;
-                }
                 if (Utilities.IsValid(handler)) {
-                    if (handler.HistorySize > 0) {
-                        if (handler.HasQueueList) value++;
-                    } else if (!handler.HasQueueList)
+                    selectedPlaylistTabIndex = value;
+                    bool hasHistoryButton = Utilities.IsValid(historySelectButton);
+                    bool hasHistory = handler.HistorySize > 0;
+                    bool hasQueueListButton = Utilities.IsValid(queueListSelectButton);
+                    bool hasQueueList = handler.HasQueueList;
+                    if (hasHistoryButton && Utilities.IsValid(historySelectedIndicator)) {
+                        bool isHistory = selectedPlaylistTabIndex < 0;
+                        historySelectButtonObject.SetActive(hasHistory && !isHistory);
+                        historySelectedIndicator.SetActive(isHistory);
+                    }
+                    if (hasQueueListButton && Utilities.IsValid(queueListSelectedIndicator)) {
+                        bool isQueueList = selectedPlaylistTabIndex == 0;
+                        queueListSelectButtonObject.SetActive(hasQueueList && !isQueueList);
+                        queueListSelectedIndicator.SetActive(isQueueList);
+                    }
+                    if (Utilities.IsValid(playListTogglePanelButton) && Utilities.IsValid(currentPlayListSelectButton)) {
+                        bool isPlayList = selectedPlaylistTabIndex > 0;
+                        bool hasPlayList = Utilities.IsValid(playListNames) && playListNames.Length > 0;
+                        currentPlayListSelectButtonObject.SetActive(hasPlayList && !isPlayList);
+                        playListTogglePanelButtonObject.SetActive(isPlayList);
+                    }
+                    if (Utilities.IsValid(currentPlayListButton)) playListGameObject.SetActive(false);
+                    if (hasHistory && !hasHistoryButton) {
+                        if (hasQueueList && !hasQueueListButton) value++;
+                    } else if (!hasQueueList || hasQueueListButton)
                         value--;
                 }
-                playListScrollView.SelectedIndex = value;
+                if (!Utilities.IsValid(playListScrollView)) return;
+                playListScrollView.SelectedIndex = Mathf.Max(0, value);
             }
         }
 
@@ -53,8 +77,8 @@ namespace JLChnToZ.VRC.VVMW {
             if (Utilities.IsValid(playListScrollView)) {
                 playListNames = hasHandler ? handler.PlayListTitles : null;
                 if (Utilities.IsValid(playListNames)) {
-                    bool hasQueueList = handler.HasQueueList;
-                    bool hasHistory = handler.HistorySize > 0;
+                    bool hasQueueList = handler.HasQueueList && !Utilities.IsValid(queueListSelectButton);
+                    bool hasHistory = handler.HistorySize > 0 && !Utilities.IsValid(historySelectButton);
                     if (hasQueueList || hasHistory) {
                         int length = playListNames.Length;
                         if (hasQueueList) length++;
@@ -67,7 +91,9 @@ namespace JLChnToZ.VRC.VVMW {
                         playListNames = temp;
                     }
                 } else if (!Utilities.IsValid(playListNames))
-                    playListNames = new[] { languageManager.GetLocale("QueueList") };
+                    playListNames = Utilities.IsValid(queueListSelectButton) ?
+                        new string[0] :
+                        new[] { languageManager.GetLocale("QueueList") };
                 bool hasPlayList = playListNames.Length > 1;
                 playListScrollView.EventPrefix = "_OnPlayList";
                 playListScrollView.CanDelete = false;
@@ -244,6 +270,34 @@ namespace JLChnToZ.VRC.VVMW {
                 SelectedPlayListIndex = 0;
                 UpdatePlayList();
             }
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnPlayListSelect() {
+            if (!Utilities.IsValid(handler)) return;
+            playListLastInteractTime = DateTime.UtcNow;
+            SelectedPlayListIndex = Mathf.Max(1, handler.PlayListIndex);
+            UpdatePlayList();
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnQueueListSelect() {
+            SelectedPlayListIndex = 0;
+            playListLastInteractTime = DateTime.UtcNow;
+            UpdatePlayList();
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnHistorySelect() {
+            SelectedPlayListIndex = -1;
+            playListLastInteractTime = DateTime.UtcNow;
+            UpdatePlayList();
         }
     }
 }

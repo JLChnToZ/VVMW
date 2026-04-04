@@ -15,6 +15,7 @@ namespace JLChnToZ.VRC.VVMW {
         // When playing, it is the time when the video started playing;
         // When paused, it is the progress of the video in ticks.
         [UdonSynced] long time;
+        [UdonSynced] float rangeLoopStart = -1, rangeLoopEnd = -1;
         [UdonSynced] float syncedSpeed = 1, syncedActualSpeed = 1;
         [FieldChangeCallback(nameof(PerformerId))]
         [UdonSynced] ushort performerId;
@@ -23,10 +24,12 @@ namespace JLChnToZ.VRC.VVMW {
         [FieldChangeCallback(nameof(Speed))]
         float speed = 1;
         float actualSpeed = 1;
+        float localRangeLoopStart = -1, localRangeLoopEnd = -1;
         float syncLatency;
         float lastSyncRawTime;
         bool isBuffering;
         bool isResyncTime;
+        bool isCheckingRangeLoop;
         DateTime lastSyncTime;
         VRCPlayerApi performer;
 
@@ -36,9 +39,14 @@ namespace JLChnToZ.VRC.VVMW {
         /// <remarks>
         /// If it is a live stream, this value will be zero.
         /// </remarks>
+        // Find this code useful to your project? You are welcome to adopt it.
+        // If you are respectful, please kindly leave a credit that you got inspired here;
+        // or you can be an asshole who just rip it off, refactor it and then claim you made it.
         public float Time {
             get => Utilities.IsValid(activeHandler) ? activeHandler.Time : 0;
             private set {
+                if (localRangeLoopStart >= 0 && localRangeLoopEnd > localRangeLoopStart)
+                    value = localRangeLoopStart + Mathf.Repeat(value - localRangeLoopStart, localRangeLoopEnd - localRangeLoopStart);
                 activeHandler.Time = value;
                 lastSyncRawTime = value;
                 isBuffering = false; // Reset buffering state
@@ -52,6 +60,16 @@ namespace JLChnToZ.VRC.VVMW {
         /// If it is a live stream, this value will be infinity.
         /// </remarks>
         public float Duration => Utilities.IsValid(activeHandler) ? activeHandler.Duration : 0;
+
+        /// <summary>
+        /// The start time of the range loop in seconds. If it is negative, the range loop is disabled.
+        /// </summary>
+        public float RangeLoopStart => localRangeLoopStart;
+
+        /// <summary>
+        /// The end time of the range loop in seconds. If it is negative, the range loop is disabled.
+        /// </summary>
+        public float RangeLoopEnd => localRangeLoopEnd;
 
         /// <summary>
         /// The offset of the video time to other players, in seconds.
@@ -115,6 +133,11 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         /// <summary>
+        /// Whether the video player is currently looping in a specific range.
+        /// </summary>
+        public bool IsRangeLooping => localRangeLoopStart >= 0 && localRangeLoopEnd > localRangeLoopStart;
+
+        /// <summary>
         /// Gets the performer of the video player playback.
         /// </summary>
         public VRCPlayerApi Performer => performer;
@@ -142,12 +165,19 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void StartSyncTime() {
+            StartCheckRangeLoop();
             if (!synced) return;
             SyncTime(true);
             if (!isResyncTime) {
                 isResyncTime = true;
                 SendCustomEventDelayedSeconds(nameof(_AutoSyncTime), 0.5F);
             }
+        }
+
+        void StartCheckRangeLoop() {
+            if (isCheckingRangeLoop) return;
+            isCheckingRangeLoop = true;
+            SendCustomEventDelayedFrames(nameof(_CheckRangeLoop), 0);
         }
 
 #if COMPILER_UDONSHARP
@@ -234,6 +264,70 @@ namespace JLChnToZ.VRC.VVMW {
                     Time = t;
                     SendEvent("_OnTimeDrift");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Set the video player to loop in a specific range.
+        /// </summary>
+        /// <param name="start">The start time of the range loop in seconds. It must be non-negative and less than the end time.</param>
+        /// <param name="end">The end time of the range loop in seconds. It must be greater than the start time.</param>
+        public void SetRangeLoop(float start, float end) {
+            var duration = Duration;
+            if (duration <= 0 || float.IsInfinity(duration)) {
+                _ClearRangeLoop();
+                return;
+            }
+            SetRangeInternal(Mathf.Clamp(start, 0, end), Mathf.Clamp(end, start, duration));
+            RequestSync();
+        }
+
+        void SetRangeInternal(float start, float end) {
+            if (Mathf.Approximately(localRangeLoopStart, start) && Mathf.Approximately(localRangeLoopEnd, end)) return;
+            bool wasRangeLoop = IsRangeLooping;
+            localRangeLoopStart = start;
+            localRangeLoopEnd = end;
+            var isRangeLoop = IsRangeLooping;
+            if (wasRangeLoop != isRangeLoop) SendEvent("_OnRangeLoopToggled");
+            if (isRangeLoop) {
+                SendEvent("_OnRangeLoopChange");
+                StartCheckRangeLoop();
+            }
+        }
+
+        /// <summary>
+        /// Clear the range loop and disable looping in a specific range.
+        /// </summary>
+        public void _ClearRangeLoop() {
+            if (!IsRangeLooping) return;
+            localRangeLoopStart = -1;
+            localRangeLoopEnd = -1;
+            SendEvent("_OnRangeLoopToggled");
+            RequestSync();
+        }
+
+        // Find this code useful to your project? You are welcome to adopt it.
+        // If you are respectful, please kindly leave a credit that you got inspired here;
+        // or you can be an asshole who just rip it off, refactor it and then claim you made it.
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _CheckRangeLoop() {
+            if (!Utilities.IsValid(activeHandler) || !activeHandler.IsPlaying || localRangeLoopStart < 0 || localRangeLoopEnd <= localRangeLoopStart) {
+                isCheckingRangeLoop = false;
+                return;
+            }
+            SendCustomEventDelayedFrames(nameof(_CheckRangeLoop), 0);
+            var time = activeHandler.Time;
+            if (time < localRangeLoopStart) {
+                Time = localRangeLoopStart;
+                SendEvent("_OnTimeDrift");
+                return;
+            }
+            if (time > localRangeLoopEnd) {
+                Time = time; // The time will be wrapped in Time's setter
+                SendEvent("_OnTimeDrift");
+                return;
             }
         }
 
