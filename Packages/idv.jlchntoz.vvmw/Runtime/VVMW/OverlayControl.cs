@@ -38,13 +38,13 @@ namespace JLChnToZ.VRC.VVMW {
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
         ), BindUdonSharpEvent, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
         Core core;
-        #if !COMPILER_UDONSHARP
+#if !COMPILER_UDONSHARP
         [SerializeField, LocalizedLabel] AdditionalCoresData additionalCores;
-        #else
+#else
         // Placeholder to avoid compile error in UdonSharp.
         // The actual data will be dumped into arrays on build time, and this field will not be used.
         [SerializeField] object additionalCores;
-        #endif
+#endif
         [SerializeField, LocalizedLabel, LocalizedEnum]
         CoreMatchingStrategy coreControlStrategy = CoreMatchingStrategy.All;
         [SerializeField, HideInInspector, BindUdonSharpEvent] Core[] cores;
@@ -76,7 +76,8 @@ namespace JLChnToZ.VRC.VVMW {
         [BindEvent(nameof(Slider.onValueChanged), nameof(_OnVolumeSliderChanged))]
         [SerializeField, LocalizedLabel] Slider volumeSliderVR;
         [SerializeField, LocalizedLabel] RectTransform volumeSliderDesktop;
-        [SerializeField, LocalizedLabel] GameObject
+        [SerializeField, LocalizedLabel]
+        GameObject
             desktopHintsReloadButtonKeyGO, desktopHintsVolumeUpKeyGO, desktopHintsVolumeDownKeyGO, desktopHintsFullscreenKeyGO,
             desktopHintsReloadButtonKey2GO, desktopHintsVolumeUpKey2GO, desktopHintsVolumeDownKey2GO, desktopHintsFullscreenKey2GO,
             escapeFullscreenHintGO;
@@ -104,7 +105,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, Resolve(nameof(desktopModeFullscreenOverlay))] GameObject desktopModeFullscreenOverlayGO;
         [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager languageManager;
         Rect normalRect = new Rect(0, 0, 1, 1), flippedRect = new Rect(0, 1, 1, -1);
-        bool vrMode, afterFirstRun;
+        bool vrMode, afterFirstRun, volumeChanging;
         VRCPlayerApi localPlayer;
         [NonSerialized] public bool isLeftHanded;
         float offset = 0.05F;
@@ -116,16 +117,19 @@ namespace JLChnToZ.VRC.VVMW {
         public float Volume {
             get => volume;
             set {
-                volume = value;
-                bool hasCoreMatch = false;
+                volume = Mathf.Clamp01(value);
+                volumeChanging = true;
                 for (int i = 0; i < matchingCoreCount; i++) {
                     var core = matchingCores[i];
-                    if (Utilities.IsValid(core)) {
-                        core.Volume = volume;
-                        hasCoreMatch = true;
-                    }
+                    if (Utilities.IsValid(core)) core.Volume = volume;
                 }
-                if (!hasCoreMatch) _OnVolumeChange();
+                if (Utilities.IsValid(audioSources) && audioSources.Length > 0) {
+                    var normalizedVolume = volume * volume; // Volume is not linear
+                    foreach (var audioSource in audioSources)
+                        audioSource.volume = normalizedVolume;
+                }
+                volumeChanging = false;
+                UpdateVolume();
             }
         }
 
@@ -144,7 +148,6 @@ namespace JLChnToZ.VRC.VVMW {
             vrModeOptionsCanvas.SetActive(vrMode);
             desktopModeCanvas.SetActive(!vrMode);
             desktopModeOptionsCanvas.SetActive(!vrMode);
-            _OnVolumeChange();
             offsetSliderVR.SetValueWithoutNotify(Mathf.Log(offset, 1.5F));
             vrModeCanvasTransform = vrModeCanvas.transform;
             if (disableHandControls) {
@@ -194,7 +197,7 @@ namespace JLChnToZ.VRC.VVMW {
                     desktopHintsFullscreenKey2TMPro.text = fullscreenScreenKey.ToString();
                 UpdateHintText();
             }
-            if (!Utilities.IsValid(matchingCores)) {
+            if (!Utilities.IsValid(matchingCores) || matchingCores.Length < cores.Length) {
                 if (coreControlStrategy == CoreMatchingStrategy.All) {
                     matchingCores = cores;
                     matchingCoreCount = coreCount;
@@ -202,6 +205,7 @@ namespace JLChnToZ.VRC.VVMW {
                     matchingCores = new Core[coreCount];
                 }
             }
+            _OnVolumeChange();
         }
 
         void UpdateHintText() {
@@ -238,7 +242,7 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 var head = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
                 var headPos = head.position;
-                if (coreControlStrategy >= CoreMatchingStrategy.Bounds && !MatchAllCores(headPos)) {
+                if (coreControlStrategy != CoreMatchingStrategy.All && !MatchAllCores(headPos)) {
                     vrModeCanvas.SetActive(false);
                     return;
                 }
@@ -251,7 +255,7 @@ namespace JLChnToZ.VRC.VVMW {
                 vrModeCanvas.SetActive(Vector3.Angle(head.rotation * Vector3.forward, (canvasPosition - headPos).normalized) < 30);
                 return;
             }
-            if (coreControlStrategy >= CoreMatchingStrategy.Bounds)
+            if (coreControlStrategy != CoreMatchingStrategy.All)
                 MatchAllCores(localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position);
             if (Input.anyKey) {
                 if (Input.GetKeyDown(reloadKey))
@@ -298,12 +302,16 @@ namespace JLChnToZ.VRC.VVMW {
                     closestCore = cores[j - 1];
                 }
             }
-            if (!Utilities.IsValid(closestCore)) return false;
+            if (!Utilities.IsValid(closestCore)) {
+                _OnTextureChanged();
+                return false;
+            }
             if (matchingCoreCount == 0 && coreControlStrategy == CoreMatchingStrategy.Nearest)
                 matchingCores[matchingCoreCount++] = closestCore;
             if (closestCore != core) {
                 core = closestCore;
                 _OnVolumeChange();
+                _OnTextureChanged();
             }
             return true;
         }
@@ -349,22 +357,17 @@ namespace JLChnToZ.VRC.VVMW {
         public
 #endif
         void _OnVolumeChange() {
-            if (!afterFirstRun) return;
-            for (int i = 0; i < matchingCoreCount; i++) {
-                var core = matchingCores[i];
-                if (Utilities.IsValid(core))
-                    core.Volume = volume;
-            }
+            if (!afterFirstRun || volumeChanging || !Utilities.IsValid(core)) return;
+            volume = core.Volume;
+            UpdateVolume();
+        }
+
+        void UpdateVolume() {
             if (vrMode) {
                 volumeSliderVR.SetValueWithoutNotify(volume);
             } else {
                 volumeSliderDesktop.anchorMax = new Vector2(volume, 1);
                 desktopModeAnim.SetTrigger(volumeChangeAnimKey);
-            }
-            if (Utilities.IsValid(audioSources) && audioSources.Length > 0) {
-                var normalizedVolume = volume * volume; // Volume is not linear
-                foreach (var audioSource in audioSources)
-                    audioSource.volume = normalizedVolume;
             }
         }
 
@@ -374,28 +377,25 @@ namespace JLChnToZ.VRC.VVMW {
         void _OnTextureChanged() {
             if (!Utilities.IsValid(desktopModeFullscreenOverlay)) return;
             bool wasVisible = desktopModeFullscreenOverlayGO.activeSelf;
-            if (!fullscreen) {
+            if (!fullscreen || !Utilities.IsValid(core)) {
                 if (wasVisible) desktopModeFullscreenOverlayGO.SetActive(false);
                 return;
             }
-            for (int i = 0; i < matchingCoreCount; i++) {
-                var core = matchingCores[i];
-                if (!Utilities.IsValid(core)) continue;
-                var texture = core.VideoTexture;
-                if (!Utilities.IsValid(texture)) break;
-                desktopModeFullscreenOverlay.texture = texture;
-                if (Utilities.IsValid(desktopModeFullscreenOverlayAspectFitter))
-                    desktopModeFullscreenOverlayAspectFitter.aspectRatio = (float)texture.width / texture.height;
-#if UNITY_STANDALONE_WIN
-                desktopModeFullscreenOverlay.uvRect = core.IsAVPro ? flippedRect : normalRect;
-#endif
-                desktopModeFullscreenOverlayGO.SetActive(true);
-                if (!wasVisible) desktopModeAnim.SetTrigger(fullscreenAnimKey);
+            var texture = core.VideoTexture;
+            if (!Utilities.IsValid(texture)) {
+                if (wasVisible) desktopModeFullscreenOverlayGO.SetActive(false);
                 return;
             }
-            desktopModeFullscreenOverlayGO.SetActive(false);
+            desktopModeFullscreenOverlay.texture = texture;
+            if (Utilities.IsValid(desktopModeFullscreenOverlayAspectFitter))
+                desktopModeFullscreenOverlayAspectFitter.aspectRatio = (float)texture.width / texture.height;
+#if UNITY_STANDALONE_WIN
+            desktopModeFullscreenOverlay.uvRect = core.IsAVPro ? flippedRect : normalRect;
+#endif
+            desktopModeFullscreenOverlayGO.SetActive(true);
+            if (!wasVisible) desktopModeAnim.SetTrigger(fullscreenAnimKey);
         }
-        
+
 #if COMPILER_UDONSHARP
         public
 #endif
@@ -497,6 +497,20 @@ namespace JLChnToZ.VRC.VVMW {
                 coreBoundsReferenceTransforms = boundsRefTransforms.ToArray();
                 boundsCount = coreBounds.Length;
                 additionalCores = null; // Clear the additional cores data to save memory, since it's no longer needed after processing.
+            } else if (core != null) {
+                coreCount = 1;
+                cores = new [] { core };
+                coreBoundsMatchOffset = new [] { 0 };
+                coreBounds = Array.Empty<Bounds>();
+                coreBoundsReferenceTransforms = Array.Empty<Transform>();
+                boundsCount = 0;
+            } else {
+                coreCount = 0;
+                cores = Array.Empty<Core>();
+                coreBoundsMatchOffset = Array.Empty<int>();
+                coreBounds = Array.Empty<Bounds>();
+                coreBoundsReferenceTransforms = Array.Empty<Transform>();
+                boundsCount = 0;
             }
 #endif
         }

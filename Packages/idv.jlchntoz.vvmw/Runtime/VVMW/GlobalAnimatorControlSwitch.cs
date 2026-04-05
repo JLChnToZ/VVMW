@@ -23,7 +23,7 @@ namespace JLChnToZ.VRC.VVMW {
 #if COMPILER_UDONSHARP && !UNITY_EDITOR
         [SerializeField, HideInInspector] object option;
 #endif
-        [SerializeField, HideInInspector] DataDictionary toggle2Group, groups2Id, id2Groups, id2Data;
+        [SerializeField, HideInInspector] DataDictionary toggle2Group, groups2Id, id2Groups, id2Data, defaultValues;
         DataDictionary stateCache;
         Type toggleType;
         bool initialized, isUpdating;
@@ -40,6 +40,8 @@ namespace JLChnToZ.VRC.VVMW {
                     id2Data[entry] = tok;
                 if (id2Groups.TryGetValue(id, out tok))
                     id2Groups[entry] = tok;
+                if (defaultValues.TryGetValue(id, out tok))
+                    defaultValues[entry] = tok;
             }
             var toggleKeys = toggle2Group.GetKeys();
             for (int i = 0, count = toggleKeys.Count; i < count; i++) {
@@ -59,8 +61,13 @@ namespace JLChnToZ.VRC.VVMW {
                 var id = dataKeys[i];
                 if (id.TokenType != TokenType.String) continue;
                 var idStr = id.String;
-                if (!id2Data.TryGetValue(id, TokenType.DataDictionary, out var tok) ||
-                    !PlayerData.TryGetInt(player, idStr, out var value)) continue;
+                DataToken tok;
+                if (!PlayerData.TryGetInt(player, idStr, out var value)) {
+                    if (!defaultValues.TryGetValue(id, TokenType.Int, out tok))
+                        continue;
+                    value = tok.Int;
+                }
+                if (!id2Data.TryGetValue(id, TokenType.DataDictionary, out tok)) continue;
                 var data = tok.DataDictionary;
                 UpdateAnimator(data, value);
                 UpdateOtherGroups(id, null, value);
@@ -182,6 +189,7 @@ namespace JLChnToZ.VRC.VVMW {
             groups2Id = new DataDictionary();
             id2Groups = new DataDictionary();
             id2Data = new DataDictionary();
+            defaultValues = new DataDictionary();
             var mergeState = new MergeState();
             foreach (var toggle in FindObjectsByType<Toggle>(FindObjectsInactive.Include, FindObjectsSortMode.None)) {
                 var parent = toggle.transform;
@@ -217,6 +225,7 @@ namespace JLChnToZ.VRC.VVMW {
                 var members = new DataList();
                 dest.toggle2Group[group] = members;
                 dest.groups2Id[group] = opt.id;
+                dest.defaultValues[opt.id] = opt.defaultValue;
                 DataList list;
                 if (dest.id2Groups.TryGetValue(opt.id, TokenType.Reference, out var tok))
                     list = tok.DataList;
@@ -289,6 +298,7 @@ namespace JLChnToZ.VRC.VVMW {
             public Animator drivenAnimator;
             public string drivenParameter;
             public string persistencyKey;
+            public int defaultValue;
         }
 
         class MergeState {

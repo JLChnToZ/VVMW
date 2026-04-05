@@ -412,8 +412,8 @@ namespace JLChnToZ.VRC.VVMW {
             _OnUIUpdate();
             _OnSyncOffsetChange();
             if (Utilities.IsValid(handler)) {
-                bool hasQueueList = handler.HasQueueList;
-                bool hasHistory = handler.HistorySize > 0;
+                bool hasQueueList = handler.HasQueueList && !Utilities.IsValid(queueListSelectButton);
+                bool hasHistory = handler.HistorySize > 0 && !Utilities.IsValid(historySelectButton);
                 if ((hasQueueList || hasHistory) && Utilities.IsValid(playListNames)) {
                     int i = 0;
                     if (hasHistory) playListNames[i++] = languageManager.GetLocale("PlaybackHistory");
