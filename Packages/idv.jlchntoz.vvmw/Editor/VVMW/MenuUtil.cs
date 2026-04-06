@@ -54,6 +54,8 @@ namespace JLChnToZ.VRC.VVMW {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(OverlayControl), "core"), true, true);
                 } else if (component is ResyncButtonConfigurator) {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(ResyncButtonConfigurator), "core"), true, true);
+                } else if (component is ActiveRegionConfig) {
+                    LocatableAttributeDrawer.Locate(component, GetField(typeof(ActiveRegionConfig), "core"), true, true);
                 } else if (component is AutoPlayOnNear) {
                     var (core, handler) = Resolve(component);
                     if (handler != null)
@@ -317,5 +319,10 @@ namespace JLChnToZ.VRC.VVMW {
             return newAdaptor;
         }
 #endif
+
+        [MenuItem(createMenuRoot + "Modules/Active Region", false, 170)]
+        static void CreateActiveRegion() {
+            var go = SpawnPrefab(prefabRoot + "Active Region.prefab");
+        }
     }
 }

@@ -175,8 +175,8 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: Reset
     m_EventTreshold: 0
-  - m_ConditionMode: 6
-    m_ConditionEvent: FullScreen
+  - m_ConditionMode: 2
+    m_ConditionEvent: Fullscreen
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 3269353326781218872}
@@ -253,8 +253,8 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: Reset
     m_EventTreshold: 0
-  - m_ConditionMode: 6
-    m_ConditionEvent: FullScreen
+  - m_ConditionMode: 2
+    m_ConditionEvent: Fullscreen
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 8679533346654477859}
@@ -356,8 +356,8 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: Reset
     m_EventTreshold: 0
-  - m_ConditionMode: 6
-    m_ConditionEvent: FullScreen
+  - m_ConditionMode: 1
+    m_ConditionEvent: Fullscreen
     m_EventTreshold: 1
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -7609346601392130501}
@@ -384,8 +384,8 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: Stage1_Click
     m_EventTreshold: 0
-  - m_ConditionMode: 6
-    m_ConditionEvent: FullScreen
+  - m_ConditionMode: 1
+    m_ConditionEvent: Fullscreen
     m_EventTreshold: 1
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 2326034288121600724}
@@ -626,8 +626,8 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 0}
-  - m_Name: FullScreen
-    m_Type: 3
+  - m_Name: Fullscreen
+    m_Type: 4
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
@@ -818,8 +818,8 @@ AnimatorStateTransition:
   m_PrefabAsset: {fileID: 0}
   m_Name: 
   m_Conditions:
-  - m_ConditionMode: 6
-    m_ConditionEvent: FullScreen
+  - m_ConditionMode: 2
+    m_ConditionEvent: Fullscreen
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -7976745566609656842}
@@ -843,8 +843,8 @@ AnimatorStateTransition:
   m_PrefabAsset: {fileID: 0}
   m_Name: 
   m_Conditions:
-  - m_ConditionMode: 6
-    m_ConditionEvent: FullScreen
+  - m_ConditionMode: 1
+    m_ConditionEvent: Fullscreen
     m_EventTreshold: 1
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -7609346601392130501}
@@ -898,8 +898,8 @@ AnimatorStateTransition:
   m_PrefabAsset: {fileID: 0}
   m_Name: 
   m_Conditions:
-  - m_ConditionMode: 6
-    m_ConditionEvent: FullScreen
+  - m_ConditionMode: 1
+    m_ConditionEvent: Fullscreen
     m_EventTreshold: 1
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -7609346601392130501}
@@ -1350,8 +1350,8 @@ AnimatorStateTransition:
   m_PrefabAsset: {fileID: 0}
   m_Name: 
   m_Conditions:
-  - m_ConditionMode: 6
-    m_ConditionEvent: FullScreen
+  - m_ConditionMode: 1
+    m_ConditionEvent: Fullscreen
     m_EventTreshold: 1
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -7609346601392130501}
@@ -1375,8 +1375,8 @@ AnimatorTransition:
   m_PrefabAsset: {fileID: 0}
   m_Name: 
   m_Conditions:
-  - m_ConditionMode: 6
-    m_ConditionEvent: FullScreen
+  - m_ConditionMode: 1
+    m_ConditionEvent: Fullscreen
     m_EventTreshold: 1
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -7609346601392130501}

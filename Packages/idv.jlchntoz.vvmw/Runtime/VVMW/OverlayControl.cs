@@ -38,16 +38,9 @@ namespace JLChnToZ.VRC.VVMW {
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
         ), BindUdonSharpEvent, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
         Core core;
-#if !COMPILER_UDONSHARP
-        [SerializeField, LocalizedLabel] AdditionalCoresData additionalCores;
-#else
-        // Placeholder to avoid compile error in UdonSharp.
-        // The actual data will be dumped into arrays on build time, and this field will not be used.
-        [SerializeField] object additionalCores;
-#endif
         [SerializeField, LocalizedLabel, LocalizedEnum]
         CoreMatchingStrategy coreControlStrategy = CoreMatchingStrategy.All;
-        [SerializeField, HideInInspector, BindUdonSharpEvent] Core[] cores;
+        [SerializeField, LocalizedLabel, BindUdonSharpEvent] Core[] cores;
         [SerializeField, HideInInspector] Bounds[] coreBounds;
         [SerializeField, HideInInspector] Transform[] coreBoundsReferenceTransforms;
         [SerializeField, HideInInspector] int[] coreBoundsMatchOffset;
@@ -431,106 +424,74 @@ namespace JLChnToZ.VRC.VVMW {
         }
     }
 
-#if !COMPILER_UDONSHARP
+#if !COMPILER_UDONSHARP && UNITY_EDITOR
     public partial class OverlayControl : IVizVidCompoonent, ISelfPreProcess {
         Core IVizVidCompoonent.Core => core;
 
         int IPrioritizedPreProcessor.Priority => -1;
 
-        [Serializable]
-        internal class AdditionalCoresData {
-            public CoreData[] cores;
-        }
-
-        [Serializable]
-        internal struct CoreData {
-            [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")] public Core core;
-            public CoreBoundsData[] boundsData;
-        }
-
-        [Serializable]
-        internal struct CoreBoundsData {
-            [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.OverlayControl.CoreBoundsData.bounds")]
-            public Bounds bounds;
-            [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.OverlayControl.CoreBoundsData.referenceTransform")]
-            public Transform referenceTransform;
-        }
-
         // Find this code useful to your project? You are welcome to adopt it.
         // If you are respectful, please kindly leave a credit that you got inspired here;
         // or you can be an asshole who just rip it off, refactor it and then claim you made it.
         void ISelfPreProcess.PreProcess() {
-#if UNITY_EDITOR
-            if (additionalCores is AdditionalCoresData data) {
-                var orgCores = data.cores;
-                int length = orgCores.Length;
-                var bounds = new List<Bounds>(length);
-                var coreList = new List<Core>(length);
-                var coreBoundsOffsetList = new List<int>(length + 1);
-                var boundsRefTransforms = new List<Transform>();
-                coreBoundsOffsetList.Add(0);
-                if (core != null) {
-                    bool hasOriginalCore = false;
-                    for (int i = 0; i < length; i++) {
-                        if (orgCores[i].core == core) {
-                            hasOriginalCore = true;
-                            break;
-                        }
-                    }
-                    if (!hasOriginalCore) coreList.Add(core);
-                }
+            int length = cores.Length;
+            var bounds = new List<Bounds>(length);
+            var coreList = new List<Core>(length);
+            var coreBoundsOffsetList = new List<int>(length + 1);
+            var boundsRefTransforms = new List<Transform>();
+            coreBoundsOffsetList.Add(0);
+            if (core != null) {
+                bool hasOriginalCore = false;
                 for (int i = 0; i < length; i++) {
-                    ref var coreData = ref orgCores[i];
-                    if (coreData.core == null) continue;
-                    coreList.Add(coreData.core);
-                    if (coreData.boundsData == null) continue;
-                    foreach (var boundData in coreData.boundsData) {
-                        bounds.Add(boundData.bounds);
-                        boundsRefTransforms.Add(boundData.referenceTransform);
+                    if (cores[i] == core) {
+                        hasOriginalCore = true;
+                        break;
                     }
-                    coreBoundsOffsetList.Add(coreBoundsOffsetList[^1] + coreData.boundsData.Length);
                 }
-                coreCount = coreList.Count;
-                cores = coreList.ToArray();
-                coreBoundsMatchOffset = coreBoundsOffsetList.ToArray();
-                coreBounds = bounds.ToArray();
-                coreBoundsReferenceTransforms = boundsRefTransforms.ToArray();
-                boundsCount = coreBounds.Length;
-                additionalCores = null; // Clear the additional cores data to save memory, since it's no longer needed after processing.
-            } else if (core != null) {
-                coreCount = 1;
-                cores = new [] { core };
-                coreBoundsMatchOffset = new [] { 0 };
-                coreBounds = Array.Empty<Bounds>();
-                coreBoundsReferenceTransforms = Array.Empty<Transform>();
-                boundsCount = 0;
-            } else {
-                coreCount = 0;
-                cores = Array.Empty<Core>();
-                coreBoundsMatchOffset = Array.Empty<int>();
-                coreBounds = Array.Empty<Bounds>();
-                coreBoundsReferenceTransforms = Array.Empty<Transform>();
-                boundsCount = 0;
+                if (!hasOriginalCore) coreList.Add(core);
             }
-#endif
+            foreach (var coreData in cores) {
+                if (coreData == null) continue;
+                coreList.Add(coreData);
+                int count = 0;
+                foreach (var boundData in ActiveRegionConfig.GetRegionConfigs(coreData)) {
+                    bounds.Add(boundData.bounds);
+                    boundsRefTransforms.Add(boundData.staticRegion ? null : boundData.transform);
+                    count++;
+                }
+                coreBoundsOffsetList.Add(coreBoundsOffsetList[^1] + count);
+            }
+            coreCount = coreList.Count;
+            cores = coreList.ToArray();
+            coreBoundsMatchOffset = coreBoundsOffsetList.ToArray();
+            coreBounds = bounds.ToArray();
+            coreBoundsReferenceTransforms = boundsRefTransforms.ToArray();
+            boundsCount = coreBounds.Length;
+
         }
 
         void OnDrawGizmosSelected() {
-            if (additionalCores == null || coreControlStrategy == CoreMatchingStrategy.All) return;
-            var orgCores = additionalCores.cores;
-            if (orgCores == null) return;
-            foreach (var coreData in orgCores) {
-                if (coreData.core == null || coreData.boundsData == null) continue;
-                for (int i = 0; i < coreData.boundsData.Length; i++) {
-                    ref var boundData = ref coreData.boundsData[i];
-                    Gizmos.color = Color.HSVToRGB(i * 0.35F % 1F, 1F, 1F);
-                    Gizmos.matrix = boundData.referenceTransform != null ? boundData.referenceTransform.localToWorldMatrix : Matrix4x4.identity;
-                    var size = boundData.bounds.size;
-                    if (Mathf.Approximately(size.sqrMagnitude, 0))
-                        Gizmos.DrawSphere(boundData.bounds.center, 0.1F);
-                    else
-                        Gizmos.DrawWireCube(boundData.bounds.center, size);
-                }
+            if (coreControlStrategy == CoreMatchingStrategy.All) return;
+            bool hasDrawnDefaultCore = false;
+            foreach (var coreData in cores) {
+                DrawCoreGizmo(coreData);
+                if (coreData == core) hasDrawnDefaultCore = true;
+            }
+            if (!hasDrawnDefaultCore) DrawCoreGizmo(core);
+        }
+
+        void DrawCoreGizmo(Core coreData) {
+            if (coreData == null) return;
+            int count = 0;
+            foreach (var boundData in ActiveRegionConfig.GetRegionConfigs(coreData)) {
+                Gizmos.color = Color.HSVToRGB(count * 0.35F % 1F, 1F, 1F);
+                Gizmos.matrix = boundData.staticRegion ? Matrix4x4.identity : boundData.transform.localToWorldMatrix;
+                var size = boundData.bounds.size;
+                if (Mathf.Approximately(size.sqrMagnitude, 0))
+                    Gizmos.DrawSphere(boundData.bounds.center, 0.1F);
+                else
+                    Gizmos.DrawWireCube(boundData.bounds.center, size);
+                count++;
             }
         }
     }

@@ -13,6 +13,7 @@ namespace JLChnToZ.VRC.VVMW {
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
+    [AddComponentMenu("VizVid/Components/Range Slider")]
     public class RangeSlider : UdonSharpEventSender {
         [SerializeField, LocalizedLabel, FieldChangeCallback(nameof(Interactable))] bool interactable = true;
         [SerializeField, LocalizedLabel, Range(0, 1), FieldChangeCallback(nameof(RangeStart))] float rangeStart;

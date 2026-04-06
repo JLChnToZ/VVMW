@@ -221,7 +221,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (Utilities.IsValid(currentPlayListButton)) playListGameObject.SetActive(false);
             playListLastInteractTime = DateTime.UtcNow;
             UpdatePlayList();
-            queueListScrollView.ScrollToSelected();
+            queueListScrollView.SendCustomEventDelayedFrames(nameof(queueListScrollView.ScrollToSelected), 0);
         }
 
 #if COMPILER_UDONSHARP

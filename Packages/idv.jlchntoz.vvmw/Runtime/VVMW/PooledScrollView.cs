@@ -252,6 +252,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (isUpwards == inverseOrder) pos = 1 - pos;
             normalizedPosition.y = pos;
             scrollRect.normalizedPosition = normalizedPosition;
+            UpdateEntryState();
         }
 
         public void _OnEntryClick() {
