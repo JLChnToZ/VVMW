@@ -25,6 +25,7 @@ namespace JLChnToZ.VRC.VVMW {
         float speed = 1;
         float actualSpeed = 1;
         float localRangeLoopStart = -1, localRangeLoopEnd = -1;
+        float rangeLoopDuration;
         float syncLatency;
         float lastSyncRawTime;
         bool isBuffering;
@@ -45,8 +46,7 @@ namespace JLChnToZ.VRC.VVMW {
         public float Time {
             get => Utilities.IsValid(activeHandler) ? activeHandler.Time : 0;
             private set {
-                if (localRangeLoopStart >= 0 && localRangeLoopEnd > localRangeLoopStart)
-                    value = localRangeLoopStart + Mathf.Repeat(value - localRangeLoopStart, localRangeLoopEnd - localRangeLoopStart);
+                if (IsRangeLooping) value = CalculateLoopTime(value);
                 activeHandler.Time = value;
                 lastSyncRawTime = value;
                 isBuffering = false; // Reset buffering state
@@ -180,6 +180,8 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomEventDelayedFrames(nameof(_CheckRangeLoop), 0);
         }
 
+        float CalculateLoopTime(float value) => localRangeLoopStart + Mathf.Repeat(value - localRangeLoopStart, rangeLoopDuration);
+
 #if COMPILER_UDONSHARP
         public
 #endif
@@ -229,6 +231,14 @@ namespace JLChnToZ.VRC.VVMW {
 
         void SyncTime(bool forced) {
             if (Networking.IsOwner(gameObject)) {
+                if (!forced && Utilities.IsValid(activeHandler) && IsRangeLooping) {
+                    var halfRange = rangeLoopDuration / 2;
+                    var diff = CalculateLoopTime(CalcVideoTime()) - activeHandler.Time;
+                    if (diff > halfRange) diff -= rangeLoopDuration;
+                    else if (diff < -halfRange) diff += rangeLoopDuration;
+                    if (Mathf.Abs(diff) / activeHandler.Speed < timeDriftDetectThreshold) return;
+                    forced = true;
+                }
                 var newTime = CalcSyncTime(out float speed);
                 if (forced || Mathf.Abs((float)(newTime - time) / TimeSpan.TicksPerSecond) >= timeDriftDetectThreshold) {
                     time = newTime;
@@ -287,6 +297,7 @@ namespace JLChnToZ.VRC.VVMW {
             bool wasRangeLoop = IsRangeLooping;
             localRangeLoopStart = start;
             localRangeLoopEnd = end;
+            rangeLoopDuration = end - start;
             var isRangeLoop = IsRangeLooping;
             if (wasRangeLoop != isRangeLoop) SendEvent("_OnRangeLoopToggled");
             if (isRangeLoop) {
@@ -302,6 +313,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (!IsRangeLooping) return;
             localRangeLoopStart = -1;
             localRangeLoopEnd = -1;
+            rangeLoopDuration = 0;
             SendEvent("_OnRangeLoopToggled");
             RequestSync();
         }

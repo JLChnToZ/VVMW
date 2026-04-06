@@ -251,13 +251,13 @@ namespace JLChnToZ.VRC.VVMW {
             if (coreControlStrategy != CoreMatchingStrategy.All)
                 MatchAllCores(localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position);
             if (Input.anyKey) {
-                if (Input.GetKeyDown(reloadKey))
+                if (Input.GetKeyDown(reloadKey) && !AnyModifierKeyDown())
                     _OnReload();
-                else if (Input.GetKey(volumeDownKey))
+                else if (Input.GetKey(volumeDownKey) && !AnyModifierKeyDown())
                     Volume -= 0.3F * Time.deltaTime;
-                else if (Input.GetKey(volumeUpKey))
+                else if (Input.GetKey(volumeUpKey) && !AnyModifierKeyDown())
                     Volume += 0.3F * Time.deltaTime;
-                else if (fullscreenScreenKey != KeyCode.None && Input.GetKeyDown(fullscreenScreenKey)) {
+                else if (fullscreenScreenKey != KeyCode.None && Input.GetKeyDown(fullscreenScreenKey) && !AnyModifierKeyDown()) {
                     fullscreen = !fullscreen;
                     _OnTextureChanged();
                 } else if (Input.GetKeyDown(KeyCode.Escape) && fullscreen) {
@@ -266,6 +266,16 @@ namespace JLChnToZ.VRC.VVMW {
                 }
             }
         }
+
+        bool AnyModifierKeyDown() =>
+            Input.GetKey(KeyCode.LeftControl) ||
+            Input.GetKey(KeyCode.RightControl) ||
+            Input.GetKey(KeyCode.LeftCommand) ||
+            Input.GetKey(KeyCode.RightCommand) ||
+            Input.GetKey(KeyCode.LeftAlt) ||
+            Input.GetKey(KeyCode.RightAlt) ||
+            Input.GetKey(KeyCode.LeftShift) ||
+            Input.GetKey(KeyCode.RightShift);
 
         // Find this code useful to your project? You are welcome to adopt it.
         // If you are respectful, please kindly leave a credit that you got inspired here;
@@ -434,25 +444,21 @@ namespace JLChnToZ.VRC.VVMW {
         // If you are respectful, please kindly leave a credit that you got inspired here;
         // or you can be an asshole who just rip it off, refactor it and then claim you made it.
         void ISelfPreProcess.PreProcess() {
+            ActiveRegionConfig.RefreshAll();
             int length = cores.Length;
             var bounds = new List<Bounds>(length);
             var coreList = new List<Core>(length);
             var coreBoundsOffsetList = new List<int>(length + 1);
             var boundsRefTransforms = new List<Transform>();
             coreBoundsOffsetList.Add(0);
-            if (core != null) {
-                bool hasOriginalCore = false;
-                for (int i = 0; i < length; i++) {
-                    if (cores[i] == core) {
-                        hasOriginalCore = true;
-                        break;
-                    }
-                }
-                if (!hasOriginalCore) coreList.Add(core);
+            bool hasOriginalCore = false;
+            for (int i = 0; i < length; i++) {
+                if (cores[i] == null) continue;
+                coreList.Add(cores[i]);
+                if (cores[i] == core) hasOriginalCore = true;
             }
-            foreach (var coreData in cores) {
-                if (coreData == null) continue;
-                coreList.Add(coreData);
+            if (!hasOriginalCore && core != null) coreList.Add(core);
+            foreach (var coreData in coreList) {
                 int count = 0;
                 foreach (var boundData in ActiveRegionConfig.GetRegionConfigs(coreData)) {
                     bounds.Add(boundData.bounds);
@@ -467,22 +473,21 @@ namespace JLChnToZ.VRC.VVMW {
             coreBounds = bounds.ToArray();
             coreBoundsReferenceTransforms = boundsRefTransforms.ToArray();
             boundsCount = coreBounds.Length;
-
         }
 
         void OnDrawGizmosSelected() {
             if (coreControlStrategy == CoreMatchingStrategy.All) return;
             bool hasDrawnDefaultCore = false;
+            int index = 0;
             foreach (var coreData in cores) {
-                DrawCoreGizmo(coreData);
+                DrawCoreGizmo(coreData, index++);
                 if (coreData == core) hasDrawnDefaultCore = true;
             }
-            if (!hasDrawnDefaultCore) DrawCoreGizmo(core);
+            if (!hasDrawnDefaultCore) DrawCoreGizmo(core, index);
         }
 
-        void DrawCoreGizmo(Core coreData) {
+        void DrawCoreGizmo(Core coreData, int count) {
             if (coreData == null) return;
-            int count = 0;
             foreach (var boundData in ActiveRegionConfig.GetRegionConfigs(coreData)) {
                 Gizmos.color = Color.HSVToRGB(count * 0.35F % 1F, 1F, 1F);
                 Gizmos.matrix = boundData.staticRegion ? Matrix4x4.identity : boundData.transform.localToWorldMatrix;
@@ -491,7 +496,6 @@ namespace JLChnToZ.VRC.VVMW {
                     Gizmos.DrawSphere(boundData.bounds.center, 0.1F);
                 else
                     Gizmos.DrawWireCube(boundData.bounds.center, size);
-                count++;
             }
         }
     }
