@@ -12,9 +12,29 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     [AddComponentMenu("VizVid/Color Configurator/List Entry")]
     public class ListEntryColorAutoConfigurator : AbstractAutoConfigurator {
         [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.normalColorIndex")]
-        [SerializeField] int normalColorIndex = -1;
+        [SerializeField, ColorConfigPreset] int normalColorIndex = -1;
         [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.selectedColorIndex")]
-        [SerializeField] int selectedColorIndex = -1;
+        [SerializeField, ColorConfigPreset] int selectedColorIndex = -1;
+        int previousNormalColorIndex = -1;
+        int previousSelectedColorIndex = -1;
+
+        protected override void Awake() {
+            base.Awake();
+            previousNormalColorIndex = normalColorIndex;
+            previousSelectedColorIndex = selectedColorIndex;
+        }
+
+        void OnValidate() {
+            if (normalColorIndex == previousNormalColorIndex &&
+                selectedColorIndex == previousSelectedColorIndex)
+                return;
+            previousNormalColorIndex = normalColorIndex;
+            previousSelectedColorIndex = selectedColorIndex;
+#if UNITY_EDITOR
+            EditorApplication.delayCall += ConfigurateColor;
+#endif
+        }
+
         protected override void ConfigurateCore(ColorConfig colorConfig) {
             if (TryGetComponent(out ListEntry listEntry)) {
 #if UNITY_EDITOR

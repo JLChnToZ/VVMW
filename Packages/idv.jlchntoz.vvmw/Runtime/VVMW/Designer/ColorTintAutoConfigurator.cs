@@ -14,15 +14,46 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     [AddComponentMenu("VizVid/Color Configurator/Color Tint")]
     public class ColorTintAutoConfigurator : AbstractAutoConfigurator {
         [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.normalColorIndex")]
-        [SerializeField] int normalColorIndex = -1;
+        [SerializeField, ColorConfigPreset] int normalColorIndex = -1;
         [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.highlightedColorIndex")]
-        [SerializeField] int highlightedColorIndex = -1;
+        [SerializeField, ColorConfigPreset] int highlightedColorIndex = -1;
         [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.pressedColorIndex")]
-        [SerializeField] int pressedColorIndex = -1;
+        [SerializeField, ColorConfigPreset] int pressedColorIndex = -1;
         [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.selectedColorIndex")]
-        [SerializeField] int selectedColorIndex = -1;
+        [SerializeField, ColorConfigPreset] int selectedColorIndex = -1;
         [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Designer.GraphicAutoConfigurator.disabledColorIndex")]
-        [SerializeField] int disabledColorIndex = -1;
+        [SerializeField, ColorConfigPreset] int disabledColorIndex = -1;
+        int previousNormalColorIndex = -1;
+        int previousHighlightedColorIndex = -1;
+        int previousPressedColorIndex = -1;
+        int previousSelectedColorIndex = -1;
+        int previousDisabledColorIndex = -1;
+
+        protected override void Awake() {
+            base.Awake();
+            previousNormalColorIndex = normalColorIndex;
+            previousHighlightedColorIndex = highlightedColorIndex;
+            previousPressedColorIndex = pressedColorIndex;
+            previousSelectedColorIndex = selectedColorIndex;
+            previousDisabledColorIndex = disabledColorIndex;
+        }
+
+        void OnValidate() {
+            if (normalColorIndex == previousNormalColorIndex &&
+                highlightedColorIndex == previousHighlightedColorIndex &&
+                pressedColorIndex == previousPressedColorIndex &&
+                selectedColorIndex == previousSelectedColorIndex &&
+                disabledColorIndex == previousDisabledColorIndex)
+                return;
+            previousNormalColorIndex = normalColorIndex;
+            previousHighlightedColorIndex = highlightedColorIndex;
+            previousPressedColorIndex = pressedColorIndex;
+            previousSelectedColorIndex = selectedColorIndex;
+            previousDisabledColorIndex = disabledColorIndex;
+#if UNITY_EDITOR
+            EditorApplication.delayCall += ConfigurateColor;
+#endif
+        }
 
         protected override void ConfigurateCore(ColorConfig colorConfig) {
             if (TryGetComponent(out Selectable selectable)) {

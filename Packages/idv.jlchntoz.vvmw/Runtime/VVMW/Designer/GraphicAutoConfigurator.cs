@@ -13,7 +13,21 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     [RequireComponent(typeof(Graphic))]
     [AddComponentMenu("VizVid/Color Configurator/UI Graphics")]
     public class GraphicAutoConfigurator : AbstractAutoConfigurator {
-        [SerializeField, LocalizedLabel] int colorIndex = 0;
+        [SerializeField, LocalizedLabel, ColorConfigPreset] int colorIndex = 0;
+        int previousColorIndex = 0;
+
+        protected override void Awake() {
+            base.Awake();
+            previousColorIndex = colorIndex;
+        }
+
+        void OnValidate() {
+            if (colorIndex == previousColorIndex) return;
+            previousColorIndex = colorIndex;
+#if UNITY_EDITOR
+            EditorApplication.delayCall += ConfigurateColor;
+#endif
+        }
 
         protected override void ConfigurateCore(ColorConfig colorConfig) {
             if (TryGetComponent(out Graphic graphic) && colorIndex >= 0 && colorIndex < colorConfig.colors.Length) {

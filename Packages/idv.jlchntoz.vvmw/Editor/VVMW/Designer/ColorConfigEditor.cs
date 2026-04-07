@@ -23,7 +23,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             EditorGUILayout.LabelField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorPalette"), EditorStyles.boldLabel);
             for (int i = 0; i < colorsProperty.arraySize; i++) {
                 var colorProperty = colorsProperty.GetArrayElementAtIndex(i);
-                EditorGUILayout.PropertyField(colorProperty, new GUIContent(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorN", i + 1)));
+                EditorGUILayout.PropertyField(colorProperty, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorN", i + 1));
             }
             addRemoveFoldout = EditorGUILayout.Foldout(addRemoveFoldout, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.advanced"));
             if (addRemoveFoldout)

@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Reworked on playlist/queuelist selection dropdown
 - Reworked on normal (bar) unlock mode for more clear and undistracted UX
 - Minor UI tweaks
+- Enhanced color config inspectors
 
 ## 1.5.3 - 2026-02-09
 ### Fixed

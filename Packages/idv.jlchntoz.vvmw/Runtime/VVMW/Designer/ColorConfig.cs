@@ -81,4 +81,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 #endif
         }
     }
+
+    /// <summary>
+    /// A property attribute that can make a int field show a dropdown list of color presets in <see cref="ColorConfig"/> in inspector.
+    /// </summary>
+    public class ColorConfigPresetAttribute : PropertyAttribute {}
 }
