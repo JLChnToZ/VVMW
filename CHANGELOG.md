@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## 1.6.0 - 2026-04-08
 ### Added
 - Fullscreen unlock mode
 - An option to switch on different unlock mode on screen overlay UI
