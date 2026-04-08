@@ -8,7 +8,7 @@ VizVid is a versatile multimedia player frontend designed specifically for VRCha
 Built with a modular design, VizVid allows you to pick and choose the exact components you need to build a custom player tailored to your world.  
 
 > [!NOTE]  
-> This documentation covers version v1.5.1 and later. Some features or instructions may differ in older versions.  
+> This documentation covers version v1.6.0 and later. Some features or instructions may differ in older versions.  
 
 ---
 ## Quick Start  
