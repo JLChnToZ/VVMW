@@ -154,8 +154,15 @@ Add a 5.1 sorround audio source set for VizVid.
 Triggers a default video when a user approaches and stops it when they leave. Ideal for exhibition booths.  
 
 ---
-* **Active Region**
-Executing functions when a player enters the specified region on this prefab.  
+* **Active Region**  
+This component manages VizVid proximity logic, executing functions when a player enters the specified region.  
+* **Core**  
+Specifies the linked VizVid core.  
+If it displays "None (Core)", you can click <kbd>Auto Find</kbd> to specify the VizVid core in the scene.  
+* **Bounds**  
+Specifies the region for this component.  
+* **Static Region**  
+Lock the position of this region.  
 
 ---
 ### Components  
