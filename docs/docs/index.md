@@ -154,7 +154,10 @@ Add a 5.1 sorround audio source set for VizVid.
 Triggers a default video when a user approaches and stops it when they leave. Ideal for exhibition booths.  
 
 ---
+* **Active Region**
+Executing functions when a player enters the specified region on this prefab.  
 
+---
 ### Components  
 
 > [!Note]  
@@ -382,20 +385,40 @@ After adding `Audio Source (5.1 Surround)` via the menu, it will automatically l
 Finally, adjust the positions of the Audio Sources as needed.  
 ![image](../resources/images/By3PPiBXbx.png)  
 
-### Reversing Playlist Order  
-
-If you prefer not to use VizVid’s default reverse-order (descending) playlist, you can change it using the following method:  
-
-1. Locate the `Scroll View` prefab in your project at this path:  
-`Packages > VizVid > Prefabs > UI Elements`  
-2. Double-click the prefab to edit it.  
-3. In the Inspector on the right, find the `Pooled Scroll View` component.  
-4. Uncheck `Inverse Order` and save the prefab.  
-![image](../resources/images/S1P8nNB7Zl.png)  
-5. Done!  
+### UI Display Related  
+#### Set Fullscreen Unlock Mode by Default  
+Classic unlock mode for On-Screen Controlls is set by default on VizVid.  
+If you prefer to use fullscreen unlock mode by default, follow these steps:  
+1. Follow the image on below, locate the `FullScreen` object.  
+2. In the Inspector on the right, check the box for State 1.  
+![image](../resources/images/rJDkfe43-g.png)
+3. Done!  
 
 > [!Note]  
-> This operation sets the order for all playlists at once. To configure a specific playlist individually, locate the corresponding prefab instance within the Hierarchy UI objects and modify it there.  
+> This setting synchronizes the control modes of all On-Screen Controlls in the scene. To unlink them, simply delete the persistence key.  
+
+> [!Important]  
+> To ensure that linked settings are correctly saved, if there are multiple On-Screen Controlls in your scene, please apply this change to all of them.  
+
+#### Reversing Playlist Order  
+If you prefer to use VizVid’s old version reverse-order playlist, you can change it using the following method:  
+1. Locate the `Play List Entries` object in your scene.  
+    > [!Important]
+    > The location of this object is slightly different between On-Screen Controls and Separated Controls.  
+    > ![image](../resources/images/r11e9x4hZx.png)
+2. In the inspector, find the `Pooled Scroll View` component.  
+3. Uncheck the `Inverse Order` checkbox.  
+![image](../resources/images/H1ZongE3Zg.png)  
+5. Done!  
+
+### Controlling Multiple VizVids with Overlay Control  
+Applicable when there are multiple VizVid in a world.  
+By adjusting the bounds with Active Region, the Overlay Control will switch its target whenever a player enters that specific range.  
+1. Select the object containing the VizVid Core where you want to add an Active Region.  
+2. Right-click on it, and select `VizVid > Modules > Active Region`.  
+3. Select the newly added `Active Region` object and define the coverage area by adjusting its boundaries.  
+![image](../resources/images/H1FsJME3bg.png)  
+4. Done!  
 
 ### Locale  
 

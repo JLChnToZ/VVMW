@@ -154,6 +154,10 @@ VizVid 用螢幕，可與控制器分開放置。
 (該功能僅支援 Local 模式。)  
 
 ---
+* **Active Region**
+提供 VizVid 一個有效範圍，玩家一旦進入，即可觸發指定功能。  
+
+---
 ### 元件 (Component)  
 > [!note]
 > 本章節僅列出一般使用者向功能。  
@@ -352,17 +356,40 @@ VRChat 的 AVPro 後端，可以在 VRChat 提供 5.1 環繞音效的聲音輸�
 最後依需求調整 Audio Source 位置即可。  
 ![image](../resources/images/By3PPiBXbx.png)  
 
-### 反轉播放清單排序  
-若使用者不習慣 VizVid 播放清單預設的倒序排列，可以透過以下方法更改：  
-1. 從專案中以下路徑，找到 `Scroll View` Prefab  
-`Packages > VizVid > Prefabs > UI Elements`  
-2. 對 Prefab 點兩下進行編輯。  
-3. 於右側 Inspector 中，找到 `Pooled Scroll View` 元件。  
-4. 取消勾選 `Inverse Order`，並儲存該 Prefab。  
-![image](../resources/images/S1P8nNB7Zl.png)  
-5. 完成！  
-> [!Note]
-> 該操作為一次設定所有播放清單之排序，若要個別設定，請於 Hierarchy 相關 UI 物件中，找到該 Prefab 並進行更改。  
+### 顯示相關  
+#### 更改觸控是螢幕預設解鎖模式  
+VizVid 預設為經典解鎖模式。  
+若想預設使用全螢幕解鎖模式，可以透過以下方法更改：  
+1. 根據附圖，於 Screen With Overlay 物件中，找到 FullScreen 物件。  
+2. 於 Inspector 的 Lazy Switch 中，勾起 `狀態1` 即可。  
+![image](../resources/images/ryhckgN2Zx.png)  
+3. 完成。  
+
+> [!Note]  
+> 該設定會連動場景內所有的觸控螢幕控制模式。若要解除連動，刪除 `持久性鍵` 即可。  
+
+> [!Important]  
+> 為避免連動設定無法正確儲存，若場景內有多個觸控型螢幕，請全數進行更改。  
+
+#### 反轉播放清單排序  
+若想將 VizVid 播放清單調整為舊版的倒序排列，可以透過以下方法更改：  
+1. 於播放清單物件中，找到 `Play List Entries` 物件。  
+    > [!Important]  
+    > On-Screen Controls 與 Seperated Controls 的位置略有不同。  
+    > ![image](../resources/images/r11e9x4hZx.png)  
+2. 於 Inspector 中，找到 `Pooled Scroll View` 元件。  
+3. 取消勾選 `Inverse Order`。  
+![image](../resources/images/H1ZongE3Zg.png)  
+4. 完成！  
+
+### 使用 Overlay Control 控制場景內多個 VizVid。  
+適用於世界內有多個 VizVid。  
+透過調整 Active Region 的有效範圍，玩家只要進入該範圍，Overlay Control 便會切換控制目標。  
+1. 選擇欲新增 Active Region 範圍，含有 VizVid Core 之物件。  
+2. 點選滑鼠右鍵，選擇 `VizVid > Modules > Active Region`  
+3. 選擇新增的 `Active Region` 物件，透過調整邊界，設定有效範圍。  
+![image](../resources/images/BJb7hWNnZg.png)  
+4. 完成。  
 
 ### 在地化  
 VizVid 的語言管理元件，是位於 Locale 物件中的 Language Manager。  
