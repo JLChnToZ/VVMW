@@ -23,10 +23,10 @@ Built with a modular design, VizVid allows you to pick and choose the exact comp
 General-purpose presets for most uses.  
 * **On-Screen Controls**  
 The simplest version — controllers embedded on the screen. No extra spaces needed.  
-![VRChat_2025-12-22_01-32-37.218_3840x2160](../resources/images/Bkzll3Hmbg.jpg)  
+![controls-onscreen](../resources/images/controls-onscreen.png)  
 * **Separated Controls**  
 Controller and playlist panels can be placed independently if you didn't prefer touchscreen-like controlls.  
-![VRChat_2025-12-22_01-31-45.190_3840x2160](../resources/images/SJJ6yhBX-e.jpg)  
+![controls-separated](../resources/images/controls-separated.png)  
 
 #### Exhibition Presets  
 Designed for exhibition use. VizVid runs in local mode. Includes a proximity-based autoplay feature.  
@@ -155,7 +155,7 @@ Triggers a default video when a user approaches and stops it when they leave. Id
 
 ---
 * **Active Region**  
-This component manages VizVid proximity logic, executing functions when a player enters the specified region.  
+Executing functions when a player enters the specified region on this prefab.  
 * **Core**  
 Specifies the linked VizVid core.  
 If it displays "None (Core)", you can click <kbd>Auto Find</kbd> to specify the VizVid core in the scene.  
@@ -286,14 +286,19 @@ Enabled by default. The currently modified colors will be applied automatically 
 Allows you to apply colors to only the current `Color Config` component, or to all `Color Config` components in the scene.  
 
 #### Screen Configurator  
-
 This component is made for linking the video screen output to a specified shader.  
-
-* **Core Handler**  
-Specifies the linked VizVid core.  
-If it displays "None (Core)", you can click <kbd>Auto Find</kbd> to specify the VizVid core in the scene.  
 * **Screen Renderer**  
 Specifies the Mesh Renderer where the video content will be output.  
+
+#### Active Region  
+This component manages VizVid proximity logic, executing functions when a player enters the specified region.  
+* **Core**  
+Specifies the linked VizVid core.  
+If it displays "None (Core)", you can click <kbd>Auto Find</kbd> to specify the VizVid core in the scene.  
+* **Bounds**  
+Specifies the region for this component.  
+* **Static Region**  
+Lock the position of this region.  
 
 ---
 ## Other Scenarios  
@@ -404,13 +409,13 @@ If you prefer to use fullscreen unlock mode by default, follow these steps:
 > [!Note]  
 > This setting synchronizes the control modes of all On-Screen Controlls in the scene. To unlink them, simply delete the persistence key.  
 
-> [!Important]  
+> [!Note]  
 > To ensure that linked settings are correctly saved, if there are multiple On-Screen Controlls in your scene, please apply this change to all of them.  
 
 #### Reversing Playlist Order  
 If you prefer to use VizVid’s old version reverse-order playlist, you can change it using the following method:  
 1. Locate the `Play List Entries` object in your scene.  
-    > [!Important]
+    > [!Note]
     > The location of this object is slightly different between On-Screen Controls and Separated Controls.  
     > ![image](../resources/images/r11e9x4hZx.png)
 2. In the inspector, find the `Pooled Scroll View` component.  
@@ -480,11 +485,6 @@ Due to the limitations of Unity's inspector editor, if the component has already
 **Q5**: It's feels buggy when fetching YouTube related contents. (Title, Playlist, etc.)  
 **A5**: Maybe you've got an outdated YT-DLP. Click on <kbd>Download/Update YT-DLP</kbd> might fix it.  
 ![image](../resources/images/rJg8y9Z4be.png)
-
----
-**Q6**: I want VizVid's touchscreen have respond wherever my laser/cursor pointed to it.  
-**A6**: Follow the image below, remove the `Laser Target Resizer` component.
-![image](../resources/images/Syu6EzV4Wg.png)
 
 ---
 > [!Note]  

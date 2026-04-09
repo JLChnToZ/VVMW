@@ -21,10 +21,10 @@ VizVid 採用模組化設計，針對任何使用情境，可根據自己的需�
 一般使用，用途最廣泛。  
 * **On-Screen Controls**  
 最簡單、易用的版本，螢幕就是你的控制器。
-![VRChat_2025-12-22_01-32-37.218_3840x2160](../resources/images/Bkzll3Hmbg.jpg)  
+![controls-onscreen](../resources/images/controls-onscreen.png)  
 * **Separated Controls**  
 傳統播放器常用的形式，控制器、播放清單等，可分開擺放。  
-![VRChat_2025-12-22_01-31-45.190_3840x2160](../resources/images/SJJ6yhBX-e.jpg)  
+![controls-separated](../resources/images/controls-separated.png)  
 
 #### 展場用預設組  
 通常為展場使用，播放器為 Local 運作，內建靠近即播放功能。  
@@ -155,7 +155,7 @@ VizVid 用螢幕，可與控制器分開放置。
 
 ---
 * **Active Region**  
-該元件負責管理 VizVid 的有效範圍設定，玩家一旦進入，即可觸發指定功能。  
+設定玩家與播放器的有效範圍，觸發指定功能。  
 * **播放器核心**  
 指定串接的 VizVid 核心。  
 若顯示 None (Core)，可點選 <kbd>自動搜尋</kbd> 找回場景中的 VizVid 核心。  
@@ -270,11 +270,18 @@ VizVid 用螢幕，可與控制器分開放置。
 可只套用當前 `Color Config` 元件，或是套用至場景內所有 `Color Config` 元件。  
 #### Screen Configurator  
 該元件負責串接螢幕畫面至指定 Shader。  
-* **播放器核心**  
-指定串接的 VizVid 核心。  
-若顯示 None (Core)，可點選 <kbd>自動搜尋</kbd> 找回場景中的 VizVid 核心。
 * **Screen Renderer**  
 指定欲輸出畫面的 Mesh Renderer。  
+
+#### Active Region  
+該元件負責管理 VizVid 的有效範圍設定，玩家一旦進入，即可觸發指定功能。  
+* **播放器核心**  
+指定串接的 VizVid 核心。  
+若顯示 None (Core)，可點選 <kbd>自動搜尋</kbd> 找回場景中的 VizVid 核心。  
+* **邊界**  
+調整有效範圍。  
+* **靜態區域**  
+鎖定有效範圍位置。  
 
 ---
 ## 特殊應用  
@@ -375,13 +382,13 @@ VizVid 預設為經典解鎖模式。
 > [!Note]  
 > 該設定會連動場景內所有的觸控螢幕控制模式。若要解除連動，刪除 `持久性鍵` 即可。  
 
-> [!Important]  
+> [!Note]  
 > 為避免連動設定無法正確儲存，若場景內有多個觸控型螢幕，請全數進行更改。  
 
 #### 反轉播放清單排序  
 若想將 VizVid 播放清單調整為舊版的倒序排列，可以透過以下方法更改：  
 1. 於播放清單物件中，找到 `Play List Entries` 物件。  
-    > [!Important]  
+    > [!Note]  
     > On-Screen Controls 與 Seperated Controls 的位置略有不同。  
     > ![image](../resources/images/r11e9x4hZx.png)  
 2. 於 Inspector 中，找到 `Pooled Scroll View` 元件。  
@@ -445,11 +452,6 @@ VizVid 的語言管理元件，是位於 Locale 物件中的 Language Manager。
 **Q5**: 載入 YouTube 相關的東西好像都怪怪的 (取得標題、播放清單等等)  
 **A5**: 可能是 YT-DLP 版本過舊導致，按一下 <kbd>下載/更新 YT-DLP</kbd> 更新，應該可以改善。  
 ![image](../resources/images/H1TP6F-NZe.png)
-
----
-**Q6**: 我想讓觸控螢幕只要被游標碰到就有反應，而不是只有下半部。  
-**A6**: 根據附圖，將 `Laser Targer Resizer` 移除即可。  
-![image](../resources/images/Syu6EzV4Wg.png)
 
 ---
 > [!Note]
