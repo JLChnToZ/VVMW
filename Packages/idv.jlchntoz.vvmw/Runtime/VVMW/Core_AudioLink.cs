@@ -16,57 +16,58 @@ namespace JLChnToZ.VRC.VVMW {
             InstaniatePrefabPath = "Packages/com.llealloo.audiolink/Runtime/AudioLink.prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.First
         ), SerializeField, LocalizedLabel]
-        #if AUDIOLINK_V1
+#if AUDIOLINK_V1
         AudioLink.AudioLink audioLink;
-        #else
+#else
         UdonSharpBehaviour audioLink;
-        #endif
+#endif
         bool isSyncAudioLink;
 
-        #if AUDIOLINK_V1
+#if AUDIOLINK_V1
         /// <summary>
         /// The <see cref="AudioLink.AudioLink"/> component.
         /// </summary>
         public AudioLink.AudioLink AudioLink
-        #else
+#else
         /// <summary>
         /// The AudioLink component.
         /// </summary>
         public UdonSharpBehaviour AudioLink
-        #endif
+#endif
         {
             get {
-                #if AUDIOLINK_V1
+#if AUDIOLINK_V1
                 if (!IsAudioLinked()) return null;
-                #endif
+#endif
                 return audioLink;
             }
         }
 
         void AssignAudioLinkSource() {
+            if (!IsActiveInternal) return;
             assignedAudioSource = activeHandler.PrimaryAudioSource;
             if (Utilities.IsValid(audioLink)) {
                 if (Utilities.IsValid(assignedAudioSource))
-                #if AUDIOLINK_V1
+#if AUDIOLINK_V1
                     audioLink.audioSource = assignedAudioSource;
                 float duration = activeHandler.Duration;
                 SetAudioLinkPlayBackState(duration <= 0 || float.IsInfinity(duration) ? MediaPlaying.Streaming : MediaPlaying.Playing);
                 UpdateAudioLinkVolume();
-                #else
+#else
                     audioLink.SetProgramVariable("audioSource", assignedAudioSource);
-                #endif
+#endif
             }
         }
 
         void UpdateAudioLinkVolume() {
-            #if AUDIOLINK_V1
+#if AUDIOLINK_V1
             if (IsAudioLinked()) audioLink.SetMediaVolume(defaultVolume);
-            #endif
+#endif
         }
 
-        #if AUDIOLINK_V1
+#if AUDIOLINK_V1
         bool IsAudioLinked() {
-            if (!Utilities.IsValid(audioLink)) return false;
+            if (!IsActiveInternal || !Utilities.IsValid(audioLink)) return false;
             var settedAudioSource = audioLink.audioSource;
             return !Utilities.IsValid(settedAudioSource) || settedAudioSource == assignedAudioSource;
         }
@@ -86,7 +87,7 @@ namespace JLChnToZ.VRC.VVMW {
         public
 #endif
         void _SyncAudioLink() {
-            if (!gameObject.activeInHierarchy || !enabled || isLoading || isLocalReloading || !Utilities.IsValid(activeHandler) || !activeHandler.IsReady || !IsAudioLinked()) {
+            if (!isActiveAndEnabled || !IsActiveInternal || isLoading || isLocalReloading || !Utilities.IsValid(activeHandler) || !activeHandler.IsReady || !IsAudioLinked()) {
                 isSyncAudioLink = false;
                 return;
             }
@@ -117,6 +118,6 @@ namespace JLChnToZ.VRC.VVMW {
                 state = MediaPlaying.Error;
             SetAudioLinkPlayBackState(state);
         }
-        #endif
+#endif
     }
 }

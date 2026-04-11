@@ -56,7 +56,7 @@ namespace JLChnToZ.VRC.VVMW {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(ResyncButtonConfigurator), "core"), true, true);
                 } else if (component is ActiveRegionConfig) {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(ActiveRegionConfig), "core"), true, true);
-                } else if (component is AutoPlayOnNear) {
+                } else if (component is AutoPlayOnNearV2) {
                     var (core, handler) = Resolve(component);
                     if (handler != null)
                         using (var so = new SerializedObject(handler)) {

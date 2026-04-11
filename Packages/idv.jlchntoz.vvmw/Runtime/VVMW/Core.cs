@@ -223,10 +223,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void OnEnable() {
-            StartBroadcastScreenTexture();
-#if AUDIOLINK_V1
-            SendCustomEventDelayedFrames(nameof(_RestoreAudioLinkState), 0);
-#endif
+            RestoreActiveState();
             if (afterFirstRun) return;
             url = VRCUrl.Empty;
             foreach (var handler in playerHandlers)
@@ -238,6 +235,13 @@ namespace JLChnToZ.VRC.VVMW {
             afterFirstRun = true;
 #if VRC_ENABLE_PLAYER_PERSISTENCE
             RestoreFromPersistence(Networking.LocalPlayer);
+#endif
+        }
+
+        void RestoreActiveState() {
+            StartBroadcastScreenTexture();
+#if AUDIOLINK_V1
+            SendCustomEventDelayedFrames(nameof(_RestoreAudioLinkState), 0);
 #endif
         }
 
@@ -703,7 +707,6 @@ namespace JLChnToZ.VRC.VVMW {
         /// <param name="result"></param>
         public override void OnDeserialization(DeserializationResult result) {
             if (!synced) return;
-            Debug.Log($"[VVMW] Deserialized: Player={activePlayer}, State={state}, Time={time}, Speed={speed}, URL(PC)={pcUrl}, URL(Quest)={questUrl}");
             bool activePlayerChanged = localActivePlayer != activePlayer;
             if (activePlayerChanged) ActivePlayer = activePlayer;
             float sendTime = result.sendTime;
@@ -741,8 +744,8 @@ namespace JLChnToZ.VRC.VVMW {
                 isLoading = true;
                 isError = false;
                 trustUpdated = false;
-                SendEvent("_OnVideoBeginLoad");
                 activeHandler.LoadUrl(url, false);
+                SendEvent("_OnVideoBeginLoad");
             }
             localUrl = url;
             if (shouldReload) LoadYTTL();
@@ -784,6 +787,7 @@ namespace JLChnToZ.VRC.VVMW {
         void OnDrawGizmosSelected() {
             DrawScreenGizmos();
             DrawAudioGizmos();
+            DrawRegionGizmos();
         }
 
         void OnValidate() {

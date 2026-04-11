@@ -22,19 +22,21 @@ namespace JLChnToZ.VRC.VVMW {
 
         Core IVizVidCompoonent.Core => core;
 
-        public static void RefreshAll() {
-            regionConfigTable.Clear();
-            var allConfigs = FindObjectsOfType<ActiveRegionConfig>(true);
-            foreach (var config in allConfigs) {
-                if (!regionConfigTable.TryGetValue(config.core, out var list)) {
-                    list = new List<ActiveRegionConfig>();
-                    regionConfigTable.Add(config.core, list);
-                }
-                list.Add(config);
+        bool IsEditorOnly {
+            get {
+                for (var t = transform; t != null; t = t.parent)
+                    if (t.CompareTag("EditorOnly")) return true;
+                return false;
             }
         }
 
-        public static IEnumerable<ActiveRegionConfig> GetRegionConfigs(Core core) {
+        public static void RefreshAll() {
+            regionConfigTable.Clear();
+            foreach (var config in FindObjectsOfType<ActiveRegionConfig>(true))
+                config.Register();
+        }
+
+        public static IReadOnlyCollection<ActiveRegionConfig> GetRegionConfigs(Core core) {
             if (regionConfigTable.TryGetValue(core, out var list)) return list;
             return Array.Empty<ActiveRegionConfig>();
         }
@@ -56,14 +58,17 @@ namespace JLChnToZ.VRC.VVMW {
                     if (list.Count == 0) regionConfigTable.Remove(lastCore);
                 }
             }
-            if (core != null) {
-                if (!regionConfigTable.TryGetValue(core, out var list)) {
-                    list = new List<ActiveRegionConfig>();
-                    regionConfigTable.Add(core, list);
-                }
-                list.Add(this);
-            }
+            Register();
             lastCore = core;
+        }
+
+        void Register() {
+            if (core == null || IsEditorOnly) return;
+            if (!regionConfigTable.TryGetValue(core, out var list)) {
+                list = new List<ActiveRegionConfig>();
+                regionConfigTable.Add(core, list);
+            }
+            list.Add(this);
         }
     }
 }

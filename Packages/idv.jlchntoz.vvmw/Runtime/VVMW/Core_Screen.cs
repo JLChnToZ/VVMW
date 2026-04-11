@@ -38,14 +38,13 @@ namespace JLChnToZ.VRC.VVMW {
         public Texture VideoTexture => Utilities.IsValid(activeHandler) ? activeHandler.Texture : null;
 
         void StartBroadcastScreenTexture() {
-            if (!broadcastScreenTexture) return;
-            if (broadcastTextureId == 0) broadcastTextureId = VRCShader.PropertyToID(broadcastScreenTextureName);
+            if (!broadcastScreenTexture || !IsActiveInternal) return;
             var videoTexture = VideoTexture;
             if (Utilities.IsValid(videoTexture)) VRCShader.SetGlobalTexture(broadcastTextureId, videoTexture);
         }
 
         void StopBroadcastScreenTexture() {
-            if (broadcastScreenTexture) VRCShader.SetGlobalTexture(broadcastTextureId, null);
+            if (broadcastScreenTexture && IsActiveInternal) VRCShader.SetGlobalTexture(broadcastTextureId, null);
         }
 
         void InitScreenProperties() {
@@ -69,6 +68,7 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                 }
             }
+            if (broadcastTextureId == 0) broadcastTextureId = VRCShader.PropertyToID(broadcastScreenTextureName);
             SendCustomEventDelayedFrames(nameof(_OnTextureChanged), 0);
         }
 
@@ -140,7 +140,7 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                 }
             }
-            if (broadcastScreenTexture) VRCShader.SetGlobalTexture(broadcastTextureId, videoTexture);
+            StartBroadcastScreenTexture();
             UpdateRealtimeGI();
             SendEvent("_OnTextureChanged");
         }

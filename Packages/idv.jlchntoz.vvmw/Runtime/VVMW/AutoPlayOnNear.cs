@@ -4,13 +4,15 @@ using VRC.SDKBase;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
 using VRC.SDK3.Data;
+using System;
 
 namespace JLChnToZ.VRC.VVMW {
     /// <summary>
     /// Automatically play the video when a user goes nearby.
     /// </summary>
+    [Obsolete("This component is obsoleted. Please use AutoPlayOnNearV2 instead, which has better performance and synchronization.")]
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
-    [AddComponentMenu("VizVid/Components/Auto Play On Near")]
+    [AddComponentMenu("/VizVid/Components/Auto Play On Near (Old)")]
     [HelpURL("https://xtlcdn.github.io/VizVid/docs/#how-to-setup-auto-plays-when-a-user-goes-nearby")]
     public class AutoPlayOnNear : VizVidBehaviour {
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]

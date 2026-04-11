@@ -9,4 +9,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(AudioController), true)]
     public class AudioControllerEditor : VVMWEditorBase {
     }
+
+    [CustomEditor(typeof(ActiveRegionManager), true)]
+    public class ActiveRegionManagerEditor : VVMWEditorBase {
+    }
 }

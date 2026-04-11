@@ -12,6 +12,7 @@ namespace JLChnToZ.VRC.VVMW {
         float defaultVolume = 1;
         [SerializeField, LocalizedLabel, FieldChangeCallback(nameof(Muted))]
         bool defaultMuted = false;
+        [SerializeField, LocalizedLabel] bool muteOnOutOfRange;
         AudioSource assignedAudioSource;
 
         /// <summary>
@@ -40,7 +41,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void UpdateVolume() {
-            var volume = defaultMuted ? 0 : defaultVolume * defaultVolume; // Volume is not linear
+            var volume = defaultMuted || (muteOnOutOfRange && hasRegion && !isCurrentCoreActive) ? 0 : defaultVolume * defaultVolume; // Volume is not linear
             if (Utilities.IsValid(audioSources))
                 for (int i = 0; i < audioSources.Length; i++) {
                     var audioSource = audioSources[i];

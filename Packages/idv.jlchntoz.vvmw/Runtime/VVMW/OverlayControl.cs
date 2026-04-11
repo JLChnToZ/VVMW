@@ -10,9 +10,6 @@ using JLChnToZ.VRC.Foundation.I18N;
 #if VRC_ENABLE_PLAYER_PERSISTENCE
 using VRC.SDK3.Persistence;
 #endif
-#if UNITY_EDITOR && !COMPILER_UDONSHARP
-using System.Collections.Generic;
-#endif
 
 namespace JLChnToZ.VRC.VVMW {
     /// <summary>
@@ -38,13 +35,7 @@ namespace JLChnToZ.VRC.VVMW {
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
         ), BindUdonSharpEvent, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
         Core core;
-        [SerializeField, LocalizedLabel, LocalizedEnum]
-        CoreMatchingStrategy coreControlStrategy = CoreMatchingStrategy.All;
-        [SerializeField, LocalizedLabel, BindUdonSharpEvent] Core[] cores;
-        [SerializeField, HideInInspector] Bounds[] coreBounds;
-        [SerializeField, HideInInspector] Transform[] coreBoundsReferenceTransforms;
-        [SerializeField, HideInInspector] int[] coreBoundsMatchOffset;
-        [SerializeField, HideInInspector] int coreCount, boundsCount;
+        [SerializeField, HideInInspector, BindUdonSharpEvent] ActiveRegionManager activeRegionManager;
         [LocalizedHeader("HEADER:Non_VizVid_References")]
         [SerializeField, LocalizedLabel] AudioSource[] audioSources;
         [SerializeField, LocalizedLabel] GameObject[] resyncTargets;
@@ -190,14 +181,6 @@ namespace JLChnToZ.VRC.VVMW {
                     desktopHintsFullscreenKey2TMPro.text = fullscreenScreenKey.ToString();
                 UpdateHintText();
             }
-            if (!Utilities.IsValid(matchingCores) || matchingCores.Length < cores.Length) {
-                if (coreControlStrategy == CoreMatchingStrategy.All) {
-                    matchingCores = cores;
-                    matchingCoreCount = coreCount;
-                } else {
-                    matchingCores = new Core[coreCount];
-                }
-            }
             _OnVolumeChange();
         }
 
@@ -235,7 +218,7 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 var head = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
                 var headPos = head.position;
-                if (coreControlStrategy != CoreMatchingStrategy.All && !MatchAllCores(headPos)) {
+                if (!Utilities.IsValid(core)) {
                     vrModeCanvas.SetActive(false);
                     return;
                 }
@@ -248,8 +231,6 @@ namespace JLChnToZ.VRC.VVMW {
                 vrModeCanvas.SetActive(Vector3.Angle(head.rotation * Vector3.forward, (canvasPosition - headPos).normalized) < 30);
                 return;
             }
-            if (coreControlStrategy != CoreMatchingStrategy.All)
-                MatchAllCores(localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position);
             if (Input.anyKey) {
                 if (Input.GetKeyDown(reloadKey) && !AnyModifierKeyDown())
                     _OnReload();
@@ -277,46 +258,14 @@ namespace JLChnToZ.VRC.VVMW {
             Input.GetKey(KeyCode.LeftShift) ||
             Input.GetKey(KeyCode.RightShift);
 
-        // Find this code useful to your project? You are welcome to adopt it.
-        // If you are respectful, please kindly leave a credit that you got inspired here;
-        // or you can be an asshole who just rip it off, refactor it and then claim you made it.
-        bool MatchAllCores(Vector3 headPos) {
-            Core closestCore = null;
-            float closestDist = float.PositiveInfinity;
-            matchingCoreCount = 0;
-            for (int i = 0, j = 0; i < boundsCount; i++) {
-                int matchIndex;
-                do {
-                    matchIndex = coreBoundsMatchOffset[j];
-                } while (i >= matchIndex && ++j < coreCount);
-                var bounds = coreBounds[i];
-                var refTransform = coreBoundsReferenceTransforms[i];
-                var localPos = Utilities.IsValid(refTransform) ? refTransform.InverseTransformPoint(headPos) : headPos;
-                if (bounds.Contains(localPos)) {
-                    closestDist = -1;
-                    closestCore = cores[j - 1];
-                    matchingCores[matchingCoreCount++] = closestCore;
-                    continue;
-                }
-                if (closestDist <= 0) continue;
-                float dist = bounds.SqrDistance(localPos);
-                if (dist < closestDist) {
-                    closestDist = dist;
-                    closestCore = cores[j - 1];
-                }
-            }
-            if (!Utilities.IsValid(closestCore)) {
-                _OnTextureChanged();
-                return false;
-            }
-            if (matchingCoreCount == 0 && coreControlStrategy == CoreMatchingStrategy.Nearest)
-                matchingCores[matchingCoreCount++] = closestCore;
-            if (closestCore != core) {
-                core = closestCore;
-                _OnVolumeChange();
-                _OnTextureChanged();
-            }
-            return true;
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnActiveCoreChanged() {
+            core = activeRegionManager.core;
+            matchingCores = activeRegionManager.matchingCores;
+            matchingCoreCount = activeRegionManager.matchingCoreCount;
+            _OnTextureChanged();
         }
 
         public void _OnReload() {
@@ -432,78 +381,5 @@ namespace JLChnToZ.VRC.VVMW {
             PlayerData.SetFloat(PlayerPersistenceDistanceKey, offset);
 #endif
         }
-    }
-
-#if !COMPILER_UDONSHARP && UNITY_EDITOR
-    public partial class OverlayControl : IVizVidCompoonent, ISelfPreProcess {
-        Core IVizVidCompoonent.Core => core;
-
-        int IPrioritizedPreProcessor.Priority => -1;
-
-        // Find this code useful to your project? You are welcome to adopt it.
-        // If you are respectful, please kindly leave a credit that you got inspired here;
-        // or you can be an asshole who just rip it off, refactor it and then claim you made it.
-        void ISelfPreProcess.PreProcess() {
-            ActiveRegionConfig.RefreshAll();
-            int length = cores.Length;
-            var bounds = new List<Bounds>(length);
-            var coreList = new List<Core>(length);
-            var coreBoundsOffsetList = new List<int>(length + 1);
-            var boundsRefTransforms = new List<Transform>();
-            coreBoundsOffsetList.Add(0);
-            bool hasOriginalCore = false;
-            for (int i = 0; i < length; i++) {
-                if (cores[i] == null) continue;
-                coreList.Add(cores[i]);
-                if (cores[i] == core) hasOriginalCore = true;
-            }
-            if (!hasOriginalCore && core != null) coreList.Add(core);
-            foreach (var coreData in coreList) {
-                int count = 0;
-                foreach (var boundData in ActiveRegionConfig.GetRegionConfigs(coreData)) {
-                    bounds.Add(boundData.bounds);
-                    boundsRefTransforms.Add(boundData.staticRegion ? null : boundData.transform);
-                    count++;
-                }
-                coreBoundsOffsetList.Add(coreBoundsOffsetList[^1] + count);
-            }
-            coreCount = coreList.Count;
-            cores = coreList.ToArray();
-            coreBoundsMatchOffset = coreBoundsOffsetList.ToArray();
-            coreBounds = bounds.ToArray();
-            coreBoundsReferenceTransforms = boundsRefTransforms.ToArray();
-            boundsCount = coreBounds.Length;
-        }
-
-        void OnDrawGizmosSelected() {
-            if (coreControlStrategy == CoreMatchingStrategy.All) return;
-            bool hasDrawnDefaultCore = false;
-            int index = 0;
-            foreach (var coreData in cores) {
-                DrawCoreGizmo(coreData, index++);
-                if (coreData == core) hasDrawnDefaultCore = true;
-            }
-            if (!hasDrawnDefaultCore) DrawCoreGizmo(core, index);
-        }
-
-        void DrawCoreGizmo(Core coreData, int count) {
-            if (coreData == null) return;
-            foreach (var boundData in ActiveRegionConfig.GetRegionConfigs(coreData)) {
-                Gizmos.color = Color.HSVToRGB(count * 0.35F % 1F, 1F, 1F);
-                Gizmos.matrix = boundData.staticRegion ? Matrix4x4.identity : boundData.transform.localToWorldMatrix;
-                var size = boundData.bounds.size;
-                if (Mathf.Approximately(size.sqrMagnitude, 0))
-                    Gizmos.DrawSphere(boundData.bounds.center, 0.1F);
-                else
-                    Gizmos.DrawWireCube(boundData.bounds.center, size);
-            }
-        }
-    }
-#endif
-
-    public enum CoreMatchingStrategy {
-        All,
-        Bounds,
-        Nearest,
     }
 }

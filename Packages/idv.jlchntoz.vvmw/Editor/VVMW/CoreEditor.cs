@@ -36,6 +36,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty autoPlayDelayProperty;
         SerializedProperty defaultVolumeProperty;
         SerializedProperty defaultMutedProperty;
+        SerializedProperty muteOnOutOfRangeProperty;
         SerializedProperty loopProperty;
         SerializedProperty audioLinkProperty;
         SerializedProperty yttlManagerProperty;
@@ -80,6 +81,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             autoPlayDelayProperty = serializedObject.FindProperty("autoPlayDelay");
             defaultVolumeProperty = serializedObject.FindProperty("defaultVolume");
             defaultMutedProperty = serializedObject.FindProperty("defaultMuted");
+            muteOnOutOfRangeProperty = serializedObject.FindProperty("muteOnOutOfRange");
             loopProperty = serializedObject.FindProperty("loop");
             audioLinkProperty = serializedObject.FindProperty("audioLink");
             yttlManagerProperty = serializedObject.FindProperty("yttl");
@@ -145,6 +147,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             EditorGUILayout.PropertyField(defaultVolumeProperty);
             EditorGUILayout.PropertyField(defaultMutedProperty);
+            EditorGUILayout.PropertyField(muteOnOutOfRangeProperty);
             if (frontendHandlerEditor != null)
                 frontendHandlerEditor.DrawRepeatShuffleProperty();
             else {

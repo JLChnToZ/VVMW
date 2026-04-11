@@ -10,7 +10,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         public void OnPreprocess(Scene scene) {
             foreach (var core in scene.IterateAllComponents<Core>()) {
-                bool changed = false;
 #if VRC_ENABLE_PLAYER_PERSISTENCE
                 if (core.enablePersistence) {
                     var pathStack = new Stack<string>();
@@ -19,7 +18,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     var path = string.Join("/", pathStack);
                     core.volumePersistenceKey = $"VVMW:{path}:Volume";
                     core.mutedPersistenceKey = $"VVMW:{path}:Muted";
-                    changed = true;
                 }
 #endif
                 var audioControllers = new List<AbstractAudioController>();
@@ -30,13 +28,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     controller.core = core;
                     audioSources.Remove(audioSource);
                     audioControllers.Add(controller);
-                    changed = true;
                     UdonSharpEditorUtility.CopyProxyToUdon(controller);
                 }
                 core.audioSources = new AudioSource[audioSources.Count];
                 audioSources.CopyTo(core.audioSources);
                 core.audioControllers = audioControllers.ToArray();
-                if (changed) UdonSharpEditorUtility.CopyProxyToUdon(core);
+                core.hasRegion = ActiveRegionConfig.GetRegionConfigs(core).Count > 0;
+                UdonSharpEditorUtility.CopyProxyToUdon(core);
             }
         }
     }
