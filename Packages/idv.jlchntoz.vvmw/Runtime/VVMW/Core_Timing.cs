@@ -11,10 +11,10 @@ using JLChnToZ.VRC.Foundation.I18N;
 namespace JLChnToZ.VRC.VVMW {
     public partial class Core {
         [SerializeField, LocalizedLabel, Range(0, 5)] float timeDriftDetectThreshold = 0.9F;
-        [UdonSynced] long ownerServerTime;
-        // When playing, it is the time when the video started playing;
-        // When paused, it is the progress of the video in ticks.
-        [UdonSynced] long time;
+        [UdonSynced] int ownerNetworkTime;
+        // When playing, it is the virtual network time (scaled by speed) when the video started playing;
+        // When paused, it is the progress of the video in milliseconds.
+        [UdonSynced] int time;
         [UdonSynced] float rangeLoopStart = -1, rangeLoopEnd = -1;
         [UdonSynced] float syncedSpeed = 1, syncedActualSpeed = 1;
         [FieldChangeCallback(nameof(PerformerId))]
@@ -200,7 +200,7 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomEventDelayedSeconds(nameof(_AutoSyncTime), 0.5F);
         }
 
-        long CalcSyncTime(out float actualSpeed) {
+        double CalcSyncTime(out float actualSpeed) {
             if (!Utilities.IsValid(activeHandler)) {
                 actualSpeed = 1;
                 return 0;
@@ -209,8 +209,12 @@ namespace JLChnToZ.VRC.VVMW {
             var duration = activeHandler.Duration;
             if (duration <= 0 || float.IsInfinity(duration)) return 0;
             var videoTime = Mathf.Repeat(activeHandler.Time, duration);
-            var syncTime = (long)((videoTime / actualSpeed - syncOffset + PerformerLatency) * TimeSpan.TicksPerSecond);
-            if (activeHandler.IsPlaying) syncTime = Networking.GetNetworkDateTime().Ticks - syncTime;
+            double syncTime = videoTime / actualSpeed - syncOffset + PerformerLatency;
+            if (activeHandler.IsPlaying) {
+                long serverTimeMs = Networking.GetServerTimeInMilliseconds() - (long)(syncTime * 1000);
+                if (serverTimeMs > int.MaxValue) serverTimeMs -= uint.MaxValue;
+                syncTime = serverTimeMs * 0.001;
+            }
             if (synced) syncedActualSpeed = actualSpeed;
             return syncTime;
         }
@@ -222,8 +226,8 @@ namespace JLChnToZ.VRC.VVMW {
             float videoTime;
             int intState = state;
             switch (intState) {
-                case PLAYING: videoTime = ((float)(Networking.GetNetworkDateTime().Ticks - time) / TimeSpan.TicksPerSecond + syncOffset + syncLatency - PerformerLatency) * actualSpeed; break;
-                case PAUSED: videoTime = (float)time / TimeSpan.TicksPerSecond; break;
+                case PLAYING: videoTime = ((float)Networking.CalculateServerDeltaTime(Networking.GetServerTimeInSeconds(), time * 0.001) + syncOffset + syncLatency - PerformerLatency) * actualSpeed; break;
+                case PAUSED: videoTime = time * 0.001F; break;
                 default: return 0;
             }
             return loop ? Mathf.Repeat(videoTime, duration) : Mathf.Clamp(videoTime, 0, duration);
@@ -240,8 +244,8 @@ namespace JLChnToZ.VRC.VVMW {
                     forced = true;
                 }
                 var newTime = CalcSyncTime(out float speed);
-                if (forced || Mathf.Abs((float)(newTime - time) / TimeSpan.TicksPerSecond) >= timeDriftDetectThreshold) {
-                    time = newTime;
+                if (forced || Mathf.Abs((float)Networking.CalculateServerDeltaTime(newTime, time * 0.001)) >= timeDriftDetectThreshold) {
+                    time = (int)(newTime * 1000);
                     actualSpeed = speed;
                     RequestSerialization();
                 }

@@ -666,7 +666,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override void OnPreSerialization() {
             if (!synced || isLocalReloading) return;
             lastSyncTime = Networking.GetNetworkDateTime();
-            ownerServerTime = lastSyncTime.Ticks;
+            ownerNetworkTime = Networking.GetServerTimeInMilliseconds();
             syncedSpeed = speed;
             if (!Utilities.IsValid(activeHandler)) {
                 activePlayer = 0;
@@ -688,7 +688,7 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 if (activeHandler.IsReady) {
                     state = activeHandler.IsPlaying ? PLAYING : PAUSED;
-                    time = CalcSyncTime(out actualSpeed);
+                    time = (int)(CalcSyncTime(out actualSpeed) * 1000);
                 } else {
                     state = VRCUrl.IsNullOrEmpty(localUrl) ? IDLE : LOADING;
                     time = 0;
@@ -711,7 +711,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (activePlayerChanged) ActivePlayer = activePlayer;
             float sendTime = result.sendTime;
             syncLatency = sendTime > 0 ? // if send time is negative, which means it was sent before join thus this is not valid.
-                (float)(ownerServerTime - Networking.GetNetworkDateTime().Ticks) / TimeSpan.TicksPerSecond +
+                (float)Networking.CalculateServerDeltaTime(ownerNetworkTime * 0.001, Networking.GetServerTimeInSeconds()) +
                 UnityEngine.Time.realtimeSinceStartup - sendTime : 0;
             actualSpeed = syncedActualSpeed;
             SetRangeInternal(rangeLoopStart, rangeLoopEnd);

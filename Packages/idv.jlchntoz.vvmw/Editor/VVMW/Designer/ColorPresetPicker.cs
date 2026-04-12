@@ -66,7 +66,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
             public override void OnGUI(Rect rect) {
                 rect.height = EditorGUIUtility.singleLineHeight;
-                var color = Color.clear;
+                var color = EditorGUIUtility.isProSkin ? new Color(0.3f, 0.3f, 0.3f) : new Color(0.8f, 0.8f, 0.8f);
                 for (int i = -1; i < colorConfig.colors.Length; i++) {
                     if (i >= 0) EditorGUI.DrawRect(rect, color = colorConfig.colors[i]);
                     labelStyle.normal.textColor = Vector3.Dot((Vector4)color, luminanceVector) >= 0.5f ? Color.black : Color.white;
