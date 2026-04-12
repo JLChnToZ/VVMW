@@ -22,14 +22,6 @@ namespace JLChnToZ.VRC.VVMW {
 
         Core IVizVidCompoonent.Core => core;
 
-        bool IsEditorOnly {
-            get {
-                for (var t = transform; t != null; t = t.parent)
-                    if (t.CompareTag("EditorOnly")) return true;
-                return false;
-            }
-        }
-
         public static void RefreshAll() {
             regionConfigTable.Clear();
             foreach (var config in FindObjectsOfType<ActiveRegionConfig>(true))
@@ -63,12 +55,14 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void Register() {
-            if (core == null || IsEditorOnly) return;
+#if !COMPILER_UDONSHARP && UNITY_EDITOR
+            if (core == null || !this.IsAvailableOnRuntime()) return;
             if (!regionConfigTable.TryGetValue(core, out var list)) {
                 list = new List<ActiveRegionConfig>();
                 regionConfigTable.Add(core, list);
             }
             list.Add(this);
+#endif
         }
     }
 }

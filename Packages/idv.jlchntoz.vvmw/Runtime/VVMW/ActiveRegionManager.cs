@@ -7,7 +7,7 @@ using JLChnToZ.VRC.Foundation.I18N;
 using VRC.SDK3.Data;
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
-using UnityEngine.Pool;
+using System.Collections.Generic;
 #endif
 
 namespace JLChnToZ.VRC.VVMW {
@@ -143,19 +143,12 @@ namespace JLChnToZ.VRC.VVMW {
         void ISingleton<ActiveRegionManager>.Merge(ActiveRegionManager[] others) {
             ActiveRegionConfig.RefreshAll();
             alwaysActiveCoreOffset = 0;
-            using (ListPool<Bounds>.Get(out var bounds))
-            using (ListPool<Core>.Get(out var coreList))
-            using (ListPool<int>.Get(out var coreBoundsOffsetList))
-            using (ListPool<Transform>.Get(out var boundsRefTransforms)) {
+            using (PooledObjectExtensions.Get(out List<Bounds> bounds))
+            using (PooledObjectExtensions.Get(out List<Core> coreList))
+            using (PooledObjectExtensions.Get(out List<int> coreBoundsOffsetList))
+            using (PooledObjectExtensions.Get(out List<Transform> boundsRefTransforms)) {
                 coreBoundsOffsetList.Add(0);
-                foreach (var core in FindObjectsOfType<Core>(true)) {
-                    bool isEditorOnly = false;
-                    for (var t = core.transform; t != null; t = t.parent)
-                        if (t.CompareTag("EditorOnly")) {
-                            isEditorOnly = true;
-                            break;
-                        }
-                    if (isEditorOnly) continue;
+                foreach (var core in gameObject.scene.IterateAllComponents<Core>()) {
                     int count = 0;
                     foreach (var boundData in ActiveRegionConfig.GetRegionConfigs(core)) {
                         bounds.Add(boundData.bounds);
