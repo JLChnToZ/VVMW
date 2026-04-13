@@ -156,13 +156,6 @@ Triggers a default video when a user approaches and stops it when they leave. Id
 ---
 * **Active Region**  
 Executing functions when a player enters the specified region on this prefab.  
-* **Core**  
-Specifies the linked VizVid core.  
-If it displays "None (Core)", you can click <kbd>Auto Find</kbd> to specify the VizVid core in the scene.  
-* **Bounds**  
-Specifies the region for this component.  
-* **Static Region**  
-Lock the position of this region.  
 
 ---
 ### Components  

@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## 1.7.0-beta.1 - 2026-04-13
+### Added
+- Extend active region to support auto mute, auto play, AudioLink registration, and broadcast texture
+
+### Changed
+- Better prefixes for audio sources (stereo, surround)
+- Uses lesser data to synchronize progress
+- Reduces some UI draw call when possible
+
+### Fixed
+- Gizmo throws exceptions when testing in editor
+
 ## 1.6.0 - 2026-04-08
 ### Added
 - Fullscreen unlock mode

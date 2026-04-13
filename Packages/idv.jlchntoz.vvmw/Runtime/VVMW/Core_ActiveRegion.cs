@@ -34,6 +34,7 @@ namespace JLChnToZ.VRC.VVMW {
         void DrawRegionGizmos() {
             int i = 0;
             foreach (var boundData in ActiveRegionConfig.GetRegionConfigs(this)) {
+                if (boundData == null) continue;
                 Gizmos.color = Color.HSVToRGB(i++ * 0.35F % 1F, 1F, 1F);
                 Gizmos.matrix = boundData.staticRegion ? Matrix4x4.identity : boundData.transform.localToWorldMatrix;
                 var size = boundData.bounds.size;
