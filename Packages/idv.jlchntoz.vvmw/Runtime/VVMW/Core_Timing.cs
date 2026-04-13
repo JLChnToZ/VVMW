@@ -15,7 +15,7 @@ namespace JLChnToZ.VRC.VVMW {
         // When playing, it is the virtual network time (scaled by speed) when the video started playing;
         // When paused, it is the progress of the video in milliseconds.
         [UdonSynced] int time;
-        [UdonSynced] float rangeLoopStart = -1, rangeLoopEnd = -1;
+        [UdonSynced] int rangeLoopStart = -1, rangeLoopEnd = -1;
         [UdonSynced] float syncedSpeed = 1, syncedActualSpeed = 1;
         [FieldChangeCallback(nameof(PerformerId))]
         [UdonSynced] ushort performerId;
@@ -24,9 +24,11 @@ namespace JLChnToZ.VRC.VVMW {
         [FieldChangeCallback(nameof(Speed))]
         float speed = 1;
         float actualSpeed = 1;
-        float localRangeLoopStart = -1, localRangeLoopEnd = -1;
+        float localRangeLoopStart, localRangeLoopEnd;
+        int localRangeLoopStartMs = -1, localRangeLoopEndMs = -1;
         float rangeLoopDuration;
-        float syncLatency;
+        int rangeLoopDurationMs = 1; // prevent division by zero
+        double syncLatency;
         float lastSyncRawTime;
         bool isBuffering;
         bool isResyncTime;
@@ -135,7 +137,7 @@ namespace JLChnToZ.VRC.VVMW {
         /// <summary>
         /// Whether the video player is currently looping in a specific range.
         /// </summary>
-        public bool IsRangeLooping => localRangeLoopStart >= 0 && localRangeLoopEnd > localRangeLoopStart;
+        public bool IsRangeLooping => localRangeLoopStartMs >= 0 && localRangeLoopEndMs > localRangeLoopStartMs;
 
         /// <summary>
         /// Gets the performer of the video player playback.
@@ -180,7 +182,7 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomEventDelayedFrames(nameof(_CheckRangeLoop), 0);
         }
 
-        float CalculateLoopTime(float value) => localRangeLoopStart + Mathf.Repeat(value - localRangeLoopStart, rangeLoopDuration);
+        float CalculateLoopTime(float value) => float.IsInfinity(value) ? value : ((Mathf.RoundToInt(value * 1000) - localRangeLoopStartMs) % rangeLoopDurationMs + localRangeLoopStartMs) * 0.001F;
 
 #if COMPILER_UDONSHARP
         public
@@ -226,7 +228,7 @@ namespace JLChnToZ.VRC.VVMW {
             float videoTime;
             int intState = state;
             switch (intState) {
-                case PLAYING: videoTime = ((float)Networking.CalculateServerDeltaTime(Networking.GetServerTimeInSeconds(), time * 0.001) + syncOffset + syncLatency - PerformerLatency) * actualSpeed; break;
+                case PLAYING: videoTime = (float)((Networking.CalculateServerDeltaTime(Networking.GetServerTimeInSeconds(), time * 0.001) + syncOffset + syncLatency - PerformerLatency) * actualSpeed); break;
                 case PAUSED: videoTime = time * 0.001F; break;
                 default: return 0;
             }
@@ -292,16 +294,22 @@ namespace JLChnToZ.VRC.VVMW {
                 _ClearRangeLoop();
                 return;
             }
-            SetRangeInternal(Mathf.Clamp(start, 0, end), Mathf.Clamp(end, start, duration));
+            SetRangeInternal(
+                Mathf.RoundToInt(Mathf.Clamp(start, 0, end) * 1000),
+                Mathf.RoundToInt(Mathf.Clamp(end, start, duration) * 1000)
+            );
             RequestSync();
         }
 
-        void SetRangeInternal(float start, float end) {
-            if (Mathf.Approximately(localRangeLoopStart, start) && Mathf.Approximately(localRangeLoopEnd, end)) return;
+        void SetRangeInternal(int start, int end) {
+            if (localRangeLoopStartMs == start && localRangeLoopEndMs == end) return;
             bool wasRangeLoop = IsRangeLooping;
-            localRangeLoopStart = start;
-            localRangeLoopEnd = end;
-            rangeLoopDuration = end - start;
+            localRangeLoopStartMs = start;
+            localRangeLoopEndMs = end;
+            rangeLoopDurationMs = end - start;
+            localRangeLoopStart = localRangeLoopStartMs * 0.001F;
+            localRangeLoopEnd = localRangeLoopEndMs * 0.001F;
+            rangeLoopDuration = rangeLoopDurationMs * 0.001F;
             var isRangeLoop = IsRangeLooping;
             if (wasRangeLoop != isRangeLoop) SendEvent("_OnRangeLoopToggled");
             if (isRangeLoop) {
@@ -315,8 +323,11 @@ namespace JLChnToZ.VRC.VVMW {
         /// </summary>
         public void _ClearRangeLoop() {
             if (!IsRangeLooping) return;
-            localRangeLoopStart = -1;
-            localRangeLoopEnd = -1;
+            localRangeLoopStartMs = -1;
+            localRangeLoopEndMs = -1;
+            rangeLoopDurationMs = 1;
+            localRangeLoopStart = 0;
+            localRangeLoopEnd = float.PositiveInfinity;
             rangeLoopDuration = 0;
             SendEvent("_OnRangeLoopToggled");
             RequestSync();
@@ -329,7 +340,7 @@ namespace JLChnToZ.VRC.VVMW {
         public
 #endif
         void _CheckRangeLoop() {
-            if (!Utilities.IsValid(activeHandler) || !activeHandler.IsPlaying || localRangeLoopStart < 0 || localRangeLoopEnd <= localRangeLoopStart) {
+            if (!Utilities.IsValid(activeHandler) || !activeHandler.IsPlaying || localRangeLoopStartMs < 0 || localRangeLoopEndMs <= localRangeLoopStartMs) {
                 isCheckingRangeLoop = false;
                 return;
             }

@@ -696,8 +696,8 @@ namespace JLChnToZ.VRC.VVMW {
                 }
             }
             syncedActualSpeed = actualSpeed;
-            rangeLoopStart = localRangeLoopStart;
-            rangeLoopEnd = localRangeLoopEnd;
+            rangeLoopStart = localRangeLoopStartMs;
+            rangeLoopEnd = localRangeLoopEndMs;
         }
 
         /// <summary>
@@ -711,8 +711,8 @@ namespace JLChnToZ.VRC.VVMW {
             if (activePlayerChanged) ActivePlayer = activePlayer;
             float sendTime = result.sendTime;
             syncLatency = sendTime > 0 ? // if send time is negative, which means it was sent before join thus this is not valid.
-                (float)Networking.CalculateServerDeltaTime(ownerNetworkTime * 0.001, Networking.GetServerTimeInSeconds()) +
-                UnityEngine.Time.realtimeSinceStartup - sendTime : 0;
+                Networking.CalculateServerDeltaTime(ownerNetworkTime * 0.001, Networking.GetServerTimeInSeconds()) +
+                UnityEngine.Time.realtimeSinceStartupAsDouble - sendTime : 0;
             actualSpeed = syncedActualSpeed;
             SetRangeInternal(rangeLoopStart, rangeLoopEnd);
             if (speed != syncedSpeed) {
