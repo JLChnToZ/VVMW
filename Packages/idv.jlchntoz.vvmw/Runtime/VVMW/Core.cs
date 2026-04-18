@@ -7,6 +7,7 @@ using VRC.SDK3.Components.Video;
 using VRC.SDK3.UdonNetworkCalling;
 #endif
 using VRC.SDK3.Data;
+using VRC.Udon.Common.Enums;
 using VRC.Udon.Common;
 using VRC.Udon.Common.Interfaces;
 using JLChnToZ.VRC.Foundation;
@@ -240,6 +241,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void RestoreActiveState() {
             StartBroadcastScreenTexture();
+            SendCustomEventDelayedFrames(nameof(_BlitMaterial), 0, EventTiming.LateUpdate);
 #if AUDIOLINK_V1
             SendCustomEventDelayedFrames(nameof(_RestoreAudioLinkState), 0);
 #endif

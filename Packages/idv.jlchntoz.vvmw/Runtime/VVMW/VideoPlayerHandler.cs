@@ -239,9 +239,11 @@ namespace JLChnToZ.VRC.VVMW {
                 bufferedTexture.autoGenerateMips = useMipmap;
                 core._OnTextureChanged();
             }
-            if (Utilities.IsValid(blitMaterial))
+            if (Utilities.IsValid(blitMaterial)) {
+                blitMaterial.SetTextureOffset(texturePropertyID, Vector2.zero);
+                blitMaterial.SetTextureScale(texturePropertyID, Vector2.one);  
                 VRCGraphics.Blit(texture, bufferedTexture, blitMaterial);
-            else
+            } else
                 VRCGraphics.Blit(texture, bufferedTexture);
         }
 

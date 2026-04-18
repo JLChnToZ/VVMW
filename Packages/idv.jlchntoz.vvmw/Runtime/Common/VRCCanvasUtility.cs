@@ -1,6 +1,9 @@
+using System;
 using UnityEngine;
 using JLChnToZ.VRC.Foundation;
-using JLChnToZ.VRC.Foundation.I18N;
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+using UnityEditor;
+#endif
 
 namespace JLChnToZ.VRC.VVMW {
     /// <summary>
@@ -10,10 +13,10 @@ namespace JLChnToZ.VRC.VVMW {
     [RequireComponent(typeof(RectTransform), typeof(BoxCollider))]
     [AddComponentMenu("VizVid/Common/VRC Canvas Utility")]
     public class VRCCanvasUtility : MonoBehaviour {
-        [SerializeField, LocalizedLabel] float canvasScale = 0;
         new RectTransform transform;
         new BoxCollider collider;
         bool hasInit;
+        Vector2 lastLocalSize, lastLocalScale;
 
         void Awake() {
             if (hasInit) return;
@@ -22,30 +25,64 @@ namespace JLChnToZ.VRC.VVMW {
             hasInit = true;
         }
 
+        void OnEnable() => Fixup();
+
         void Update() {
             if (!hasInit) Awake();
-            Vector3 scale;
-            if (float.IsInfinity(canvasScale) || float.IsNaN(canvasScale) || canvasScale <= 0) {
-                scale = transform.localScale;
-                canvasScale = (scale.x + scale.y) / 2;
-            }
-            if (transform.hasChanged && canvasScale > 0 && !float.IsInfinity(canvasScale) && !float.IsNaN(canvasScale)) {
-                scale = transform.localScale / canvasScale;
-                var sizeDelta = transform.sizeDelta;
-                scale.x *= sizeDelta.x;
-                scale.y *= sizeDelta.y;
-                transform.sizeDelta = scale;
-                transform.localScale = Vector3.one * canvasScale;
+            if (transform.hasChanged) {
+                Fixup();
                 transform.hasChanged = false;
             }
             collider.isTrigger = true;
             var rect = transform.rect;
             collider.center = rect.center;
-            scale = rect.size;
+            Vector3 scale = rect.size;
             scale.z = 1;
             collider.size = scale;
         }
 
-        void OnValidate() => Update();
+        void Fixup() {
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+            if (AnimationMode.InAnimationMode() || EditorApplication.isPlayingOrWillChangePlaymode) return;
+            var localSize = transform.rect.size;
+            Vector2 size;
+            {
+                Span<Vector3> tempV3 = stackalloc Vector3[2];
+                tempV3[0] = new(localSize.x, 0, 0);
+                tempV3[1] = new(0, localSize.y, 0);
+                transform.TransformVectors(tempV3);
+                size = new(tempV3[0].magnitude, tempV3[1].magnitude);
+            }
+            var localAspectRatio = localSize.x / localSize.y;
+            var worldAspectRatio = size.x / size.y;
+            if (Mathf.Approximately(localAspectRatio, worldAspectRatio)) return;
+            var localScale = transform.localScale;
+            var parent = transform.parent;
+            Vector2 worldScale = localScale;
+            if (parent != null) {
+                Span<Vector3> tempV3 = stackalloc Vector3[2];
+                tempV3[0] = new(localScale.x, 0, 0);
+                tempV3[1] = new(0, localScale.y, 0);
+                parent.TransformVectors(tempV3);
+                worldScale = new(tempV3[0].magnitude, tempV3[1].magnitude);
+            }
+            if (!Mathf.Approximately(worldScale.x, worldScale.y)) {
+                localScale.y *= worldScale.x / worldScale.y;
+                transform.localScale = localScale;
+                lastLocalScale = localScale;
+            }
+            localSize = transform.sizeDelta;
+            localSize.y = localSize.x / worldAspectRatio;
+            transform.sizeDelta = localSize;
+            lastLocalSize = localSize;
+#endif
+        }
+
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+        void OnValidate() {
+            if (!isActiveAndEnabled || EditorApplication.isPlayingOrWillChangePlaymode) return;
+            EditorApplication.delayCall += Update;
+        }
+#endif
     }
 }

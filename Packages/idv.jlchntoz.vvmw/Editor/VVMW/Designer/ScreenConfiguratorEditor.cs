@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEditor;
 using JLChnToZ.VRC.VVMW.Editors;
-
+using JLChnToZ.VRC.Foundation.I18N.Editors;
 namespace JLChnToZ.VRC.VVMW.Designer {
     [CustomEditor(typeof(ScreenConfigurator))]
     public class ScreenConfiguratorEditor : VVMWEditorBase {
@@ -89,6 +89,10 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     avProPropertyNameProperty,
                     defaultTextureProperty
                 );
+            if (GUILayout.Button(i18n.GetLocalizedContent("ScreenConfigurator.FixupAspectRatio"))) {
+                var meshRenderer = screenRendererProperty.objectReferenceValue as MeshRenderer;
+                ScreenMeshUtils.TryFixupAspectRatioInMaterial(meshRenderer);
+            }
         }
 
         void DrawCoreProperties(
@@ -102,7 +106,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             EditorGUILayout.ObjectField(screenRendererProperty, typeof(Renderer));
             var renderer = screenRendererProperty.objectReferenceValue as Renderer;
             if (!renderer) return;
-            CoreEditor.ParseScreenMode(targetModeProperty, out int mode, out bool useST);
+            CoreEditor.ParseScreenMode(targetModeProperty, out int mode, out bool useST, out int blitFlags);
             CoreEditor.DrawScreenRendererOptions(
                 targetIndexProperty, renderer,
                 ref mode, out var shader, out var materials
@@ -113,7 +117,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 ref useST, shader, materials
             );
             CoreEditor.DrawScreenTextureOptions(defaultTextureProperty);
-            CoreEditor.SetScreenMode(targetModeProperty, mode, useST);
+            CoreEditor.SetScreenMode(targetModeProperty, mode, useST, blitFlags);
         }
 
         void UpdateCoreProperties(int index) {

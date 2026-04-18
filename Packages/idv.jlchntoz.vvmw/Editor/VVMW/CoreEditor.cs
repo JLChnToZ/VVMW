@@ -47,6 +47,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty screenTargetPropertyNamesProperty;
         SerializedProperty screenTargetDefaultTexturesProperty;
         SerializedProperty avProPropertyNamesProperty;
+        SerializedProperty rtScreenTargetSTsProperty;
         SerializedProperty broadcastScreenTextureProperty;
         SerializedProperty broadcastScreenTextureNameProperty;
         SerializedProperty realtimeGIUpdateIntervalProperty;
@@ -91,6 +92,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             screenTargetPropertyNamesProperty = serializedObject.FindProperty("screenTargetPropertyNames");
             screenTargetDefaultTexturesProperty = serializedObject.FindProperty("screenTargetDefaultTextures");
             avProPropertyNamesProperty = serializedObject.FindProperty("avProPropertyNames");
+            rtScreenTargetSTsProperty = serializedObject.FindProperty("rtScreenTargetSTs");
             broadcastScreenTextureProperty = serializedObject.FindProperty("broadcastScreenTexture");
             broadcastScreenTextureNameProperty = serializedObject.FindProperty("broadcastScreenTextureName");
             defaultTextureProperty = serializedObject.FindProperty("defaultTexture");
@@ -387,6 +389,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 avProPropertyNamesProperty.arraySize = length;
             if (screenTargetDefaultTexturesProperty.arraySize != length)
                 screenTargetDefaultTexturesProperty.arraySize = length;
+            if (rtScreenTargetSTsProperty.arraySize != length)
+                rtScreenTargetSTsProperty.arraySize = length;
             while (screenTargetVisibilityState.Count < length)
                 screenTargetVisibilityState.Add(false);
             for (int i = 0; i < length; i++) {
@@ -431,6 +435,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             else targetProperty.objectReferenceValue = null;
                         } else if (value is CustomRenderTexture crt)
                             targetProperty.objectReferenceValue = crt.material;
+                        else if (value is RenderTexture rt)
+                            targetProperty.objectReferenceValue = rt;
                         else if (value is Renderer) { }
                         else if (value is Material) { }
                         else if (value is RawImage) { }
@@ -445,6 +451,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         FUtils.DeleteElement(screenTargetPropertyNamesProperty, i);
                         FUtils.DeleteElement(avProPropertyNamesProperty, i);
                         FUtils.DeleteElement(screenTargetDefaultTexturesProperty, i);
+                        FUtils.DeleteElement(rtScreenTargetSTsProperty, i);
                         screenTargetVisibilityState.RemoveAt(i);
                         i--;
                         length--;
@@ -454,7 +461,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (i >= 0 && screenTargetVisibilityState[i])
                     using (new EditorGUI.IndentLevelScope())
                     using (new EditorGUILayout.VerticalScope(GUI.skin.box)) {
-                        ParseScreenMode(modeProperty, out int mode, out bool useST);
+                        ParseScreenMode(modeProperty, out int mode, out bool useST, out int blitFlags);
                         bool showMaterialOptions = false;
                         Shader selectedShader = null;
                         Material[] materials = null;
@@ -470,6 +477,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             showMaterialOptions = true;
                         } else if (targetProperty.objectReferenceValue is RawImage) {
                             mode = 4;
+                        } else  if (targetProperty.objectReferenceValue is RenderTexture) {
+                            mode = 5;
+                            DrawScreenSTOptions(
+                                rtScreenTargetSTsProperty.GetArrayElementAtIndex(i),
+                                ref blitFlags
+                            );
                         } else {
                             FUtils.DeleteElement(screenTargetsProperty, i);
                             FUtils.DeleteElement(screenTargetModesProperty, i);
@@ -477,6 +490,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             FUtils.DeleteElement(screenTargetPropertyNamesProperty, i);
                             FUtils.DeleteElement(avProPropertyNamesProperty, i);
                             FUtils.DeleteElement(screenTargetDefaultTexturesProperty, i);
+                            FUtils.DeleteElement(rtScreenTargetSTsProperty, i);
                             screenTargetVisibilityState.RemoveAt(i);
                             i--;
                             length--;
@@ -492,7 +506,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             screenTargetDefaultTexturesProperty.GetArrayElementAtIndex(i),
                             defaultTextureProperty
                         );
-                        SetScreenMode(modeProperty, mode, useST);
+                        SetScreenMode(modeProperty, mode, useST, blitFlags);
                     }
             }
             using (var changed = new EditorGUI.ChangeCheckScope()) {
@@ -511,21 +525,23 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         screenTargetIndecesProperty,
                         screenTargetPropertyNamesProperty,
                         screenTargetDefaultTexturesProperty,
-                        avProPropertyNamesProperty
+                        avProPropertyNamesProperty,
+                        rtScreenTargetSTsProperty
                     ))) screenTargetVisibilityState.Add(true);
                 }
             }
             EditorGUILayout.Space();
         }
 
-        public static void ParseScreenMode(SerializedProperty modeProperty, out int mode, out bool useST) {
+        public static void ParseScreenMode(SerializedProperty modeProperty, out int mode, out bool useST, out int blitFlags) {
             int rawMode = modeProperty.intValue;
             mode = rawMode & 0x7;
             useST = (rawMode & 0x8) != 0;
+            blitFlags = (rawMode & 0xF0) >> 4;
         }
 
-        public static void SetScreenMode(SerializedProperty modeProperty, int mode, bool useST) {
-            modeProperty.intValue = mode | (useST ? 0x8 : 0);
+        public static void SetScreenMode(SerializedProperty modeProperty, int mode, bool useST, int blitFlags) {
+            modeProperty.intValue = mode | (useST ? 0x8 : 0) | ((blitFlags << 4) & 0xF0);
         }
 
         public static void DrawScreenRendererOptions(
@@ -590,6 +606,20 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
         }
 
+        public static void DrawScreenSTOptions(SerializedProperty stProperty, ref int blitFlags) {
+            var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight * 2);
+            var label = i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.screenTargetST");
+            using (new EditorGUI.PropertyScope(rect, label, stProperty))
+            using (var changed = new EditorGUI.ChangeCheckScope()) {
+                var st = stProperty.vector4Value;
+                var r = new Rect(st.z, st.w, st.x, st.y);
+                r = EditorGUI.RectField(rect, label, r);
+                if (changed.changed) stProperty.vector4Value = new Vector4(r.width, r.height, r.x, r.y);
+            }
+            var e = i18n.GetLocalizedEnum(typeof(ScreenTargetBlitMode));
+            blitFlags = EditorGUILayout.Popup(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.screenTargetBlitMode"), blitFlags, e.enumNames as GUIContent[]);
+        }
+
         public static bool AddTarget(Core core, UnityObject newTarget, bool recordUndo = true, bool copyToUdon = false) {
             using (var so = new SerializedObject(core)) {
                 if (newTarget is AudioSource)
@@ -613,7 +643,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 var screenTargetMode = avProPropertyName == null ? 9 : 1;
                 var defaultTexture = material != null ? material.GetTexture(mainTexturePropertyName) : null;
                 AppendScreenUnchecked(
-                    newTarget, screenTargetMode, materialIndex, mainTexturePropertyName, defaultTexture, avProPropertyName,
+                    newTarget, screenTargetMode, materialIndex, mainTexturePropertyName, defaultTexture, avProPropertyName, Vector4.zero,
                     new ScreenProperties(so)
                 );
                 if (recordUndo)
@@ -628,6 +658,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static bool AppendScreen(UnityObject newTarget, ScreenProperties props) {
             int screenTargetMode;
             Texture defaultTexture;
+            Vector4 st = Vector4.zero;
             string mainTexturePropertyName = null, avProPropertyName = null;
             if (newTarget is CustomRenderTexture crt)
                 newTarget = crt.material;
@@ -647,9 +678,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 newTarget = rawImage;
                 screenTargetMode = 4;
                 defaultTexture = rawImage.texture;
+            } else if (newTarget is RenderTexture) {
+                screenTargetMode = 5;
+                defaultTexture = null;
+                st = new Vector4(1, 1, 0, 0);
             } else return false;
             AppendScreenUnchecked(
-                newTarget, screenTargetMode, -1, mainTexturePropertyName, defaultTexture, avProPropertyName,
+                newTarget, screenTargetMode, -1, mainTexturePropertyName, defaultTexture, avProPropertyName, st,
                 props
             );
             return true;
@@ -662,6 +697,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             string mainTexturePropertyName,
             Texture defaultTexture,
             string avProPropertyName,
+            Vector4 st,
             ScreenProperties props
         ) {
             AppendElement(props.screenTargetsProperty, newTarget);
@@ -670,6 +706,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             AppendElement(props.screenTargetPropertyNamesProperty, mainTexturePropertyName ?? "_MainTex");
             AppendElement(props.screenTargetDefaultTexturesProperty, defaultTexture);
             AppendElement(props.avProPropertyNamesProperty, avProPropertyName ?? "_IsAVProVideo");
+            AppendElement(props.rtScreenTargetSTsProperty, st);
         }
 
         static string FindAVProPropertyName(Material material) {
@@ -729,6 +766,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             property.GetArrayElementAtIndex(size).intValue = value;
         }
 
+        static void AppendElement(SerializedProperty property, Vector4 value) {
+            int size = property.arraySize;
+            property.arraySize++;
+            property.GetArrayElementAtIndex(size).vector4Value = value;
+        }
+
         void GetControlledTypesOnScene() {
             autoPlayControllers.Clear();
             foreach (var controller in SceneManager.GetActiveScene().IterateAllComponents<UdonSharpBehaviour>())
@@ -750,6 +793,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             public readonly SerializedProperty screenTargetPropertyNamesProperty;
             public readonly SerializedProperty screenTargetDefaultTexturesProperty;
             public readonly SerializedProperty avProPropertyNamesProperty;
+            public readonly SerializedProperty rtScreenTargetSTsProperty;
 
             public ScreenProperties(
                 SerializedProperty screenTargetsProperty,
@@ -757,7 +801,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 SerializedProperty screenTargetIndecesProperty,
                 SerializedProperty screenTargetPropertyNamesProperty,
                 SerializedProperty screenTargetDefaultTexturesProperty,
-                SerializedProperty avProPropertyNamesProperty
+                SerializedProperty avProPropertyNamesProperty,
+                SerializedProperty rtScreenTargetSTsProperty
             ) {
                 this.screenTargetsProperty = screenTargetsProperty;
                 this.screenTargetModesProperty = screenTargetModesProperty;
@@ -765,6 +810,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 this.screenTargetPropertyNamesProperty = screenTargetPropertyNamesProperty;
                 this.screenTargetDefaultTexturesProperty = screenTargetDefaultTexturesProperty;
                 this.avProPropertyNamesProperty = avProPropertyNamesProperty;
+                this.rtScreenTargetSTsProperty = rtScreenTargetSTsProperty;
             }
 
             public ScreenProperties(SerializedObject serializedObject) : this(
@@ -773,7 +819,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 serializedObject.FindProperty("screenTargetIndeces"),
                 serializedObject.FindProperty("screenTargetPropertyNames"),
                 serializedObject.FindProperty("screenTargetDefaultTextures"),
-                serializedObject.FindProperty("avProPropertyNames")
+                serializedObject.FindProperty("avProPropertyNames"),
+                serializedObject.FindProperty("rtScreenTargetSTs")
             ) { }
         }
     }
