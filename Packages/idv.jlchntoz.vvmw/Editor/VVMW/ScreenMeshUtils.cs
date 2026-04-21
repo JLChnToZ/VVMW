@@ -174,11 +174,11 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                         -duv.z, duv.x, 0,
                         0, 0, 0
                     ),
-                    float3x3(
+                    transpose(float3x3(
                         p2 - p1,
                         p3 - p1,
                         float3(0)
-                    )
+                    ))
                 ));
                 var l1 = dot(r.c1, r.c1);
                 return l1 > 0 ? length(r.c0) * rsqrt(l1) : 0;
