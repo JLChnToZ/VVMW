@@ -115,7 +115,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 aspectRatio = 1;
                 return false;
             }
-            using var job = AspectRatioFinder.Create(mesh, subMeshIndex, objectToWorld, out var length);
+            using var meshDatas = Mesh.AcquireReadOnlyMeshData(mesh);
+            using var job = AspectRatioFinder.Create(meshDatas[0], subMeshIndex, objectToWorld, out var length);
             job.Schedule(length, 64).Complete();
             return job.TryGetResult(out aspectRatio);
         }
@@ -144,8 +145,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             [ReadOnly] NativeSlice<ushort> indices;
             [WriteOnly] NativeArray<float2> results;
 
-            public static AspectRatioFinder Create(Mesh mesh, int subMeshIndex, Matrix4x4 objectToWorld, out int length) {
-                var meshData = Mesh.AcquireReadOnlyMeshData(mesh)[0];
+            public static AspectRatioFinder Create(Mesh.MeshData meshData, int subMeshIndex, Matrix4x4 objectToWorld, out int length) {
                 var subMesh = meshData.GetSubMesh(subMeshIndex);
                 var vc = meshData.vertexCount;
                 var vertices = new NativeArray<Vector3>(vc, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
@@ -185,7 +185,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 float3 e1 = p1 - p0, e2 = p2 - p0;
                 float w = lengthsq(cross(e1, e2));
                 if (w <= 0) return;
-                float4 duv = float4(uvs[i3], uvs[i2]) - uvs[i1].xyxy;
+                float4 duv = float4(uvs[i2], uvs[i3]) - uvs[i1].xyxy;
                 float tt = lengthsq(e1 * duv.w - e2 * duv.y);
                 if (tt <= 0) return;
                 float bb = lengthsq(e2 * duv.x - e1 * duv.z);
