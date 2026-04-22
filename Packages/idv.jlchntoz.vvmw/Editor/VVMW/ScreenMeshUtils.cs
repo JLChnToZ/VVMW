@@ -13,7 +13,7 @@ using JLChnToZ.VRC.Foundation;
 using static Unity.Mathematics.math;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
-    
+
     public static class ScreenMeshUtils {
         const string fixupMenu = "Tools/VizVid/Fixup Aspect Ratios";
         const string directory = "Assets/VizVid_Generated/";
@@ -29,83 +29,89 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         public static void TryFixupAspectRatioInMaterial(MeshRenderer meshRenderer) => TryFixupAspectRatioInMaterial(new[] { meshRenderer });
 
         public static void TryFixupAspectRatioInMaterial(IEnumerable<MeshRenderer> renderers) {
-            using (HashSetPool<MeshRenderer>.Get(out var renderersCache))
-            using (HashSetPool<Material>.Get(out var materialsRequireAliasing)) {
-                renderersCache.UnionWith(renderers);
+            using (DictionaryPool<MeshRenderer, Mesh>.Get(out var renderererMap))
+            using (HashSetPool<Material>.Get(out var materialsRequireAliasing))
+            using (DictionaryPool<(Material, float), List<(MeshRenderer, int)>>.Get(out var materialSourceMap))
+            using (ListPool<(string, Material, float)>.Get(out var generatedMaterials))
+            using (DictionaryPool<(Material, float), Material>.Get(out var materialAspectMap)) {
+                foreach (var r in renderers) {
+                    if (r == null ||
+                        renderererMap.ContainsKey(r) ||
+                        !r.TryGetComponent(out MeshFilter mf))
+                        continue;
+                    var mesh = mf.sharedMesh;
+                    if (mesh == null || !mesh.isReadable) continue;
+                    renderererMap.Add(r, mesh);
+                }
                 var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
                 var scene = prefabStage != null ? prefabStage.scene : SceneManager.GetActiveScene();
                 foreach (var renderer in scene.IterateAllComponents<Renderer>()) {
-                    if (renderer is MeshRenderer mr && renderersCache.Contains(mr))
+                    if (renderer is MeshRenderer mr && renderererMap.ContainsKey(mr))
                         continue;
                     foreach (var mat in renderer.sharedMaterials)
                         if (mat != null)
                             materialsRequireAliasing.Add(mat);
                 }
-                using (DictionaryPool<(Material, float), List<(MeshRenderer, int)>>.Get(out var materialSourceMap)) {
-                    var aspectRatioID = Shader.PropertyToID("_AspectRatio");
-                    foreach (var mr in renderers) {
-                        if (!mr.TryGetComponent(out MeshFilter mf)) continue;
-                        var mesh = mf.sharedMesh;
-                        var materials = mr.sharedMaterials;
-                        var matrix = mr.localToWorldMatrix;
-                        List<(MeshRenderer, int)> sourceList = null;
-                        for (int i = 0; i < materials.Length; i++) {
-                            var mat = materials[i];
-                            if (mat == null) continue;
-                            if (!mat.HasProperty(aspectRatioID) ||
-                                !TryEstimateAspectRatio(mesh, i, matrix, out var aspectRatio) ||
-                                Mathf.Approximately(mat.GetFloat(aspectRatioID), aspectRatio)) {
-                                materialsRequireAliasing.Add(mat);
-                                continue;
-                            }
-                            if (sourceList == null && !materialSourceMap.TryGetValue((mat, aspectRatio), out sourceList)) {
-                                sourceList = ListPool<(MeshRenderer, int)>.Get();
-                                materialSourceMap.Add((mat, aspectRatio), sourceList);
-                            }
-                            sourceList.Add((mr, i));
+                var aspectRatioID = Shader.PropertyToID("_AspectRatio");
+                foreach (var kv in renderererMap) {
+                    var mr = kv.Key;
+                    var mesh = kv.Value;
+                    var materials = mr.sharedMaterials;
+                    var matrix = mr.localToWorldMatrix;
+                    List<(MeshRenderer, int)> sourceList = null;
+                    for (int i = 0; i < materials.Length; i++) {
+                        var mat = materials[i];
+                        if (mat == null) continue;
+                        if (!mat.HasProperty(aspectRatioID) ||
+                            !TryEstimateAspectRatio(mesh, i, matrix, out var aspectRatio) ||
+                            Mathf.Approximately(mat.GetFloat(aspectRatioID), aspectRatio)) {
+                            materialsRequireAliasing.Add(mat);
+                            continue;
                         }
-                    }
-                    using (ListPool<(string, Material, float)>.Get(out var generatedMaterials)) {
-                        using (DictionaryPool<(Material, float), Material>.Get(out var materialAspectMap)) 
-                            foreach (var kv in materialSourceMap) {
-                                var (mat, aspectRatio) = kv.Key;
-                                if (!materialAspectMap.TryGetValue(kv.Key, out var newMat)) {
-                                    var assetPath = AssetDatabase.GetAssetPath(mat);
-                                    if (materialsRequireAliasing.Add(mat) && !string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/")) {
-                                        newMat = mat;
-                                        Undo.RecordObject(newMat, "Fixup Aspect Ratio in Material");
-                                    } else {
-                                        newMat = new Material(mat) { parent = mat };
-                                        generatedMaterials.Add((assetPath, newMat, aspectRatio));
-                                    }
-                                    newMat.SetFloat(aspectRatioID, aspectRatio);
-                                    materialAspectMap.Add(kv.Key, newMat);
-                                }
-                                foreach (var (mr, index) in kv.Value) {
-                                    var sharedMaterials = mr.sharedMaterials;
-                                    sharedMaterials[index] = newMat;
-                                    Undo.RecordObject(mr, "Fixup Aspect Ratio in Material");
-                                    mr.sharedMaterials = sharedMaterials;
-                                }
-                                ListPool<(MeshRenderer, int)>.Release(kv.Value);
-                            }
-                        bool hasValidatedFolder = false;
-                        foreach (var (assetPath, mat, aspectRatio) in generatedMaterials) {
-                            string path;
-                            string postfix = $"_Adjusted_{HumanizeAspectRatio(aspectRatio)}";
-                            if (!string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/"))
-                                path = AssetDatabase.GenerateUniqueAssetPath(assetPath.Insert(assetPath.LastIndexOf('.'), postfix));
-                            else {
-                                if (!hasValidatedFolder) {
-                                    hasValidatedFolder = true;
-                                    if (!AssetDatabase.IsValidFolder(directory))
-                                        AssetDatabase.CreateFolder("Assets", "VizVid_Generated");
-                                }
-                                path = AssetDatabase.GenerateUniqueAssetPath($"{directory}{mat.name}{postfix}.mat");
-                            }
-                            AssetDatabase.CreateAsset(mat, path);
+                        if (sourceList == null && !materialSourceMap.TryGetValue((mat, aspectRatio), out sourceList)) {
+                            sourceList = ListPool<(MeshRenderer, int)>.Get();
+                            materialSourceMap.Add((mat, aspectRatio), sourceList);
                         }
+                        sourceList.Add((mr, i));
                     }
+                }
+                foreach (var kv in materialSourceMap) {
+                    var (mat, aspectRatio) = kv.Key;
+                    if (!materialAspectMap.TryGetValue(kv.Key, out var newMat)) {
+                        var assetPath = AssetDatabase.GetAssetPath(mat);
+                        if (materialsRequireAliasing.Add(mat) && !string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/")) {
+                            newMat = mat;
+                            Undo.RecordObject(newMat, "Fixup Aspect Ratio in Material");
+                        } else {
+                            newMat = new Material(mat) { parent = mat };
+                            generatedMaterials.Add((assetPath, newMat, aspectRatio));
+                        }
+                        newMat.SetFloat(aspectRatioID, aspectRatio);
+                        materialAspectMap.Add(kv.Key, newMat);
+                    }
+                    foreach (var (mr, index) in kv.Value) {
+                        var sharedMaterials = mr.sharedMaterials;
+                        sharedMaterials[index] = newMat;
+                        Undo.RecordObject(mr, "Fixup Aspect Ratio in Material");
+                        mr.sharedMaterials = sharedMaterials;
+                    }
+                    ListPool<(MeshRenderer, int)>.Release(kv.Value);
+                }
+                bool hasValidatedFolder = false;
+                foreach (var (assetPath, mat, aspectRatio) in generatedMaterials) {
+                    string path;
+                    string postfix = $"_Adjusted_{HumanizeAspectRatio(aspectRatio)}";
+                    if (!string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/"))
+                        path = AssetDatabase.GenerateUniqueAssetPath(assetPath.Insert(assetPath.LastIndexOf('.'), postfix));
+                    else {
+                        if (!hasValidatedFolder) {
+                            hasValidatedFolder = true;
+                            if (!AssetDatabase.IsValidFolder(directory))
+                                AssetDatabase.CreateFolder("Assets", "VizVid_Generated");
+                        }
+                        path = AssetDatabase.GenerateUniqueAssetPath($"{directory}{mat.name}{postfix}.mat");
+                    }
+                    AssetDatabase.CreateAsset(mat, path);
                 }
             }
         }
