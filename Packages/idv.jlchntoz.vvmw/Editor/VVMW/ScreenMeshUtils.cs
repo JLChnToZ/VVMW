@@ -117,7 +117,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             }
             using var job = AspectRatioFinder.Create(mesh, subMeshIndex, objectToWorld, out var length);
             job.Schedule(length, 64).Complete();
-            return job.TryGetRseult(out aspectRatio);
+            return job.TryGetResult(out aspectRatio);
         }
 
         static string HumanizeAspectRatio(float aspectRatio) {
@@ -147,8 +147,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             public static AspectRatioFinder Create(Mesh mesh, int subMeshIndex, Matrix4x4 objectToWorld, out int length) {
                 var meshData = Mesh.AcquireReadOnlyMeshData(mesh)[0];
                 var subMesh = meshData.GetSubMesh(subMeshIndex);
-                var vertices = new NativeArray<Vector3>(meshData.vertexCount, Allocator.TempJob);
-                var uvs = new NativeArray<Vector2>(meshData.vertexCount, Allocator.TempJob);
+                var vc = meshData.vertexCount;
+                var vertices = new NativeArray<Vector3>(vc, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                var uvs = new NativeArray<Vector2>(vc, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var indices = meshData.GetIndexData<ushort>();
                 meshData.GetVertices(vertices);
                 meshData.GetUVs(0, uvs);
@@ -157,34 +158,10 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     indices = indices.Slice(subMesh.indexStart, subMesh.indexCount),
                     vertices = vertices.Reinterpret<float3>(),
                     uvs = uvs.Reinterpret<float2>(),
-                    results = new NativeArray<float2>(length, Allocator.TempJob),
+                    results = new NativeArray<float2>(length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory),
                     objectToWorld = objectToWorld,
                 };
             }
-
-            static float EstimateAspectRatio(
-                float3 p1, float2 uv1,
-                float3 p2, float2 uv2,
-                float3 p3, float2 uv3
-            ) {
-                var duv = float4(uv2, uv3) - uv1.xyxy;
-                var r = transpose(mul(
-                    float3x3(
-                        duv.w, -duv.y, 0,
-                        -duv.z, duv.x, 0,
-                        0, 0, 0
-                    ),
-                    transpose(float3x3(
-                        p2 - p1,
-                        p3 - p1,
-                        float3(0)
-                    ))
-                ));
-                var l1 = dot(r.c1, r.c1);
-                return l1 > 0 ? length(r.c0) * rsqrt(l1) : 0;
-            }
-
-            static float Area(float3 p1, float3 p2, float3 p3) => length(cross(p2 - p1, p3 - p1)) * 0.5f;
 
             static float2 KahanSum(in NativeArray<float2> array) {
                 float2 sum = 0, c = 0;
@@ -201,21 +178,25 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
             public void Execute(int index) {
                 int i = index * 3;
+                results[index] = 0;
                 if (i + 2 >= indices.Length) return;
-                int i1 = indices[i], i2 = indices[i + 1], i3 = indices[i + 2];
-                float3 p1 = WorldPos(i1), p2 = WorldPos(i2), p3 = WorldPos(i3);
-                float area = Area(p1, p2, p3);
-                results[index] = float2(EstimateAspectRatio(
-                    p3, uvs[i3],
-                    p1, uvs[i1],
-                    p2, uvs[i2]
-                ) * area, area);
+                ushort i1 = indices[i++], i2 = indices[i++], i3 = indices[i];
+                float3 p0 = WorldPos(i1), p1 = WorldPos(i2), p2 = WorldPos(i3);
+                float3 e1 = p1 - p0, e2 = p2 - p0;
+                float w = lengthsq(cross(e1, e2));
+                if (w <= 0) return;
+                float4 duv = float4(uvs[i3], uvs[i2]) - uvs[i1].xyxy;
+                float tt = lengthsq(e1 * duv.w - e2 * duv.y);
+                if (tt <= 0) return;
+                float bb = lengthsq(e2 * duv.x - e1 * duv.z);
+                if (bb <= 0) return;
+                results[index] = float2(log2(tt / bb) * w, w);
             }
 
-            public readonly bool TryGetRseult(out float result) {
+            public readonly bool TryGetResult(out float result) {
                 float2 resultWeights = KahanSum(results);
                 if (resultWeights.y > 0) {
-                    result = resultWeights.x / resultWeights.y;
+                    result = exp2(resultWeights.x / resultWeights.y * 0.5f);
                     return true;
                 }
                 result = float.NaN;
