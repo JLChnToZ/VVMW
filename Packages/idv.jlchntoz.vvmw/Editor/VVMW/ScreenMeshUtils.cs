@@ -83,7 +83,26 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                             newMat = mat;
                             Undo.RecordObject(newMat, "Fixup Aspect Ratio in Material");
                         } else {
-                            newMat = new Material(mat) { parent = mat };
+                            newMat = new Material(mat);
+                            var shader = mat.shader;
+                            int propertyCount = shader.GetPropertyCount();
+                            var parentMat = mat;
+                            do {
+                                bool hasOtherPropertyChanged = false;
+                                for (int i = 0; i < propertyCount; i++) {
+                                    int id = shader.GetPropertyNameId(i);
+                                    if (id != aspectRatioID &&
+                                        mat.IsPropertyOverriden(id)) {
+                                        hasOtherPropertyChanged = true;
+                                        break;
+                                    }
+                                }
+                                if (hasOtherPropertyChanged) {
+                                    newMat.parent = parentMat;
+                                    break;
+                                }
+                                parentMat = parentMat.parent;
+                            } while (parentMat != null);
                             generatedMaterials.Add((assetPath, newMat, aspectRatio));
                         }
                         newMat.SetFloat(aspectRatioID, aspectRatio);
