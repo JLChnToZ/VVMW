@@ -94,6 +94,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                         sharedMaterials[index] = newMat;
                         Undo.RecordObject(mr, "Fixup Aspect Ratio in Material");
                         mr.sharedMaterials = sharedMaterials;
+                        if (PrefabUtility.IsPartOfPrefabInstance(mr))
+                            PrefabUtility.RecordPrefabInstancePropertyModifications(mr);
                     }
                     ListPool<(MeshRenderer, int)>.Release(kv.Value);
                 }
