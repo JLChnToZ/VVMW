@@ -167,6 +167,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     if (b == target) DrawBanner();
                     break;
                 }
+            if (GUILayout.Button(i18n.GetOrDefault("GlobalSettings"))) GlobalSettingsEditorWindow.ShowWindow();
             if (isUdonSharp) {
                 using (new EditorGUILayout.VerticalScope(GUI.skin.box))
                 using (new EditorGUI.IndentLevelScope()) {

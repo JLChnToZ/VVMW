@@ -102,16 +102,16 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     string path;
                     string postfix = $"_Adjusted_{HumanizeAspectRatio(aspectRatio)}";
                     if (!string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/"))
-                        path = AssetDatabase.GenerateUniqueAssetPath(assetPath.Insert(assetPath.LastIndexOf('.'), postfix));
+                        path = assetPath.Insert(assetPath.LastIndexOf('.'), postfix);
                     else {
                         if (!hasValidatedFolder) {
                             hasValidatedFolder = true;
                             if (!AssetDatabase.IsValidFolder(directory))
                                 AssetDatabase.CreateFolder("Assets", "VizVid_Generated");
                         }
-                        path = AssetDatabase.GenerateUniqueAssetPath($"{directory}{mat.name}{postfix}.mat");
+                        path = $"{directory}{mat.name}{postfix}.mat";
                     }
-                    AssetDatabase.CreateAsset(mat, path);
+                    AssetDatabase.CreateAsset(mat, AssetDatabase.GenerateUniqueAssetPath(path));
                 }
             }
         }

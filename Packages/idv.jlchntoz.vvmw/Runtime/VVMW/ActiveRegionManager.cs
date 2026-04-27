@@ -2,12 +2,13 @@
 using UnityEngine;
 using UdonSharp;
 using VRC.SDKBase;
+using VRC.SDK3.Data;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
-using VRC.SDK3.Data;
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
 using System.Collections.Generic;
+using JLChnToZ.VRC.VVMW.Designer;
 #endif
 
 namespace JLChnToZ.VRC.VVMW {
@@ -18,7 +19,7 @@ namespace JLChnToZ.VRC.VVMW {
     [AddComponentMenu("VizVid/Components/Active Region Manager")]
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     public partial class ActiveRegionManager : UdonSharpEventSender {
-        [SerializeField, LocalizedLabel, LocalizedEnum] CoreMatchingStrategy coreControlStrategy = CoreMatchingStrategy.All;
+        [SerializeField, LocalizedLabel, LocalizedEnum] internal CoreMatchingStrategy coreControlStrategy = CoreMatchingStrategy.All;
         [SerializeField, HideInInspector, BindUdonSharpEvent] Core[] cores;
         [SerializeField, HideInInspector] Bounds[] coreBounds;
         [SerializeField, HideInInspector] Transform[] coreBoundsReferenceTransforms;
@@ -170,6 +171,10 @@ namespace JLChnToZ.VRC.VVMW {
                 coreBoundsReferenceTransforms = boundsRefTransforms.ToArray();
                 boundsCount = coreBounds.Length;
                 if (alwaysActiveCoreOffset >= coreCount) coreControlStrategy = CoreMatchingStrategy.All;
+                else {
+                    var globalSettings = FindObjectOfType<GlobalSettings>(true);
+                    if (globalSettings != null) coreControlStrategy = globalSettings.DefaultCoreMatchingStrategy;
+                }
             }
         }
     }

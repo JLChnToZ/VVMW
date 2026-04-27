@@ -280,6 +280,7 @@ namespace JLChnToZ.VRC.VVMW {
             playListLastInteractTime = DateTime.UtcNow;
             SelectedPlayListIndex = Mathf.Max(1, handler.PlayListIndex);
             UpdatePlayList();
+            if (Utilities.IsValid(playListGameObject)) playListGameObject.SetActive(false);
         }
 
 #if COMPILER_UDONSHARP
@@ -289,6 +290,7 @@ namespace JLChnToZ.VRC.VVMW {
             SelectedPlayListIndex = 0;
             playListLastInteractTime = DateTime.UtcNow;
             UpdatePlayList();
+            if (Utilities.IsValid(playListGameObject)) playListGameObject.SetActive(false);
         }
 
 #if COMPILER_UDONSHARP
@@ -298,6 +300,7 @@ namespace JLChnToZ.VRC.VVMW {
             SelectedPlayListIndex = -1;
             playListLastInteractTime = DateTime.UtcNow;
             UpdatePlayList();
+            if (Utilities.IsValid(playListGameObject)) playListGameObject.SetActive(false);
         }
     }
 }

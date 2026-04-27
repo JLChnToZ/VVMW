@@ -4,11 +4,17 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+using UnityEditor;
+using UnityEditor.SceneManagement;
+#endif
 
 namespace JLChnToZ.VRC.VVMW {
     [EditorOnly, ExecuteInEditMode]
     [AddComponentMenu("VizVid/Active Region Config")]
     public class ActiveRegionConfig : MonoBehaviour, IVizVidCompoonent {
+        const string activeRegionManagerPrefabPath = "Packages/idv.jlchntoz.vvmw/Prefabs/Active Region Manager.prefab";
+        static ActiveRegionManager activeRegionManager;
         static readonly ConditionalWeakTable<Core, List<ActiveRegionConfig>> regionConfigTable =
             new ConditionalWeakTable<Core, List<ActiveRegionConfig>>();
         [SerializeField, Locatable(
@@ -37,13 +43,17 @@ namespace JLChnToZ.VRC.VVMW {
 
         void OnValidate() {
             if (core == lastCore) return;
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.delayCall += UpdateValue;
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+            if (EditorApplication.isPlayingOrWillChangePlaymode ||
+                PrefabStageUtility.GetCurrentPrefabStage() != null)
+                return;
+            EditorApplication.delayCall += UpdateValue;
 #endif
         }
 
         void UpdateValue() {
             if (core == lastCore) return;
+            EnsureActiveRegionManagerExists();
             if (lastCore != null) {
                 if (regionConfigTable.TryGetValue(lastCore, out var list)) {
                     list.Remove(this);
@@ -62,6 +72,30 @@ namespace JLChnToZ.VRC.VVMW {
                 regionConfigTable.Add(core, list);
             }
             list.Add(this);
+#endif
+        }
+
+        void EnsureActiveRegionManagerExists() {
+#if !COMPILER_UDONSHARP && UNITY_EDITOR
+            if (activeRegionManager != null) return;
+            activeRegionManager = FindObjectOfType<ActiveRegionManager>();
+            if (activeRegionManager != null) return;
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(activeRegionManagerPrefabPath);
+            if (prefab == null) {
+                Debug.LogError($"Failed to load Active Region Manager prefab at path: {activeRegionManagerPrefabPath}");
+                return;
+            }
+            var instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            if (instance == null) {
+                Debug.LogError("Failed to instantiate Active Region Manager prefab.");
+                return;
+            }
+            
+            if (!instance.TryGetComponent(out activeRegionManager)) {
+                Undo.DestroyObjectImmediate(instance);
+                Debug.LogError("The instantiated Active Region Manager prefab does not contain an ActiveRegionManager component.");
+                return;
+            }
 #endif
         }
     }
