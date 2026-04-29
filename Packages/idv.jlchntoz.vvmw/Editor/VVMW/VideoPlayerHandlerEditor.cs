@@ -15,6 +15,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             isAvProProperty,
             playerNameProperty,
             primaryAudioSourceProperty,
+            primaryAudioSourceRProperty,
             useFlickerWorkaroundProperty,
             blitMaterialProperty,
             fallbackHandlerProperty;
@@ -31,6 +32,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             playerNameProperty = serializedObject.FindProperty("playerName");
             isAvProProperty = serializedObject.FindProperty("isAvPro");
             primaryAudioSourceProperty = serializedObject.FindProperty("primaryAudioSource");
+            primaryAudioSourceRProperty = serializedObject.FindProperty("primaryAudioSourceR");
             useFlickerWorkaroundProperty = serializedObject.FindProperty("useFlickerWorkaround");
             blitMaterialProperty = serializedObject.FindProperty("blitMaterial");
             fallbackHandlerProperty = serializedObject.FindProperty("fallbackHandler");
@@ -102,7 +104,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
             }
             EditorGUILayout.PropertyField(primaryAudioSourceProperty);
-            if (isAvProProperty.boolValue) {
+            var isAvPro = isAvProProperty.boolValue;
+            if ((primaryAudioSourceProperty.objectReferenceValue != null && isAvPro) ||
+                primaryAudioSourceRProperty.objectReferenceValue != null)
+                EditorGUILayout.PropertyField(primaryAudioSourceRProperty);
+            if (isAvPro) {
                 EditorGUILayout.PropertyField(useFlickerWorkaroundProperty);
                 if (useFlickerWorkaroundProperty.boolValue)
                     EditorGUILayout.PropertyField(blitMaterialProperty);
