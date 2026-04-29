@@ -8,12 +8,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         BoxBoundsHandle boundsHandle;
         SerializedProperty boundsProp;
         SerializedProperty staticRegionProp;
+        SerializedProperty useWorldSpaceBoundsProp;
 
         protected override void OnEnable() {
             base.OnEnable();
             boundsHandle = new BoxBoundsHandle();
             boundsProp = serializedObject.FindProperty(nameof(ActiveRegionConfig.bounds));
             staticRegionProp = serializedObject.FindProperty(nameof(ActiveRegionConfig.staticRegion));
+            useWorldSpaceBoundsProp = serializedObject.FindProperty(nameof(ActiveRegionConfig.useWorldSpaceBounds));
         }
 
         public override void DrawInspectorGUI() {
@@ -29,7 +31,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             boundsHandle.center = bounds.center;
             boundsHandle.size = bounds.size;
             using (var changed = new EditorGUI.ChangeCheckScope())
-            using (new Handles.DrawingScope(staticRegionProp.boolValue ? Matrix4x4.identity : transform.localToWorldMatrix)) {
+            using (new Handles.DrawingScope(staticRegionProp.boolValue && useWorldSpaceBoundsProp.boolValue ? Matrix4x4.identity : transform.localToWorldMatrix)) {
                 boundsHandle.DrawHandle();
                 if (changed.changed)
                     boundsProp.boundsValue = new Bounds(boundsHandle.center, boundsHandle.size);

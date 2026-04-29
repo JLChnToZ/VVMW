@@ -23,6 +23,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, BindUdonSharpEvent] Core[] cores;
         [SerializeField, HideInInspector] Bounds[] coreBounds;
         [SerializeField, HideInInspector] Transform[] coreBoundsReferenceTransforms;
+        [SerializeField, HideInInspector] Matrix4x4[] coreBoundsReferenceMatrices;
         [SerializeField, HideInInspector] int[] coreBoundsMatchOffset;
         [SerializeField, HideInInspector] int coreCount, boundsCount, alwaysActiveCoreOffset;
         [NonSerialized] public Core core;
@@ -96,7 +97,9 @@ namespace JLChnToZ.VRC.VVMW {
                 } while (i >= matchIndex && ++j < coreCount);
                 var bounds = coreBounds[i];
                 var refTransform = coreBoundsReferenceTransforms[i];
-                var localPos = Utilities.IsValid(refTransform) ? refTransform.InverseTransformPoint(headPos) : headPos;
+                var localPos = Utilities.IsValid(refTransform) ?
+                    refTransform.InverseTransformPoint(headPos) :
+                    coreBoundsReferenceMatrices[i].MultiplyPoint3x4(headPos);
                 if (bounds.Contains(localPos)) {
                     closestDist = -1;
                     closestCore = cores[j - 1];
@@ -147,17 +150,21 @@ namespace JLChnToZ.VRC.VVMW {
             using (PooledObjectExtensions.Get(out List<Bounds> bounds))
             using (PooledObjectExtensions.Get(out List<Core> coreList))
             using (PooledObjectExtensions.Get(out List<int> coreBoundsOffsetList))
-            using (PooledObjectExtensions.Get(out List<Transform> boundsRefTransforms)) {
+            using (PooledObjectExtensions.Get(out List<Transform> boundsRefTransforms))
+            using (PooledObjectExtensions.Get(out List<Matrix4x4> boundsRefMatrices)) {
                 coreBoundsOffsetList.Add(0);
                 foreach (var core in gameObject.scene.IterateAllComponents<Core>()) {
                     int count = 0;
                     foreach (var boundData in ActiveRegionConfig.GetRegionConfigs(core)) {
                         bounds.Add(boundData.bounds);
-                        boundsRefTransforms.Add(boundData.staticRegion ? null : boundData.transform);
+                        var boundTransform = boundData.transform;
+                        boundsRefTransforms.Add(boundData.staticRegion ? null : boundTransform);
+                        boundsRefMatrices.Add(boundData.useWorldSpaceBounds ? boundTransform.worldToLocalMatrix : Matrix4x4.identity);
                         count++;
                     }
                     if (count == 0) {
                         coreList.Insert(0, core);
+                        coreBoundsOffsetList.Insert(0, 0);
                         alwaysActiveCoreOffset++;
                     } else {
                         coreList.Add(core);
@@ -169,6 +176,7 @@ namespace JLChnToZ.VRC.VVMW {
                 coreBoundsMatchOffset = coreBoundsOffsetList.ToArray();
                 coreBounds = bounds.ToArray();
                 coreBoundsReferenceTransforms = boundsRefTransforms.ToArray();
+                coreBoundsReferenceMatrices = boundsRefMatrices.ToArray();
                 boundsCount = coreBounds.Length;
                 if (alwaysActiveCoreOffset >= coreCount) coreControlStrategy = CoreMatchingStrategy.All;
                 else {

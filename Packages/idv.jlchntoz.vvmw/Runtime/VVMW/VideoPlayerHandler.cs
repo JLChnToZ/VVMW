@@ -30,7 +30,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] string texturePropertyName = "_MainTex";
         [SerializeField, LocalizedLabel] string speedParameterName = "Speed";
         [SerializeField, LocalizedLabel] bool useSharedMaterial = true;
-        [SerializeField, LocalizedLabel] AudioSource primaryAudioSource;
+        [SerializeField, LocalizedLabel] AudioSource primaryAudioSource, primaryAudioSourceR;
         [SerializeField, HideInInspector, Resolve(nameof(primaryAudioSource), NullOnly = false)] GameObject primaryAudioSourceGO;
         [SerializeField, LocalizedLabel] bool useFlickerWorkaround = true;
         [SerializeField] bool isAvPro;
@@ -106,6 +106,13 @@ namespace JLChnToZ.VRC.VVMW {
         internal protected
 #endif
         override AudioSource PrimaryAudioSource => primaryAudioSource;
+
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override AudioSource PrimaryAudioSourceR => primaryAudioSourceR;
 
 #if COMPILER_UDONSHARP
         public
@@ -441,6 +448,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void UpdatePrimaryAudioSourcePitch() {
             if (Utilities.IsValid(primaryAudioSource)) primaryAudioSource.pitch = actualPlaybackSpeed;
+            if (Utilities.IsValid(primaryAudioSourceR)) primaryAudioSourceR.pitch = actualPlaybackSpeed;
         }
 
         void ClearTexture() {
@@ -537,14 +545,8 @@ namespace JLChnToZ.VRC.VVMW {
                         screenSo.FindProperty("useSharedMaterial").boolValue = false;
                         screenSo.ApplyModifiedPropertiesWithoutUndo();
                     }
-                    if (Utilities.IsValid(primaryAudioSource)) {
-                        if (!primaryAudioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker))
-                            speaker = primaryAudioSourceGO.AddComponent<VRCAVProVideoSpeaker>();
-                        using (var speakerSo = new SerializedObject(speaker)) {
-                            speakerSo.FindProperty("videoPlayer").objectReferenceValue = videoPlayer;
-                            speakerSo.ApplyModifiedPropertiesWithoutUndo();
-                        }
-                    }
+                    bool hasRight = ApplyAVProSpeaker(primaryAudioSourceR, 2);
+                    ApplyAVProSpeaker(primaryAudioSource, hasRight ? 1 : 0);
                 } else if (videoPlayer is VRCUnityVideoPlayer) {
                     urlType = TrustedUrlTypes.UnityVideo;
                     videoPlayerSo.FindProperty("renderMode").intValue = 1;
@@ -562,6 +564,18 @@ namespace JLChnToZ.VRC.VVMW {
             isAvPro = urlType == TrustedUrlTypes.AVProDesktop;
             useSharedMaterial = isAvPro;
             if (Utilities.IsValid(applyTurstedUrl)) applyTurstedUrl(urlType, ref trustedUrlDomains);
+        }
+
+        bool ApplyAVProSpeaker(AudioSource audioSource, int channelMode) {
+            if (!Utilities.IsValid(audioSource)) return false;
+            if (!audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker))
+                speaker = audioSource.gameObject.AddComponent<VRCAVProVideoSpeaker>();
+            using (var speakerSo = new SerializedObject(speaker)) {
+                speakerSo.FindProperty("videoPlayer").objectReferenceValue = videoPlayer;
+                speakerSo.FindProperty("channelMode").intValue = channelMode;
+                speakerSo.ApplyModifiedPropertiesWithoutUndo();
+            }
+            return true;
         }
 #endif
     }

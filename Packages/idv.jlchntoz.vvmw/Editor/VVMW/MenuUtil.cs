@@ -201,6 +201,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             EditorUtility.SetDirty(core);
             if (core.playerHandlers == null || core.playerHandlers.Length == 0) return;
+            AudioSource left = null, right = null, stereo = null;
             foreach (var handler in core.playerHandlers) {
                 var vph = handler as VideoPlayerHandler;
                 if (vph == null) continue;
@@ -209,8 +210,38 @@ namespace JLChnToZ.VRC.VVMW {
                         if (!audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) continue;
                         using (var so = new SerializedObject(speaker)) {
                             so.FindProperty("videoPlayer").objectReferenceValue = avpro;
+                            switch (so.FindProperty("channelMode").intValue) {
+                                case 0: if (stereo == null) stereo = audioSource; break;
+                                case 1: if (left == null) left = audioSource; break;
+                                case 2: if (right == null) right = audioSource; break;
+                            }
                             so.ApplyModifiedProperties();
                         }
+                    }
+                    if (stereo != null) left = right = stereo;
+                    using (var vphSo = new SerializedObject(vph)) {
+                        var leftProp = vphSo.FindProperty("primaryAudioSource");
+                        var rightProp = vphSo.FindProperty("primaryAudioSourceR");
+                        var ogLeft = leftProp.objectReferenceValue as AudioSource;
+                        bool hasOgLeft = false, hasOgRight = false, hasOgStereo = false;
+                        switch (TryDetermineSpeakerChannelMode(ogLeft)) {
+                            case 0: hasOgStereo = true; break;
+                            case 1: hasOgLeft = true; break;
+                            case 2: hasOgRight = true; break;
+                        }
+                        var ogRight = rightProp.objectReferenceValue as AudioSource;
+                        switch (TryDetermineSpeakerChannelMode(ogRight)) {
+                            case 2: hasOgRight = true; break;
+                        }
+                        if (hasOgStereo)
+                            left = right = stereo;
+                        else {
+                            if (hasOgLeft) left = ogLeft;
+                            if (hasOgRight) right = ogRight;
+                        }
+                        leftProp.objectReferenceValue = left;
+                        rightProp.objectReferenceValue = right;
+                        vphSo.ApplyModifiedProperties();
                     }
                     continue;
                 }
@@ -226,6 +257,12 @@ namespace JLChnToZ.VRC.VVMW {
                     continue;
                 }
             }
+        }
+
+        static int TryDetermineSpeakerChannelMode(AudioSource audioSource) {
+            if (audioSource == null) return -1;
+            if (!audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) return -1;
+            using (var so = new SerializedObject(speaker)) return so.FindProperty("channelMode").intValue;
         }
 
         [MenuItem(createMenuRoot + "Modules/Auto Play On Near (Local Only)", false, 148)]

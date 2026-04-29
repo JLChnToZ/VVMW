@@ -81,6 +81,13 @@ namespace JLChnToZ.VRC.VVMW {
 #else
         internal protected
 #endif
+        virtual AudioSource PrimaryAudioSourceR => PrimaryAudioSource;
+
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
         virtual float Time { get => 0; set { } }
 
 #if COMPILER_UDONSHARP

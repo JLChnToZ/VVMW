@@ -13,7 +13,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel, FieldChangeCallback(nameof(Muted))]
         bool defaultMuted = false;
         [SerializeField, LocalizedLabel] bool muteOnOutOfRange;
-        AudioSource assignedAudioSource;
+        AudioSource assignedAudioSource, assignedAudioSourceR;
 
         /// <summary>
         /// The volume of the audio.

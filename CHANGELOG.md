@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Render Texture as direct video screen targets. The core will blit the screen to these RTs every frame when the video is playing.
 - Fix aspect ratio button in video screen configurator.
 - Global settings window.
+- Dedicated right channel for AudioLink.
+- Option to allocate local (based on transform) active region.
 
 ### Changed
 - Canvas Utility now able to handle multiple hierarchy of non-uniform scale adjustment, making sure the UI don't stretched.
@@ -17,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 - Standalone queue list / history list button not collapsing playlist selection.
+- Active region fail to match when mixed with always enabled cores.
 
 ## 1.7.0-beta.1 - 2026-04-13
 ### Added

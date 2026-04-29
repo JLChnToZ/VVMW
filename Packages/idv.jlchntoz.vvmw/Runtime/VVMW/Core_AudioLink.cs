@@ -46,10 +46,14 @@ namespace JLChnToZ.VRC.VVMW {
         void AssignAudioLinkSource() {
             if (!IsActiveInternal) return;
             assignedAudioSource = activeHandler.PrimaryAudioSource;
+            assignedAudioSourceR = activeHandler.PrimaryAudioSourceR;
             if (Utilities.IsValid(audioLink)) {
                 if (Utilities.IsValid(assignedAudioSource))
 #if AUDIOLINK_V1
+                {
                     audioLink.audioSource = assignedAudioSource;
+                    audioLink.optionalRightAudioSource = assignedAudioSourceR;
+                }
                 float duration = activeHandler.Duration;
                 SetAudioLinkPlayBackState(duration <= 0 || float.IsInfinity(duration) ? MediaPlaying.Streaming : MediaPlaying.Playing);
                 UpdateAudioLinkVolume();
