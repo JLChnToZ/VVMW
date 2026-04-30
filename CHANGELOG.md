@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 - Standalone queue list / history list button not collapsing playlist selection.
 - Active region fail to match when mixed with always enabled cores.
+- France region incorrectly displays Spanish cause by old timezone detection leftovers.
 
 ## 1.7.0-beta.1 - 2026-04-13
 ### Added
