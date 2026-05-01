@@ -4,6 +4,7 @@ using JLChnToZ.VRC.Foundation.I18N;
 using JLChnToZ.VRC.Foundation.I18N.Editors;
 using UnityEditor.SceneManagement;
 using JLChnToZ.VRC.VVMW.Designer;
+using JLChnToZ.VRC.Foundation;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
 
@@ -120,7 +121,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     DrawImage(classicModeImage, 190);
                     using (var changed = new EditorGUI.ChangeCheckScope()) {
                         bool selected = EditorGUILayout.Toggle(i18n.GetLocalizedContent("BarMode"), value == 0, EditorStyles.radioButton);
-                        if (changed.changed && selected) masterSwitchStateProp.intValue = 0;
+                        if (changed.changed && selected) UpdateAllSubSwitches(0);
                     }
                 }
                 using (new EditorGUILayout.VerticalScope()) {
@@ -128,7 +129,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     DrawImage(fullscreenModeImage, 190);
                     using (var changed = new EditorGUI.ChangeCheckScope()) {
                         bool selected = EditorGUILayout.Toggle(i18n.GetLocalizedContent("FullScreenMode"), value == 1, EditorStyles.radioButton);
-                        if (changed.changed && selected) masterSwitchStateProp.intValue = 1;
+                        if (changed.changed && selected) UpdateAllSubSwitches(1);
                     }
                 }
             }
@@ -139,6 +140,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             var i18n = EditorI18N.Instance;
             EditorGUILayout.PropertyField(defaultStrategyProp, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.OverlayControl.coreControlStrategy"));
             globalSettingsSO.ApplyModifiedProperties();
+        }
+
+        void UpdateAllSubSwitches(int newState) {
+            var originalState = masterSwitchStateProp.intValue;
+            if (newState == originalState) return;
+            GlobalSettings.UpdateAllSubSwitches(masterSwitchProp.objectReferenceValue as LazySwitch, originalState, newState);
+            masterSwitchStateProp.intValue = newState;
         }
     }
 }

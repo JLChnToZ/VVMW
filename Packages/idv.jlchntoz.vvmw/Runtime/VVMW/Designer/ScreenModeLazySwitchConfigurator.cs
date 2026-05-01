@@ -29,9 +29,12 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 return;
             }
             var localSwitch = GetComponent<LazySwitch>();
+            var currentState = localSwitch.State;
+            var masterState = masterSwitch.State;
             using (var so = new SerializedObject(localSwitch)) {
                 var masterSwitchProp = so.FindProperty("masterSwitch");
                 masterSwitchProp.objectReferenceValue = masterSwitch;
+                if (currentState != masterState) GlobalSettings.UpdateSubSwitch(so, currentState, masterState);
                 so.ApplyModifiedProperties();
             }
             Undo.DestroyObjectImmediate(this);

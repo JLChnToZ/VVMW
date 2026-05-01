@@ -71,5 +71,41 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 #endif
             }
         }
+
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+        internal static void UpdateAllSubSwitches(LazySwitch masterSwitch, int originalState, int newState) {
+            if (newState == originalState) return;
+            foreach (var ls in masterSwitch.gameObject.scene.IterateAllComponents<LazySwitch>(true))
+                using (var so = new SerializedObject(ls))
+                    if (so.FindProperty("masterSwitch").objectReferenceValue == masterSwitch &&
+                        UpdateSubSwitch(so, originalState, newState))
+                        so.ApplyModifiedProperties();
+        }
+
+        internal static bool UpdateSubSwitch(SerializedObject so, int originalState, int newState) {
+            var enableState = so.FindProperty("targetObjectEnableMask");
+            var groupOffsets = so.FindProperty("targetObjectGroupOffsets");
+            return UpdateSubSwitch(enableState, groupOffsets, originalState) | UpdateSubSwitch(enableState, groupOffsets, newState);
+        }
+
+        internal static bool UpdateSubSwitch(SerializedProperty enableStates, SerializedProperty groupOffsets, int index) {
+            int startIndex = 0;
+            int endIndex = enableStates.arraySize;
+            int groupOffsetSize = groupOffsets.arraySize;
+            if (index <= 0) {
+                if (groupOffsetSize > 0) endIndex = Mathf.Min(endIndex, groupOffsets.GetArrayElementAtIndex(0).intValue);
+            } else {
+                if (groupOffsetSize < index - 1) return false;
+                startIndex = groupOffsets.GetArrayElementAtIndex(index - 1).intValue;
+                if (groupOffsetSize > index) endIndex = Mathf.Min(endIndex, groupOffsets.GetArrayElementAtIndex(index).intValue);
+            }
+            if (endIndex <= startIndex) return false;
+            for (int i = startIndex; i < endIndex; i++) {
+                var element = enableStates.GetArrayElementAtIndex(i);
+                element.intValue = element.intValue == 0 ? -1 : 0;
+            }
+            return true;
+        }
+#endif
     }
 }
