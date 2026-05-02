@@ -201,51 +201,10 @@ namespace JLChnToZ.VRC.VVMW {
             }
             EditorUtility.SetDirty(core);
             if (core.playerHandlers == null || core.playerHandlers.Length == 0) return;
-            AudioSource left = null, right = null, stereo = null;
-            foreach (var handler in core.playerHandlers) {
-                var vph = handler as VideoPlayerHandler;
-                if (vph == null) continue;
-                if (vph.TryGetComponent(out VRCAVProVideoPlayer avpro)) {
-                    foreach (var audioSource in audioSources) {
-                        if (!audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) continue;
-                        using (var so = new SerializedObject(speaker)) {
-                            so.FindProperty("videoPlayer").objectReferenceValue = avpro;
-                            switch (so.FindProperty("channelMode").intValue) {
-                                case 0: if (stereo == null) stereo = audioSource; break;
-                                case 1: if (left == null) left = audioSource; break;
-                                case 2: if (right == null) right = audioSource; break;
-                            }
-                            so.ApplyModifiedProperties();
-                        }
-                    }
-                    if (stereo != null) left = right = stereo;
-                    using (var vphSo = new SerializedObject(vph)) {
-                        var leftProp = vphSo.FindProperty("primaryAudioSource");
-                        var rightProp = vphSo.FindProperty("primaryAudioSourceR");
-                        var ogLeft = leftProp.objectReferenceValue as AudioSource;
-                        bool hasOgLeft = false, hasOgRight = false, hasOgStereo = false;
-                        switch (TryDetermineSpeakerChannelMode(ogLeft)) {
-                            case 0: hasOgStereo = true; break;
-                            case 1: hasOgLeft = true; break;
-                            case 2: hasOgRight = true; break;
-                        }
-                        var ogRight = rightProp.objectReferenceValue as AudioSource;
-                        switch (TryDetermineSpeakerChannelMode(ogRight)) {
-                            case 2: hasOgRight = true; break;
-                        }
-                        if (hasOgStereo)
-                            left = right = stereo;
-                        else {
-                            if (hasOgLeft) left = ogLeft;
-                            if (hasOgRight) right = ogRight;
-                        }
-                        leftProp.objectReferenceValue = left;
-                        rightProp.objectReferenceValue = right;
-                        vphSo.ApplyModifiedProperties();
-                    }
-                    continue;
-                }
-                if (removeDefaultAudioSource && vph.TryGetComponent(out VRCUnityVideoPlayer unity)) {
+            if (removeDefaultAudioSource)
+                foreach (var handler in core.playerHandlers) {
+                    var vph = handler as VideoPlayerHandler;
+                    if (vph == null || !vph.TryGetComponent(out VRCUnityVideoPlayer unity)) continue;
                     using (var so = new SerializedObject(unity)) {
                         var prop = so.FindProperty("targetAudioSources");
                         for (int i = 0; i < prop.arraySize; i++) {
@@ -254,7 +213,50 @@ namespace JLChnToZ.VRC.VVMW {
                             Undo.DestroyObjectImmediate(speaker);
                         }
                     }
-                    continue;
+                }
+            foreach (var handler in core.playerHandlers) {
+                var vph = handler as VideoPlayerHandler;
+                if (vph == null || !vph.TryGetComponent(out VRCAVProVideoPlayer avpro)) continue;
+                AudioSource left = null, right = null, stereo = null;
+                foreach (var audioSource in audioSources) {
+                    if (!audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) continue;
+                    using (var so = new SerializedObject(speaker)) {
+                        var videoPlayerProp = so.FindProperty("videoPlayer");
+                        var ogVideoPlayer = videoPlayerProp.objectReferenceValue;
+                        if (ogVideoPlayer != null && ogVideoPlayer != avpro) continue;
+                        videoPlayerProp.objectReferenceValue = avpro;
+                        switch (so.FindProperty("channelMode").intValue) {
+                            case 0: if (stereo == null) stereo = audioSource; break;
+                            case 1: if (left == null) left = audioSource; break;
+                            case 2: if (right == null) right = audioSource; break;
+                        }
+                        so.ApplyModifiedProperties();
+                    }
+                }
+                if (stereo != null) left = right = stereo;
+                using (var vphSo = new SerializedObject(vph)) {
+                    var leftProp = vphSo.FindProperty("primaryAudioSource");
+                    var rightProp = vphSo.FindProperty("primaryAudioSourceR");
+                    var ogLeft = leftProp.objectReferenceValue as AudioSource;
+                    bool hasOgLeft = false, hasOgRight = false, hasOgStereo = false;
+                    switch (TryDetermineSpeakerChannelMode(ogLeft)) {
+                        case 0: hasOgStereo = true; break;
+                        case 1: hasOgLeft = true; break;
+                        case 2: hasOgRight = true; break;
+                    }
+                    var ogRight = rightProp.objectReferenceValue as AudioSource;
+                    switch (TryDetermineSpeakerChannelMode(ogRight)) {
+                        case 2: hasOgRight = true; break;
+                    }
+                    if (hasOgStereo)
+                        left = right = stereo;
+                    else {
+                        if (hasOgLeft) left = ogLeft;
+                        if (hasOgRight) right = ogRight;
+                    }
+                    leftProp.objectReferenceValue = left;
+                    rightProp.objectReferenceValue = right;
+                    vphSo.ApplyModifiedProperties();
                 }
             }
         }
