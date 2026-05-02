@@ -19,6 +19,7 @@ using UnityObject = UnityEngine.Object;
 namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(Core))]
     public class CoreEditor : VVMWEditorBase {
+        const string activeRegionPrefabPath = "Packages/idv.jlchntoz.vvmw/Prefabs/Active Region.prefab";
         readonly Dictionary<Core, UdonSharpBehaviour> autoPlayControllers = new Dictionary<Core, UdonSharpBehaviour>();
         readonly List<MonoBehaviour> behaviours = new List<MonoBehaviour>();
         static readonly string[] materialModeOptions = new string[3];
@@ -149,7 +150,29 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             EditorGUILayout.PropertyField(defaultVolumeProperty);
             EditorGUILayout.PropertyField(defaultMutedProperty);
-            EditorGUILayout.PropertyField(muteOnOutOfRangeProperty);
+            using (var changed = new EditorGUI.ChangeCheckScope()) {
+                EditorGUILayout.PropertyField(muteOnOutOfRangeProperty);
+                if (changed.changed &&
+                    muteOnOutOfRangeProperty.boolValue &&
+                    !serializedObject.isEditingMultipleObjects) {
+                    var core = target as Core;
+                    var regionConfigs = ActiveRegionConfig.GetRegionConfigs(core);
+                    if (regionConfigs.Count == 0) {
+                        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(activeRegionPrefabPath);
+                        if (prefab != null) {
+                            var go = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+                            if (go != null) {
+                                go.transform.SetParent(core.transform, false);
+                                go.name = prefab.name;
+                                if (go.TryGetComponent(out ActiveRegionConfig region)) {
+                                    region.core = core;
+                                    EditorGUIUtility.PingObject(region);
+                                } else Undo.DestroyObjectImmediate(go);
+                            }
+                        }
+                    }
+                }
+            }
             if (frontendHandlerEditor != null)
                 frontendHandlerEditor.DrawRepeatShuffleProperty();
             else {

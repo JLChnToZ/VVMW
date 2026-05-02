@@ -155,7 +155,8 @@ namespace JLChnToZ.VRC.VVMW {
                 coreBoundsOffsetList.Add(0);
                 foreach (var core in gameObject.scene.IterateAllComponents<Core>()) {
                     int count = 0;
-                    foreach (var boundData in ActiveRegionConfig.GetRegionConfigs(core)) {
+                    foreach (var boundData in ActiveRegionConfig.GetRegionConfigs(core, false)) {
+                        if (boundData == null) continue;
                         bounds.Add(boundData.bounds);
                         var boundTransform = boundData.transform;
                         boundsRefTransforms.Add(boundData.staticRegion ? null : boundTransform);

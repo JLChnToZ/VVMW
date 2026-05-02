@@ -28,7 +28,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         static readonly Dictionary<(Type, string), FieldInfo> fieldCache = new Dictionary<(Type, string), FieldInfo>();
 
-        static GameObject SpawnPrefab(string path, bool spawnOnRoot = false) {
+        internal static GameObject SpawnPrefab(string path, bool spawnOnRoot = false) {
             var parent = spawnOnRoot ? null : Selection.activeTransform;
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (prefab == null) {
@@ -358,8 +358,6 @@ namespace JLChnToZ.VRC.VVMW {
 #endif
 
         [MenuItem(createMenuRoot + "Modules/Active Region", false, 170)]
-        static void CreateActiveRegion() {
-            var go = SpawnPrefab(prefabRoot + "Active Region.prefab");
-        }
+        internal static void CreateActiveRegion() => SpawnPrefab(prefabRoot + "Active Region.prefab");
     }
 }

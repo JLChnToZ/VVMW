@@ -1,6 +1,8 @@
 using UnityEngine;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
+using System;
+
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
 using UnityEditor;
@@ -17,6 +19,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
         [SerializeField] LazySwitch masterScreenModeSwitch;
         [SerializeField, LocalizedEnum] CoreMatchingStrategy defaultCoreMatchingStrategy = CoreMatchingStrategy.All;
+        [NonSerialized] bool initialized;
 
         public LazySwitch MasterScreenModeSwitch => masterScreenModeSwitch;
 
@@ -24,9 +27,11 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
         void Awake() {
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
-            if (EditorApplication.isPlayingOrWillChangePlaymode || PrefabStageUtility.GetCurrentPrefabStage() != null)
-                return;
+            if (initialized ||
+                EditorApplication.isPlayingOrWillChangePlaymode ||
+                PrefabStageUtility.GetCurrentPrefabStage() != null) return;
 #endif
+            initialized = true;
             if (instance != null) {
                 Debug.LogError("Multiple GlobalSettings instances detected. This is not supported.", this);
                 DestroyImmediate(gameObject);
@@ -35,6 +40,16 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             instance = this;
             ConfigureAllScreenModeLazySwitchConfigurators();
             DetectSteragy();
+        }
+
+        void OnValidate() {
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+            if (initialized ||
+                EditorApplication.isPlayingOrWillChangePlaymode ||
+                !gameObject.scene.IsValid() ||
+                PrefabStageUtility.GetCurrentPrefabStage() != null) return;
+            EditorApplication.delayCall += Awake;
+#endif
         }
 
         void ConfigureAllScreenModeLazySwitchConfigurators() {

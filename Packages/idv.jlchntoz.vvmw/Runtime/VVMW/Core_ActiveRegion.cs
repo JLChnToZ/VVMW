@@ -33,10 +33,10 @@ namespace JLChnToZ.VRC.VVMW {
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
         void DrawRegionGizmos() {
             int i = 0;
-            foreach (var boundData in ActiveRegionConfig.GetRegionConfigs(this)) {
+            foreach (var boundData in ActiveRegionConfig.GetRegionConfigs(this, false)) {
                 if (boundData == null) continue;
                 Gizmos.color = Color.HSVToRGB(i++ * 0.35F % 1F, 1F, 1F);
-                Gizmos.matrix = boundData.staticRegion ? Matrix4x4.identity : boundData.transform.localToWorldMatrix;
+                Gizmos.matrix = boundData.staticRegion && boundData.useWorldSpaceBounds ? Matrix4x4.identity : boundData.transform.localToWorldMatrix;
                 var size = boundData.bounds.size;
                 if (Mathf.Approximately(size.sqrMagnitude, 0))
                     Gizmos.DrawSphere(boundData.bounds.center, 0.1F);

@@ -342,6 +342,9 @@
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.staticRegion": "Static Region",
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.staticRegion:tooltip": "If enabled, the active region will be static and won't follow current attached transform.",
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.message": "This component is for defining active region for a video player.",
+        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.useWorldSpaceBounds": "Use World Space Bounds",
+        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.useWorldSpaceBounds:tooltip": "If enabled, the bounds will be defined in world space instead of local space.",
+
         "HEADER:StreamKeyGenerator": "Stream Key Generator",
         "JLChnToZ.VRC.VVMW.StreamLinkAssigner.streamKeyTemplate": "Stream Key Template",
         "JLChnToZ.VRC.VVMW.StreamLinkAssigner.streamUrlTemplate": "Stream URL Template",
@@ -723,8 +726,10 @@
         "JLChnToZ.VRC.VVMW.CoreMatchingStrategy.Nearest": "僅在邊界內，如果沒有則選擇最近的",
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.bounds": "邊界",
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.staticRegion": "靜態區域",
-        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.staticRegion:tooltip": "如果啟用，有效範圍將是靜態的，並且不會跟隨當前附加的變換。",
+        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.staticRegion:tooltip": "如果啟用，有效範圍將是靜態的，並且不會跟隨當前物件的位置改變。",
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.message": "此組件用於定義影片播放器的有效範圍。",
+        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.useWorldSpaceBounds": "使用世界空間邊界",
+        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.useWorldSpaceBounds:tooltip": "如果啟用，邊界將在世界空間中定義，而不是在本地空間中。",
         
         "HEADER:StreamKeyGenerator": "串流金鑰生成器",
         "JLChnToZ.VRC.VVMW.StreamLinkAssigner.streamKeyTemplate": "串流金鑰模板",
@@ -1107,8 +1112,10 @@
         "JLChnToZ.VRC.VVMW.CoreMatchingStrategy.Nearest": "仅在边界内，如果没有则选择最近的",
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.bounds": "边界",
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.staticRegion": "静态区域",
-        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.staticRegion:tooltip": "如果启用，活动区域将是静态的，并且不会跟随当前附加的变换。",
+        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.staticRegion:tooltip": "如果启用，活动区域将是静态的，并且不会跟随当前物件的位置变化。",
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.message": "此组件用于定义视频播放器的有效范围。",
+        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.useWorldSpaceBounds": "使用世界空间边界",
+        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.useWorldSpaceBounds:tooltip": "如果启用，边界将在世界空间中定义，而不是在本地空间中。",
 
         "HEADER:StreamKeyGenerator": "串流密钥生成器",
         "JLChnToZ.VRC.VVMW.StreamLinkAssigner.streamKeyTemplate": "串流密钥模板",
@@ -1492,6 +1499,8 @@
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.staticRegion": "静的区域",
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.staticRegion:tooltip": "このオプションを有効にすると、アクティブな領域は静的になり、現在のアタッチされた変換に追従しなくなります。",
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.message": "このコンポーネントは、ビデオプレイヤーの有効な範囲を定義するためのものです。",
+        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.useWorldSpaceBounds": "ワールドスペースのバウンズを使用",
+        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.useWorldSpaceBounds:tooltip": "有効にすると、バウンズはローカル空間ではなくワールド空間で定義されます。",
 
         "HEADER:StreamKeyGenerator": "ストリームキージェネレータ",
         "JLChnToZ.VRC.VVMW.StreamLinkAssigner.streamKeyTemplate": "ストリームキーのテンプレート",
@@ -1875,6 +1884,8 @@
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.staticRegion": "정적 영역",
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.staticRegion:tooltip": "이 옵션을 활성화하면 활성 영역이 정적이 되어 현재 연결된 트랜스폼을 따르지 않게 됩니다.",
         "JLChnToZ.VRC.VVMW.ActiveRegionConfig.message": "이 컴포넌트는 비디오 플레이어의 유효한 범위를 정의하기 위한 것입니다.",
+        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.useWorldSpaceBounds": "월드 공간 바운드 사용",
+        "JLChnToZ.VRC.VVMW.ActiveRegionConfig.useWorldSpaceBounds:tooltip": "이 옵션을 활성화하면 바운드가 로컬 공간이 아닌 월드 공간에서 정의됩니다.",
 
         "HEADER:StreamKeyGenerator": "스트림 키 생성기",
         "JLChnToZ.VRC.VVMW.StreamLinkAssigner.streamKeyTemplate": "스트림 키 템플릿",

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using JLChnToZ.VRC.VVMW.Designer;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(ActiveRegionConfig))]
@@ -37,6 +38,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     boundsProp.boundsValue = new Bounds(boundsHandle.center, boundsHandle.size);
             }
             serializedObject.ApplyModifiedProperties();
+        }
+    }
+
+    [CustomEditor(typeof(ActiveRegionManager), true)]
+    public class ActiveRegionManagerEditor : VVMWEditorBase {
+        public override void DrawInspectorGUI() {
+            if (GlobalSettings.Instance == null) base.DrawInspectorGUI();
         }
     }
 }

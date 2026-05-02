@@ -9,6 +9,8 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
 
+using UnityObject = UnityEngine.Object;
+
 namespace JLChnToZ.VRC.VVMW {
     [EditorOnly, ExecuteInEditMode]
     [AddComponentMenu("VizVid/Active Region Config")]
@@ -35,16 +37,25 @@ namespace JLChnToZ.VRC.VVMW {
                 config.Register();
         }
 
-        public static IReadOnlyCollection<ActiveRegionConfig> GetRegionConfigs(Core core) {
-            if (regionConfigTable.TryGetValue(core, out var list)) return list;
+        static bool IsObjectDestroyed(UnityObject obj) => obj == null;
+
+        public static IReadOnlyCollection<ActiveRegionConfig> GetRegionConfigs(Core core, bool checkDestroyed = true) {
+            if (regionConfigTable.TryGetValue(core, out var list)) {
+                if (checkDestroyed) list.RemoveAll(IsObjectDestroyed);
+                return list;
+            }
             return Array.Empty<ActiveRegionConfig>();
         }
-
-        void Awake() => OnValidate();
+        void Awake() {
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+            destroyCancellationToken.Register(Unregister);
+            OnValidate();
+#endif
+        }
 
         void OnValidate() {
-            if (core == lastCore) return;
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
+            if (core == lastCore) return;
             if (EditorApplication.isPlayingOrWillChangePlaymode ||
                 PrefabStageUtility.GetCurrentPrefabStage() != null)
                 return;
@@ -73,6 +84,16 @@ namespace JLChnToZ.VRC.VVMW {
                 regionConfigTable.Add(core, list);
             }
             list.Add(this);
+#endif
+        }
+
+        void Unregister() {
+#if !COMPILER_UDONSHARP && UNITY_EDITOR
+            if (core == null) return;
+            if (regionConfigTable.TryGetValue(core, out var list)) {
+                list.Remove(this);
+                if (list.Count == 0) regionConfigTable.Remove(core);
+            }
 #endif
         }
 
