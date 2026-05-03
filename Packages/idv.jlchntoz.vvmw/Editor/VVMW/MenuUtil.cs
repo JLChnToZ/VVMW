@@ -225,7 +225,7 @@ namespace JLChnToZ.VRC.VVMW {
                         var ogVideoPlayer = videoPlayerProp.objectReferenceValue;
                         if (ogVideoPlayer != null && ogVideoPlayer != avpro) continue;
                         videoPlayerProp.objectReferenceValue = avpro;
-                        switch (so.FindProperty("channelMode").intValue) {
+                        switch (so.FindProperty("mode").intValue) {
                             case 0: if (stereo == null) stereo = audioSource; break;
                             case 1: if (left == null) left = audioSource; break;
                             case 2: if (right == null) right = audioSource; break;
@@ -264,7 +264,7 @@ namespace JLChnToZ.VRC.VVMW {
         static int TryDetermineSpeakerChannelMode(AudioSource audioSource) {
             if (audioSource == null) return -1;
             if (!audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) return -1;
-            using (var so = new SerializedObject(speaker)) return so.FindProperty("channelMode").intValue;
+            using (var so = new SerializedObject(speaker)) return so.FindProperty("mode").intValue;
         }
 
         [MenuItem(createMenuRoot + "Modules/Auto Play On Near (Local Only)", false, 148)]

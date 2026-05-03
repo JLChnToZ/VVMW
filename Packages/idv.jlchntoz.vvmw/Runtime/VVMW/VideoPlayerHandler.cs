@@ -572,7 +572,7 @@ namespace JLChnToZ.VRC.VVMW {
                 speaker = audioSource.gameObject.AddComponent<VRCAVProVideoSpeaker>();
             using (var speakerSo = new SerializedObject(speaker)) {
                 speakerSo.FindProperty("videoPlayer").objectReferenceValue = videoPlayer;
-                speakerSo.FindProperty("channelMode").intValue = channelMode;
+                speakerSo.FindProperty("mode").intValue = channelMode;
                 speakerSo.ApplyModifiedPropertiesWithoutUndo();
             }
             return true;
