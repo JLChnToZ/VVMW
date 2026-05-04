@@ -667,10 +667,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             return true;
         }
 
-        public static int TryDetermineSpeakerChannelMode(AudioSource audioSource) {
-            if (audioSource == null || !audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) return -1;
-            using (var so = new SerializedObject(speaker)) return so.FindProperty("mode").intValue;
-        }
+        public static int TryDetermineSpeakerChannelMode(AudioSource audioSource) =>
+            audioSource != null && audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker) ?
+            (int)speaker.Mode : -1;
 
         static bool AppendScreen(UnityObject newTarget, ScreenProperties props) {
             int screenTargetMode;

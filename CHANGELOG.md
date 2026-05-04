@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## 1.7.2 - 2026-05-05
+### Fixed
+- Default AVPro speakers loses reference on build and thus no sound output.
+
 ## 1.7.1 - 2026-05-04
 ### Fixed
 - Not fully configure audio setup when adding additional audio source via menu.

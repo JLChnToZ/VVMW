@@ -521,7 +521,7 @@ namespace JLChnToZ.VRC.VVMW {
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
         protected override void PreProcess() {
             TrustedUrlTypes urlType = default;
-            if (!TryGetComponent(out BaseVRCVideoPlayer videoPlayer)) return;
+            if (!TryGetComponent(out videoPlayer)) return;
             if (!TryGetComponent(out Renderer renderer)) renderer = gameObject.AddComponent<MeshRenderer>();
             renderer.enabled = false;
             renderer.lightProbeUsage = LightProbeUsage.Off;
