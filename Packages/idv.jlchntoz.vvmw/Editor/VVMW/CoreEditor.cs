@@ -218,18 +218,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             DrawScreenList();
             audioSourcesList.DoLayoutList();
             var newAudioSource = EditorGUILayout.ObjectField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.audioSources:add"), null, typeof(AudioSource), true) as AudioSource;
-            if (newAudioSource != null) {
-                bool hasExisting = false;
-                for (int i = 0, count = audioSourcesProperty.arraySize; i < count; i++)
-                    if (audioSourcesProperty.GetArrayElementAtIndex(i).objectReferenceValue == newAudioSource) {
-                        hasExisting = true;
-                        break;
-                    }
-                if (!hasExisting) {
-                    var index = audioSourcesProperty.arraySize++;
-                    audioSourcesProperty.GetArrayElementAtIndex(index).objectReferenceValue = newAudioSource;
-                }
-            }
+            if (newAudioSource != null) AppendAudioSource(target as Core, newAudioSource, audioSourcesProperty);
             EditorGUILayout.PropertyField(audioLinkProperty);
             EditorGUILayout.PropertyField(yttlManagerProperty);
             EditorGUILayout.PropertyField(broadcastScreenTextureProperty);
@@ -645,8 +634,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         public static bool AddTarget(Core core, UnityObject newTarget, bool recordUndo = true, bool copyToUdon = false) {
             using (var so = new SerializedObject(core)) {
-                if (newTarget is AudioSource)
-                    AppendElement(so.FindProperty("audioSources"), newTarget);
+                if (newTarget is AudioSource audio)
+                    AppendAudioSource(core, audio, so.FindProperty("audioSources"));
                 else if (!AppendScreen(newTarget, new ScreenProperties(so)))
                     return false;
                 if (recordUndo)
@@ -676,6 +665,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             if (copyToUdon) UdonSharpEditorUtility.CopyProxyToUdon(core);
             return true;
+        }
+
+        public static int TryDetermineSpeakerChannelMode(AudioSource audioSource) {
+            if (audioSource == null || !audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) return -1;
+            using (var so = new SerializedObject(speaker)) return so.FindProperty("mode").intValue;
         }
 
         static bool AppendScreen(UnityObject newTarget, ScreenProperties props) {
@@ -710,6 +704,59 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 newTarget, screenTargetMode, -1, mainTexturePropertyName, defaultTexture, avProPropertyName, st,
                 props
             );
+            return true;
+        }
+
+        static bool AppendAudioSource(Core core, AudioSource newTarget, SerializedProperty audioSourcesProperty) {
+            if (newTarget == null) return false;
+            for (int i = 0, count = audioSourcesProperty.arraySize; i < count; i++)
+                if (audioSourcesProperty.GetArrayElementAtIndex(i).objectReferenceValue == newTarget)
+                    return false;
+            var index = audioSourcesProperty.arraySize++;
+            audioSourcesProperty.GetArrayElementAtIndex(index).objectReferenceValue = newTarget;
+            newTarget.TryGetComponent(out VRCAVProVideoSpeaker speaker);
+            var mode = TryDetermineSpeakerChannelMode(newTarget);
+            foreach (var handler in core.playerHandlers) {
+                if (handler == null || !(handler is VideoPlayerHandler)) continue;
+                bool shouldAddPrimaryAudioSource = mode >= 0 && mode < 3;
+                if (handler.TryGetComponent(out VRCUnityVideoPlayer builtin) && mode <= 0)
+                    using (var so = new SerializedObject(builtin)) {
+                        var prop = so.FindProperty("targetAudioSources");
+                        if (prop.arraySize == 0) prop.arraySize = 1;
+                        var first = prop.GetArrayElementAtIndex(0);
+                        if (first.objectReferenceValue == null) {
+                            first.objectReferenceValue = newTarget;
+                            shouldAddPrimaryAudioSource = true;
+                            so.ApplyModifiedProperties();
+                        }
+                    }
+                else if (handler.TryGetComponent(out VRCAVProVideoPlayer avp) && mode >= 0)
+                    using (var so = new SerializedObject(speaker)) {
+                        var videoPlayerProperty = so.FindProperty("videoPlayer");
+                        if (videoPlayerProperty.objectReferenceValue == null) {
+                            videoPlayerProperty.objectReferenceValue = avp;
+                            so.ApplyModifiedProperties();
+                        }
+                    }
+                if (shouldAddPrimaryAudioSource)
+                    using (var so = new SerializedObject(handler)) {
+                        switch (mode) {
+                            case -1:
+                            case 0:
+                            case 1:
+                                var leftAudioSourceProperty = so.FindProperty("primaryAudioSource");
+                                if (TryDetermineSpeakerChannelMode(leftAudioSourceProperty.objectReferenceValue as AudioSource) < 0)
+                                    leftAudioSourceProperty.objectReferenceValue = newTarget;
+                                break;
+                            case 2:
+                                var rightAudioSourceProperty = so.FindProperty("primaryAudioSourceR");
+                                if (TryDetermineSpeakerChannelMode(rightAudioSourceProperty.objectReferenceValue as AudioSource) < 0)
+                                    rightAudioSourceProperty.objectReferenceValue = newTarget;
+                                break;
+                        }
+                        so.ApplyModifiedProperties();
+                    }
+            }
             return true;
         }
 

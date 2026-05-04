@@ -13,6 +13,7 @@ using VRC.SDK3.Video.Components.AVPro;
 using JLChnToZ.VRC.Foundation.Editors;
 using JLChnToZ.VRC.Foundation.I18N;
 using JLChnToZ.VRC.Foundation.I18N.Editors;
+using JLChnToZ.VRC.VVMW.Editors;
 using JLChnToZ.VRC.VVMW.Designer;
 using VVMW.ThirdParties.Yttl;
 
@@ -239,13 +240,13 @@ namespace JLChnToZ.VRC.VVMW {
                     var rightProp = vphSo.FindProperty("primaryAudioSourceR");
                     var ogLeft = leftProp.objectReferenceValue as AudioSource;
                     bool hasOgLeft = false, hasOgRight = false, hasOgStereo = false;
-                    switch (TryDetermineSpeakerChannelMode(ogLeft)) {
+                    switch (CoreEditor.TryDetermineSpeakerChannelMode(ogLeft)) {
                         case 0: hasOgStereo = true; break;
                         case 1: hasOgLeft = true; break;
                         case 2: hasOgRight = true; break;
                     }
                     var ogRight = rightProp.objectReferenceValue as AudioSource;
-                    switch (TryDetermineSpeakerChannelMode(ogRight)) {
+                    switch (CoreEditor.TryDetermineSpeakerChannelMode(ogRight)) {
                         case 2: hasOgRight = true; break;
                     }
                     if (hasOgStereo)
@@ -259,12 +260,6 @@ namespace JLChnToZ.VRC.VVMW {
                     vphSo.ApplyModifiedProperties();
                 }
             }
-        }
-
-        static int TryDetermineSpeakerChannelMode(AudioSource audioSource) {
-            if (audioSource == null) return -1;
-            if (!audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) return -1;
-            using (var so = new SerializedObject(speaker)) return so.FindProperty("mode").intValue;
         }
 
         [MenuItem(createMenuRoot + "Modules/Auto Play On Near (Local Only)", false, 148)]

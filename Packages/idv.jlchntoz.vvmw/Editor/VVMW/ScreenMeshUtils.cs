@@ -92,7 +92,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                                 for (int i = 0; i < propertyCount; i++) {
                                     int id = shader.GetPropertyNameId(i);
                                     if (id != aspectRatioID &&
-                                        mat.IsPropertyOverriden(id)) {
+                                        parentMat.IsPropertyOverriden(id)) {
                                         hasOtherPropertyChanged = true;
                                         break;
                                     }
