@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Active region use world space bounds option flipped.
 - Active region not correctly registered in some cases.
 - Some global settings not persists.
+- Overlay control not responsible changing regions sometimes.
 
 ## 1.7.2 - 2026-05-05
 ### Fixed

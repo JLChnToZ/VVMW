@@ -263,9 +263,15 @@ namespace JLChnToZ.VRC.VVMW {
 #endif
         void _OnActiveCoreChanged() {
             core = activeRegionManager.core;
+            _OnTextureChanged();
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnMatchingCoresChanged() {
             matchingCores = activeRegionManager.matchingCores;
             matchingCoreCount = activeRegionManager.matchingCoreCount;
-            _OnTextureChanged();
         }
 
         public void _OnReload() {
@@ -382,4 +388,15 @@ namespace JLChnToZ.VRC.VVMW {
 #endif
         }
     }
+
+#if !COMPILER_UDONSHARP && UNITY_EDITOR
+    public partial class OverlayControl : ISelfPreProcess {
+        int IPrioritizedPreProcessor.Priority => 0;
+
+        void ISelfPreProcess.PreProcess() {
+            foreach (var core in gameObject.scene.IterateAllComponents<Core>())
+                core._AddListener(this);
+        }
+    }
+#endif
 }
