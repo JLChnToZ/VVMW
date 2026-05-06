@@ -4,8 +4,10 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
+
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
 using UnityEditor;
+using UnityEditor.Callbacks;
 using UnityEditor.SceneManagement;
 #endif
 
@@ -17,8 +19,8 @@ namespace JLChnToZ.VRC.VVMW {
     public class ActiveRegionConfig : MonoBehaviour, IVizVidCompoonent {
         const string activeRegionManagerPrefabPath = "Packages/idv.jlchntoz.vvmw/Prefabs/Active Region Manager.prefab";
         static ActiveRegionManager activeRegionManager;
-        static readonly ConditionalWeakTable<Core, List<ActiveRegionConfig>> regionConfigTable =
-            new ConditionalWeakTable<Core, List<ActiveRegionConfig>>();
+        static readonly ConditionalWeakTable<Core, HashSet<ActiveRegionConfig>> regionConfigTable =
+            new ConditionalWeakTable<Core, HashSet<ActiveRegionConfig>>();
         [SerializeField, Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
@@ -31,6 +33,10 @@ namespace JLChnToZ.VRC.VVMW {
 
         Core IVizVidCompoonent.Core => core;
 
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+        [InitializeOnLoadMethod]
+        [DidReloadScripts]
+#endif
         public static void RefreshAll() {
             regionConfigTable.Clear();
             foreach (var config in FindObjectsOfType<ActiveRegionConfig>(true))
@@ -40,12 +46,13 @@ namespace JLChnToZ.VRC.VVMW {
         static bool IsObjectDestroyed(UnityObject obj) => obj == null;
 
         public static IReadOnlyCollection<ActiveRegionConfig> GetRegionConfigs(Core core, bool checkDestroyed = true) {
-            if (regionConfigTable.TryGetValue(core, out var list)) {
-                if (checkDestroyed) list.RemoveAll(IsObjectDestroyed);
-                return list;
+            if (regionConfigTable.TryGetValue(core, out var set)) {
+                if (checkDestroyed) set.RemoveWhere(IsObjectDestroyed);
+                return set;
             }
             return Array.Empty<ActiveRegionConfig>();
         }
+
         void Awake() {
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
             destroyCancellationToken.Register(Unregister);
@@ -67,9 +74,9 @@ namespace JLChnToZ.VRC.VVMW {
             if (core == lastCore) return;
             EnsureActiveRegionManagerExists();
             if (lastCore != null) {
-                if (regionConfigTable.TryGetValue(lastCore, out var list)) {
-                    list.Remove(this);
-                    if (list.Count == 0) regionConfigTable.Remove(lastCore);
+                if (regionConfigTable.TryGetValue(lastCore, out var set)) {
+                    set.Remove(this);
+                    if (set.Count == 0) regionConfigTable.Remove(lastCore);
                 }
             }
             Register();
@@ -79,20 +86,20 @@ namespace JLChnToZ.VRC.VVMW {
         void Register() {
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
             if (core == null || !this.IsAvailableOnRuntime()) return;
-            if (!regionConfigTable.TryGetValue(core, out var list)) {
-                list = new List<ActiveRegionConfig>();
-                regionConfigTable.Add(core, list);
+            if (!regionConfigTable.TryGetValue(core, out var set)) {
+                set = new HashSet<ActiveRegionConfig>();
+                regionConfigTable.Add(core, set);
             }
-            list.Add(this);
+            set.Add(this);
 #endif
         }
 
         void Unregister() {
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
             if (core == null) return;
-            if (regionConfigTable.TryGetValue(core, out var list)) {
-                list.Remove(this);
-                if (list.Count == 0) regionConfigTable.Remove(core);
+            if (regionConfigTable.TryGetValue(core, out var set)) {
+                set.Remove(this);
+                if (set.Count == 0) regionConfigTable.Remove(core);
             }
 #endif
         }

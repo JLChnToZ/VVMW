@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Use different origin as player position detection.
+
+### Fixed
+- Error on using direct RenderTexture and LTCGI together.
+- Active region use world space bounds option flipped.
+- Active region not correctly registered in some cases.
+- Some global settings not persists.
 
 ## 1.7.2 - 2026-05-05
 ### Fixed

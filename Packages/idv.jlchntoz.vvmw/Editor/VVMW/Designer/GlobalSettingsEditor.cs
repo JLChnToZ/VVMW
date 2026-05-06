@@ -1,10 +1,9 @@
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using JLChnToZ.VRC.Foundation.I18N;
 using JLChnToZ.VRC.Foundation.I18N.Editors;
-using UnityEditor.SceneManagement;
 using JLChnToZ.VRC.VVMW.Designer;
-using JLChnToZ.VRC.Foundation;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
 
@@ -30,7 +29,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         GlobalSettings globalSettings;
         Texture2D fullscreenModeImage, classicModeImage;
         SerializedObject globalSettingsSO, unlockModeSwitchSO;
-        SerializedProperty masterSwitchProp, defaultStrategyProp, masterSwitchStateProp;
+        SerializedProperty masterSwitchProp, defaultStrategyProp, playerDetectOriginProp, masterSwitchStateProp;
 
         static void ResolveImage(ref Texture2D image, string guid) {
             if (image != null) return;
@@ -97,6 +96,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 globalSettingsSO = new SerializedObject(globalSettings);
                 masterSwitchProp = globalSettingsSO.FindProperty("masterScreenModeSwitch");
                 defaultStrategyProp = globalSettingsSO.FindProperty("defaultCoreMatchingStrategy");
+                playerDetectOriginProp = globalSettingsSO.FindProperty("playerDetectOrigin");
             }
             globalSettingsSO.Update();
             var masterSwitch = masterSwitchProp.objectReferenceValue;
@@ -139,6 +139,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         void DrawSteragySettings() {
             var i18n = EditorI18N.Instance;
             EditorGUILayout.PropertyField(defaultStrategyProp, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.OverlayControl.coreControlStrategy"));
+            EditorGUILayout.PropertyField(playerDetectOriginProp, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.OverlayControl.playerDetectOrigin"));
             globalSettingsSO.ApplyModifiedProperties();
         }
 

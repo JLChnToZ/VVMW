@@ -3,6 +3,7 @@ using UnityEngine;
 using UdonSharp;
 using VRC.SDKBase;
 using VRC.SDK3.Data;
+using VRC.SDK3.Rendering;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
 
@@ -20,6 +21,7 @@ namespace JLChnToZ.VRC.VVMW {
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     public partial class ActiveRegionManager : UdonSharpEventSender {
         [SerializeField, LocalizedLabel, LocalizedEnum] internal CoreMatchingStrategy coreControlStrategy = CoreMatchingStrategy.All;
+        [SerializeField, LocalizedLabel, LocalizedEnum] internal PlayerDetectOrigin playerDetectOrigin = PlayerDetectOrigin.Head;
         [SerializeField, HideInInspector, BindUdonSharpEvent] Core[] cores;
         [SerializeField, HideInInspector] Bounds[] coreBounds;
         [SerializeField, HideInInspector] Transform[] coreBoundsReferenceTransforms;
@@ -33,7 +35,9 @@ namespace JLChnToZ.VRC.VVMW {
         DataDictionary lastCores = new DataDictionary();
         bool afterFirstRun, matchingRunning;
         VRCPlayerApi localPlayer;
+        VRCCameraSettings screenCamera;
         bool matchingCoreChanged;
+        Vector3 playerOffset;
 
         void OnEnable() {
             localPlayer = Networking.LocalPlayer;
@@ -46,8 +50,10 @@ namespace JLChnToZ.VRC.VVMW {
                 matchingRunning = true;
                 SendCustomEventDelayedFrames(nameof(_UpdateMatching), 0);
             }
+            playerOffset = new Vector3(0, localPlayer.GetAvatarEyeHeightAsMeters(), 0);
             if (afterFirstRun) return;
             afterFirstRun = true;
+            screenCamera = VRCCameraSettings.ScreenCamera;
             if (!Utilities.IsValid(matchingCores) || matchingCores.Length < cores.Length) {
                 if (isMatchingAll) {
                     matchingCores = cores;
@@ -77,6 +83,11 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
+        public override void OnAvatarEyeHeightChanged(VRCPlayerApi player, float prevEyeHeightAsMeters) {
+            if (playerDetectOrigin != PlayerDetectOrigin.PositionWithPlayerHeight) return;
+            playerOffset = new Vector3(0, localPlayer.GetAvatarEyeHeightAsMeters(), 0);
+        }
+
 #if COMPILER_UDONSHARP
         public
 #endif
@@ -86,7 +97,21 @@ namespace JLChnToZ.VRC.VVMW {
                 return;
             }
             SendCustomEventDelayedSeconds(nameof(_UpdateMatching), 0.1F);
-            var headPos = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
+            Vector3 headPos = default;
+            switch (playerDetectOrigin) {
+                case PlayerDetectOrigin.Head:
+                    headPos = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
+                    break;
+                case PlayerDetectOrigin.Position:
+                    headPos = localPlayer.GetPosition();
+                    break;
+                case PlayerDetectOrigin.PositionWithPlayerHeight:
+                    headPos = localPlayer.GetPosition() + playerOffset;
+                    break;
+                case PlayerDetectOrigin.ScreenCamera:
+                    headPos = screenCamera.Position;
+                    break;
+            }
             var closestCore = alwaysActiveCoreOffset > 0 ? cores[0] : null;
             float closestDist = float.PositiveInfinity;
             matchingCoreCount = alwaysActiveCoreOffset;
@@ -140,6 +165,15 @@ namespace JLChnToZ.VRC.VVMW {
             core.SetActive(true);
             matchingCoreChanged = true;
         }
+
+#if !COMPILER_UDONSHARP && UNITY_EDITOR
+        void OnValidate() {
+            var globalSettings = GlobalSettings.Instance;
+            if (globalSettings == null) return;
+            coreControlStrategy = globalSettings.DefaultCoreMatchingStrategy;
+            playerDetectOrigin = globalSettings.PlayerDetectOrigin;
+        }
+#endif
     }
 
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
@@ -160,7 +194,7 @@ namespace JLChnToZ.VRC.VVMW {
                         bounds.Add(boundData.bounds);
                         var boundTransform = boundData.transform;
                         boundsRefTransforms.Add(boundData.staticRegion ? null : boundTransform);
-                        boundsRefMatrices.Add(boundData.useWorldSpaceBounds ? boundTransform.worldToLocalMatrix : Matrix4x4.identity);
+                        boundsRefMatrices.Add(boundData.useWorldSpaceBounds ? Matrix4x4.identity : boundTransform.worldToLocalMatrix);
                         count++;
                     }
                     if (count == 0) {
@@ -182,7 +216,10 @@ namespace JLChnToZ.VRC.VVMW {
                 if (alwaysActiveCoreOffset >= coreCount) coreControlStrategy = CoreMatchingStrategy.All;
                 else {
                     var globalSettings = FindObjectOfType<GlobalSettings>(true);
-                    if (globalSettings != null) coreControlStrategy = globalSettings.DefaultCoreMatchingStrategy;
+                    if (globalSettings != null) {
+                        coreControlStrategy = globalSettings.DefaultCoreMatchingStrategy;
+                        playerDetectOrigin = globalSettings.PlayerDetectOrigin;
+                    }
                 }
             }
         }
@@ -193,5 +230,12 @@ namespace JLChnToZ.VRC.VVMW {
         All,
         Bounds,
         Nearest,
+    }
+
+    public enum PlayerDetectOrigin {
+        Head,
+        ScreenCamera,
+        Position,
+        PositionWithPlayerHeight,
     }
 }

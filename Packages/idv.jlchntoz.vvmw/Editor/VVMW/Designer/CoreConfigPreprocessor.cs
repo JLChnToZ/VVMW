@@ -6,7 +6,7 @@ using JLChnToZ.VRC.Foundation.Editors;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     internal class CoreConfigPreprocessor : IPreprocessor {
-        public int Priority => 100;
+        public int Priority => 99;
 
         public void OnPreprocess(Scene scene) {
             foreach (var core in scene.IterateAllComponents<Core>()) {

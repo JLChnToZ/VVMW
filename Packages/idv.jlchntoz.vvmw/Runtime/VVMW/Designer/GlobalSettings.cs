@@ -1,9 +1,8 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
-using System;
-
-
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -19,11 +18,15 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
         [SerializeField] LazySwitch masterScreenModeSwitch;
         [SerializeField, LocalizedEnum] CoreMatchingStrategy defaultCoreMatchingStrategy = CoreMatchingStrategy.All;
+        [SerializeField, LocalizedEnum] PlayerDetectOrigin playerDetectOrigin = PlayerDetectOrigin.Head;
+        [SerializeField, HideInInspector] List<ActiveRegionManager> activeRegionManagers = new List<ActiveRegionManager>();
         [NonSerialized] bool initialized;
 
         public LazySwitch MasterScreenModeSwitch => masterScreenModeSwitch;
 
         public CoreMatchingStrategy DefaultCoreMatchingStrategy => defaultCoreMatchingStrategy;
+
+        public PlayerDetectOrigin PlayerDetectOrigin => playerDetectOrigin;
 
         void Awake() {
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
@@ -60,6 +63,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
         void DetectSteragy() {
             int steragyAllCount = 0, steragyBoundsCount = 0, steragyNearestCount = 0;
+            int useHeadCount = 0, useCameraCount = 0, usePositionCount = 0, useHeightCount = 0;
+            foreach (var existing in activeRegionManagers)
+                if (existing != null) return;
             foreach (var activeRegionManager in FindObjectsOfType<ActiveRegionManager>(true)) {
                 if (activeRegionManager == null) continue;
                 switch (activeRegionManager.coreControlStrategy) {
@@ -73,18 +79,37 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                         steragyNearestCount++;
                         break;
                 }
+                switch (activeRegionManager.playerDetectOrigin) {
+                    case PlayerDetectOrigin.Head:
+                        useHeadCount++;
+                        break;
+                    case PlayerDetectOrigin.ScreenCamera:
+                        useCameraCount++;
+                        break;
+                    case PlayerDetectOrigin.Position:
+                        usePositionCount++;
+                        break;
+                    case PlayerDetectOrigin.PositionWithPlayerHeight:
+                        useHeightCount++;
+                        break;
+                }
+                activeRegionManagers.Add(activeRegionManager);
             }
-            var newSteragy = steragyAllCount >= steragyBoundsCount && steragyAllCount >= steragyNearestCount ?
+            defaultCoreMatchingStrategy = steragyAllCount >= steragyBoundsCount && steragyAllCount >= steragyNearestCount ?
                 CoreMatchingStrategy.All :
                 steragyBoundsCount >= steragyNearestCount ?
                 CoreMatchingStrategy.Bounds :
                 CoreMatchingStrategy.Nearest;
-            if (newSteragy != defaultCoreMatchingStrategy) {
-                defaultCoreMatchingStrategy = newSteragy;
+            playerDetectOrigin = useHeadCount >= useCameraCount && useHeadCount >= usePositionCount && useHeadCount >= useHeightCount ?
+                PlayerDetectOrigin.Head :
+                useCameraCount >= usePositionCount && useCameraCount >= useHeightCount ?
+                PlayerDetectOrigin.ScreenCamera :
+                usePositionCount >= useHeightCount ?
+                PlayerDetectOrigin.Position :
+                PlayerDetectOrigin.PositionWithPlayerHeight;
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
-                EditorUtility.SetDirty(this);
+            EditorUtility.SetDirty(this);
 #endif
-            }
         }
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP

@@ -188,6 +188,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     Array.Resize(ref core.screenTargetPropertyNames, index + 1);
                     Array.Resize(ref core.avProPropertyNames, index + 1);
                     Array.Resize(ref core.screenTargetDefaultTextures, index + 1);
+                    Array.Resize(ref core.rtScreenTargetSTs, index + 1);
                     core.screenTargets[index] = mat;
                     core.screenTargetPropertyNames[index] = "_MainTex";
                     core.avProPropertyNames[index] = "_IsAVProVideo";
