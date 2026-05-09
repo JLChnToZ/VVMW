@@ -24,7 +24,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
-        ), BindUdonSharpEvent, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
+        ), LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
         internal Core core;
         [SerializeField, LocalizedLabel] internal Bounds bounds;
         [SerializeField, LocalizedLabel] internal bool staticRegion = true;

@@ -33,9 +33,15 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
-        ), BindUdonSharpEvent, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
+        ), BindUdonSharpEvent(
+            nameof(_OnTextureChanged),
+            nameof(_OnVolumeChange)
+        ), LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
         Core core;
-        [SerializeField, HideInInspector, BindUdonSharpEvent] ActiveRegionManager activeRegionManager;
+        [SerializeField, HideInInspector, BindUdonSharpEvent(
+            nameof(_OnMatchingCoresChanged),
+            nameof(_OnActiveCoreChanged)
+        )] ActiveRegionManager activeRegionManager;
         [LocalizedHeader("HEADER:Non_VizVid_References")]
         [SerializeField, LocalizedLabel] AudioSource[] audioSources;
         [SerializeField, LocalizedLabel] GameObject[] resyncTargets;

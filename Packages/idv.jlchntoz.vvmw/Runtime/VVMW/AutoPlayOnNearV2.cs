@@ -19,7 +19,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, Locatable, LocalizedLabel(Key = "VVMW.Handler")] FrontendHandler handler;
         [SerializeField, HideInInspector, Resolve(nameof(core))] GameObject coreGO;
         [SerializeField, HideInInspector, Resolve(nameof(handler))] GameObject handlerGO;
-        [SerializeField, HideInInspector, BindUdonSharpEvent] ActiveRegionManager activeRegionManager;
+        [SerializeField, HideInInspector, BindUdonSharpEvent(nameof(_OnMatchingCoresChanged))] ActiveRegionManager activeRegionManager;
         [SerializeField] bool interruptOnEnter = true;
         [SerializeField] bool stopOnLeave = true;
         [UdonSynced] ushort[] enteredPlayerIds;

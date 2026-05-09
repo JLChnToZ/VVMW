@@ -22,7 +22,7 @@ namespace JLChnToZ.VRC.VVMW {
     public partial class ActiveRegionManager : UdonSharpEventSender {
         [SerializeField, LocalizedLabel, LocalizedEnum] internal CoreMatchingStrategy coreControlStrategy = CoreMatchingStrategy.All;
         [SerializeField, LocalizedLabel, LocalizedEnum] internal PlayerDetectOrigin playerDetectOrigin = PlayerDetectOrigin.Head;
-        [SerializeField, HideInInspector, BindUdonSharpEvent] Core[] cores;
+        [SerializeField, HideInInspector] Core[] cores;
         [SerializeField, HideInInspector] Bounds[] coreBounds;
         [SerializeField, HideInInspector] Transform[] coreBoundsReferenceTransforms;
         [SerializeField, HideInInspector] Matrix4x4[] coreBoundsReferenceMatrices;
