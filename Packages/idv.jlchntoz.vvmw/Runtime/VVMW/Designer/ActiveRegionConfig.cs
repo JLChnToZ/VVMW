@@ -28,6 +28,7 @@ namespace JLChnToZ.VRC.VVMW {
         internal Core core;
         [SerializeField, LocalizedLabel] internal Bounds bounds;
         [SerializeField, LocalizedLabel] internal bool staticRegion = true;
+        [SerializeField, LocalizedLabel] internal bool checkActive = true;
         [SerializeField, LocalizedLabel] internal bool useWorldSpaceBounds;
         [NonSerialized] Core lastCore;
 
