@@ -6,7 +6,7 @@ VizVid 是一款為 VRChat 所設計，用途廣泛的多媒體播放器前端�
 VizVid 採用模組化設計，針對任何使用情境，可根據自己的需求，選擇適合的模組，輕鬆地拼裝出屬於自己的 VizVid。  
 
 > [!NOTE]  
-> 本說明文件涵蓋 v1.6.0 或往後版本，一部分說明可能與舊版有所不同  
+> 本說明文件涵蓋 v1.7.3 或往後版本，一部分說明可能與舊版有所不同  
 
 ---
 ## 快速上手
@@ -387,7 +387,14 @@ VizVid 預設為經典解鎖模式。
 2. 於 Inspector 中，找到 `Pooled Scroll View` 元件。  
 3. 取消勾選 `Inverse Order`。  
 ![image](../resources/images/H1ZongE3Zg.png)  
-4. 完成！  
+4. 展開 `Play List Entries` 物件，依附圖選擇 `Next On Holder` 或 `Next On` 物件。  
+![image](../resources/images/rJV8ThNyzl.png)  
+5. 於 Inspector 中，依附圖調整 `Rect Transform` 的數值。  
+    * Default UI  
+    ![image](../resources/images/S1BMC2NJzg.png) ![image](../resources/images/HJijrTVkGg.png)  
+    * Screen With Overlay  
+    ![image](../resources/images/rJZx_6E1Gl.png) ![image](../resources/images/H149d641Mg.png)  
+6. 完成！  
 
 ### 使用 Overlay Control 控制場景內多個 VizVid。  
 適用於世界內有多個 VizVid。  
