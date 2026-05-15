@@ -8,7 +8,7 @@ VizVid is a versatile multimedia player frontend designed specifically for VRCha
 Built with a modular design, VizVid allows you to pick and choose the exact components you need to build a custom player tailored to your world.  
 
 > [!NOTE]  
-> This documentation covers version v1.6.0 and later. Some features or instructions may differ in older versions.  
+> This documentation covers version v1.7.3 and later. Some features or instructions may differ in older versions.  
 
 ---
 ## Quick Start  
@@ -414,7 +414,14 @@ If you prefer to use VizVid’s old version reverse-order playlist, you can chan
 2. In the inspector, find the `Pooled Scroll View` component.  
 3. Uncheck the `Inverse Order` checkbox.  
 ![image](../resources/images/H1ZongE3Zg.png)  
-5. Done!  
+4. Extend `Play List Entries` object, follow the image, select `Next On Holder` or `Next On` object.  
+![image](../resources/images/rJV8ThNyzl.png)  
+5. In the inspector, adjust `Rect Transform` by the following image.  
+    * Default UI  
+    ![image](../resources/images/S1BMC2NJzg.png) ![image](../resources/images/HJijrTVkGg.png)  
+    * Screen With Overlay  
+    ![image](../resources/images/rJZx_6E1Gl.png) ![image](../resources/images/H149d641Mg.png)  
+6. Done!  
 
 ### Controlling Multiple VizVids with Overlay Control  
 Applicable when there are multiple VizVid in a world.  
