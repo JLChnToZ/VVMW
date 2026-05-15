@@ -6,7 +6,7 @@ VizVid は、VRChat 向けに設計された多機能なビデオプレイヤー
 VizVid はモジュール化設計を採用しており、用途に合わせて必要な機能（モジュール）を選択し、自分だけのプレイヤーを簡単に構築することが可能です。  
 
 > [!NOTE]  
-> 本マニュアルは v1.6.0 以降のバージョンに対応しています。旧バージョンとは一部仕様が異なる場合がありますのでご注意ください。  
+> 本マニュアルは v1.7.3 以降のバージョンに対応しています。旧バージョンとは一部仕様が異なる場合がありますのでご注意ください。  
 
 ---
 
@@ -394,13 +394,20 @@ VRChat の AVPro バックエンドを利用することで、5.1ch サラウン
 #### プレイリストの並び順を反転させる  
 VizVidのプレイリストを旧版の逆順に調整したい場合、以下の手順を行ってください。  
 1. プレイリストオブジェクトから `Play List Entries` オブジェクトを選択します。  
-    > [!Note]
-    > 該当オブジェクトは、プレハブによって配置が異なります。
-    > ![image](../resources/images/r11e9x4hZx.png)
+    > [!Note]  
+    > 該当オブジェクトは、プレハブによって配置が異なります。  
+    > ![image](../resources/images/r11e9x4hZx.png)  
 2. 右側のインスペクターで `Pooled Scroll View` コンポーネントを探します。  
 3. `Inverse Order` のチェックを外します。  
 ![image](../resources/images/H1ZongE3Zg.png)  
-4. 設定完了です。  
+4. `Play List Entries` オブジェクトを展開し、その中にある `Next On`、もしくは `Next On Holder` オブジェクトを選択します。  
+![image](../resources/images/rJV8ThNyzl.png)  
+5. インスペクターにある `Rect Transform` の設定を、画像のように調整します。  
+    * Default UIの場合  
+    ![image](../resources/images/S1BMC2NJzg.png) ![image](../resources/images/HJijrTVkGg.png)  
+    * Screen With Overlayの場合‎  
+    ![image](../resources/images/rJZx_6E1Gl.png) ![image](../resources/images/H149d641Mg.png)  
+6. 設定完了です。  
 
 ### Overlay Control を使用してシーン内の複数の VizVid を制御する  
 ワールド内に複数の VizVid が設置されている場合に適しています。  
