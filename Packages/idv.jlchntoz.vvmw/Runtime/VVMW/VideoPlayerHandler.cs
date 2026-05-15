@@ -24,23 +24,24 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Components/Video Player Handler")]
     [DefaultExecutionOrder(0)]
-    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#builtin-module--avpro-module")]
+    [HelpURL("https://xtlcdn.github.io/VizVid/docs/#builtin-module--avpro-module")]
     public class VideoPlayerHandler : AbstractMediaPlayerHandler {
         string[] realTimeProtocols = new string[] { "rtsp", "rtmp", "rtspt", "rtspu", "rtmps", "rtsps" };
         [SerializeField, LocalizedLabel] string texturePropertyName = "_MainTex";
         [SerializeField, LocalizedLabel] string speedParameterName = "Speed";
         [SerializeField, LocalizedLabel] bool useSharedMaterial = true;
-        [SerializeField, LocalizedLabel] AudioSource primaryAudioSource;
+        [SerializeField, LocalizedLabel] AudioSource primaryAudioSource, primaryAudioSourceR;
+        [SerializeField, HideInInspector, Resolve(nameof(primaryAudioSource), NullOnly = false)] GameObject primaryAudioSourceGO;
         [SerializeField, LocalizedLabel] bool useFlickerWorkaround = true;
         [SerializeField] bool isAvPro;
         [SerializeField, LocalizedLabel] Material blitMaterial;
         [SerializeField, LocalizedLabel] bool isLowLatency;
         [SerializeField, HideInInspector] RateLimitResolver rateLimitResolver;
-        Animator animator;
+        [SerializeField, HideInInspector, Resolve(".")] Animator animator;
+        [SerializeField, HideInInspector, Resolve(".")] BaseVRCVideoPlayer videoPlayer;
+        [SerializeField, HideInInspector, Resolve(".")] new Renderer renderer;
         RenderTexture bufferedTexture;
-        bool isWaitingForTexture, isFlickerWorkaroundTextureRunning, isLoadUrlRequested;
-        BaseVRCVideoPlayer videoPlayer;
-        new Renderer renderer;
+        bool isWaitingForTexture, isReblitRunning, isLoadUrlRequested;
         MaterialPropertyBlock propertyBlock;
         int texturePropertyID, speedParameterID;
         bool isRealTimeProtocol;
@@ -57,7 +58,10 @@ namespace JLChnToZ.VRC.VVMW {
             get => isActive;
             set {
                 isActive = value;
-                if (!isActive && videoPlayer.IsPlaying) videoPlayer.Stop();
+                if (!isActive) {
+                    videoPlayer.Stop();
+                    isReady = false;
+                }
             }
         }
 
@@ -102,6 +106,13 @@ namespace JLChnToZ.VRC.VVMW {
         internal protected
 #endif
         override AudioSource PrimaryAudioSource => primaryAudioSource;
+
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        override AudioSource PrimaryAudioSourceR => primaryAudioSourceR;
 
 #if COMPILER_UDONSHARP
         public
@@ -161,11 +172,8 @@ namespace JLChnToZ.VRC.VVMW {
         void OnEnable() {
             if (afterFirstRun) return;
             afterFirstRun = true;
-            animator = GetComponent<Animator>();
-            videoPlayer = (BaseVRCVideoPlayer)GetComponent(typeof(BaseVRCVideoPlayer));
-            renderer = (Renderer)GetComponent(typeof(Renderer));
             texturePropertyID = VRCShader.PropertyToID(texturePropertyName);
-            if (animator) {
+            if (Utilities.IsValid(animator)) {
                 speedParameterID = Animator.StringToHash(speedParameterName);
                 animator.Rebind();
             }
@@ -200,10 +208,10 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void BlitBufferScreen() {
-            if (!isAvPro || !useFlickerWorkaround || isFlickerWorkaroundTextureRunning ||
-                !Utilities.IsValid(blitMaterial) || !Utilities.IsValid(texture) || !videoPlayer.IsPlaying)
+            if (!(core.enableMipmap || (isAvPro && useFlickerWorkaround && Utilities.IsValid(blitMaterial))) ||
+                isReblitRunning || !Utilities.IsValid(texture) || !videoPlayer.IsPlaying)
                 return;
-            isFlickerWorkaroundTextureRunning = true;
+            isReblitRunning = true;
             SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
             if (Utilities.IsValid(bufferedTexture) && texture.width == bufferedTexture.width && texture.height == bufferedTexture.height)
                 return;
@@ -217,22 +225,33 @@ namespace JLChnToZ.VRC.VVMW {
 #endif
         void _BlitBufferScreen() {
             if (!isActive || !videoPlayer.IsPlaying || !Utilities.IsValid(texture)) {
-                isFlickerWorkaroundTextureRunning = false;
+                isReblitRunning = false;
                 return;
             }
-            if (isPaused) // Special case: we render 1 more frame when paused.
-                isFlickerWorkaroundTextureRunning = false;
+            if (isPaused)
+                SendCustomEventDelayedSeconds(nameof(_BlitBufferScreen), 0.2F, EventTiming.LateUpdate);
             else
                 SendCustomEventDelayedFrames(nameof(_BlitBufferScreen), 0, EventTiming.LateUpdate);
             if (!Utilities.IsValid(bufferedTexture)) {
                 int width = texture.width, height = texture.height;
-                Debug.Log($"[VVMW] Created temporary render texture for {playerName}: {width}x{height}");
-                bufferedTexture = VRCRenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB64, RenderTextureReadWrite.sRGB, 1);
-                bufferedTexture.filterMode = FilterMode.Bilinear;
+                bool useMipmap = core.enableMipmap;
+                Debug.Log($"[VVMW] Created temporary render texture for {playerName}: {width}x{height} {(useMipmap ? "with" : "without")} mipmap.");
+                var descriptor = new RenderTextureDescriptor(width, height, RenderTextureFormat.ARGB64, 0, useMipmap ? -1 : 0, RenderTextureReadWrite.sRGB);
+                descriptor.msaaSamples = 1;
+                descriptor.useMipMap = useMipmap;
+                descriptor.autoGenerateMips = useMipmap;
+                bufferedTexture = VRCRenderTexture.GetTemporary(descriptor);
                 bufferedTexture.wrapMode = TextureWrapMode.Clamp;
+                bufferedTexture.useMipMap = useMipmap;
+                bufferedTexture.autoGenerateMips = useMipmap;
                 core._OnTextureChanged();
             }
-            VRCGraphics.Blit(texture, bufferedTexture, blitMaterial);
+            if (Utilities.IsValid(blitMaterial)) {
+                blitMaterial.SetTextureOffset(texturePropertyID, Vector2.zero);
+                blitMaterial.SetTextureScale(texturePropertyID, Vector2.one);  
+                VRCGraphics.Blit(texture, bufferedTexture, blitMaterial);
+            } else
+                VRCGraphics.Blit(texture, bufferedTexture);
         }
 
 #if COMPILER_UDONSHARP
@@ -336,7 +355,10 @@ namespace JLChnToZ.VRC.VVMW {
             UpdatePrimaryAudioSourcePitch();
             isPaused = false;
             isReady = true;
-            if (!isActive) return;
+            if (!isActive) {
+                videoPlayer.Stop(); // No longer your turn
+                return;
+            }
             if (!isRealTimeProtocol) {
                 float duration = videoPlayer.GetDuration();
                 if (duration <= 0 || float.IsInfinity(duration)) {
@@ -391,6 +413,7 @@ namespace JLChnToZ.VRC.VVMW {
             //    so we have to stop it manually.
             if (videoPlayer.IsPlaying) videoPlayer.Stop();
             isPaused = false;
+            isReady = false;
             if (!isActive) return;
             ClearTexture();
             core.OnVideoEnd();
@@ -425,6 +448,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void UpdatePrimaryAudioSourcePitch() {
             if (Utilities.IsValid(primaryAudioSource)) primaryAudioSource.pitch = actualPlaybackSpeed;
+            if (Utilities.IsValid(primaryAudioSourceR)) primaryAudioSourceR.pitch = actualPlaybackSpeed;
         }
 
         void ClearTexture() {
@@ -497,7 +521,7 @@ namespace JLChnToZ.VRC.VVMW {
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
         protected override void PreProcess() {
             TrustedUrlTypes urlType = default;
-            if (!TryGetComponent(out BaseVRCVideoPlayer videoPlayer)) return;
+            if (!TryGetComponent(out videoPlayer)) return;
             if (!TryGetComponent(out Renderer renderer)) renderer = gameObject.AddComponent<MeshRenderer>();
             renderer.enabled = false;
             renderer.lightProbeUsage = LightProbeUsage.Off;
@@ -521,14 +545,8 @@ namespace JLChnToZ.VRC.VVMW {
                         screenSo.FindProperty("useSharedMaterial").boolValue = false;
                         screenSo.ApplyModifiedPropertiesWithoutUndo();
                     }
-                    if (Utilities.IsValid(primaryAudioSource)) {
-                        if (!primaryAudioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker))
-                            speaker = primaryAudioSource.gameObject.AddComponent<VRCAVProVideoSpeaker>();
-                        using (var speakerSo = new SerializedObject(speaker)) {
-                            speakerSo.FindProperty("videoPlayer").objectReferenceValue = videoPlayer;
-                            speakerSo.ApplyModifiedPropertiesWithoutUndo();
-                        }
-                    }
+                    bool hasRight = ApplyAVProSpeaker(primaryAudioSourceR, 2);
+                    ApplyAVProSpeaker(primaryAudioSource, hasRight ? 1 : 0);
                 } else if (videoPlayer is VRCUnityVideoPlayer) {
                     urlType = TrustedUrlTypes.UnityVideo;
                     videoPlayerSo.FindProperty("renderMode").intValue = 1;
@@ -546,6 +564,18 @@ namespace JLChnToZ.VRC.VVMW {
             isAvPro = urlType == TrustedUrlTypes.AVProDesktop;
             useSharedMaterial = isAvPro;
             if (Utilities.IsValid(applyTurstedUrl)) applyTurstedUrl(urlType, ref trustedUrlDomains);
+        }
+
+        bool ApplyAVProSpeaker(AudioSource audioSource, int channelMode) {
+            if (!Utilities.IsValid(audioSource)) return false;
+            if (!audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker))
+                speaker = audioSource.gameObject.AddComponent<VRCAVProVideoSpeaker>();
+            using (var speakerSo = new SerializedObject(speaker)) {
+                speakerSo.FindProperty("videoPlayer").objectReferenceValue = videoPlayer;
+                speakerSo.FindProperty("mode").intValue = channelMode;
+                speakerSo.ApplyModifiedPropertiesWithoutUndo();
+            }
+            return true;
         }
 #endif
     }

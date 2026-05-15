@@ -18,13 +18,21 @@ namespace JLChnToZ.VRC.VVMW {
 #if COMPILER_UDONSHARP
         public
 #else
-        [LocalizedLabel, SerializeField] internal protected
+        [LocalizedLabel, SerializeField]
+        internal protected
 #endif
         string playerName = "";
         protected bool isActive, isReady, isPaused;
         protected Texture texture;
         protected VRCUrl currentUrl;
         [HideInInspector, SerializeField] protected string[] trustedUrlDomains = new string[0]; // This list will be fetched on build, via VRChat SDK
+        [LocalizedLabel]
+#if COMPILER_UDONSHARP
+        public
+#else
+        [SerializeField] internal
+#endif
+        AbstractMediaPlayerHandler fallbackHandler;
 
 #if COMPILER_UDONSHARP
         public
@@ -67,6 +75,13 @@ namespace JLChnToZ.VRC.VVMW {
         internal protected
 #endif
         virtual AudioSource PrimaryAudioSource => null;
+
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal protected
+#endif
+        virtual AudioSource PrimaryAudioSourceR => PrimaryAudioSource;
 
 #if COMPILER_UDONSHARP
         public
@@ -183,8 +198,10 @@ namespace JLChnToZ.VRC.VVMW {
     }
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
-    public abstract partial class AbstractMediaPlayerHandler : ISelfPreProcess {
+    public abstract partial class AbstractMediaPlayerHandler : ISelfPreProcess, IVizVidCompoonent {
         internal static ApplyTurstedUrl applyTurstedUrl; // Actual method is in TrustedUrlUtls
+
+        Core IVizVidCompoonent.Core => core;
 
         int IPrioritizedPreProcessor.Priority => -10;
 

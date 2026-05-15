@@ -36,6 +36,7 @@ Transform:
   - {fileID: 9140557118830289780}
   - {fileID: 6288594590668873365}
   - {fileID: 9218285927485749916}
+  - {fileID: 3468435034552115270}
   - {fileID: 8588780685359160618}
   - {fileID: 6288594590390066032}
   m_Father: {fileID: 0}
@@ -63,12 +64,11 @@ MonoBehaviour:
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: -7058936528202053670}
   targets: []
+  logEvents: 0
   playerHandlers:
   - {fileID: 3390069487340633333}
   - {fileID: 8750286140246044709}
   - {fileID: 477971394763837959}
-  audioSources:
-  - {fileID: 6288594590390066030}
   defaultUrl:
     url: 
   defaultQuestUrl:
@@ -76,10 +76,21 @@ MonoBehaviour:
   autoPlayPlayerType: 1
   synced: 1
   totalRetryCount: 3
+  fallbackRetryCount: 1
   retryDelay: 5.5
   autoPlayDelay: 0
-  defaultVolume: 1
+  urlInputFilter: {fileID: 0}
+  loop: 0
+  audioSources:
+  - {fileID: 6288594590390066030}
+  audioControllers: []
+  defaultVolume: 0.5
   defaultMuted: 0
+  audioLink: {fileID: 0}
+  realtimeGIUpdateInterval: 0
+  enablePersistence: 1
+  volumePersistenceKey: 
+  mutedPersistenceKey: 
   defaultTexture: {fileID: 2800000, guid: 01abd95bc275b454f9120f300635407c, type: 3}
   screenTargets: []
   screenTargetModes: 
@@ -89,10 +100,8 @@ MonoBehaviour:
   screenTargetDefaultTextures: []
   broadcastScreenTexture: 0
   broadcastScreenTextureName: _Udon_VideoTex
-  realtimeGIUpdateInterval: 0
+  enableMipmap: 0
   timeDriftDetectThreshold: 0.9
-  loop: 0
-  audioLink: {fileID: 0}
   yttl: {fileID: 0}
 --- !u!114 &-7058936528202053670
 MonoBehaviour:
@@ -534,6 +543,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3326701708841087452, guid: c3e27e64bc480724b9c19fa60b7203ca,
         type: 3}
+      propertyPath: fallbackHandler
+      value: 
+      objectReference: {fileID: 3390069487340633333}
+    - target: {fileID: 3326701708841087452, guid: c3e27e64bc480724b9c19fa60b7203ca,
+        type: 3}
       propertyPath: primaryAudioSource
       value: 
       objectReference: {fileID: 6288594590390066030}
@@ -699,6 +713,86 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5ae1d8a96f097e4fbc66eba31d21fd7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1001 &6964400617411598904
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 6288594591246789888}
+    m_Modifications:
+    - target: {fileID: 3606229401123699402, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+      propertyPath: m_Name
+      value: Active Region Manager
+      objectReference: {fileID: 0}
+    - target: {fileID: 5283309786831971120, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+      propertyPath: serializationData.Prefab
+      value: 
+      objectReference: {fileID: 5283309786831971120, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+    - target: {fileID: 5802006586329922174, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5802006586329922174, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5802006586329922174, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5802006586329922174, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5802006586329922174, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5802006586329922174, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5802006586329922174, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5802006586329922174, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5802006586329922174, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5802006586329922174, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 9bc9da9564f9e614cab11d85a7ee0100, type: 3}
+--- !u!4 &3468435034552115270 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5802006586329922174, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+    type: 3}
+  m_PrefabInstance: {fileID: 6964400617411598904}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7235254049126249952
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -802,6 +896,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: AVPro Module
       objectReference: {fileID: 0}
+    - target: {fileID: 6236179273397461378, guid: 545c2b36f7803b44eba81cc0cc8acf4c,
+        type: 3}
+      propertyPath: fallbackHandler
+      value: 
+      objectReference: {fileID: 8750286140246044709}
     - target: {fileID: 6236179273397461378, guid: 545c2b36f7803b44eba81cc0cc8acf4c,
         type: 3}
       propertyPath: primaryAudioSource

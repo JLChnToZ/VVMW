@@ -164,7 +164,7 @@ namespace JLChnToZ.VRC.VVMW {
             Debug.LogError("[Dynamic Playlist] This feature is not yet supported by current VRChat SDK.");
         }
 
-        void LoadDynamicPlaylist(int index) {}
+        void LoadDynamicPlaylist(int index) { }
     }
 }
 #endif

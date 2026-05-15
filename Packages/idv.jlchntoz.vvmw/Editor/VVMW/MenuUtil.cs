@@ -4,11 +4,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
+#if VRC_LIGHT_VOLUMES_V2
+using VRC.SDKBase;
+using VRCLightVolumes;
+#endif
+using VRC.SDK3.Video.Components;
+using VRC.SDK3.Video.Components.AVPro;
 using JLChnToZ.VRC.Foundation.Editors;
 using JLChnToZ.VRC.Foundation.I18N;
 using JLChnToZ.VRC.Foundation.I18N.Editors;
-using JLChnToZ.VRC.VVMW.Designer;
 using JLChnToZ.VRC.VVMW.Editors;
+using JLChnToZ.VRC.VVMW.Designer;
 using VVMW.ThirdParties.Yttl;
 
 using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
@@ -23,7 +29,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         static readonly Dictionary<(Type, string), FieldInfo> fieldCache = new Dictionary<(Type, string), FieldInfo>();
 
-        static GameObject SpawnPrefab(string path, bool spawnOnRoot = false) {
+        internal static GameObject SpawnPrefab(string path, bool spawnOnRoot = false) {
             var parent = spawnOnRoot ? null : Selection.activeTransform;
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (prefab == null) {
@@ -44,34 +50,54 @@ namespace JLChnToZ.VRC.VVMW {
                 } else if (component is FrontendHandler) {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(FrontendHandler), "core"), true, true);
                 } else if (component is UIHandler) {
-                    if (!LocatableAttributeDrawer.Locate(component, GetField(typeof(UIHandler), "handler"), false, true))
-                        LocatableAttributeDrawer.Locate(component, GetField(typeof(UIHandler), "core"), true, true);
+                    Resolve(component);
                 } else if (component is OverlayControl) {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(OverlayControl), "core"), true, true);
                 } else if (component is ResyncButtonConfigurator) {
                     LocatableAttributeDrawer.Locate(component, GetField(typeof(ResyncButtonConfigurator), "core"), true, true);
-                } else if (component is AutoPlayOnNear) {
-                    var handler = LocatableAttributeDrawer.Locate(component, GetField(typeof(AutoPlayOnNear), "handler"), true, true) as FrontendHandler;
-                    if (handler != null) {
+                } else if (component is ActiveRegionConfig) {
+                    LocatableAttributeDrawer.Locate(component, GetField(typeof(ActiveRegionConfig), "core"), true, true);
+                } else if (component is AutoPlayOnNearV2) {
+                    var (core, handler) = Resolve(component);
+                    if (handler != null)
                         using (var so = new SerializedObject(handler)) {
                             so.FindProperty("autoPlay").boolValue = false;
                             so.ApplyModifiedProperties();
                         }
-                        LocatableAttributeDrawer.Locate(handler, GetField(typeof(FrontendHandler), "core"), true, true);
-                        var core = handler.core;
+                    if (core != null)
                         using (var so = new SerializedObject(core)) {
                             so.FindProperty("synced").boolValue = false;
                             so.ApplyModifiedProperties();
                         }
-                    }
                 } else if (component is StreamLinkAssigner) {
-                    if (!LocatableAttributeDrawer.Locate(component, GetField(typeof(StreamLinkAssigner), "frontendHandler"), false, true))
-                        LocatableAttributeDrawer.Locate(component, GetField(typeof(StreamLinkAssigner), "core"), true, true);
+                    Resolve(component, frontendHandlerFieldName: "frontendHandler");
                 }
             }
             Undo.RegisterCreatedObjectUndo(go, $"Create {go.name}");
             Selection.activeGameObject = go;
             return go;
+        }
+
+        static (Core, FrontendHandler) Resolve(Component component, string coreFieldName = "core", string frontendHandlerFieldName = "handler", bool autoCreate = false) {
+            var type = component.GetType();
+            var frontendHandlerField = GetField(type, frontendHandlerFieldName);
+            var coreField = GetField(type, coreFieldName);
+            var core = coreField.GetValue(component) as Core;
+            var frontendHandler = frontendHandlerField.GetValue(component) as FrontendHandler;
+            if (core == null && frontendHandler == null) {
+                core = LocatableAttributeDrawer.Locate(component, coreField, false, true) as Core;
+                frontendHandler = LocatableAttributeDrawer.Locate(component, frontendHandlerField, false, true) as FrontendHandler;
+            }
+            if (core == null && frontendHandler == null) {
+                if (autoCreate) {
+                    frontendHandler = LocatableAttributeDrawer.Locate(component, frontendHandlerField, true, true) as FrontendHandler;
+                    core = LocatableAttributeDrawer.Locate(frontendHandler, GetField(typeof(FrontendHandler), "core"), true, true) as Core;
+                }
+            } else if (core != null && frontendHandler != null) {
+                core = LocatableAttributeDrawer.Locate(frontendHandler, GetField(typeof(FrontendHandler), "core"), true, true) as Core;
+                coreField.SetValue(component, null);
+            }
+            return (core, frontendHandler);
         }
 
         static GameObject SpawnSingletonPrefab<T>(string path) where T : Component {
@@ -89,76 +115,246 @@ namespace JLChnToZ.VRC.VVMW {
             return result;
         }
 
-        [MenuItem(createMenuRoot + "Video Player (Core only)", false, 49)]
-        static void CreateNoControls() => SpawnPrefab(packageRoot + "VVMW (No Controls).prefab");
-
-        [MenuItem(createMenuRoot + "Video Player (Separated Controls)", false, 49)]
-        static void CreateSeparateControls() => SpawnPrefab(packageRoot + "VVMW (Separated Controls).prefab");
-
         [MenuItem(createMenuRoot + "Video Player (On-Screen Controls)", false, 49)]
         static void CreateOnScreenControls() => SpawnPrefab(packageRoot + "VVMW (On-Screen Controls).prefab");
 
-        [MenuItem(createMenuRoot + "YTTL", false, 49)]
+        [MenuItem(createMenuRoot + "Video Player (Separated Controls)", false, 50)]
+        static void CreateSeparateControls() => SpawnPrefab(packageRoot + "VVMW (Separated Controls).prefab");
+
+        [MenuItem(createMenuRoot + "Video Player (For Single Video Exhibition)", false, 61)]
+        static void CreateSingleVideoExhibition() => SpawnPrefab(packageRoot + "VVMW (Single Video Exhibition Setup).prefab");
+
+        [MenuItem(createMenuRoot + "Video Player (For Multiple Video Exhibition)", false, 62)]
+        static void CreateMultiVideoExhibition() => SpawnPrefab(packageRoot + "VVMW (Multiple Video Exhibition Setup).prefab");
+
+        [MenuItem(createMenuRoot + "Recommend Setups/YTTL", false, 73)]
         static void CreateYTTL() {
             SpawnSingletonPrefab<YttlManager>(prefabRoot + "Third-Parties/YTTL/YTTL Manager.prefab");
             foreach (var core in SceneManager.GetActiveScene().IterateAllComponents<Core>(true))
                 LocatableAttributeDrawer.Locate(core, GetField(typeof(Core), "yttl"), true, true);
         }
 
-        [MenuItem(createMenuRoot + "Additional Controls/Screen", false, 49)]
-        static void CreateScreen() {
-            var go = SpawnPrefab(prefabRoot + "Default Screen.prefab");
-            var core = FUtils.FindClosestComponentInHierarchy<Core>(go.transform);
-            if (core != null) CoreEditor.AddTarget(core, go.GetComponent<Renderer>());
-        }
+        [MenuItem(createMenuRoot + "Modules/VizVid Core", false, 84)]
+        static void CreateNoControls() => SpawnPrefab(packageRoot + "VVMW (No Controls).prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Pickupable Screen", false, 49)]
-        static void CreatePickupScreen() {
-            var go = SpawnPrefab(prefabRoot + "Pickup Screen.prefab");
-            var core = FUtils.FindClosestComponentInHierarchy<Core>(go.transform);
-            if (core != null) CoreEditor.AddTarget(core, go.transform.Find("Pickup_ScalingPanel/ScreenScaling/Screen").GetComponent<Renderer>());
-        }
+        [MenuItem(createMenuRoot + "Modules/On-Screen Controls With Screen", false, 95)]
+        static void CreateOnScreenControlsMenu() => SpawnPrefab(prefabRoot + "Screen With Overlay.prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Audio Source", false, 49)]
-        static void CreateAudioSource() {
-            var go = SpawnPrefab(prefabRoot + "Default Audio Source.prefab");
-            var core = FUtils.FindClosestComponentInHierarchy<Core>(go.transform);
-            if (core != null) CoreEditor.AddTarget(core, go.GetComponent<AudioSource>());
-        }
+        [MenuItem(createMenuRoot + "Modules/Separated Controls", false, 96)]
+        static void CreateSeparateControlsMenu() => SpawnPrefab(prefabRoot + "Default UI.prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Separated Controls", false, 49)]
-        static void CreateSeparateContols() => SpawnPrefab(prefabRoot + "Default UI.prefab");
+        [MenuItem(createMenuRoot + "Modules/Separated Controls (Narrow)", false, 97)]
+        static void CreateSeparateNarrowControls() => SpawnPrefab(prefabRoot + "Default UI (Narrow).prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Separated Controls (Narrow)", false, 49)]
-        static void CreateSeparateNarrowContols() => SpawnPrefab(prefabRoot + "Default UI (Narrow).prefab");
+        [MenuItem(createMenuRoot + "Modules/Separated Controls (With Alt. URL Input, Narrow)", false, 98)]
+        static void CreateSeparateNarrowControlsDual() => SpawnPrefab(prefabRoot + "Default UI Dual Input (Narrow).prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Separated Controls (With Alt. URL Input, Narrow)", false, 49)]
-        static void CreateSeparateNarrowContolsDual() => SpawnPrefab(prefabRoot + "Default UI Dual Input (Narrow).prefab");
-
-        [MenuItem(createMenuRoot + "Additional Controls/On-Screen Controls With Screen", false, 49)]
-        static void CreateOnScreenContols() {
-            var go = SpawnPrefab(prefabRoot + "Screen With Overlay.prefab");
-            var core = FUtils.FindClosestComponentInHierarchy<Core>(go.transform);
-            if (core != null) CoreEditor.AddTarget(core, go.transform.Find("Screen").GetComponent<Renderer>());
-        }
-
-        [MenuItem(createMenuRoot + "Additional Controls/Overlay Controls", false, 49)]
+        [MenuItem(createMenuRoot + "Modules/Overlay Controls", false, 99)]
         static void CreateOverlayControls() {
             if (FindObjectOfType<OverlayControl>() != null &&
                 !EditorI18N.Instance.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.Pickups.PickupPanel.multiple_message")) return;
             SpawnPrefab(prefabRoot + "Overlay Control.prefab");
         }
 
-        [MenuItem(createMenuRoot + "Additional Controls/Resync Button", false, 49)]
+        [MenuItem(createMenuRoot + "Modules/Pickupable Screen", false, 110)]
+        static void CreatePickupScreen() => SpawnPrefab(prefabRoot + "Pickup Screen.prefab");
+
+        [MenuItem(createMenuRoot + "Modules/Screen", false, 111)]
+        static void CreateScreen() => SpawnPrefab(prefabRoot + "Default Screen.prefab");
+
+        [MenuItem(createMenuRoot + "Modules/Resync Button", false, 122)]
         static void CreateResyncButton() => SpawnPrefab(prefabRoot + "Re-Sync Button.prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Global Resync Button", false, 49)]
+        [MenuItem(createMenuRoot + "Modules/Global Resync Button", false, 123)]
         static void CreateGlobalSyncButton() => SpawnPrefab(prefabRoot + "Global Sync Button.prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Auto Play On Near (Local Only)", false, 49)]
+        [MenuItem(createMenuRoot + "Modules/Stream Key Assigner", false, 124)]
+        static void CreateStreamAssigner() => SpawnPrefab(prefabRoot + "Stream Key Assigner.prefab");
+
+        [MenuItem(createMenuRoot + "Modules/Audio Source (Mono)", false, 135)]
+        static void CreateMonoAudioSource() {
+            var go = SpawnPrefab(prefabRoot + "Default Audio Source.prefab");
+            AppendAudioSource(go, true);
+        }
+
+        [MenuItem(createMenuRoot + "Modules/Audio Source (Stereo)", false, 136)]
+        static void CreateStereoAudioSource() {
+            var go = SpawnPrefab(prefabRoot + "Stereo Audio Source.prefab");
+            AppendAudioSource(go, true);
+        }
+
+        [MenuItem(createMenuRoot + "Modules/Audio Source (5.1 Surround)", false, 137)]
+        static void CreateSurroundAudioSource() {
+            var go = SpawnPrefab(prefabRoot + "Surround Audio Source.prefab");
+            AppendAudioSource(go, true);
+        }
+
+        static void AppendAudioSource(GameObject go, bool removeDefaultAudioSource = false) {
+            var core = FUtils.FindClosestComponentInHierarchy<Core>(go.transform);
+            if (core == null) return;
+            var audioSources = go.GetComponentsInChildren<AudioSource>(true);
+            Undo.RecordObject(core, "Add Audio Source");
+            if (core.audioSources == null) {
+                core.audioSources = audioSources;
+            } else {
+                Array.Resize(ref core.audioSources, core.audioSources.Length + audioSources.Length);
+                Array.Copy(audioSources, 0, core.audioSources, core.audioSources.Length - audioSources.Length, audioSources.Length);
+            }
+            EditorUtility.SetDirty(core);
+            if (core.playerHandlers == null || core.playerHandlers.Length == 0) return;
+            if (removeDefaultAudioSource)
+                foreach (var handler in core.playerHandlers) {
+                    var vph = handler as VideoPlayerHandler;
+                    if (vph == null || !vph.TryGetComponent(out VRCUnityVideoPlayer unity)) continue;
+                    using (var so = new SerializedObject(unity)) {
+                        var prop = so.FindProperty("targetAudioSources");
+                        for (int i = 0; i < prop.arraySize; i++) {
+                            var audioSource = prop.GetArrayElementAtIndex(i).objectReferenceValue as AudioSource;
+                            if (audioSource == null || !audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) continue;
+                            Undo.DestroyObjectImmediate(speaker);
+                        }
+                    }
+                }
+            foreach (var handler in core.playerHandlers) {
+                var vph = handler as VideoPlayerHandler;
+                if (vph == null || !vph.TryGetComponent(out VRCAVProVideoPlayer avpro)) continue;
+                AudioSource left = null, right = null, stereo = null;
+                foreach (var audioSource in audioSources) {
+                    if (!audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) continue;
+                    using (var so = new SerializedObject(speaker)) {
+                        var videoPlayerProp = so.FindProperty("videoPlayer");
+                        var ogVideoPlayer = videoPlayerProp.objectReferenceValue;
+                        if (ogVideoPlayer != null && ogVideoPlayer != avpro) continue;
+                        videoPlayerProp.objectReferenceValue = avpro;
+                        switch (so.FindProperty("mode").intValue) {
+                            case 0: if (stereo == null) stereo = audioSource; break;
+                            case 1: if (left == null) left = audioSource; break;
+                            case 2: if (right == null) right = audioSource; break;
+                        }
+                        so.ApplyModifiedProperties();
+                    }
+                }
+                if (stereo != null) left = right = stereo;
+                using (var vphSo = new SerializedObject(vph)) {
+                    var leftProp = vphSo.FindProperty("primaryAudioSource");
+                    var rightProp = vphSo.FindProperty("primaryAudioSourceR");
+                    var ogLeft = leftProp.objectReferenceValue as AudioSource;
+                    bool hasOgLeft = false, hasOgRight = false, hasOgStereo = false;
+                    switch (CoreEditor.TryDetermineSpeakerChannelMode(ogLeft)) {
+                        case 0: hasOgStereo = true; break;
+                        case 1: hasOgLeft = true; break;
+                        case 2: hasOgRight = true; break;
+                    }
+                    var ogRight = rightProp.objectReferenceValue as AudioSource;
+                    switch (CoreEditor.TryDetermineSpeakerChannelMode(ogRight)) {
+                        case 2: hasOgRight = true; break;
+                    }
+                    if (hasOgStereo)
+                        left = right = stereo;
+                    else {
+                        if (hasOgLeft) left = ogLeft;
+                        if (hasOgRight) right = ogRight;
+                    }
+                    leftProp.objectReferenceValue = left;
+                    rightProp.objectReferenceValue = right;
+                    vphSo.ApplyModifiedProperties();
+                }
+            }
+        }
+
+        [MenuItem(createMenuRoot + "Modules/Auto Play On Near (Local Only)", false, 148)]
         static void CreateAutoPlayOnNear() => SpawnPrefab(prefabRoot + "Auto Play On Near.prefab");
 
-        [MenuItem(createMenuRoot + "Additional Controls/Streem Key Assigner", false, 49)]
-        static void CreateStreemAssigner() => SpawnPrefab(prefabRoot + "Stream Key Assigner.prefab");
+#if VRC_LIGHT_VOLUMES_V2
+        [MenuItem(createMenuRoot + "Modules/Light Volume for Screen", false, 159)]
+        static void CreateLightVolumeForScreen() {
+            foreach (var screenObject in Selection.gameObjects)
+                CreateLightVolumeForScreen(screenObject);
+            Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
+        }
+
+        static void CreateLightVolumeForScreen(GameObject screenObject) {
+            if (screenObject == null) return;
+            var core = TryGetCoreFromScreenTarget(screenObject, out var targetTransform);
+            if (core == null) return;
+            var adaptor = TryGetAttachedAdaptor(core);
+            var lvObject = new GameObject("Light Volume for Screen", typeof(PointLightVolume));
+            var lvTransform = lvObject.transform;
+            lvTransform.SetParent(targetTransform, false);
+            if (targetTransform.TryGetComponent(out Renderer renderer)) {
+                var bounds = renderer.localBounds;
+                lvTransform.localPosition = bounds.center;
+                lvTransform.localScale = bounds.size;
+            } else {
+                lvTransform.localPosition = Vector3.zero;
+                lvTransform.localScale = Vector3.one;
+            }
+            lvTransform.localRotation = Quaternion.Euler(0, 180, 0);
+            lvObject.TryGetComponent(out PointLightVolume lv);
+            lv.Type = PointLightVolume.LightType.AreaLight;
+            lv.Dynamic = screenObject.GetComponentInParent<VRC_Pickup>(true) != null;
+            lv.SyncUdonScript();
+
+            var array = adaptor.pointLightVolumes;
+            if (array == null || array.Length == 0)
+                array = new PointLightVolumeInstance[1];
+            else
+                Array.Resize(ref array, array.Length + 1);
+            lvObject.TryGetComponent(out array[^1]);
+            adaptor.pointLightVolumes = array;
+
+            EditorUtility.SetDirty(adaptor);
+            Undo.RegisterCreatedObjectUndo(lvObject, "Create Light Volume for Screen");
+        }
+
+        [MenuItem(createMenuRoot + "Modules/Light Volume for Screen", true, 159)]
+        static bool CreateLightVolumeForScreenValidate() {
+            var selectedGameObject = Selection.activeGameObject;
+            if (selectedGameObject == null) return false;
+            var core = TryGetCoreFromScreenTarget(selectedGameObject, out _);
+            return core != null;
+        }
+
+        static Core TryGetCoreFromScreenTarget(GameObject target, out Transform targetTransform) {
+            if (target.TryGetComponent(out ScreenConfigurator screenConfigurator)) {
+                targetTransform = screenConfigurator.screenRenderer != null ? screenConfigurator.screenRenderer.transform : target.transform;
+                return screenConfigurator.core;
+            }
+            foreach (var c in FindObjectsByType<Core>(FindObjectsSortMode.None))
+                foreach (var screenTarget in c.screenTargets)
+                    if (screenTarget is Component component && component.gameObject == target) {
+                        targetTransform = target.transform;
+                        return c;
+                    }
+            targetTransform = null;
+            return null;
+        }
+
+        static LightVolumeAdaptor TryGetAttachedAdaptor(Core core, bool createIfNotFound = true) {
+            foreach (var adaptor in FindObjectsByType<LightVolumeAdaptor>(FindObjectsSortMode.None))
+                if (adaptor.core == core) {
+                    if (createIfNotFound) Undo.RegisterCompleteObjectUndo(adaptor, "Update Light Volume Adaptor");
+                    return adaptor;
+                }
+            if (!createIfNotFound) return null;
+            var lvSetup = FindAnyObjectByType<LightVolumeSetup>();
+            if (lvSetup == null) {
+                var go = new GameObject("Light Volume Manager", typeof(LightVolumeSetup));
+                go.TryGetComponent(out lvSetup);
+                lvSetup.SyncUdonScript();
+                Undo.RegisterCreatedObjectUndo(go, "Create Light Volume Manager");
+            }
+            var newAdaptorObject = new GameObject("Light Volume Adaptor", typeof(LightVolumeAdaptor));
+            newAdaptorObject.TryGetComponent(out LightVolumeAdaptor newAdaptor);
+            GameObjectUtility.SetParentAndAlign(newAdaptorObject, core.gameObject);
+            newAdaptor.core = core;
+            EditorUtility.SetDirty(newAdaptor);
+            Undo.RegisterCreatedObjectUndo(newAdaptorObject, "Create Light Volume Adaptor");
+            return newAdaptor;
+        }
+#endif
+
+        [MenuItem(createMenuRoot + "Modules/Active Region", false, 170)]
+        internal static void CreateActiveRegion() => SpawnPrefab(prefabRoot + "Active Region.prefab");
     }
 }

@@ -22,6 +22,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         const string PROXY_DEST_NAME = PROXY_DEST_PATH + "LTCGI_VizVidAutoSetup.cs";
 
         readonly Dictionary<Core, string> cores = new Dictionary<Core, string>();
+        bool coreDirty = true;
 
         [InitializeOnLoadMethod]
         static void OnLoad() {
@@ -50,7 +51,6 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 
         public LTCGIAutoSetup() {
-            RefreshCores();
             SceneManager.activeSceneChanged += OnSceneUpdate;
             EditorApplication.hierarchyChanged += OnTransformUpdate;
         }
@@ -63,6 +63,12 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         public GameObject AutoSetupEditor(LTCGI_Controller controller) {
             bool first = false;
             GameObject go = null;
+            if (coreDirty) {
+                coreDirty = false;
+                cores.Clear();
+                foreach (var core in SceneManager.GetActiveScene().IterateAllComponents<Core>())
+                    cores.Add(core, GetHierarchyPath(core));
+            }
             foreach (var kv in cores) {
                 var core = kv.Key;
                 var path = kv.Value;
@@ -71,7 +77,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     first = true;
                 }
                 if (GUILayout.Button($"Auto-Configure '{path}'")) {
-                    foreach (var existing in Foundation.Editors.Utils.IterateAllComponents<LTCGIConfigurator>(SceneManager.GetActiveScene(), true)) {
+                    foreach (var existing in SceneManager.GetActiveScene().IterateAllComponents<LTCGIConfigurator>(true)) {
                         if (existing.core == core)
                             go = existing.gameObject;
                         else
@@ -118,18 +124,14 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             return string.Join("/", stack);
         }
 
-        void OnSceneUpdate(Scene oldScene, Scene newScene) => OnTransformUpdate();
+        void OnSceneUpdate(Scene oldScene, Scene newScene) => coreDirty = true;
 
-        void OnTransformUpdate() => RefreshCores();
+        void OnTransformUpdate() => coreDirty = true;
 
-        void RefreshCores() {
-            cores.Clear();
-            foreach (var core in SceneManager.GetActiveScene().IterateAllComponents<Core>())
-                cores.Add(core, GetHierarchyPath(core));
-        }
-
-        static void Preprocess(LTCGIConfigurator configurator, Core core, LTCGI_Controller controller, List<LTCGI_Screen> screens) {
+        static void Preprocess(LTCGIConfigurator configurator) {
             try {
+                var core = configurator.core;
+                var controller = configurator.controller;
                 if (core == null || controller == null) {
                     Debug.LogError("[VizVid LTCGI Configurator] Missing Core or Controller.");
                     return;
@@ -186,6 +188,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     Array.Resize(ref core.screenTargetPropertyNames, index + 1);
                     Array.Resize(ref core.avProPropertyNames, index + 1);
                     Array.Resize(ref core.screenTargetDefaultTextures, index + 1);
+                    Array.Resize(ref core.rtScreenTargetSTs, index + 1);
                     core.screenTargets[index] = mat;
                     core.screenTargetPropertyNames[index] = "_MainTex";
                     core.avProPropertyNames[index] = "_IsAVProVideo";

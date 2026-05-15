@@ -3,6 +3,11 @@ using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.SDK3.Components.Video;
+#if VRCSDK_3_8_1_OR_NEWER
+using VRC.SDK3.UdonNetworkCalling;
+#endif
+using VRC.SDK3.Data;
+using VRC.Udon.Common.Enums;
 using VRC.Udon.Common;
 using VRC.Udon.Common.Interfaces;
 using JLChnToZ.VRC.Foundation;
@@ -20,7 +25,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Core")]
     [DefaultExecutionOrder(0)]
-    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#vvmw-game-object")]
+    [HelpURL("https://xtlcdn.github.io/VizVid/docs/#vvmw-game-object")]
     public partial class Core : UdonSharpEventSender {
         const long OWNER_SYNC_COOLDOWN_TICKS = 3 * TimeSpan.TicksPerSecond;
         const long DOUBLE_CLICK_THRESHOLD_TICKS = 500 * TimeSpan.TicksPerMillisecond;
@@ -30,13 +35,12 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] VRCUrl defaultQuestUrl;
         [SerializeField, LocalizedLabel, Range(0, 255)] int autoPlayPlayerType = 1;
         [SerializeField, LocalizedLabel] bool synced = true;
-        [SerializeField, LocalizedLabel] int totalRetryCount = 3;
+        [SerializeField, LocalizedLabel] int totalRetryCount = 3, fallbackRetryCount = 1;
         [SerializeField, LocalizedLabel, Range(5, 20)] float retryDelay = 5.5F;
         [SerializeField, LocalizedLabel] float autoPlayDelay = 0;
+        [SerializeField, LocalizedLabel] internal InputFilterBase urlInputFilter;
         [UdonSynced] VRCUrl pcUrl, questUrl;
-        VRCUrl localUrl, loadingUrl, lastUrl, altUrl;
-        // When playing, it is the time when the video started playing;
-        // When paused, it is the progress of the video in ticks.
+        VRCUrl localUrl, loadingUrl, lastUrl, altUrl, lastAltUrl;
         [UdonSynced] byte activePlayer;
         byte localActivePlayer, lastActivePlayer;
         // 0: Idle, 1: Loading, 2: Playing, 3: Paused
@@ -53,6 +57,7 @@ namespace JLChnToZ.VRC.VVMW {
         internal bool afterFirstRun;
         bool isOwnerSyncRequested, isReloadRequested;
         DateTime lastClickResyncTime;
+        DataDictionary retryUsedPlayers = new DataDictionary();
 
         /// <summary>
         /// The video player backend names.
@@ -75,22 +80,25 @@ namespace JLChnToZ.VRC.VVMW {
         public byte ActivePlayer {
             get => localActivePlayer;
             private set {
-                if (value == localActivePlayer && activeHandler == (value == 0 ? null : playerHandlers[value - 1]))
+                bool valueUnchanged = value == localActivePlayer;
+                if (valueUnchanged && activeHandler == (value == 0 ? null : playerHandlers[value - 1]))
                     return;
                 localActivePlayer = value;
-                var lastActiveHandler = activeHandler;
-                bool wasPlaying = Utilities.IsValid(lastActiveHandler) && lastActiveHandler.IsPlaying;
+                retryUsedPlayers.Clear();
+                bool wasPlaying = Utilities.IsValid(activeHandler) && activeHandler.IsPlaying;
                 activeHandler = null;
-                for (int i = 0; i < playerHandlers.Length; i++) {
+                for (int i = 0, l = playerHandlers.Length; i < l; i++) {
                     var handler = playerHandlers[i];
-                    if (i + 1 == value) {
-                        handler.IsActive = true;
+                    if (i + 1 == value)
                         activeHandler = handler;
-                        SyncSpeed();
-                    } else
+                    else
                         handler.IsActive = false;
                 }
-                if (value == 0 && wasPlaying && !isLocalReloading && VRCUrl.IsNullOrEmpty(loadingUrl))
+                if (Utilities.IsValid(activeHandler)) {
+                    if (!valueUnchanged) activeHandler.IsActive = false; // This will stop the previous handler
+                    activeHandler.IsActive = true;
+                    SyncSpeed();
+                } else if (wasPlaying && !isLocalReloading && VRCUrl.IsNullOrEmpty(loadingUrl))
                     SendEvent("_onVideoEnd");
                 _OnTextureChanged();
             }
@@ -131,9 +139,19 @@ namespace JLChnToZ.VRC.VVMW {
         public VRCUrl Url => localUrl;
 
         /// <summary>
+        /// The URL for alternative platform. (Quest URL when on PC, vice versa)
+        /// </summary>
+        public VRCUrl AltUrl => altUrl;
+
+        /// <summary>
         /// The URL previously loaded.
         /// </summary>
         public VRCUrl LastUrl => lastUrl;
+
+        /// <summary>
+        /// The last URL for alternative platform. (Quest URL when on PC, vice versa)
+        /// </summary>
+        public VRCUrl LastAltUrl => lastAltUrl;
 
         /// <summary>
         /// Is the player synced in the instance.
@@ -206,10 +224,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void OnEnable() {
-            StartBroadcastScreenTexture();
-#if AUDIOLINK_V1
-            SendCustomEventDelayedFrames(nameof(_RestoreAudioLinkState), 0);
-#endif
+            RestoreActiveState();
             if (afterFirstRun) return;
             url = VRCUrl.Empty;
             foreach (var handler in playerHandlers)
@@ -221,6 +236,14 @@ namespace JLChnToZ.VRC.VVMW {
             afterFirstRun = true;
 #if VRC_ENABLE_PLAYER_PERSISTENCE
             RestoreFromPersistence(Networking.LocalPlayer);
+#endif
+        }
+
+        void RestoreActiveState() {
+            StartBroadcastScreenTexture();
+            SendCustomEventDelayedFrames(nameof(_BlitMaterial), 0, EventTiming.LateUpdate);
+#if AUDIOLINK_V1
+            SendCustomEventDelayedFrames(nameof(_RestoreAudioLinkState), 0);
 #endif
         }
 
@@ -275,6 +298,13 @@ namespace JLChnToZ.VRC.VVMW {
         public void PlayUrl(VRCUrl pcUrl, VRCUrl questUrl, byte playerType) {
             isError = false;
             VRCUrl url;
+            if (Utilities.IsValid(urlInputFilter)) {
+                urlInputFilter.pcUrl = pcUrl;
+                urlInputFilter.questUrl = questUrl;
+                urlInputFilter._ValidateUrls();
+                pcUrl = urlInputFilter.pcUrl;
+                questUrl = urlInputFilter.questUrl;
+            }
 #if UNITY_ANDROID || UNITY_IOS
             url = questUrl;
             if (VRCUrl.IsNullOrEmpty(url))
@@ -303,6 +333,7 @@ namespace JLChnToZ.VRC.VVMW {
                 altUrl = questUrl;
             }
             time = 0;
+            SetRangeInternal(-1, -1);
             ActivePlayer = playerType;
             loadingUrl = null;
             retryCount = 0;
@@ -314,6 +345,10 @@ namespace JLChnToZ.VRC.VVMW {
 #if AUDIOLINK_V1
             SetAudioLinkPlayBackState(MediaPlaying.Loading);
 #endif
+            if (VRCUrl.IsNullOrEmpty(url)) {
+                OnVideoError(VideoError.InvalidURL);
+                return;
+            }
             activeHandler.LoadUrl(url, false);
             if (RequestSync()) state = LOADING;
             LoadYTTL();
@@ -336,18 +371,47 @@ namespace JLChnToZ.VRC.VVMW {
             SetAudioLinkPlayBackState(MediaPlaying.Error);
 #endif
             if (retryCount < totalRetryCount) {
-                retryCount++;
                 loadingUrl = localUrl;
-                switch (videoError) {
-                    case VideoError.InvalidURL:
-                        retryCount = 0;
-                        break;
-                    default:
-                        SendCustomEventDelayedSeconds(nameof(_ReloadUrl), retryDelay);
-                        return;
+                if (videoError == VideoError.InvalidURL) {
+                    retryUsedPlayers.Clear();
+                    retryCount = 0;
+                } else {
+                    if (retryCount >= fallbackRetryCount) {
+                        int retryFallbackCount = retryUsedPlayers.Count;
+                        if (retryFallbackCount == 0) retryUsedPlayers[activeHandler] = true;
+                        var fallback = activeHandler.fallbackHandler;
+                        var urlstr = loadingUrl.ToString();
+                        while (Utilities.IsValid(fallback)) {
+                            if (retryUsedPlayers.ContainsKey(fallback)) {
+                                fallback = null;
+                                break;
+                            }
+                            retryUsedPlayers[fallback] = true;
+                            if (fallback.IsSupported(urlstr) >= 0) {
+                                SwitchActiveHandler(fallback);
+                                break;
+                            }
+                            fallback = fallback.fallbackHandler;
+                        }
+                        if (!Utilities.IsValid(fallback)) {
+                            retryUsedPlayers.Clear();
+                            SwitchActiveHandler(playerHandlers[activePlayer - 1]);
+                            retryCount++;
+                        }
+                    } else
+                        retryCount++;
+                    SendCustomEventDelayedSeconds(nameof(_ReloadUrl), retryDelay);
+                    return;
                 }
             }
             isLoading = false;
+        }
+
+        void SwitchActiveHandler(AbstractMediaPlayerHandler newHandler) {
+            if (activeHandler == newHandler) return;
+            activeHandler.IsActive = false;
+            activeHandler = newHandler;
+            activeHandler.IsActive = true;
         }
 
 #if COMPILER_UDONSHARP
@@ -363,9 +427,11 @@ namespace JLChnToZ.VRC.VVMW {
             if (VRCUrl.IsNullOrEmpty(loadingUrl) ||
                 (synced && state == IDLE) ||
                 !loadingUrl.Equals(localUrl)) {
+                retryUsedPlayers.Clear();
                 return;
             }
             if (!synced && localUrl.Equals(defaultUrl)) {
+                retryUsedPlayers.Clear();
                 PlayUrl(null, 0);
                 return;
             }
@@ -394,6 +460,9 @@ namespace JLChnToZ.VRC.VVMW {
         /// <remarks>
         /// When this method is invoked twice in a short time, it will request the owner to sync the player.
         /// </remarks>
+#if VRCSDK_3_8_1_OR_NEWER
+        [NetworkCallable]
+#endif
         public void LocalSync() {
             if (synced) {
                 var currentTime = Networking.GetNetworkDateTime();
@@ -425,6 +494,7 @@ namespace JLChnToZ.VRC.VVMW {
             loadingUrl = localUrl;
             trustUpdated = false;
             if (VRCUrl.IsNullOrEmpty(loadingUrl)) return;
+            retryUsedPlayers.Clear();
             retryCount = 0;
             _ReloadUrl();
         }
@@ -473,6 +543,7 @@ namespace JLChnToZ.VRC.VVMW {
             var handler = activeHandler;
             if (!Utilities.IsValid(handler)) return;
             handler.Stop();
+            SetRangeInternal(-1, -1);
             if (!handler.IsReady) { // Cancel loading if it is still loading
                 ActivePlayer = 0;
                 loadingUrl = null;
@@ -491,6 +562,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override void OnVideoReady() {
             loadingUrl = null;
             lastError = VideoError.Unknown;
+            retryUsedPlayers.Clear();
             retryCount = 0;
             isLoading = false;
             isError = false;
@@ -516,7 +588,7 @@ namespace JLChnToZ.VRC.VVMW {
                 case PAUSED: activeHandler.Pause(); break;
                 default: return;
             }
-            if (videoTime > 0) activeHandler.Time = videoTime;
+            if (videoTime > 0) Time = videoTime;
         }
 
         /// <summary>
@@ -563,6 +635,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (!VRCUrl.IsNullOrEmpty(loadingUrl) || isLocalReloading) return;
             lastActivePlayer = activePlayer;
             lastUrl = localUrl;
+            lastAltUrl = altUrl;
             ActivePlayer = 0;
             localUrl = synced ? null : defaultUrl;
             trustUpdated = false;
@@ -595,7 +668,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override void OnPreSerialization() {
             if (!synced || isLocalReloading) return;
             lastSyncTime = Networking.GetNetworkDateTime();
-            ownerServerTime = lastSyncTime.Ticks;
+            ownerNetworkTime = Networking.GetServerTimeInMilliseconds();
             syncedSpeed = speed;
             if (!Utilities.IsValid(activeHandler)) {
                 activePlayer = 0;
@@ -617,7 +690,7 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 if (activeHandler.IsReady) {
                     state = activeHandler.IsPlaying ? PLAYING : PAUSED;
-                    time = CalcSyncTime(out actualSpeed);
+                    time = (int)(CalcSyncTime(out actualSpeed) * 1000);
                 } else {
                     state = VRCUrl.IsNullOrEmpty(localUrl) ? IDLE : LOADING;
                     time = 0;
@@ -625,6 +698,8 @@ namespace JLChnToZ.VRC.VVMW {
                 }
             }
             syncedActualSpeed = actualSpeed;
+            rangeLoopStart = localRangeLoopStartMs;
+            rangeLoopEnd = localRangeLoopEndMs;
         }
 
         /// <summary>
@@ -634,12 +709,14 @@ namespace JLChnToZ.VRC.VVMW {
         /// <param name="result"></param>
         public override void OnDeserialization(DeserializationResult result) {
             if (!synced) return;
-            ActivePlayer = activePlayer;
+            bool activePlayerChanged = localActivePlayer != activePlayer;
+            if (activePlayerChanged) ActivePlayer = activePlayer;
             float sendTime = result.sendTime;
             syncLatency = sendTime > 0 ? // if send time is negative, which means it was sent before join thus this is not valid.
-                (float)(ownerServerTime - Networking.GetNetworkDateTime().Ticks) / TimeSpan.TicksPerSecond +
-                UnityEngine.Time.realtimeSinceStartup - sendTime : 0;
+                Networking.CalculateServerDeltaTime(ownerNetworkTime * 0.001, Networking.GetServerTimeInSeconds()) +
+                UnityEngine.Time.realtimeSinceStartupAsDouble - sendTime : 0;
             actualSpeed = syncedActualSpeed;
+            SetRangeInternal(rangeLoopStart, rangeLoopEnd);
             if (speed != syncedSpeed) {
                 speed = syncedSpeed;
                 SyncSpeed();
@@ -655,7 +732,7 @@ namespace JLChnToZ.VRC.VVMW {
                 url = pcUrl;
                 altUrl = questUrl;
             }
-            bool shouldReload = state != IDLE && localUrl != url && (VRCUrl.IsNullOrEmpty(localUrl) || VRCUrl.IsNullOrEmpty(url) || !localUrl.Equals(url));
+            bool shouldReload = state != IDLE && (activePlayerChanged || (localUrl != url && (VRCUrl.IsNullOrEmpty(localUrl) || VRCUrl.IsNullOrEmpty(url) || !localUrl.Equals(url))));
             if (shouldReload) {
                 if (!Utilities.IsValid(activeHandler)) {
                     Debug.LogWarning($"[VVMW] Owner serialization incomplete, will queue a sync request.");
@@ -663,13 +740,14 @@ namespace JLChnToZ.VRC.VVMW {
                     return;
                 }
                 loadingUrl = null;
+                retryUsedPlayers.Clear();
                 retryCount = 0;
                 lastError = VideoError.Unknown;
                 isLoading = true;
                 isError = false;
                 trustUpdated = false;
-                SendEvent("_OnVideoBeginLoad");
                 activeHandler.LoadUrl(url, false);
+                SendEvent("_OnVideoBeginLoad");
             }
             localUrl = url;
             if (shouldReload) LoadYTTL();
@@ -702,4 +780,22 @@ namespace JLChnToZ.VRC.VVMW {
             return true;
         }
     }
+
+#if !COMPILER_UDONSHARP
+    public partial class Core : IVizVidCompoonent {
+        Core IVizVidCompoonent.Core => this;
+
+#if UNITY_EDITOR
+        void OnDrawGizmosSelected() {
+            DrawScreenGizmos();
+            DrawAudioGizmos();
+            DrawRegionGizmos();
+        }
+
+        void OnValidate() {
+            ValidateScreen();
+        }
+#endif
+    }
+#endif
 }

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using JLChnToZ.VRC.Foundation;
+using JLChnToZ.VRC.Foundation.I18N;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -12,28 +13,41 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     [EditorOnly]
     [ExecuteInEditMode]
     [AddComponentMenu("VizVid/Color Configurator/Color Config")]
-    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-change-color")]
-    public class ColorConfig : MonoBehaviour {
+    [HelpURL("https://xtlcdn.github.io/VizVid/docs/#how-to-change-color")]
+    public partial class ColorConfig : MonoBehaviour, ISelfPreProcess {
         /// <summary>
         /// The color palette for all children components.
         /// </summary>
         public Color[] colors;
         [SerializeField, HideInInspector] AbstractAutoConfigurator[] appliedAutoConfigurators;
+        [SerializeField, LocalizedLabel] internal bool autoApplyOnBuild = true;
+
+        int IPrioritizedPreProcessor.Priority => 0;
+
+        static bool IsBuildingOrTesting {
+            get {
+#if UNITY_EDITOR
+                return EditorApplication.isPlayingOrWillChangePlaymode || BuildPipeline.isBuildingPlayer;
+#else
+                return Application.isPlaying;
+#endif
+            }
+        }
 
         /// <summary>
         /// Configurate colors for all children components of this object that implement <see cref="AbstractAutoConfigurator"/>.
         /// </summary>
         public void ConfigurateColors() {
             var autoConfigurators = GetComponentsInChildren<AbstractAutoConfigurator>(true);
-            #if UNITY_EDITOR
-            if (!Application.isPlaying) Undo.RecordObject(this, "Color Pre Config");
-            #endif
+#if UNITY_EDITOR
+            if (!IsBuildingOrTesting) Undo.RecordObject(this, "Color Pre Config");
+#endif
             foreach (var autoConfigurator in autoConfigurators)
                 autoConfigurator.ConfigurateColor();
             appliedAutoConfigurators = autoConfigurators;
-            #if UNITY_EDITOR
-            if (!Application.isPlaying) EditorUtility.SetDirty(this);
-            #endif
+#if UNITY_EDITOR
+            if (!IsBuildingOrTesting) EditorUtility.SetDirty(this);
+#endif
         }
 
         /// <summary>
@@ -52,13 +66,24 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     hasDirty = true;
                 }
             if (!hasDirty) return;
-            #if UNITY_EDITOR
-            if (!Application.isPlaying) Undo.RecordObject(this, "Color Pre Config");
-            #endif
+#if UNITY_EDITOR
+            if (!IsBuildingOrTesting) Undo.RecordObject(this, "Color Pre Config");
+#endif
             appliedAutoConfigurators = autoConfigurators;
-            #if UNITY_EDITOR
-            if (!Application.isPlaying) EditorUtility.SetDirty(this);
-            #endif
+#if UNITY_EDITOR
+            if (!IsBuildingOrTesting) EditorUtility.SetDirty(this);
+#endif
+        }
+
+        void ISelfPreProcess.PreProcess() {
+#if UNITY_EDITOR
+            if (autoApplyOnBuild) ConfigurateColors();
+#endif
         }
     }
+
+    /// <summary>
+    /// A property attribute that can make a int field show a dropdown list of color presets in <see cref="ColorConfig"/> in inspector.
+    /// </summary>
+    public class ColorConfigPresetAttribute : PropertyAttribute {}
 }

@@ -37,7 +37,7 @@ namespace JLChnToZ.VRC.VVMW {
             bool isEmpty = string.IsNullOrEmpty(urlInput.textComponent.text);
             if (Utilities.IsValid(otherObjectUnderUrlInput)) otherObjectUnderUrlInput.SetActive(isEmpty);
             if (Utilities.IsValid(videoPlayerSelectPanel)) videoPlayerSelectPanel.SetActive(!isEmpty);
-            if (Utilities.IsValid(altUrlInput)) altUrlInput.gameObject.SetActive(!isEmpty);
+            if (Utilities.IsValid(altUrlInputObject)) altUrlInputObject.SetActive(!isEmpty);
         }
 
 #if COMPILER_UDONSHARP
@@ -59,7 +59,15 @@ namespace JLChnToZ.VRC.VVMW {
 #if COMPILER_UDONSHARP
         public
 #endif
-        void _InputConfirmClick() {
+        void _InputConfirmClick() => InputConfirmClick(false);
+
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _EnforceImmedPlayClick() => InputConfirmClick(true);
+
+        void InputConfirmClick(bool playImmediately) {
             var url = urlInput.GetUrl();
             var altUrl = url;
             if (!VRCUrl.IsNullOrEmpty(url)) {
@@ -70,6 +78,13 @@ namespace JLChnToZ.VRC.VVMW {
                 playListLastInteractTime = joinTime;
                 if (Utilities.IsValid(handler)) {
                     handler.PlayUrl(url, altUrl, selectedPlayer);
+                    if (handler.HasQueueList) {
+                        if (playImmediately) {
+                            int queue = handler.QueueUrls.Length;
+                            if (queue > 0) handler.PlayAt(0, queue - 1, false);
+                        } else if (Utilities.IsValid(playbackControlsAnimator))
+                            playbackControlsAnimator.SetTrigger(enqueueKey);
+                    }
                     if (Utilities.IsValid(queueListScrollView))
                         SelectedPlayListIndex = handler.PlayListIndex;
                     UpdatePlayList();
@@ -106,8 +121,10 @@ namespace JLChnToZ.VRC.VVMW {
             if (Utilities.IsValid(videoPlayerSelectRoot)) videoPlayerSelectRoot.SetActive(false);
         }
 
-        void UpdatePlayerText() =>
+        void UpdatePlayerText() {
+            if (!Utilities.IsValid(videoPlayerSelectButtons)) return;
             SetLocalizedText(selectdPlayerText, selectdPlayerTMPro, videoPlayerSelectButtons[selectedPlayer - 1].Text);
+        }
 
 #if COMPILER_UDONSHARP
         public

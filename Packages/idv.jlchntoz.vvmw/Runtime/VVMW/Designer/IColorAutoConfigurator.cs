@@ -29,6 +29,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         protected abstract void ConfigurateCore(ColorConfig colorConfig);
 
         void FindColorConfig() {
+            if (this == null) return;
             if (colorConfig == null || !transform.IsChildOf(colorConfig.transform))
                 colorConfig = GetComponentInParent<ColorConfig>();
         }

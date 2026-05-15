@@ -2,22 +2,39 @@ using System;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
+#if COMPILER_UDONSHARP && UDON_NETWORKING_UPDATED
+using VRC.SDK3.UdonNetworkCalling;
+#endif
 using VRC.Udon.Common.Interfaces;
 using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     public partial class Core {
         [SerializeField, LocalizedLabel, Range(0, 5)] float timeDriftDetectThreshold = 0.9F;
-        [UdonSynced] long ownerServerTime;
-        [UdonSynced] long time;
+        [UdonSynced] int ownerNetworkTime;
+        // When playing, it is the virtual network time (scaled by speed) when the video started playing;
+        // When paused, it is the progress of the video in milliseconds.
+        [UdonSynced] int time;
+        [UdonSynced] int rangeLoopStart = -1, rangeLoopEnd = -1;
         [UdonSynced] float syncedSpeed = 1, syncedActualSpeed = 1;
+        [FieldChangeCallback(nameof(PerformerId))]
+        [UdonSynced] ushort performerId;
         [FieldChangeCallback(nameof(SyncOffset))]
         float syncOffset = 0;
         [FieldChangeCallback(nameof(Speed))]
-        float speed = 1, actualSpeed = 1;
-        float syncLatency;
+        float speed = 1;
+        float actualSpeed = 1;
+        float localRangeLoopStart, localRangeLoopEnd;
+        int localRangeLoopStartMs = -1, localRangeLoopEndMs = -1;
+        float rangeLoopDuration;
+        int rangeLoopDurationMs = 1; // prevent division by zero
+        double syncLatency;
+        float lastSyncRawTime;
+        bool isBuffering;
         bool isResyncTime;
+        bool isCheckingRangeLoop;
         DateTime lastSyncTime;
+        VRCPlayerApi performer;
 
         /// <summary>
         /// The current time of the video in seconds.
@@ -25,7 +42,18 @@ namespace JLChnToZ.VRC.VVMW {
         /// <remarks>
         /// If it is a live stream, this value will be zero.
         /// </remarks>
-        public float Time => Utilities.IsValid(activeHandler) ? activeHandler.Time : 0;
+        // Find this code useful to your project? You are welcome to adopt it.
+        // If you are respectful, please kindly leave a credit that you got inspired here;
+        // or you can be an asshole who just rip it off, refactor it and then claim you made it.
+        public float Time {
+            get => Utilities.IsValid(activeHandler) ? activeHandler.Time : 0;
+            private set {
+                if (IsRangeLooping) value = CalculateLoopTime(value);
+                activeHandler.Time = value;
+                lastSyncRawTime = value;
+                isBuffering = false; // Reset buffering state
+            }
+        }
 
         /// <summary>
         /// The duration of the video in seconds.
@@ -34,6 +62,16 @@ namespace JLChnToZ.VRC.VVMW {
         /// If it is a live stream, this value will be infinity.
         /// </remarks>
         public float Duration => Utilities.IsValid(activeHandler) ? activeHandler.Duration : 0;
+
+        /// <summary>
+        /// The start time of the range loop in seconds. If it is negative, the range loop is disabled.
+        /// </summary>
+        public float RangeLoopStart => localRangeLoopStart;
+
+        /// <summary>
+        /// The end time of the range loop in seconds. If it is negative, the range loop is disabled.
+        /// </summary>
+        public float RangeLoopEnd => localRangeLoopEnd;
 
         /// <summary>
         /// The offset of the video time to other players, in seconds.
@@ -47,7 +85,7 @@ namespace JLChnToZ.VRC.VVMW {
                 if (synced && Utilities.IsValid(activeHandler) && activeHandler.IsPlaying) {
                     var duration = activeHandler.Duration;
                     if (duration <= 0 || float.IsInfinity(duration)) return;
-                    activeHandler.Time = CalcVideoTime();
+                    Time = CalcVideoTime();
                     SendEvent("_OnTimeDrift");
                 }
             }
@@ -63,14 +101,14 @@ namespace JLChnToZ.VRC.VVMW {
             get {
                 if (!Utilities.IsValid(activeHandler)) return 0;
                 var duration = activeHandler.Duration;
-                if (activeHandler.Duration <= 0 || float.IsInfinity(duration)) return 0;
-                return activeHandler.Time / activeHandler.Duration;
+                if (duration <= 0 || float.IsInfinity(duration)) return 0;
+                return activeHandler.Time / duration;
             }
             set {
                 if (!Utilities.IsValid(activeHandler)) return;
                 var duration = activeHandler.Duration;
-                if (activeHandler.Duration <= 0 || float.IsInfinity(duration)) return;
-                activeHandler.Time = duration * value;
+                if (duration <= 0 || float.IsInfinity(duration)) return;
+                Time = duration * value;
                 RequestSync();
             }
         }
@@ -97,6 +135,29 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         /// <summary>
+        /// Whether the video player is currently looping in a specific range.
+        /// </summary>
+        public bool IsRangeLooping => localRangeLoopStartMs >= 0 && localRangeLoopEndMs > localRangeLoopStartMs;
+
+        /// <summary>
+        /// Gets the performer of the video player playback.
+        /// </summary>
+        public VRCPlayerApi Performer => performer;
+
+        ushort PerformerId {
+            set {
+                performerId = value;
+                if (performerId == 0)
+                    performer = null;
+                else
+                    performer = VRCPlayerApi.GetPlayerById(performerId);
+                SendEvent("_OnPerformerChange");
+            }
+        }
+
+        float PerformerLatency => Utilities.IsValid(performer) && !performer.isLocal ? UnityEngine.Time.realtimeSinceStartup - Networking.SimulationTime(performer) : 0;
+
+        /// <summary>
         /// Event entry point on the ownership of the video player is transferred.
         /// Internal use only. Do not call this method.
         /// </summary>
@@ -106,6 +167,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void StartSyncTime() {
+            StartCheckRangeLoop();
             if (!synced) return;
             SyncTime(true);
             if (!isResyncTime) {
@@ -113,6 +175,14 @@ namespace JLChnToZ.VRC.VVMW {
                 SendCustomEventDelayedSeconds(nameof(_AutoSyncTime), 0.5F);
             }
         }
+
+        void StartCheckRangeLoop() {
+            if (isCheckingRangeLoop) return;
+            isCheckingRangeLoop = true;
+            SendCustomEventDelayedFrames(nameof(_CheckRangeLoop), 0);
+        }
+
+        float CalculateLoopTime(float value) => float.IsInfinity(value) ? value : ((Mathf.RoundToInt(value * 1000) - localRangeLoopStartMs) % rangeLoopDurationMs + localRangeLoopStartMs) * 0.001F;
 
 #if COMPILER_UDONSHARP
         public
@@ -132,7 +202,7 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomEventDelayedSeconds(nameof(_AutoSyncTime), 0.5F);
         }
 
-        long CalcSyncTime(out float actualSpeed) {
+        double CalcSyncTime(out float actualSpeed) {
             if (!Utilities.IsValid(activeHandler)) {
                 actualSpeed = 1;
                 return 0;
@@ -141,8 +211,12 @@ namespace JLChnToZ.VRC.VVMW {
             var duration = activeHandler.Duration;
             if (duration <= 0 || float.IsInfinity(duration)) return 0;
             var videoTime = Mathf.Repeat(activeHandler.Time, duration);
-            var syncTime = (long)((videoTime / actualSpeed - syncOffset) * TimeSpan.TicksPerSecond);
-            if (activeHandler.IsPlaying) syncTime = Networking.GetNetworkDateTime().Ticks - syncTime;
+            double syncTime = videoTime / actualSpeed - syncOffset + PerformerLatency;
+            if (activeHandler.IsPlaying) {
+                long serverTimeMs = Networking.GetServerTimeInMilliseconds() - (long)(syncTime * 1000);
+                if (serverTimeMs > int.MaxValue) serverTimeMs -= uint.MaxValue;
+                syncTime = serverTimeMs * 0.001;
+            }
             if (synced) syncedActualSpeed = actualSpeed;
             return syncTime;
         }
@@ -154,19 +228,26 @@ namespace JLChnToZ.VRC.VVMW {
             float videoTime;
             int intState = state;
             switch (intState) {
-                case PLAYING: videoTime = ((float)(Networking.GetNetworkDateTime().Ticks - time) / TimeSpan.TicksPerSecond + syncOffset + syncLatency) * actualSpeed; break;
-                case PAUSED: videoTime = (float)time / TimeSpan.TicksPerSecond; break;
+                case PLAYING: videoTime = (float)((Networking.CalculateServerDeltaTime(Networking.GetServerTimeInSeconds(), time * 0.001) + syncOffset + syncLatency - PerformerLatency) * actualSpeed); break;
+                case PAUSED: videoTime = time * 0.001F; break;
                 default: return 0;
             }
-            if (loop) videoTime = Mathf.Repeat(videoTime, duration);
-            return videoTime;
+            return loop ? Mathf.Repeat(videoTime, duration) : Mathf.Clamp(videoTime, 0, duration);
         }
 
         void SyncTime(bool forced) {
             if (Networking.IsOwner(gameObject)) {
+                if (!forced && Utilities.IsValid(activeHandler) && IsRangeLooping) {
+                    var halfRange = rangeLoopDuration / 2;
+                    var diff = CalculateLoopTime(CalcVideoTime()) - activeHandler.Time;
+                    if (diff > halfRange) diff -= rangeLoopDuration;
+                    else if (diff < -halfRange) diff += rangeLoopDuration;
+                    if (Mathf.Abs(diff) / activeHandler.Speed < timeDriftDetectThreshold) return;
+                    forced = true;
+                }
                 var newTime = CalcSyncTime(out float speed);
-                if (forced || Mathf.Abs((float)(newTime - time) / TimeSpan.TicksPerSecond) >= timeDriftDetectThreshold) {
-                    time = newTime;
+                if (forced || Mathf.Abs((float)Networking.CalculateServerDeltaTime(newTime, time * 0.001)) >= timeDriftDetectThreshold) {
+                    time = (int)(newTime * 1000);
                     actualSpeed = speed;
                     RequestSerialization();
                 }
@@ -174,15 +255,106 @@ namespace JLChnToZ.VRC.VVMW {
                 var duration = activeHandler.Duration;
                 if (duration <= 0 || float.IsInfinity(duration)) return;
                 float t = CalcVideoTime();
-                if (!forced) {
-                    var t2 = activeHandler.Time;
-                    if (loop) t2 = Mathf.Repeat(t2, duration);
-                    forced = Mathf.Abs(t2 - t) >= timeDriftDetectThreshold;
-                }
+                var t2 = activeHandler.Time;
+                // Is playing + time (progress) not changed since last check = video is buffering or paused
+                // Do not align the time this case as it may cause current non-ready buffer to be discard and rebuffered
+                // causing the video to be stuck in buffering state.
+                bool isPlaying = activeHandler.IsPlaying;
+                if (!isPlaying || t2 != lastSyncRawTime) {
+                    // If it was buffering, we shift the time a bit further, estimates user loading time for catching up
+                    if (isBuffering) {
+                        if (isPlaying) {
+                            float tCatchup = t2 - lastSyncRawTime;
+                            if (tCatchup > timeDriftDetectThreshold) t += tCatchup;
+                        }
+                        isBuffering = false;
+                    }
+                    lastSyncRawTime = t2;
+                    if (!forced) {
+                        if (loop) t2 = Mathf.Repeat(t2, duration);
+                        forced = Mathf.Abs(t2 - t) >= timeDriftDetectThreshold;
+                    }
+                } else
+                    isBuffering = isPlaying;
                 if (forced) {
-                    activeHandler.Time = t;
+                    Time = t;
                     SendEvent("_OnTimeDrift");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Set the video player to loop in a specific range.
+        /// </summary>
+        /// <param name="start">The start time of the range loop in seconds. It must be non-negative and less than the end time.</param>
+        /// <param name="end">The end time of the range loop in seconds. It must be greater than the start time.</param>
+        public void SetRangeLoop(float start, float end) {
+            var duration = Duration;
+            if (duration <= 0 || float.IsInfinity(duration)) {
+                _ClearRangeLoop();
+                return;
+            }
+            SetRangeInternal(
+                Mathf.RoundToInt(Mathf.Clamp(start, 0, end) * 1000),
+                Mathf.RoundToInt(Mathf.Clamp(end, start, duration) * 1000)
+            );
+            RequestSync();
+        }
+
+        void SetRangeInternal(int start, int end) {
+            if (localRangeLoopStartMs == start && localRangeLoopEndMs == end) return;
+            bool wasRangeLoop = IsRangeLooping;
+            localRangeLoopStartMs = start;
+            localRangeLoopEndMs = end;
+            rangeLoopDurationMs = end - start;
+            localRangeLoopStart = localRangeLoopStartMs * 0.001F;
+            localRangeLoopEnd = localRangeLoopEndMs * 0.001F;
+            rangeLoopDuration = rangeLoopDurationMs * 0.001F;
+            var isRangeLoop = IsRangeLooping;
+            if (wasRangeLoop != isRangeLoop) SendEvent("_OnRangeLoopToggled");
+            if (isRangeLoop) {
+                SendEvent("_OnRangeLoopChange");
+                StartCheckRangeLoop();
+            }
+        }
+
+        /// <summary>
+        /// Clear the range loop and disable looping in a specific range.
+        /// </summary>
+        public void _ClearRangeLoop() {
+            if (!IsRangeLooping) return;
+            localRangeLoopStartMs = -1;
+            localRangeLoopEndMs = -1;
+            rangeLoopDurationMs = 1;
+            localRangeLoopStart = 0;
+            localRangeLoopEnd = float.PositiveInfinity;
+            rangeLoopDuration = 0;
+            SendEvent("_OnRangeLoopToggled");
+            RequestSync();
+        }
+
+        // Find this code useful to your project? You are welcome to adopt it.
+        // If you are respectful, please kindly leave a credit that you got inspired here;
+        // or you can be an asshole who just rip it off, refactor it and then claim you made it.
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _CheckRangeLoop() {
+            if (!Utilities.IsValid(activeHandler) || !activeHandler.IsPlaying || localRangeLoopStartMs < 0 || localRangeLoopEndMs <= localRangeLoopStartMs) {
+                isCheckingRangeLoop = false;
+                return;
+            }
+            SendCustomEventDelayedFrames(nameof(_CheckRangeLoop), 0);
+            var time = activeHandler.Time;
+            if (time < localRangeLoopStart) {
+                Time = localRangeLoopStart;
+                SendEvent("_OnTimeDrift");
+                return;
+            }
+            if (time > localRangeLoopEnd) {
+                Time = time; // The time will be wrapped in Time's setter
+                SendEvent("_OnTimeDrift");
+                return;
             }
         }
 
@@ -198,7 +370,32 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(OwnerSync));
         }
 
+        /// <summary>
+        /// Let current user be the performer of current video player playback. (Experimental)
+        /// </summary>
+        /// <param name="enable">Enable or disable the performance mode.</param>
+        /// <remarks>
+        /// Video playback time will be auto adjusted to cancel-out the latency between the performer and audience (other users).
+        /// </remarks>
+        public void SetOwnPerformer(bool enable) {
+            if (!synced) return;
+            var player = Networking.LocalPlayer;
+            if (enable) {
+                var newHostId = player.playerId;
+                if (newHostId == performerId) return;
+                PerformerId = (ushort)newHostId;
+            } else if (performerId == player.playerId) {
+                PerformerId = 0;
+            } else return;
+            if (!Networking.IsOwner(gameObject))
+                Networking.SetOwner(player, gameObject);
+            RequestSerialization();
+        }
+
 #if COMPILER_UDONSHARP
+#if UDON_NETWORKING_UPDATED
+        [NetworkCallable]
+#endif
         public
 #endif
         void OwnerSync() {

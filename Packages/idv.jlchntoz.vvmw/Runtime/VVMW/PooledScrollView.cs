@@ -15,27 +15,37 @@ namespace JLChnToZ.VRC.VVMW {
     [BindEvent(typeof(ScrollRect), nameof(ScrollRect.onValueChanged), nameof(_OnScroll))]
     [AddComponentMenu("VizVid/Components/Pooled Scroll View")]
     [DefaultExecutionOrder(2)]
-    public class PooledScrollView : UdonSharpEventSender {
+    public partial class PooledScrollView : UdonSharpEventSender {
+        [SerializeField, HideInInspector, Resolve(".")]
         ScrollRect scrollRect;
         [FieldChangeCallback(nameof(EventPrefix))]
         [SerializeField] string eventPrefix = "_On";
         [SerializeField] GameObject template;
         [FieldChangeCallback(nameof(SelectedIndex))]
         [SerializeField] int selectedIndex = -1;
+        [SerializeField] bool inverseOrder;
         [NonSerialized] public int lastClickedIndex;
         [NonSerialized] public int lastDeletedIndex;
         [NonSerialized] public int lastInteractIndex;
         ListEntry[] entries;
         [FieldChangeCallback(nameof(EntryNames))]
         string[] entryNames;
+        [FieldChangeCallback(nameof(EntryCopyContent))]
+        string[] entryCopyContent;
         bool hasInit;
         [FieldChangeCallback(nameof(CanDelete))]
         bool canDelete = true;
         [FieldChangeCallback(nameof(CanInteract))]
         bool canInteract = true;
+        bool isUpwards;
         public bool autoSelect = true;
         int offset, count;
-        RectTransform viewportRect, contentRect, templateRect;
+        [SerializeField, HideInInspector, Resolve(nameof(scrollRect) + "." + nameof(ScrollRect.viewport))]
+        RectTransform viewportRect;
+        [SerializeField, HideInInspector, Resolve(nameof(scrollRect) + "." + nameof(ScrollRect.content))]
+        RectTransform contentRect;
+        [SerializeField, HideInInspector, Resolve(nameof(template))]
+        RectTransform templateRect;
         Vector2 prevAnchorPosition;
         float entriesPerViewport;
         string entryClickEventName = "_OnEntryClick";
@@ -51,6 +61,7 @@ namespace JLChnToZ.VRC.VVMW {
                 scrollEventName = eventPrefix + "Scroll";
             }
         }
+
         public int SelectedIndex {
             get => selectedIndex;
             set {
@@ -75,6 +86,24 @@ namespace JLChnToZ.VRC.VVMW {
                 entryNames = value;
                 offset = 0;
                 count = Utilities.IsValid(entryNames) ? entryNames.Length : 0;
+                if (hasInit && gameObject.activeInHierarchy)
+                    UpdateEntryState();
+            }
+        }
+
+        public string[] EntryCopyContent {
+            get {
+                if (!Utilities.IsValid(entryCopyContent)) return null;
+                if (offset == 0 && count == entryCopyContent.Length)
+                    return entryCopyContent;
+                var result = new string[count];
+                Array.Copy(entryCopyContent, offset, result, 0, count);
+                return result;
+            }
+            set {
+                entryCopyContent = value;
+                offset = 0;
+                count = Utilities.IsValid(entryCopyContent) ? entryCopyContent.Length : 0;
                 if (hasInit && gameObject.activeInHierarchy)
                     UpdateEntryState();
             }
@@ -123,9 +152,7 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                     template = listEntry.gameObject;
                 }
-                scrollRect = GetComponent<ScrollRect>();
-                viewportRect = scrollRect.viewport;
-                contentRect = scrollRect.content;
+                isUpwards = contentRect.pivot.y < 0.5F;
                 var transformsAfterEntry = new Transform[contentRect.childCount];
                 int count = 0;
                 for (int i = contentRect.childCount - 1; i >= 0; i--) {
@@ -133,19 +160,24 @@ namespace JLChnToZ.VRC.VVMW {
                     if (child == template.transform) break;
                     transformsAfterEntry[count++] = child;
                 }
-                templateRect = template.GetComponent<RectTransform>();
                 var templateHeight = templateRect.rect.height;
                 var viewportHeight = viewportRect.rect.height;
                 entriesPerViewport = viewportHeight / templateHeight;
                 var entryCount = Mathf.CeilToInt(entriesPerViewport) + 1;
                 entries = new ListEntry[entryCount];
+                var templatePos = templateRect.localPosition;
+                var templateRot = templateRect.localRotation;
                 for (var i = 0; i < entryCount; i++) {
                     var instance = Instantiate(template);
-                    instance.transform.SetParent(contentRect, false);
+                    var instTrans = instance.transform;
+                    instTrans.SetParent(contentRect, false);
+                    instTrans.SetLocalPositionAndRotation(templatePos, templateRot);
                     var entry = instance.GetComponent<ListEntry>();
                     entry.asPooledEntry = true;
                     entry.indexAsUserData = true;
                     entry.callbackTarget = this;
+                    entry.isUpwards = isUpwards;
+                    entry.inverseOrder = inverseOrder;
                     entry.callbackEventName = nameof(_OnEntryClick);
                     entry.deleteEventName = nameof(_OnEntryDelete);
                     entry.callbackVariableName = nameof(lastInteractIndex);
@@ -158,7 +190,7 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 for (int i = 0; i < count; i++)
                     transformsAfterEntry[i].SetAsLastSibling();
-                template.gameObject.SetActive(false);
+                template.SetActive(false);
                 EventPrefix = eventPrefix;
                 hasInit = true;
                 if (Utilities.IsValid(entryNames)) UpdateEntryState();
@@ -179,6 +211,7 @@ namespace JLChnToZ.VRC.VVMW {
             for (var i = 0; i < entries.Length; i++) {
                 var entry = entries[i];
                 entry.pooledEntryNames = entryNames;
+                entry.pooledEntryCopyContents = entryCopyContent;
                 entry.selectedEntryIndex = selectedIndex;
                 entry.pooledEntryOffset = offset;
                 entry.pooledEntryCount = count;
@@ -186,10 +219,20 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
 
-        public void SetEntries(string[] entries, int offset, int count) {
+        public void SetEntries(string[] entries, string[] entryCopyContents, int offset, int count) {
             entryNames = entries;
+            entryCopyContent = entryCopyContents;
             this.offset = offset;
             this.count = count;
+            if (hasInit && gameObject.activeInHierarchy)
+                UpdateEntryState();
+        }
+
+        public void SetEntries(string[] entries, string[] entryCopyContents) {
+            entryNames = entries;
+            entryCopyContent = entryCopyContents;
+            offset = 0;
+            count = Utilities.IsValid(entryNames) ? entryNames.Length : 0;
             if (hasInit && gameObject.activeInHierarchy)
                 UpdateEntryState();
         }
@@ -205,8 +248,11 @@ namespace JLChnToZ.VRC.VVMW {
         public void ScrollTo(int index) {
             if (!hasInit) return;
             var normalizedPosition = scrollRect.normalizedPosition;
-            normalizedPosition.y = count > entriesPerViewport ? Mathf.Clamp01(index / (count - entriesPerViewport)) : 0;
+            float pos = count > entriesPerViewport ? Mathf.Clamp01(index / (count - entriesPerViewport)) : 0;
+            if (isUpwards == inverseOrder) pos = 1 - pos;
+            normalizedPosition.y = pos;
             scrollRect.normalizedPosition = normalizedPosition;
+            UpdateEntryState();
         }
 
         public void _OnEntryClick() {
@@ -232,4 +278,17 @@ namespace JLChnToZ.VRC.VVMW {
             SendEvent(scrollEventName);
         }
     }
+
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+    public partial class PooledScrollView : ISelfPreProcess {
+        public int Priority => 0;
+
+        public void PreProcess() {
+            var contentRT = GetComponent<ScrollRect>().content;
+            var templateRT = template.GetComponent<RectTransform>();
+            bool isContentAscending = contentRT.pivot.y < 0.5F != inverseOrder;
+            templateRT.pivot = new Vector2(templateRT.pivot.x, isContentAscending ? 0F : 1F);
+        }
+    }
+#endif
 }

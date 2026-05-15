@@ -36,22 +36,44 @@ jobs:
 
       # Checkout Local Repository
       - name: Checkout
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac
+        uses: actions/checkout@v4
 
       # Get the Package version based on the package.json file
       - name: Get Version
         id: version
         uses: zoexx/github-action-json-file-properties@b9f36ce6ee6fe2680cd3c32b2c62e22eade7e590
         with: 
-            file_path: "${{ env.packagePath }}/package.json"
-            prop_path: "version"
-    
+          file_path: "${{ env.packagePath }}/package.json"
+          prop_path: "version"
+
       # Configure the Environment Variables needed for releasing the Package
       - name: Set Environment Variables
         run: |
           echo "zipFile=${{ vars.PACKAGE_NAME }}-${{ steps.version.outputs.value }}".zip >> $GITHUB_ENV
           echo "unityPackage=${{ vars.PACKAGE_NAME }}-${{ steps.version.outputs.value }}.unitypackage" >> $GITHUB_ENV
           echo "version=${{ steps.version.outputs.value }}" >> $GITHUB_ENV
+          if [[ "${{ env.version }}" == *-* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_ENV
+          else
+            echo "is_prerelease=false" >> $GITHUB_ENV
+          fi
+
+      # Draft release notes based on the CHANGELOG differences
+      - name: Draft Release Notes
+        run: |
+          git fetch --tags --force
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          CURR_TAG="${{ env.version }}"
+          echo "" > changelog_diff.md
+          if [[ "${{ env.version }}" == *-* ]]; then
+            echo "This is a beta release." >> changelog_diff.md
+          fi
+          if [[ -n $PREV_TAG ]]; then
+            git diff $PREV_TAG..HEAD -- CHANGELOG.md >> changelog_diff.md
+          fi
+          echo "**Full Changelog**: ${{ github.repositoryUrl }}/compare/$PREV_TAG...$CURR_TAG" >> changelog_diff.md
+          echo "Download/update with VCC: https://xtlcdn.github.io/vpm/" >> changelog_diff.md
+          echo "WE DO NOT RECOMMEND MANUALLY DOWNLOAD AND IMPORT FOLLOWING ASSETS AS YOU WILL MISS DEPENDENCIES!" >> changelog_diff.md
 
       # Zip the Package for release
       - name: Create Package Zip
@@ -68,14 +90,14 @@ jobs:
         with:
           package-path: ${{ env.unityPackage }}
           include-files: metaList
-      
+
       # Make a release tag of the version from the package.json file 
       - name: Create Tag
         id: tag_version
         uses: rickstaa/action-create-tag@88dbf7ff6fe2405f8e8f6c6fdfd78829bc631f83
         with:
           tag: "${{ env.version }}"
-      
+
       # Publish the Release to GitHub
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
@@ -85,3 +107,6 @@ jobs:
             ${{ env.unityPackage }}
             ${{ env.packagePath }}/package.json
           tag_name: ${{ env.version }}
+          prerelease: ${{ env.is_prerelease }}
+          draft: true
+          body_path: changelog_diff.md

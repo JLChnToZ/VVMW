@@ -2,24 +2,40 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRC.SDKBase;
 using VRC.SDK3.Data;
+using VRC.Udon.Common.Enums;
 using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     public partial class Core {
+#if !COMPILER_UDONSHARP
+        static System.Collections.Generic.HashSet<(Object, int, int, string, string, Texture, Vector4)> screenOptions =
+            new System.Collections.Generic.HashSet<(Object, int, int, string, string, Texture, Vector4)>();
+#endif
         Vector4 normalST = new Vector4(1, 1, 0, 0), flippedST = new Vector4(1, -1, 0, 1);
         Rect normalRect = new Rect(0, 0, 1, 1), flippedRect = new Rect(0, 1, 1, -1);
         [SerializeField, LocalizedLabel] Texture defaultTexture;
+        [SerializeField, LocalizedLabel] Material blitMaterial;
+        [SerializeField] internal int screenCount;
         [SerializeField] internal Object[] screenTargets;
         [SerializeField] internal int[] screenTargetModes;
         [SerializeField] internal int[] screenTargetIndeces;
         [SerializeField] internal string[] screenTargetPropertyNames, avProPropertyNames;
         [SerializeField] internal Texture[] screenTargetDefaultTextures;
+        [SerializeField] internal Vector4[] rtScreenTargetSTs;
         [SerializeField, LocalizedLabel] bool broadcastScreenTexture;
         [SerializeField, LocalizedLabel] string broadcastScreenTextureName = "_Udon_VideoTex";
+        [SerializeField, LocalizedLabel]
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal
+#endif
+        bool enableMipmap;
         int[] screenTargetPropertyIds, avProPropertyIds;
         MaterialPropertyBlock screenTargetPropertyBlock;
-        int broadcastTextureId;
+        int broadcastTextureId, mainTexSTPropertyId;
         DataDictionary screenSharedProperties;
+        bool isBlitterRunning;
 
         /// <summary>
         /// The texture of the video.
@@ -27,28 +43,28 @@ namespace JLChnToZ.VRC.VVMW {
         public Texture VideoTexture => Utilities.IsValid(activeHandler) ? activeHandler.Texture : null;
 
         void StartBroadcastScreenTexture() {
-            if (!broadcastScreenTexture) return;
-            if (broadcastTextureId == 0) broadcastTextureId = VRCShader.PropertyToID(broadcastScreenTextureName);
+            if (!broadcastScreenTexture || !IsActiveInternal) return;
             var videoTexture = VideoTexture;
             if (Utilities.IsValid(videoTexture)) VRCShader.SetGlobalTexture(broadcastTextureId, videoTexture);
         }
 
         void StopBroadcastScreenTexture() {
-            if (broadcastScreenTexture) VRCShader.SetGlobalTexture(broadcastTextureId, null);
+            if (broadcastScreenTexture && IsActiveInternal) VRCShader.SetGlobalTexture(broadcastTextureId, null);
         }
 
         void InitScreenProperties() {
+            screenCount = screenTargets.Length;
             if (Utilities.IsValid(screenTargetPropertyNames)) {
-                screenTargetPropertyIds = new int[screenTargetPropertyNames.Length];
-                for (int i = 0; i < screenTargetPropertyNames.Length; i++) {
+                screenTargetPropertyIds = new int[screenCount];
+                for (int i = 0; i < screenCount; i++) {
                     var propertyName = screenTargetPropertyNames[i];
                     if (!string.IsNullOrEmpty(propertyName) && propertyName != "_")
                         screenTargetPropertyIds[i] = VRCShader.PropertyToID(propertyName);
                 }
             }
             if (Utilities.IsValid(avProPropertyNames)) {
-                avProPropertyIds = new int[avProPropertyNames.Length];
-                for (int i = 0; i < avProPropertyNames.Length; i++) {
+                avProPropertyIds = new int[screenCount];
+                for (int i = 0; i < screenCount; i++) {
                     if ((screenTargetModes[i] & 0x8) != 0)
                         avProPropertyIds[i] = VRCShader.PropertyToID(screenTargetPropertyNames[i] + "_ST");
                     else {
@@ -58,6 +74,9 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                 }
             }
+            if (broadcastTextureId == 0) broadcastTextureId = VRCShader.PropertyToID(broadcastScreenTextureName);
+            if (mainTexSTPropertyId == 0) mainTexSTPropertyId = VRCShader.PropertyToID("_MainTex_ST");
+            SendCustomEventDelayedFrames(nameof(_OnTextureChanged), 0);
         }
 
 #if COMPILER_UDONSHARP
@@ -69,12 +88,12 @@ namespace JLChnToZ.VRC.VVMW {
             var videoTexture = VideoTexture;
             var hasVideoTexture = Utilities.IsValid(videoTexture);
             var isAvPro = hasVideoTexture && IsAVPro;
-            for (int i = 0, length = screenTargets.Length; i < length; i++) {
+            for (int i = 0; i < screenCount; i++) {
                 if (!Utilities.IsValid(screenTargets[i])) continue;
                 Texture texture = null;
                 if (hasVideoTexture)
                     texture = videoTexture;
-                else if (Utilities.IsValid(screenTargetDefaultTextures) && i < screenTargetDefaultTextures.Length)
+                else if (Utilities.IsValid(screenTargetDefaultTextures) && i < screenCount)
                     texture = screenTargetDefaultTextures[i];
                 if (!Utilities.IsValid(texture)) texture = defaultTexture;
                 switch (screenTargetModes[i] & 0x7) {
@@ -92,11 +111,11 @@ namespace JLChnToZ.VRC.VVMW {
                             screenTargetPropertyBlock.SetTexture(screenTargetPropertyIds[i], texture);
                         if (avProPropertyIds[i] != 0) {
                             if ((screenTargetModes[i] & 0x8) != 0)
-                            #if UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_WIN
                                 screenTargetPropertyBlock.SetVector(avProPropertyIds[i], isAvPro ? flippedST : normalST);
-                            #else
-                                {} // Do nothing
-                            #endif
+#else
+                            {} // Do nothing
+#endif
                             else
                                 screenTargetPropertyBlock.SetInt(avProPropertyIds[i], isAvPro ? 1 : 0);
                         }
@@ -121,14 +140,21 @@ namespace JLChnToZ.VRC.VVMW {
                     case 4: { // UI RawImage
                         var rawImage = (RawImage)screenTargets[i];
                         rawImage.texture = texture;
-                        #if UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_WIN
                         rawImage.uvRect = isAvPro ? flippedRect : normalRect;
-                        #endif
+#endif
+                        break;
+                    }
+                    case 5: { // Render Texture
+                        if (!isBlitterRunning) {
+                            isBlitterRunning = true;
+                            SendCustomEventDelayedFrames(nameof(_BlitMaterial), 0, EventTiming.LateUpdate);
+                        }
                         break;
                     }
                 }
             }
-            if (broadcastScreenTexture) VRCShader.SetGlobalTexture(broadcastTextureId, videoTexture);
+            StartBroadcastScreenTexture();
             UpdateRealtimeGI();
             SendEvent("_OnTextureChanged");
         }
@@ -142,7 +168,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (Utilities.IsValid(screenSharedProperties) && screenSharedProperties.TryGetValue(id, TokenType.Float, out var value))
                 return value.Float;
             float v = 0;
-            for (int i = 0, length = screenTargets.Length; i < length; i++) {
+            for (int i = 0; i < screenCount; i++) {
                 if (!Utilities.IsValid(screenTargets[i])) continue;
                 switch (screenTargetModes[i] & 0x7) {
                     case 0: { // Material
@@ -207,7 +233,7 @@ namespace JLChnToZ.VRC.VVMW {
         public void SetScreenFloatExtra(int id, float value) {
             if (!Utilities.IsValid(screenSharedProperties)) screenSharedProperties = new DataDictionary();
             screenSharedProperties[id] = value;
-            for (int i = 0, length = screenTargets.Length; i < length; i++) {
+            for (int i = 0, length = screenCount; i < length; i++) {
                 if (!Utilities.IsValid(screenTargets[i])) continue;
                 switch (screenTargetModes[i] & 0x7) {
                     case 0: { // Material
@@ -249,14 +275,177 @@ namespace JLChnToZ.VRC.VVMW {
                 material.SetTexture(screenTargetPropertyIds[i], texture);
             if (avProPropertyIds[i] != 0) {
                 if ((screenTargetModes[i] & 0x8) != 0)
-                #if UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_WIN
                     material.SetVector(avProPropertyIds[i], isAvPro ? flippedST : normalST);
-                #else
+#else
                     {} // Do nothing
-                #endif
+#endif
                 else
                     material.SetInt(avProPropertyIds[i], isAvPro ? 1 : 0);
             }
         }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _BlitMaterial() {
+            if (!Utilities.IsValid(activeHandler) || !isActiveAndEnabled) {
+                isBlitterRunning = false;
+                return;
+            }
+            var videoTexture = activeHandler.Texture;
+            bool hasVideoTexture = Utilities.IsValid(videoTexture);
+            bool hasValidTarget = false;
+            bool hasBlitMaterial = Utilities.IsValid(blitMaterial) && activeHandler.IsAvPro;
+            for (int i = 0; i < screenCount; i++) {
+                var flags = screenTargetModes[i];
+                if ((flags & 0x7) != 5) continue;
+                var target = (RenderTexture)screenTargets[i];
+                if (!Utilities.IsValid(target)) continue;
+                switch (flags & 0xF0) {
+                    case 1: if (isCurrentCoreActive) break; else continue;
+                    case 2: if (IsActiveInternal) break; else continue;
+                }
+                var currentTexture = hasVideoTexture ? videoTexture :
+                    Utilities.IsValid(screenTargetDefaultTextures) && i < screenCount ?
+                    screenTargetDefaultTextures[i] :
+                    defaultTexture;
+                hasValidTarget = true;
+                var st = rtScreenTargetSTs[i];
+                if (hasBlitMaterial) {
+                    blitMaterial.SetVector(mainTexSTPropertyId, st);
+                    VRCGraphics.Blit(currentTexture, target, blitMaterial);
+                } else
+                    VRCGraphics.Blit(currentTexture, target, new Vector2(st.x, st.y), new Vector2(st.z, st.w));
+            }
+            if (!hasVideoTexture || !hasValidTarget || activeHandler.IsStatic) {
+                isBlitterRunning = false;
+                return;
+            }
+            SendCustomEventDelayedFrames(nameof(_BlitMaterial), 0, EventTiming.LateUpdate);
+        }
+
+#if !COMPILER_UDONSHARP && UNITY_EDITOR
+        void DrawScreenGizmos() {
+            for (int i = 0; i < screenTargets.Length; i++) {
+                Gizmos.color = Color.HSVToRGB(i * 0.35F % 1F, 1F, 1F);
+                if (screenTargets[i] is MeshRenderer meshRenderer) {
+                    if (meshRenderer.TryGetComponent(out MeshFilter meshFilter)) {
+                        var mesh = meshFilter.sharedMesh;
+                        if (mesh != null) {
+                            Gizmos.matrix = meshFilter.transform.localToWorldMatrix;
+                            Gizmos.DrawWireMesh(mesh, screenTargetIndeces[i]);
+                        }
+                    }
+                    continue;
+                }
+                if (screenTargets[i] is Renderer renderer) {
+                    var bounds = renderer.localBounds;
+                    Gizmos.matrix = renderer.transform.localToWorldMatrix;
+                    Gizmos.DrawWireCube(bounds.center, bounds.size);
+                    continue;
+                }
+            }
+        }
+
+        void ValidateScreen() {
+            screenOptions.Clear();
+            EnsureArraySize(ref screenTargetModes, screenTargets.Length);
+            EnsureArraySize(ref screenTargetIndeces, screenTargets.Length);
+            EnsureArraySize(ref screenTargetPropertyNames, screenTargets.Length);
+            EnsureArraySize(ref avProPropertyNames, screenTargets.Length);
+            EnsureArraySize(ref screenTargetDefaultTextures, screenTargets.Length);
+            EnsureArraySize(ref rtScreenTargetSTs, screenTargets.Length);
+            for (int i = screenTargets.Length - 1; i >= 0; i--)
+                if (!screenTargets[i] || UnityEditor.PrefabUtility.IsPartOfPrefabAsset(screenTargets[i]) || !screenOptions.Add((
+                    screenTargets[i],
+                    screenTargetModes[i],
+                    screenTargetIndeces[i],
+                    screenTargetPropertyNames[i],
+                    avProPropertyNames[i],
+                    screenTargetDefaultTextures[i],
+                    rtScreenTargetSTs[i]
+                ))) {
+                    RemoveElement(ref screenTargets, i);
+                    RemoveElement(ref screenTargetModes, i);
+                    RemoveElement(ref screenTargetIndeces, i);
+                    RemoveElement(ref screenTargetPropertyNames, i);
+                    RemoveElement(ref avProPropertyNames, i);
+                    RemoveElement(ref screenTargetDefaultTextures, i);
+                    RemoveElement(ref rtScreenTargetSTs, i);
+                }
+            screenOptions.Clear();
+        }
+
+        static void EnsureArraySize<T>(ref T[] array, int size) {
+            if (array == null || array.Length != size)
+                System.Array.Resize(ref array, size);
+        }
+
+        static void RemoveElement<T>(ref T[] array, int index) {
+            if (index < 0 || index >= array.Length) return;
+            var newArray = new T[array.Length - 1];
+            System.Array.Copy(array, 0, newArray, 0, index);
+            if (index < array.Length - 1) System.Array.Copy(array, index + 1, newArray, index, array.Length - index - 1);
+            array = newArray;
+        }
+
+        /// <summary>
+        /// Add a screen to the core in editor.
+        /// </summary>
+        /// <param name="target">
+        /// The target object of the screen.
+        /// This can be a Material, a Renderer, a RawImage, or a RenderTexture.
+        /// </param>
+        /// <param name="mode">
+        /// The mode of the screen.
+        /// This should be 0 for Material, 1 for Renderer (Property Block), 2 for Renderer (Shared Material), 3 for Renderer (Cloned Material), 4 for UI RawImage, or 5 for Render Texture.
+        /// </param>
+        /// <param name="index">
+        /// The index of the screen target.
+        /// This is used when the target is a Renderer. For other types of targets, this should be -1.
+        /// </param>
+        /// <param name="propertyName">
+        /// The name of the texture property.
+        /// This is used when the mode is 0, 1, or 2. For other modes, this should be null or empty.
+        /// </param>
+        /// <param name="avProPropertyName">
+        /// The name of the AVPro property.
+        /// This is used when the target is an AVPro material. For other materials, this should be null or empty.
+        /// </param>
+        /// <param name="defaultTexture">
+        /// The default texture of the screen.
+        /// This is used when the video texture is not available. If this is null, the core will use the default texture.
+        /// </param>
+        /// <param name="rtST">
+        /// The scale and translation of the render texture.
+        /// This is used when the target is a RenderTexture. For other types of targets, this should be Vector4.zero.
+        /// </param>
+        public void AddScreen(Object target, int mode, int index, string propertyName, string avProPropertyName, Texture defaultTexture, Vector4 rtST) {
+            if (target == null || !screenOptions.Add((target, mode, index, propertyName, avProPropertyName, defaultTexture, rtST)))
+                return;
+            System.Array.Resize(ref screenTargets, screenTargets.Length + 1);
+            System.Array.Resize(ref screenTargetModes, screenTargetModes.Length + 1);
+            System.Array.Resize(ref screenTargetIndeces, screenTargetIndeces.Length + 1);
+            System.Array.Resize(ref screenTargetPropertyNames, screenTargetPropertyNames.Length + 1);
+            System.Array.Resize(ref avProPropertyNames, avProPropertyNames.Length + 1);
+            System.Array.Resize(ref screenTargetDefaultTextures, screenTargetDefaultTextures.Length + 1);
+            System.Array.Resize(ref rtScreenTargetSTs, rtScreenTargetSTs.Length + 1);
+            int newIndex = screenTargets.Length - 1;
+            screenTargets[newIndex] = target;
+            screenTargetModes[newIndex] = mode;
+            screenTargetIndeces[newIndex] = index;
+            screenTargetPropertyNames[newIndex] = propertyName;
+            avProPropertyNames[newIndex] = avProPropertyName;
+            screenTargetDefaultTextures[newIndex] = defaultTexture;
+            rtScreenTargetSTs[newIndex] = rtST;
+        }
+#endif
+    }
+
+    public enum ScreenTargetBlitMode {
+        Always,
+        InRegion,
+        Closest,
     }
 }

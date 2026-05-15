@@ -16,16 +16,21 @@ namespace JLChnToZ.VRC.VVMW {
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(2)]
     [AddComponentMenu("VizVid/Stream Key Assigner")]
-    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-automatically-assigns-unique-stream-links-for-each-event-performer-or-instance")]
-    public class StreamLinkAssigner : VizVidBehaviour {
-        [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core"), Locatable(
+    [HelpURL("https://xtlcdn.github.io/VizVid/docs/#how-to-automatically-assigns-unique-stream-links-for-each-event-performer-or-instance")]
+    public partial class StreamLinkAssigner : VizVidBehaviour {
+        [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
+        [Resolve(nameof(frontendHandler) + "." + nameof(FrontendHandler.core), HideInInspectorIfResolvable = true)]
+        [Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
-        )] protected Core core;
-        [SerializeField, LocalizedLabel(Key = "VVMW.Handler"), Locatable(
+        )]
+        protected Core core;
+        [SerializeField, LocalizedLabel(Key = "VVMW.Handler")]
+        [Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
-        )] protected FrontendHandler frontendHandler;
+        )]
+        protected FrontendHandler frontendHandler;
         [SerializeField, LocalizedLabel] protected string streamKeyTemplate, streamUrlTemplate = "rtspt://example.com/live/{0}", altStreamUrlTemplate = "rtsp://example.com/live/{0}";
         [SerializeField, LocalizedLabel] protected bool currentUserOnly;
         [SerializeField, LocalizedLabel] protected VRCUrl[] streamLinks, altStreamLinks;
@@ -56,7 +61,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void UpdateText() {
-            if (inputFieldToCopy) inputFieldToCopy.text = streamKeys[streamIndex];
+            if (Utilities.IsValid(inputFieldToCopy)) inputFieldToCopy.text = streamKeys[streamIndex];
         }
 
         /// <summary>
@@ -95,18 +100,24 @@ namespace JLChnToZ.VRC.VVMW {
                 Debug.LogError("[Stream Key Assigner] No stream key is assigned. Unable to play.");
                 return;
             }
-            if (frontendHandler) {
-                bool enableIntrrupt = autoInterrupt && frontendHandler.HasQueueList;
-                int currentPendingCount = enableIntrrupt && frontendHandler.PlayListIndex == 0 ? frontendHandler.PendingCount : -1;
+            if (Utilities.IsValid(frontendHandler)) {
+                bool enableIntrrupt = autoInterrupt && frontendHandler.HasQueueList && frontendHandler.PlayListIndex == 0;
+                int currentPendingCount = enableIntrrupt ? frontendHandler.PendingCount : -1;
                 frontendHandler.PlayUrl(streamLinks[streamIndex], altStreamLinks[streamIndex], (byte)playerIndex);
-                if (enableIntrrupt && frontendHandler.PlayListIndex == 0) {
+                if (enableIntrrupt) {
                     int pendingCount = frontendHandler.PendingCount;
                     if (pendingCount > currentPendingCount)
                         frontendHandler.PlayAt(0, pendingCount - 1, false);
                 }
                 return;
             }
-            if (core) core.PlayUrl(streamLinks[streamIndex], altStreamLinks[streamIndex], (byte)playerIndex);
+            if (Utilities.IsValid(core)) core.PlayUrl(streamLinks[streamIndex], altStreamLinks[streamIndex], (byte)playerIndex);
         }
     }
+
+#if !COMPILER_UDONSHARP
+    public partial class StreamLinkAssigner : IVizVidCompoonent {
+        Core IVizVidCompoonent.Core => core;
+    }
+#endif
 }

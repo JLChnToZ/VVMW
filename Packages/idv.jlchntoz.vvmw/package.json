@@ -1,24 +1,22 @@
 {
   "name": "idv.jlchntoz.vvmw",
   "displayName": "VizVid",
-  "version": "1.3.3",
+  "version": "1.7.3",
   "unity": "2019.4",
-  "description": "Brand new original video player frontend for VRChat, aims for flexibility.",
+  "description": "Modular, feature-rich video player frontend for VRChat.",
   "license": "MIT",
   "vrchatVersion": "2022.1.1",
+  "documentationUrl": "https://xtlcdn.github.io/VizVid/docs/",
+  "changelogUrl": "https://xtlcdn.github.io/VizVid/changelog/",
+  "hideInEditor": false,
   "vpmDependencies": {
-    "com.vrchat.core.vpm-resolver": "0.x.x",
-    "com.vrchat.worlds": "3.x.x",
-    "idv.jlchntoz.vrcw-foundation": "0.x.x"
+    "com.vrchat.worlds": "3.x.x >=3.9.0",
+    "idv.jlchntoz.vrcw-foundation": "0.x.x >=0.0.55",
+    "idv.jlchntoz.lazyswitch": "0.x.x >=0.8.0"
   },
   "author": {
     "name": "Jeremy Lam aka. Vistanz",
     "email": "me@moka-rin.moe",
     "url": "https://xtl.booth.pm"
-  },
-  "samples": [{
-    "displayName": "AVPro Stubs",
-    "description": "Stubs for AVPro Video integration",
-    "path": "Samples~/AVProStubs"
-  }]
+  }
 }

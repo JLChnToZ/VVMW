@@ -30,34 +30,20 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 - Dedicated component assigns random stream link per-instance/user (since v1.3.0)
 - Custom shader with various display modes built-in (Stretch, Contain, Cover, Stereographic Video Source), can be configurated on material options
 - Luminance adjustment for screens using built-in materials (sice v1.1.0)
-- Localization system with auto language detection (English, Chinese, Japanese & Korean)
+- Localization system with auto language detection (English, Chinese, Japanese, Korean, and 10 more languages)
 - Locked UI with [Udon Auth](https://xtl.booth.pm/items/3826907).
 - Basic [Audio Link](https://github.com/llealloo/vrc-udon-audio-link) support, which will auto switch audio source when playing, also reports player state (playback progress, volume, loop, shuffle, etc.) on newer version (1.0.0+).
 - Basic [LTCGI](https://ltcgi.dev/) integration, provided CustomRenderTexture for use.
 - Bundled a modified version of [YTTL](https://65536.booth.pm/items/4588619) to display video title from known sources.
+- Dedicated updater for [VRC Light Volumes](https://github.com/REDSIM/VRCLightVolumes).
 - Simple API for [your own udons] integration.
 - Privacy first - We guarantee we do not include features that requires dedicated server to work; Also, features requires external resources are not opt-in by default.
 
 ## Demo
 Please visit the [official demo world](https://vrchat.com/home/world/wrld_7239d09c-7b25-43a5-8ccd-502d986b016a)!
 
-## Installation
-You may use following methods:
-
-- Via VCC (Recommend):
-  1. Ensure you have installed VRChat Creator Companion, if not, [download here](https://vrchat.com/download/vcc).
-  2. Go to [my package listings landing page](https://xtlcdn.github.io/vpm/), click "Add to VCC" button under the banner and follow instructions.
-  3. You can then go to "Manage Project" of your own world project, click on the "+" button to add the player component.
-  4. Enjoy!
-- Via Command Line:  
-  Alternatively, instead of VCC, if you are an advanced geek like to use command line, you may use a tool called [`vrc-get`](https://github.com/vrc-get/vrc-get):
-  ```powershell
-  cd path/to/your/world/project/folder
-  vrc-get repo add https://xtlcdn.github.io/vpm/index.json
-  vrc-get install idv.jlchntoz.vvmw
-  ```
-- Via Booth: [Click here](https://xtl.booth.pm/items/5056077).
-- Via GitHub Releases: [Click here](https://github.com/JLChnToZ/VVMW/releases/latest).
+## Getting Started
+[English](./docs/simple_en.md) | [日本語](./docs/simple_ja.md) | [中文](./docs/simple_zh.md)
 
 ## Issues
 For any issues, please contact me on [Discord server](https://discord.gg/fkDueQMbj8) or [file an issue on GitHub](https://github.com/JLChnToZ/VVMW/issues/new) if you believe there is a bug.
@@ -67,16 +53,24 @@ For any issues, please contact me on [Discord server](https://discord.gg/fkDueQM
 - **山の豚** ([@yama_buta](https://x.com/yama_buta)) - Art
 
 ## Special Thanks
-- **LR163** / **Cross** - Early Stage Functionality & (Live Streaming) Latency Test
-- **HsiaoTzuOWO** - UI & Implementation Test
-- **Yan**-K - UI / UX Consultant
-- **六森** - Advertisement Materials & Demo World
-- **水鳥waterbird** - Naming & Japanese Documentation Proofreading
-- **Kuriko** - Japanese Documentation
-- **[All GitHub Contributors](https://github.com/JLChnToZ/VVMW/graphs/contributors)**
+- **LR163** / **Cross** - Make this Project Happens, Early Tester
+- **HsiaoTzuOWO** - Early Tester
+- **Yan-K** - UI / UX Consultant
+- **六森** - Advertisement Materials, Demo World
+- **水鳥 Waterbird** - Naming, Japanese Documentation Proofreading
+- **Kuriko** - Assisted Documentations, Assisted Japanese / Traditional Chinese Localization
+- **奈良阪 Narazaka** - Assisted Japanese Localization
+- **Sonic853** - Assisted Simplified Chinese Localization
+- **Krislyz** - Assisted Hebrew Localization
+- **JustTemTem** & **Meiji** - Assisted Thai Localization
+- **はるる早苗 HaruruSanae** - Assisted Japanese Documentation
+- **[All Other GitHub Contributors](https://github.com/JLChnToZ/VVMW/graphs/contributors)**
 
 ## License
 [MIT](license/)
+
+## Changelog
+[Click here](changelog/)
 
 ***
 

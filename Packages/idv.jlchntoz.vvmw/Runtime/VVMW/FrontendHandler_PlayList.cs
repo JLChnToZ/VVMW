@@ -24,7 +24,7 @@ namespace JLChnToZ.VRC.VVMW {
         /// </summary>
         /// <remarks>The returned array is meant to be read only, do not modify.</remarks>
         public string[] PlayListTitles => playListTitles;
-    
+
         /// <summary>
         /// The index offsets for
         /// <see cref="PlayListUrls"/>,
@@ -38,7 +38,7 @@ namespace JLChnToZ.VRC.VVMW {
         /// The returned array is meant to be read only, do not modify.
         /// </remarks>
         public int[] PlayListUrlOffsets => playListUrlOffsets;
-    
+
         /// <summary>
         /// The URLs of the playlists.
         /// </summary>
@@ -50,13 +50,13 @@ namespace JLChnToZ.VRC.VVMW {
         /// </summary>
         /// <remarks>The returned array is meant to be read only, do not modify.</remarks>
         public VRCUrl[] PlayListUrlsQuest => playListUrlsQuest;
-    
+
         /// <summary>
         /// The titles of the playlist entries.
         /// </summary>
         /// <remarks>The returned array is meant to be read only, do not modify.</remarks>
         public string[] PlayListEntryTitles => playListEntryTitles;
-    
+
         /// <summary>
         /// The player index of the playlist entries.
         /// </summary>

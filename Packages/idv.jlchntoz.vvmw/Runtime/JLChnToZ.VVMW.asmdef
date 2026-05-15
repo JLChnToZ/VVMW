@@ -7,9 +7,11 @@
         "UdonSharp.Runtime",
         "VRC.Udon.Serialization.OdinSerializer",
         "JLChnToZ.VRC.Foundation",
+        "LazySwitch.Runtime",
         "AudioLink",
         "LTCGI_Assembly",
-        "at.pimaker.ltcgi.Editor"
+        "at.pimaker.ltcgi.Editor",
+        "red.sim.LightVolumesUdon"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -23,6 +25,16 @@
             "name": "at.pimaker.ltcgi",
             "expression": "",
             "define": "LTCGI_IMPORTED"
+        },
+        {
+            "name": "red.sim.lightvolumes",
+            "expression": "2.0.0",
+            "define": "VRCLV2_IMPORTED"
+        },
+        {
+            "name": "com.vrchat.worlds",
+            "expression": "3.8.1",
+            "define": "UDON_NETWORKING_UPDATED"
         }
     ],
     "noEngineReferences": false

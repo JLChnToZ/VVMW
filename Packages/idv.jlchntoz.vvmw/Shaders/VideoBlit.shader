@@ -1,6 +1,6 @@
 Shader "Hidden/JLChnToZ/VideoBlit" {
     Properties {
-        [PerRendererData] [NoScaleOffset]
+        [PerRendererData]
         _MainTex ("Blit Texture", 2D) = "black" {}
     }
     SubShader {
@@ -20,6 +20,7 @@ Shader "Hidden/JLChnToZ/VideoBlit" {
             #include "./VideoShaderCommon.cginc"
 
             sampler2D _MainTex;
+            float4 _MainTex_ST;
 
             struct v2f {
                 float4 pos : SV_POSITION;
@@ -29,7 +30,7 @@ Shader "Hidden/JLChnToZ/VideoBlit" {
             v2f vert (appdata_base v) {
                 v2f o;
                 o.pos = UnityObjectToClipPos(v.vertex);
-                o.uv = v.texcoord;
+                o.uv = v.texcoord.xy * _MainTex_ST.xy + _MainTex_ST.zw;
                 return o;
             }
 

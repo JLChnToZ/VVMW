@@ -16,16 +16,17 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     [EditorOnly]
     [RequireComponent(typeof(Button))]
     [AddComponentMenu("VizVid/Color Configurator/Resync Button")]
-    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-add-a-resync-button")]
+    [HelpURL("https://xtlcdn.github.io/VizVid/docs/#how-to-add-a-resync-button")]
     public partial class ResyncButtonConfigurator : MonoBehaviour {
         [Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.NextSibling
-        ), SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")] Core core;
+        ), SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
+        Core core;
         [SerializeField, LocalizedLabel] bool globalSync;
     }
 
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
     public partial class ResyncButtonConfigurator : ISelfPreProcess {
         internal static Func<UdonSharpBehaviour, UdonBehaviour> getBackingUdonBehaviour;
 
@@ -52,5 +53,5 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             );
         }
     }
-    #endif
+#endif
 }

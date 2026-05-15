@@ -15,8 +15,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             isAvProProperty,
             playerNameProperty,
             primaryAudioSourceProperty,
+            primaryAudioSourceRProperty,
             useFlickerWorkaroundProperty,
-            blitMaterialProperty;
+            blitMaterialProperty,
+            fallbackHandlerProperty;
         Material[] materials;
 
         [InitializeOnLoadMethod]
@@ -30,14 +32,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             playerNameProperty = serializedObject.FindProperty("playerName");
             isAvProProperty = serializedObject.FindProperty("isAvPro");
             primaryAudioSourceProperty = serializedObject.FindProperty("primaryAudioSource");
+            primaryAudioSourceRProperty = serializedObject.FindProperty("primaryAudioSourceR");
             useFlickerWorkaroundProperty = serializedObject.FindProperty("useFlickerWorkaround");
             blitMaterialProperty = serializedObject.FindProperty("blitMaterial");
+            fallbackHandlerProperty = serializedObject.FindProperty("fallbackHandler");
             materials = null;
         }
 
-        public override void OnInspectorGUI() {
-            base.OnInspectorGUI();
-            if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(this.target, false, false)) return;
+        public override void DrawInspectorGUI() {
             if (PrefabUtility.IsPartOfPrefabAsset(this.target)) {
                 EditorGUILayout.HelpBox(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.VideoPlayerHandler:no_prefab"), MessageType.Info);
                 DrawDefaultInspector();
@@ -49,11 +51,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 return;
             }
             serializedObject.Update();
-            var target = this.target as VideoPlayerHandler;
             EditorGUILayout.PropertyField(playerNameProperty);
+            DrawEmbeddedInspectorGUI();
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField(i18n.GetLocalizedContent("HEADER:MeshRenderer"), EditorStyles.boldLabel);
-            var renderer = target.GetComponent<Renderer>();
-            if (renderer == null) renderer = Undo.AddComponent<MeshRenderer>(target.gameObject);
+            if (!(target as Component).TryGetComponent(out Renderer renderer))
+                renderer = Undo.AddComponent<MeshRenderer>((target as Component).gameObject);
             HideControlledComponent(renderer);
             using (var so = new SerializedObject(renderer)) {
                 so.FindProperty("m_Enabled").boolValue = false;
@@ -78,7 +81,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 null, materials,
                 ShaderUtil.ShaderPropertyType.TexEnv
             );
-            EditorGUILayout.Space();
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        public override void DrawEmbeddedInspectorGUI() {
+            var target = this.target as VideoPlayerHandler;
             var controlledVideoPlayer = target.GetComponent<BaseVRCVideoPlayer>();
             if (controlledVideoPlayer is VRCUnityVideoPlayer unityVideoPlayer) {
                 EditorGUILayout.LabelField(i18n.GetLocalizedContent("HEADER:UnityVideoPlayer"), EditorStyles.boldLabel);
@@ -97,12 +104,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 }
             }
             EditorGUILayout.PropertyField(primaryAudioSourceProperty);
-            if (isAvProProperty.boolValue) {
+            var isAvPro = isAvProProperty.boolValue;
+            if ((primaryAudioSourceProperty.objectReferenceValue != null && isAvPro) ||
+                primaryAudioSourceRProperty.objectReferenceValue != null)
+                EditorGUILayout.PropertyField(primaryAudioSourceRProperty);
+            if (isAvPro) {
                 EditorGUILayout.PropertyField(useFlickerWorkaroundProperty);
                 if (useFlickerWorkaroundProperty.boolValue)
                     EditorGUILayout.PropertyField(blitMaterialProperty);
             }
-            serializedObject.ApplyModifiedProperties();
+            EditorGUILayout.PropertyField(fallbackHandlerProperty);
         }
 
         static void HideControlledComponent(Component component) {

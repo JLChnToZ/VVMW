@@ -11,17 +11,16 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     /// </summary>
     [ExecuteInEditMode]
     [EditorOnly]
-    [AddComponentMenu(".")]
+    [AddComponentMenu("/VizVid/LTCGI Configurator")]
     internal class LTCGIConfigurator : MonoBehaviour, ISelfPreProcess {
-        internal static Action<LTCGIConfigurator, Core, LTCGI_Controller, List<LTCGI_Screen>> OnPreProcess;
+        internal static Action<LTCGIConfigurator> OnPreProcess;
         [HideInInspector] public Core core;
         [HideInInspector] public LTCGI_Controller controller;
         [HideInInspector] public List<LTCGI_Screen> screens;
 
         public int Priority => 0;
 
-        void ISelfPreProcess.PreProcess() =>
-            OnPreProcess?.Invoke(this, core, controller, screens);
+        void ISelfPreProcess.PreProcess() => OnPreProcess?.Invoke(this);
 
         void OnDestroy() {
             if (Application.isPlaying) return;

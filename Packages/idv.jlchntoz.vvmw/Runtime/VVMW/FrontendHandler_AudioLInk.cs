@@ -6,7 +6,7 @@ using AudioLink;
 namespace JLChnToZ.VRC.VVMW {
     public partial class FrontendHandler {
         void UpdateAudioLink() {
-            #if AUDIOLINK_V1
+#if AUDIOLINK_V1
             var audioLink = core.AudioLink;
             if (Utilities.IsValid(audioLink)) {
                 if ((localFlags & REPEAT_ALL) != 0) {
@@ -21,7 +21,7 @@ namespace JLChnToZ.VRC.VVMW {
                 else
                     audioLink.SetMediaLoop(MediaLoop.None);
             }
-            #endif
+#endif
         }
     }
 }

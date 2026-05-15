@@ -10,19 +10,20 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     [CustomEditor(typeof(ColorConfig))]
     public class ColorConfigEditor : VVMWEditorBase {
         SerializedProperty colorsProperty;
+        SerializedProperty autoApplyOnBuildProperty;
         bool addRemoveFoldout;
 
         protected override void OnEnable() {
             base.OnEnable();
             colorsProperty = serializedObject.FindProperty("colors");
+            autoApplyOnBuildProperty = serializedObject.FindProperty("autoApplyOnBuild");
         }
 
-        public override void OnInspectorGUI() {
-            serializedObject.Update();
+        public override void DrawEmbeddedInspectorGUI() {
             EditorGUILayout.LabelField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorPalette"), EditorStyles.boldLabel);
             for (int i = 0; i < colorsProperty.arraySize; i++) {
                 var colorProperty = colorsProperty.GetArrayElementAtIndex(i);
-                EditorGUILayout.PropertyField(colorProperty, new GUIContent(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorN", i + 1)));
+                EditorGUILayout.PropertyField(colorProperty, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorN", i + 1));
             }
             addRemoveFoldout = EditorGUILayout.Foldout(addRemoveFoldout, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.advanced"));
             if (addRemoveFoldout)
@@ -36,7 +37,12 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                         if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.removePalette")))
                             FUtils.DeleteElement(colorsProperty, colorsProperty.arraySize - 1);
                 }
-            serializedObject.ApplyModifiedProperties();
+            EditorGUILayout.PropertyField(autoApplyOnBuildProperty);
+        }
+
+        public override void DrawInspectorGUI() {
+            serializedObject.Update();
+            DrawEmbeddedInspectorGUI();
             EditorGUILayout.Space();
             using (new EditorGUILayout.HorizontalScope()) {
                 if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply")))
@@ -54,6 +60,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     }
                 }
             }
+            serializedObject.ApplyModifiedProperties();
         }
 
         [InitializeOnLoadMethod]
@@ -67,11 +74,11 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 
         static void AutoConfigurate() {
-            #if UNITY_2022_2_OR_NEWER
+#if UNITY_2022_2_OR_NEWER
             int count = SceneManager.loadedSceneCount;
-            #else
+#else
             int count = SceneManager.sceneCount;
-            #endif
+#endif
             for (int i = 0; i < count; i++) AutoConfigurate(SceneManager.GetSceneAt(i));
         }
 

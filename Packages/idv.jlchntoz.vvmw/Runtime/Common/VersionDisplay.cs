@@ -22,7 +22,7 @@ namespace JLChnToZ.VRC.VVMW {
         public string format = "V{0}";
     }
 
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
     public partial class VersionDisplay : ISelfPreProcess {
         static PackageManagerPackageInfo packageInfo;
 
@@ -56,5 +56,5 @@ namespace JLChnToZ.VRC.VVMW {
             }
         }
     }
-    #endif
+#endif
 }

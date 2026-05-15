@@ -1,8 +1,8 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.PackageManager.UI;
 #if VRC_SDK_VRCSDK3
 using VRC.SDK3.Editor;
 #else
@@ -27,15 +27,29 @@ namespace JLChnToZ.VRC.VVMW {
                 return;
             }
             var packageInfo = PackageManagerPackageInfo.FindForAssembly(typeof(AVProStubsInstaller).Assembly);
-            if (packageInfo != null) {
-                var targetPath = Path.GetFullPath(Path.Join(packageInfo.resolvedPath, "Samples~/AVProStubs"));
-                foreach (var sample in Sample.FindByPackage(packageInfo.name, packageInfo.version))
-                    if (string.Equals(Path.GetFullPath(sample.resolvedPath), targetPath, StringComparison.OrdinalIgnoreCase)) {
-                        sample.Import(forced ? Sample.ImportOptions.OverridePreviousImports : Sample.ImportOptions.None);
-                        return;
-                    }
+            if (packageInfo == null) {
+                if (!silent) Debug.LogError("[VVMW] VizVid is not properly installed, please reinstall it.");
+                return;
             }
-            if (!silent) Debug.LogError("[VVMW] VizVid is not properly installed, please reinstall it.");
+            var dirStack = new Stack<(string, string, string)>();
+            dirStack.Push((Path.Join(packageInfo.resolvedPath, "Samples~/AVProStubs"), "Assets", "AvProVideo"));
+            while (dirStack.TryPop(out var pair)) {
+                var (srcDir, dstBase, dstName) = pair;
+                var dstDir = Path.Join(dstBase, dstName);
+                if (!Directory.Exists(dstDir)) AssetDatabase.CreateFolder(dstBase, dstName);
+                foreach (var filePath in Directory.GetFiles(srcDir)) {
+                    var fileName = Path.GetFileName(filePath);
+                    var destFilePath = Path.Join(dstDir, fileName);
+                    if (File.Exists(destFilePath) && !forced) {
+                        if (!silent) Debug.LogWarning($"[VVMW] File {destFilePath} already exists, skipping.");
+                        continue;
+                    }
+                    File.Copy(filePath, destFilePath, true);
+                }
+                foreach (var subDir in Directory.GetDirectories(srcDir))
+                    dirStack.Push((subDir, dstDir, Path.GetFileName(subDir)));
+            }
+            AssetDatabase.Refresh();
         }
 
         static void AddBuildHook(object sender, EventArgs e) {

@@ -11,7 +11,8 @@ namespace JLChnToZ.VRC.VVMW {
         [Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/Prefabs/Third-Parties/YTTL/YTTL Manager.prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.First
-        ), SerializeField, LocalizedLabel] YttlManager yttl;
+        ), SerializeField, LocalizedLabel]
+        YttlManager yttl;
 #if COMPILER_UDONSHARP
         [NonSerialized, FieldChangeCallback(nameof(URL))] public
 #endif
@@ -46,7 +47,7 @@ namespace JLChnToZ.VRC.VVMW {
             get => url;
             set => url = value ?? VRCUrl.Empty;
         }
-        
+
         string Title {
             get => title;
             set {

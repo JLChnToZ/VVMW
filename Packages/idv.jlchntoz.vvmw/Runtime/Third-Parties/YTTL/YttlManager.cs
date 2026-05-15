@@ -32,21 +32,21 @@ namespace VVMW.ThirdParties.Yttl {
         public void OnPostLoadDefineFile() {
             isDefineFileReady = true;
             if (Utilities.IsValid(postDefineFileLoadUrls))
-                foreach (var url in postDefineFileLoadUrls)
+                foreach (var url in postDefineFileLoadUrls) {
+                    if (!parser.TryGetSupportedHost(url.Get(), out var _discard)) {
+                        Debug.LogWarning("[YTTL] Unsupported host");
+                        continue;
+                    }
                     VRCStringDownloader.LoadUrl(url, (IUdonEventReceiver)this);
+                }
             postDefineFileLoadUrls = null;
         }
 
         public void LoadData(VRCUrl url, UdonSharpBehaviour listener) {
             var urlStr = url.Get();
 
-            if (!parser.TryGetSupportedHost(urlStr, out var _discard)) {
-                Debug.LogWarning("[YTTL] Unsupported host");
-                return;
-            }
-
-            if (!Utilities.IsValid(cache)) cache = new DataDictionary();
-            else if (cache.TryGetValue(urlStr, TokenType.DataDictionary, out var cacheToken)) {
+            if (Utilities.IsValid(cache) &&
+                cache.TryGetValue(urlStr, TokenType.DataDictionary, out var cacheToken)) {
                 Debug.Log("[YTTL] Found cache");
                 GetAllData(cacheToken.DataDictionary, out var author, out var title, out var viewCount, out var description);
                 listener.SetProgramVariable(nameof(url), url);
@@ -88,6 +88,11 @@ namespace VVMW.ThirdParties.Yttl {
                 return;
             }
 
+            if (!parser.TryGetSupportedHost(urlStr, out var _discard)) {
+                Debug.LogWarning("[YTTL] Unsupported host");
+                return;
+            }
+
             VRCStringDownloader.LoadUrl(url, (IUdonEventReceiver)this);
         }
 
@@ -103,13 +108,14 @@ namespace VVMW.ThirdParties.Yttl {
 
             parser.SetRawDataText(data);
 
-            if (!Utilities.IsValid(labels)) labels = new DataList("author", "title", "viewCount", "description");
+            if (!Utilities.IsValid(labels)) labels = new DataList(new DataToken[] { "author", "title", "viewCount", "description" });
 
             if (!parser.TryGetValue(host, labels, out var resultDict)) {
                 Debug.LogWarning("[YTTL] Error when getting information");
                 return;
             }
 
+            if (!Utilities.IsValid(cache)) cache = new DataDictionary();
             cache[url] = resultDict;
             
             GetAllData(resultDict, out var author, out var title, out var viewCount, out var description);

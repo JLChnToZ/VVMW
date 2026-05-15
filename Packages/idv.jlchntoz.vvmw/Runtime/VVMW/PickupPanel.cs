@@ -16,8 +16,8 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
     [RequireComponent(typeof(VRC_Pickup))]
     [DisallowMultipleComponent]
     [AddComponentMenu("VizVid/Components/Pickup Panel")]
-    [HelpURL("https://github.com/JLChnToZ/VVMW/blob/main/Packages/idv.jlchntoz.vvmw/README.md#how-to-add-a-pickupable-screen")]
-    public class PickupPanel : UdonSharpBehaviour {
+    [HelpURL("https://xtlcdn.github.io/VizVid/docs/#how-to-add-a-pickupable-screen")]
+    public class PickupPanel : UdonSharpEventSender {
         [LocalizedHeader("HEADER:PickupPanel.References")]
         [SerializeField, LocalizedLabel] Transform scalingTarget;
         [BindEvent(nameof(Button.onClick), nameof(_LockButtonToggle))]
@@ -25,6 +25,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
         [BindEvent(nameof(Button.onClick), nameof(_MakeUpright))]
         [SerializeField, LocalizedLabel] Button uprightButton;
         [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager languageManager;
+        [SerializeField, HideInInspector, Resolve(".")]
         VRC_Pickup pickup;
         [LocalizedHeader("HEADER:PickupPanel.Settings")]
         [SerializeField, LocalizedLabel] float scaleSpeed = 1F;
@@ -57,7 +58,6 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
         }
 
         void Start() {
-            pickup = (VRC_Pickup)GetComponent(typeof(VRC_Pickup));
             var localPlayer = Networking.LocalPlayer;
             isVR = Utilities.IsValid(localPlayer) && localPlayer.IsUserInVR();
             instructionRenderer.sharedMaterial = isVR ? vrInstructionMaterial : pcInstructionMaterial;
@@ -76,10 +76,12 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
 
         public override void OnPickup() {
             instructionRenderer.enabled = true;
+            SendEvent("_OnScreenPickup");
         }
 
         public override void OnDrop() {
             instructionRenderer.enabled = false;
+            SendEvent("_OnScreenDrop");
         }
 
         public override void InputLookVertical(float value, UdonInputEventArgs args) {
@@ -101,6 +103,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
             transform.localRotation = Quaternion.identity;
             Locked = false;
             Scale = 1F;
+            SendEvent("_OnReset");
         }
 
         public void _OnLanguageChanged() {
@@ -114,6 +117,7 @@ namespace JLChnToZ.VRC.VVMW.Pickups {
             // Make it upright
             toHead.y = 0;
             transform.rotation = Quaternion.LookRotation(toHead, Vector3.up);
+            SendEvent("_OnUpright");
         }
     }
 }

@@ -2,6 +2,10 @@ name: Build Docs
 
 on: 
   workflow_dispatch:
+  push:
+    paths:
+      - 'docs/**'
+      - 'CHANGELOG.md'
 
 jobs:
   build:
@@ -14,7 +18,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1

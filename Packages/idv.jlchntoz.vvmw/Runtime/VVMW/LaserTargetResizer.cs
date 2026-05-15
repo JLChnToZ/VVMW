@@ -1,20 +1,14 @@
-﻿using VRC.SDKBase;
+﻿using UnityEngine;
+using VRC.SDKBase;
 using UdonSharp;
-using UnityEngine;
+using JLChnToZ.VRC.Foundation;
 
 namespace JLChnToZ.VRC.VVMW {
     [RequireComponent(typeof(BoxCollider))]
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     public class LaserTargetResizer : UdonSharpBehaviour {
-        new BoxCollider collider;
+        [SerializeField, HideInInspector, Resolve(".")] new BoxCollider collider;
         [SerializeField] RectTransform inactiveRect, activeRect;
-        bool hasInit;
-
-        void Init() {
-            if (hasInit) return;
-            hasInit = true;
-            collider = GetComponent<BoxCollider>();
-        }
 
         public void _OnActive() => SetRect(activeRect);
 
@@ -22,7 +16,6 @@ namespace JLChnToZ.VRC.VVMW {
 
         void SetRect(RectTransform rectTransform) {
             if (!Utilities.IsValid(rectTransform)) return;
-            Init();
             var rect = rectTransform.rect;
             collider.center = transform.InverseTransformPoint(rectTransform.TransformPoint(rect.center));
             Vector3 size = rect.size;

@@ -89,6 +89,6 @@ namespace JLChnToZ.VRC.VVMW {
             localHistoryQuestUrls = tempQuestUrls;
             localHistoryPlayerIndex = tempPlayerIndex;
             localHistoryTitles = tempTitles;
-        } 
+        }
     }
 }

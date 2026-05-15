@@ -3,15 +3,15 @@ using VRC.SDKBase;
 namespace JLChnToZ.VRC.VVMW {
     public partial class UIHandler {
         void InitShiftControl() {
-            bool isSynced = core.IsSynced;
-            if (Utilities.IsValid(shiftControlsRoot)) shiftControlsRoot.SetActive(isSynced);
+            bool isSyncedAndUnlocked = core.IsSynced && wasUnlocked;
+            if (Utilities.IsValid(shiftControlsRoot)) shiftControlsRoot.SetActive(isSyncedAndUnlocked);
             else {
-                if (Utilities.IsValid(shiftBackLButton)) shiftBackLButton.gameObject.SetActive(isSynced);
-                if (Utilities.IsValid(shiftBackSButton)) shiftBackSButton.gameObject.SetActive(isSynced);
-                if (Utilities.IsValid(shiftForwardSButton)) shiftForwardSButton.gameObject.SetActive(isSynced);
-                if (Utilities.IsValid(shiftForwardLButton)) shiftForwardLButton.gameObject.SetActive(isSynced);
-                if (Utilities.IsValid(shiftResetButton)) shiftResetButton.gameObject.SetActive(isSynced);
-                if (Utilities.IsValid(shiftOffsetText)) shiftOffsetText.gameObject.SetActive(isSynced);
+                if (Utilities.IsValid(shiftBackLButtonObject)) shiftBackLButtonObject.SetActive(isSyncedAndUnlocked);
+                if (Utilities.IsValid(shiftBackSButtonObject)) shiftBackSButtonObject.SetActive(isSyncedAndUnlocked);
+                if (Utilities.IsValid(shiftForwardSButtonObject)) shiftForwardSButtonObject.SetActive(isSyncedAndUnlocked);
+                if (Utilities.IsValid(shiftForwardLButtonObject)) shiftForwardLButtonObject.SetActive(isSyncedAndUnlocked);
+                if (Utilities.IsValid(shiftResetButtonObject)) shiftResetButtonObject.SetActive(isSyncedAndUnlocked);
+                if (Utilities.IsValid(shiftOffsetObject)) shiftOffsetObject.SetActive(isSyncedAndUnlocked);
             }
         }
 
@@ -79,6 +79,35 @@ namespace JLChnToZ.VRC.VVMW {
         void _OnSpeedChange() {
             if (!afterFirstRun) return;
             SetText(speedOffsetText, speedOffsetTMPro, string.Format(languageManager.GetLocale("SpeedOffset"), core.Speed));
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _PerformanceModeToggle() {
+            var performer = core.Performer;
+            core.SetOwnPerformer(!Utilities.IsValid(performer) || !performer.isLocal);
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _OnPerformerChange() {
+            var performer = core.Performer;
+            bool isOff = false, isSelf = false, isOthers = false;
+            if (Utilities.IsValid(performer)) {
+                if (performer.isLocal)
+                    isSelf = true;
+                else
+                    isOthers = true;
+                SetText(performerText, performerTMPro, performer.displayName);
+            } else {
+                isOff = true;
+                SetText(performerText, performerTMPro, "");
+            }
+            if (Utilities.IsValid(performanceModeOff)) performanceModeOff.SetActive(isOff);
+            if (Utilities.IsValid(performanceModeSelf)) performanceModeSelf.SetActive(isSelf);
+            if (Utilities.IsValid(performanceModeOthers)) performanceModeOthers.SetActive(isOthers);
         }
     }
 }

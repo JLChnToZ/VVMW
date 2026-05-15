@@ -13,15 +13,22 @@ namespace JLChnToZ.VRC.VVMW {
     [AddComponentMenu("VizVid/Components/List Entry")]
     [DefaultExecutionOrder(3)]
     public class ListEntry : UdonSharpBehaviour {
-        [TMProMigratable(nameof(contentTMPro))]
-        [SerializeField] Text content;
-        [SerializeField] TextMeshProUGUI contentTMPro;
+        [SerializeField] GameObject contentGameObject;
+        [SerializeField, HideInInspector, Resolve(nameof(contentGameObject), NullOnly = false)] Text content;
+        [SerializeField, HideInInspector, Resolve(nameof(contentGameObject), NullOnly = false)] TextMeshProUGUI contentTMPro;
         [BindEvent(nameof(Button.onClick), nameof(_OnClick))]
         [SerializeField] Button primaryButton;
         [BindEvent(nameof(Button.onClick), nameof(_OnDeleteClick))]
         [SerializeField] Button deleteButton;
+        [SerializeField, HideInInspector, Resolve(nameof(deleteButton))]
+        GameObject deleteButtonGO;
+        [SerializeField] InputField inputField;
+        [SerializeField, HideInInspector, Resolve(nameof(inputField))]
+        GameObject inputFieldGO;
         [SerializeField] Color selectedColor, normalColor;
-        RectTransform rectTransform, parentRectTransform;
+        [SerializeField, HideInInspector, Resolve(".")]
+        RectTransform rectTransform;
+        RectTransform parentRectTransform;
         public UdonSharpBehaviour callbackTarget;
         public string callbackEventName;
         public string callbackVariableName;
@@ -29,13 +36,14 @@ namespace JLChnToZ.VRC.VVMW {
         public string deleteEventName;
         [NonSerialized] public bool asPooledEntry;
         [NonSerialized] public bool indexAsUserData;
-        [NonSerialized] public string[] pooledEntryNames;
+        [NonSerialized] public string[] pooledEntryNames, pooledEntryCopyContents;
         [NonSerialized] public object[] callbackUserDatas;
         [NonSerialized] public int selectedEntryIndex;
         [NonSerialized] public int entryOffset;
         [NonSerialized] public int spawnedEntryCount = 1;
         [NonSerialized] public int pooledEntryOffset, pooledEntryCount;
-        float height;
+        [NonSerialized] public bool isUpwards;
+        [NonSerialized] public bool inverseOrder;
         int lastOffset = -1;
         bool isSelected;
 
@@ -45,15 +53,28 @@ namespace JLChnToZ.VRC.VVMW {
                 if (Utilities.IsValid(contentTMPro)) return contentTMPro.text;
                 return "";
             }
-            set {
+            private set {
                 if (Utilities.IsValid(content)) content.text = value;
                 if (Utilities.IsValid(contentTMPro)) contentTMPro.text = value;
             }
         }
 
+        public string CopyContent {
+            get {
+                if (Utilities.IsValid(inputField))
+                    return inputField.text;
+                return "";
+            }
+            set {
+                if (!Utilities.IsValid(inputFieldGO)) return;
+                inputField.text = value;
+                inputFieldGO.SetActive(!string.IsNullOrWhiteSpace(value));
+            }
+        }
+
         public bool HasDelete {
-            get => deleteButton.gameObject.activeSelf;
-            set => deleteButton.gameObject.SetActive(value);
+            get => Utilities.IsValid(deleteButtonGO) && deleteButtonGO.activeSelf;
+            set => deleteButtonGO.SetActive(value);
         }
 
         public bool Unlocked {
@@ -86,13 +107,14 @@ namespace JLChnToZ.VRC.VVMW {
 
         void Start() {
             if (!Utilities.IsValid(callbackUserData)) callbackUserData = this;
-            rectTransform = GetComponent<RectTransform>();
         }
 
         bool UpdateIndex() {
-            if (!Utilities.IsValid(rectTransform)) rectTransform = GetComponent<RectTransform>();
-            if (!Utilities.IsValid(parentRectTransform)) parentRectTransform = rectTransform.parent.GetComponent<RectTransform>();
-            int newOffset = Mathf.FloorToInt((-parentRectTransform.anchoredPosition.y / rectTransform.rect.height - entryOffset - 1) / spawnedEntryCount + 1) * spawnedEntryCount + entryOffset;
+            if (!Utilities.IsValid(parentRectTransform)) parentRectTransform = (RectTransform)rectTransform.parent;
+            float anchoredPosition = parentRectTransform.anchoredPosition.y;
+            if (isUpwards) anchoredPosition = -anchoredPosition;
+            int newOffset = Mathf.FloorToInt((anchoredPosition / rectTransform.rect.height - entryOffset - 1) / spawnedEntryCount + 1) * spawnedEntryCount + entryOffset;
+            if (inverseOrder) newOffset = pooledEntryCount - newOffset - 1;
             if (lastOffset == newOffset) return false;
             lastOffset = newOffset;
             return true;
@@ -100,10 +122,14 @@ namespace JLChnToZ.VRC.VVMW {
 
         void UpdatePositionAndContent() {
             if (!asPooledEntry) return;
-            if (!Utilities.IsValid(rectTransform)) rectTransform = GetComponent<RectTransform>();
             if (lastOffset >= 0 && lastOffset < pooledEntryCount) {
                 _UpdateContent();
-                rectTransform.anchoredPosition = new Vector2(0, lastOffset * rectTransform.rect.height);
+                float offset = lastOffset;
+                if (!isUpwards) offset = -offset;
+                if (inverseOrder) offset = pooledEntryCount - offset;
+                var anchoredPosition = rectTransform.anchoredPosition;
+                anchoredPosition.y = offset * rectTransform.rect.height;
+                rectTransform.anchoredPosition = anchoredPosition;
                 gameObject.SetActive(true);
             } else {
                 gameObject.SetActive(false);
@@ -143,7 +169,9 @@ namespace JLChnToZ.VRC.VVMW {
 
         public void _UpdateContent() {
             if (!asPooledEntry || lastOffset < 0 || lastOffset >= pooledEntryCount) return;
-            TextContent = pooledEntryNames[lastOffset + pooledEntryOffset];
+            int currentIndex = lastOffset + pooledEntryOffset;
+            TextContent = pooledEntryNames[currentIndex];
+            CopyContent = Utilities.IsValid(pooledEntryCopyContents) ? pooledEntryCopyContents[currentIndex] : "";
             Selected = lastOffset == selectedEntryIndex;
         }
     }

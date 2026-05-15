@@ -18,9 +18,9 @@ namespace JLChnToZ.VRC.VVMW {
     [DefaultExecutionOrder(3)]
     public class ButtonEntry : UdonSharpBehaviour {
         LanguageManager manager;
-        [TMProMigratable(nameof(buttonTMPro))]
-        [SerializeField, LocalizedLabel] Text buttonText;
-        [SerializeField, LocalizedLabel] TextMeshProUGUI buttonTMPro;
+        [SerializeField, LocalizedLabel] GameObject buttonGO;
+        [SerializeField, HideInInspector, Resolve(nameof(buttonGO), NullOnly = false)] Text buttonText;
+        [SerializeField, HideInInspector, Resolve(nameof(buttonGO), NullOnly = false)] TextMeshProUGUI buttonTMPro;
         object[] args;
         string key;
         /// <summary>
