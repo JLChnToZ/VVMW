@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 - Internal refactoring for better performance.
+- "Play Next" indicator will always shown when there is only one next entry in queue list.
 
 ## 1.7.3 - 2026-05-07
 ### Added
