@@ -47,7 +47,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             ["zh-Hans"] = "zh-CN",
             ["zh-SG"] = "zh-CN",
             ["zh-MY"] = "zh-CN",
-            ["zh-CHT"] = "zh-CN",
+            ["zh-CHT"] = "zh-TW",
             ["zh-Hant"] = "zh-TW",
             ["zh-MO"] = "zh-HK",
         };
