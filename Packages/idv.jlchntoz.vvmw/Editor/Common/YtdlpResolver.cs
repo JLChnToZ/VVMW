@@ -25,6 +25,32 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 #elif UNITY_EDITOR_LINUX
         const string YTDLP_DOWNLOAD_PATH = YTDLP_DOWNLOAD_PATH_BASE + "yt-dlp_linux";
 #endif
+        static readonly IReadOnlyDictionary<string, string> specialLocalMappings = new Dictionary<string, string> {
+            ["es-MX"] = "es-419",
+            ["es-AR"] = "es-419",
+            ["es-CL"] = "es-419",
+            ["es-CO"] = "es-419",
+            ["es-CR"] = "es-419",
+            ["es-DO"] = "es-419",
+            ["es-EC"] = "es-419",
+            ["es-SV"] = "es-419",
+            ["es-GT"] = "es-419",
+            ["es-HN"] = "es-419",
+            ["es-NI"] = "es-419",
+            ["es-PA"] = "es-419",
+            ["es-PY"] = "es-419",
+            ["es-PE"] = "es-419",
+            ["es-PR"] = "es-419",
+            ["es-UY"] = "es-419",
+            ["es-VE"] = "es-419",
+            ["zh-CHS"] = "zh-CN",
+            ["zh-Hans"] = "zh-CN",
+            ["zh-SG"] = "zh-CN",
+            ["zh-MY"] = "zh-CN",
+            ["zh-CHT"] = "zh-CN",
+            ["zh-Hant"] = "zh-TW",
+            ["zh-MO"] = "zh-HK",
+        };
         static string ytdlpPath;
         static Dictionary<string, string> locales;
         static string selectedLocale;
@@ -236,6 +262,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             while (culture != CultureInfo.InvariantCulture) {
                 var langName = culture.Name;
                 if (locales.ContainsKey(langName)) return langName;
+                if (specialLocalMappings.TryGetValue(langName, out var mapped) &&
+                    locales.ContainsKey(mapped))
+                    return mapped;
                 culture = culture.Parent;
             }
             return "en";
