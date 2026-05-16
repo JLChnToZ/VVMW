@@ -327,7 +327,7 @@ namespace JLChnToZ.VRC.VVMW {
 
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
         void DrawScreenGizmos() {
-            for (int i = 0; i < screenTargets.Length; i++) {
+            for (int i = 0, ic = screenTargets.Length; i < ic; i++) {
                 Gizmos.color = Color.HSVToRGB(i * 0.35F % 1F, 1F, 1F);
                 if (screenTargets[i] is MeshRenderer meshRenderer) {
                     if (meshRenderer.TryGetComponent(out MeshFilter meshFilter)) {

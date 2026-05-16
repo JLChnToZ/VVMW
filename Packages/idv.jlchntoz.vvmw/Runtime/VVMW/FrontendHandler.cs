@@ -172,7 +172,7 @@ namespace JLChnToZ.VRC.VVMW {
             urlInputFilter = core.urlInputFilter;
             core.urlInputFilter = null;
             synced = core.IsSynced;
-            for (int i = 0; i < playListUrlOffsets.Length; i++)
+            for (int i = 0, ic = playListUrlOffsets.Length; i < ic; i++)
                 LoadDynamicPlaylist(i);
             if (!synced || Networking.IsOwner(gameObject)) {
                 if (core.Loop) localFlags |= REPEAT_ONE;

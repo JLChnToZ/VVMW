@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 ### Added
 - Game object active state can be considered if player is triggering an active region.
+- You may lower the volume instead of mute when out of range.
+- The volume will fade when mute get toggled (either manually or enter/exits active region).
 
 ### Fixed
 - Rare cases causes array out of range exception on active region.

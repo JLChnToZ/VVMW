@@ -34,6 +34,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 audioSources.CopyTo(core.audioSources);
                 core.audioControllers = audioControllers.ToArray();
                 core.hasRegion = ActiveRegionConfig.GetRegionConfigs(core).Count > 0;
+                if (!core.muteOnOutOfRange) core.outOfRangeVolume = 1f;
                 UdonSharpEditorUtility.CopyProxyToUdon(core);
             }
         }

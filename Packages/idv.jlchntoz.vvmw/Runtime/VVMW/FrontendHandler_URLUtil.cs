@@ -18,7 +18,7 @@ namespace JLChnToZ.VRC.VVMW {
                 int nextIndex = title.IndexOf('/', index);
                 if (nextIndex < 0) nextIndex = title.Length;
                 var domainParts = title.Substring(index, nextIndex - index).Split('.');
-                for (int i = 0; i < domainParts.Length; i++) {
+                for (int i = 0, ic = domainParts.Length; i < ic; i++) {
                     var fragment = domainParts[i];
                     if (fragment.StartsWith("xn--"))
                         domainParts[i] = DecodePunycode(fragment.Substring(4));

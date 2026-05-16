@@ -208,7 +208,7 @@ namespace JLChnToZ.VRC.VVMW {
             var size = contentRect.sizeDelta;
             size.y = count * templateRect.rect.height;
             contentRect.sizeDelta = size;
-            for (var i = 0; i < entries.Length; i++) {
+            for (int i = 0, ic = entries.Length; i < ic; i++) {
                 var entry = entries[i];
                 entry.pooledEntryNames = entryNames;
                 entry.pooledEntryCopyContents = entryCopyContent;

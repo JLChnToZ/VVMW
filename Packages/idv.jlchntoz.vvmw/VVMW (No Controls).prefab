@@ -81,23 +81,31 @@ MonoBehaviour:
   autoPlayDelay: 0
   urlInputFilter: {fileID: 0}
   loop: 0
+  activeRegionManager: {fileID: 0}
+  hasRegion: 0
   audioSources:
   - {fileID: 6288594590390066030}
   audioControllers: []
   defaultVolume: 0.5
   defaultMuted: 0
+  volumeFadeDuration: 0.5
+  muteOnOutOfRange: 0
+  outOfRangeVolume: 0
   audioLink: {fileID: 0}
   realtimeGIUpdateInterval: 0
   enablePersistence: 1
   volumePersistenceKey: 
   mutedPersistenceKey: 
   defaultTexture: {fileID: 2800000, guid: 01abd95bc275b454f9120f300635407c, type: 3}
+  blitMaterial: {fileID: 0}
+  screenCount: 0
   screenTargets: []
   screenTargetModes: 
   screenTargetIndeces: 
   screenTargetPropertyNames: []
   avProPropertyNames: []
   screenTargetDefaultTextures: []
+  rtScreenTargetSTs: []
   broadcastScreenTexture: 0
   broadcastScreenTextureName: _Udon_VideoTex
   enableMipmap: 0
@@ -725,6 +733,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Active Region Manager
+      objectReference: {fileID: 0}
+    - target: {fileID: 5283309786831971120, guid: 9bc9da9564f9e614cab11d85a7ee0100,
+        type: 3}
+      propertyPath: coreControlStrategy
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5283309786831971120, guid: 9bc9da9564f9e614cab11d85a7ee0100,
         type: 3}

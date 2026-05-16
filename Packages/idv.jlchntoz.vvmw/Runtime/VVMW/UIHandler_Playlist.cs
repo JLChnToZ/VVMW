@@ -200,7 +200,7 @@ namespace JLChnToZ.VRC.VVMW {
             } else if (selectedPlayListIndex == -1) {
                 if (!Utilities.IsValid(historyCopyContents) || historyCopyContents.Length < historyTitles.Length)
                     historyCopyContents = new string[historyTitles.Length];
-                for (int i = 0; i < historyTitles.Length; i++)
+                for (int i = 0, ic = historyTitles.Length; i < ic; i++)
                     historyCopyContents[i] = historyUrls[i].ToString();
                 queueListScrollView.CanDelete = false;
                 queueListScrollView.SetEntries(historyTitles, historyCopyContents);
