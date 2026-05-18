@@ -438,7 +438,7 @@ VizVid の言語管理コンポーネントは、Locale オブジェクトにあ
 
 ---
 
-## Q&A  
+## よくある質問  
 （随時更新）  
 
 ---
@@ -468,6 +468,12 @@ VizVid の言語管理コンポーネントは、Locale オブジェクトにあ
 **A5**: YT-DLP が古いかもしれません。<kbd>YT-DLP のダウンロード/更新</kbd> をクリックして、YT-DLP をアップデートしてみましょう。改善できるはずです。  
 ![image](../resources/images/Sy9v0FZ4Wl.png)  
 
+---
+**Q6**: Unity内のVizVidは動いていないだけど、なぜ？  
+**A6**: Unity環境では、VRChatのAVProやBuilt-inなどのバックエンドが利用できないため、VizVidでの再生は行えません。VizVidの動作をテストする場合は、VRChat SDKからTest Buildを作成し、VRChat環境でローカルテストを行ってください。  
+![image](../resources/images/Hk1DzfFyMg.png)  
+
+---
 > [!Note]  
 > 上記に載ってない問題、サポートがほしい場合、  
 > 遠慮なく [Discord サーバー](https://discord.gg/fkDueQMbj8)にてお問い合わせください。  

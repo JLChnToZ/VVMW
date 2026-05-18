@@ -454,6 +454,11 @@ VizVid 的語言管理元件，是位於 Locale 物件中的 Language Manager。
 ![image](../resources/images/H1TP6F-NZe.png)
 
 ---
+**Q6**: 我想在 Unity 內測試 VizVid，但不能正常播放。  
+**A6**: VizVid 需要在 VRChat 環境下，有相關後端模組的情況下才可以正常運作。如果要測試，請使用 VRChat SDK 建立 Test Build。  
+![image](../resources/images/Hk1DzfFyMg.png)  
+
+---
 > [!Note]
 > 若有上述尚未記載的 Q&A，需要額外協助，  
 > 歡迎造訪我們的 [Discord 伺服器](https://discord.gg/fkDueQMbj8)。  

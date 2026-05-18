@@ -487,6 +487,11 @@ Due to the limitations of Unity's inspector editor, if the component has already
 ![image](../resources/images/rJg8y9Z4be.png)
 
 ---
+**Q6**: I want to test VizVid in my Unity editor but it won't work.  
+**A6**: VizVid requires backends in VRChat to function. If you want to test it without uploading, please create a local test build via the VRChat SDK.  
+![image](../resources/images/Hk1DzfFyMg.png)  
+
+---
 > [!Note]  
 > If this section didn't solve your problem.  
 > Just [join our Discord server](https://discord.gg/fkDueQMbj8) look for help.  
