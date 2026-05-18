@@ -15,7 +15,10 @@ namespace JLChnToZ.VRC.VVMW {
     [AddComponentMenu("VizVid/Light Volume Adaptor (VizVid)")]
     [HelpURL("https://xtlcdn.github.io/VizVid/docs/#vrc-light-volumes")]
     public partial class LightVolumeAdaptor : VizVidBehaviour {
-        [SerializeField, BindUdonSharpEvent, Locatable, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")] internal Core core;
+        [SerializeField, BindUdonSharpEvent(
+            nameof(_OnTextureChanged),
+            nameof(_OnTimeDrift)
+        ), Locatable, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")] internal Core core;
 #if VRC_LIGHT_VOLUMES
         [SerializeField, Resolve("/**")] LightVolumeManager lightVolumeManager;
         [SerializeField] internal LightVolumeInstance[] lightVolumes;

@@ -15,7 +15,12 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, Resolve(".")]
         AudioSource audioSource;
         [LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
-        [SerializeField, Locatable, BindUdonSharpEvent] Core core;
+        [SerializeField, Locatable, BindUdonSharpEvent(
+            nameof(OnVideoStart),
+            nameof(OnVideoPlay),
+            nameof(OnVideoPause),
+            nameof(OnVideoEnd)
+        )] Core core;
         [SerializeField, HideInInspector, Resolve(nameof(core), NullOnly = false)] GameObject coreGO;
         /// <summary>
         /// The target volume when the video is not playing.

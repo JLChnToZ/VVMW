@@ -22,7 +22,19 @@ namespace JLChnToZ.VRC.VVMW {
     [HelpURL("https://xtlcdn.github.io/VizVid/docs/#default-ui--screen-with-overlay")]
     public partial class UIHandler : VizVidBehaviour {
         [LocalizedHeader("HEADER:Main_Reference")]
-        [SerializeField, BindUdonSharpEvent, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
+        [SerializeField, BindUdonSharpEvent(
+            nameof(_OnPerformerChange),
+            nameof(_OnRangeLoopChange),
+            nameof(_OnScreenSharedPropertiesChanged),
+            nameof(_OnSpeedChange),
+            nameof(_OnSyncOffsetChange),
+            nameof(_OnVolumeChange),
+            nameof(OnVideoEnd),
+            nameof(OnVideoPause),
+            nameof(OnVideoPlay),
+            nameof(OnVideoReady),
+            nameof(OnVideoStart)
+        ), LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
         [Resolve(nameof(handler) + "." + nameof(FrontendHandler.core), HideInInspectorIfResolvable = true)]
         [Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
@@ -31,7 +43,7 @@ namespace JLChnToZ.VRC.VVMW {
         [Locatable(
             InstaniatePrefabPath = "Packages/idv.jlchntoz.vvmw/VVMW (No Controls).prefab",
             InstaniatePrefabPosition = LocatableAttribute.InstaniatePrefabHierachyPosition.Before
-        ), LocalizedLabel(Key = "VVMW.Handler"), BindUdonSharpEvent]
+        ), LocalizedLabel(Key = "VVMW.Handler"), BindUdonSharpEvent(nameof(_OnUIUpdate))]
         public FrontendHandler handler;
         [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager languageManager;
 

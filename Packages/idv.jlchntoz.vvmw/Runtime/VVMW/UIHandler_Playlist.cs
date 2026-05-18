@@ -166,7 +166,7 @@ namespace JLChnToZ.VRC.VVMW {
             else
                 SetLocalizedText(selectedPlayListText, selectedPlayListTMPro, selectedPlayListIndex < 0 ? "PlaybackHistory" : "QueueList");
             if (Utilities.IsValid(playNextIndicator))
-                playNextIndicator.SetActive(!handler.Shuffle && selectedPlayListIndex == 0 && handler.PlayListIndex == 0 && handler.PendingCount > 0);
+                playNextIndicator.SetActive(selectedPlayListIndex == 0 && hasPending && (!handler.Shuffle || queuedUrls.Length == 1));
             bool shouldRefreshQueue = playListUpdateRequired || selectedPlayListIndex <= 0 || lastSelectedPlayListIndex != selectedPlayListIndex || lastPlayingIndex != playingIndex;
             lastSelectedPlayListIndex = selectedPlayListIndex;
             lastPlayingIndex = playingIndex;
@@ -200,7 +200,7 @@ namespace JLChnToZ.VRC.VVMW {
             } else if (selectedPlayListIndex == -1) {
                 if (!Utilities.IsValid(historyCopyContents) || historyCopyContents.Length < historyTitles.Length)
                     historyCopyContents = new string[historyTitles.Length];
-                for (int i = 0; i < historyTitles.Length; i++)
+                for (int i = 0, ic = historyTitles.Length; i < ic; i++)
                     historyCopyContents[i] = historyUrls[i].ToString();
                 queueListScrollView.CanDelete = false;
                 queueListScrollView.SetEntries(historyTitles, historyCopyContents);

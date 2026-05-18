@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## 1.7.4-beta.1 - 2026-05-18
+### Added
+- Game object active state can be considered if player is triggering an active region.
+
+### Fixed
+- Rare cases causes array out of range exception on active region.
+
+### Changed
+- Internal refactoring for better performance.
+- "Play Next" indicator will always shown when there is only one next entry in queue list.
+- You may lower the volume instead of mute when out of range.
+- The volume will fade when mute get toggled (either manually or enter/exits active region).
+- Playlist editor now allows the use of custom YT-DLP installation.
+- Localized title can be fetched in playlist editor.
+
 ## 1.7.3 - 2026-05-07
 ### Added
 - Use different origin as player position detection.

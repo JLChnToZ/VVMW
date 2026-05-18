@@ -48,37 +48,73 @@ jobs:
 
       # Configure the Environment Variables needed for releasing the Package
       - name: Set Environment Variables
+        id: release_vars
         run: |
-          echo "zipFile=${{ vars.PACKAGE_NAME }}-${{ steps.version.outputs.value }}".zip >> $GITHUB_ENV
-          echo "unityPackage=${{ vars.PACKAGE_NAME }}-${{ steps.version.outputs.value }}.unitypackage" >> $GITHUB_ENV
-          echo "version=${{ steps.version.outputs.value }}" >> $GITHUB_ENV
-          if [[ "${{ env.version }}" == *-* ]]; then
-            echo "is_prerelease=true" >> $GITHUB_ENV
+          VERSION="${{ steps.version.outputs.value }}"
+          echo "zipFile=${{ vars.PACKAGE_NAME }}-$VERSION.zip" >> "$GITHUB_OUTPUT"
+          echo "unityPackage=${{ vars.PACKAGE_NAME }}-$VERSION.unitypackage" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [[ "$VERSION" == *-* ]]; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
           else
-            echo "is_prerelease=false" >> $GITHUB_ENV
-          fi
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+            fi
 
       # Draft release notes based on the CHANGELOG differences
       - name: Draft Release Notes
         run: |
-          git fetch --tags --force
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-          CURR_TAG="${{ env.version }}"
-          echo "" > changelog_diff.md
-          if [[ "${{ env.version }}" == *-* ]]; then
-            echo "This is a beta release." >> changelog_diff.md
-          fi
-          if [[ -n $PREV_TAG ]]; then
-            git diff $PREV_TAG..HEAD -- CHANGELOG.md >> changelog_diff.md
-          fi
-          echo "**Full Changelog**: ${{ github.repositoryUrl }}/compare/$PREV_TAG...$CURR_TAG" >> changelog_diff.md
-          echo "Download/update with VCC: https://xtlcdn.github.io/vpm/" >> changelog_diff.md
-          echo "WE DO NOT RECOMMEND MANUALLY DOWNLOAD AND IMPORT FOLLOWING ASSETS AS YOU WILL MISS DEPENDENCIES!" >> changelog_diff.md
+            set -euo pipefail
+
+            VERSION="${{ steps.release_vars.outputs.version }}"
+
+            if [[ "$VERSION" == *-unreleased ]]; then
+              echo "Refusing to draft a release for unreleased version: $VERSION"
+              exit 1
+            fi
+
+            git fetch --tags --force
+            PREV_TAG="$(git tag --sort=-version:refname | grep -Fvx "$VERSION" | head -n 1 || true)"
+            CHANGELOG_SECTION="$(mktemp)"
+
+            awk -v version="$VERSION" '
+              $0 ~ "^## " version " - " {
+                in_section = 1
+              }
+              in_section {
+                if ($0 ~ "^## " && $0 !~ "^## " version " - ") {
+                  exit
+                }
+                print
+              }
+            ' CHANGELOG.md > "$CHANGELOG_SECTION"
+
+            if [[ ! -s "$CHANGELOG_SECTION" ]]; then
+              echo "Could not find CHANGELOG.md section for version $VERSION"
+              exit 1
+            fi
+
+            {
+              if [[ "$VERSION" == *-* ]]; then
+                echo "This is a beta release."
+                echo
+              fi
+
+              cat "$CHANGELOG_SECTION"
+              echo
+
+              if [[ -n "$PREV_TAG" ]]; then
+                echo "**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/$PREV_TAG...$VERSION"
+                echo
+              fi
+
+              echo "Download/update with VCC: https://xtlcdn.github.io/vpm/"
+              echo "WE DO NOT RECOMMEND MANUALLY DOWNLOAD AND IMPORT FOLLOWING ASSETS AS YOU WILL MISS DEPENDENCIES!"
+            } > changelog_diff.md
 
       # Zip the Package for release
       - name: Create Package Zip
         working-directory: "${{ env.packagePath }}"
-        run: zip -r "${{ github.workspace }}/${{ env.zipFile }}" .
+        run: zip -r "${{ github.workspace }}/${{ steps.release_vars.outputs.zipFile }}" .
       
       # Build a list of .meta files for future use
       - name: Track Package Meta Files
@@ -88,7 +124,7 @@ jobs:
       - name: Create UnityPackage
         uses: pCYSl5EDgo/create-unitypackage@cfcd3cf0391a5ef1306342794866a9897c32af0b
         with:
-          package-path: ${{ env.unityPackage }}
+          package-path: ${{ steps.release_vars.outputs.unityPackage }}
           include-files: metaList
 
       # Make a release tag of the version from the package.json file 
@@ -96,17 +132,17 @@ jobs:
         id: tag_version
         uses: rickstaa/action-create-tag@88dbf7ff6fe2405f8e8f6c6fdfd78829bc631f83
         with:
-          tag: "${{ env.version }}"
+          tag: "${{ steps.release_vars.outputs.version }}"
 
       # Publish the Release to GitHub
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
         with:
           files: |
-            ${{ env.zipFile }}
-            ${{ env.unityPackage }}
+            ${{ steps.release_vars.outputs.zipFile }}
+            ${{ steps.release_vars.outputs.unityPackage }}
             ${{ env.packagePath }}/package.json
-          tag_name: ${{ env.version }}
-          prerelease: ${{ env.is_prerelease }}
+          tag_name: ${{ steps.release_vars.outputs.version }}
+          prerelease: ${{ steps.release_vars.outputs.is_prerelease }}
           draft: true
           body_path: changelog_diff.md

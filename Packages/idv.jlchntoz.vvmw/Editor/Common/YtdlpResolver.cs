@@ -2,8 +2,10 @@
 using System.IO;
 using System.Threading;
 using System.Diagnostics;
+using System.Globalization;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.Networking;
 using UnityEditor;
 using Cysharp.Threading.Tasks;
@@ -13,6 +15,8 @@ using JLChnToZ.VRC.Foundation.ThirdParties.LitJson;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     public static class YtdlpResolver {
+        const string YTDLP_PREF_KEY = "VVMW_YTDLP_PATH";
+        const string YTDLP_LOCALE_PREF_KEY = "VVMW_YTDLP_LOCALE";
         const string YTDLP_DOWNLOAD_PATH_BASE = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/";
 #if UNITY_EDITOR_WIN
         const string YTDLP_DOWNLOAD_PATH = YTDLP_DOWNLOAD_PATH_BASE + "yt-dlp.exe";
@@ -21,15 +25,86 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 #elif UNITY_EDITOR_LINUX
         const string YTDLP_DOWNLOAD_PATH = YTDLP_DOWNLOAD_PATH_BASE + "yt-dlp_linux";
 #endif
+        static readonly IReadOnlyDictionary<string, string> specialLocalMappings = new Dictionary<string, string> {
+            ["es-MX"] = "es-419",
+            ["es-AR"] = "es-419",
+            ["es-CL"] = "es-419",
+            ["es-CO"] = "es-419",
+            ["es-CR"] = "es-419",
+            ["es-DO"] = "es-419",
+            ["es-EC"] = "es-419",
+            ["es-SV"] = "es-419",
+            ["es-GT"] = "es-419",
+            ["es-HN"] = "es-419",
+            ["es-NI"] = "es-419",
+            ["es-PA"] = "es-419",
+            ["es-PY"] = "es-419",
+            ["es-PE"] = "es-419",
+            ["es-PR"] = "es-419",
+            ["es-UY"] = "es-419",
+            ["es-VE"] = "es-419",
+            ["zh-CHS"] = "zh-CN",
+            ["zh-Hans"] = "zh-CN",
+            ["zh-SG"] = "zh-CN",
+            ["zh-MY"] = "zh-CN",
+            ["zh-CHT"] = "zh-TW",
+            ["zh-Hant"] = "zh-TW",
+            ["zh-MO"] = "zh-HK",
+        };
         static string ytdlpPath;
+        static Dictionary<string, string> locales;
+        static string selectedLocale;
         static bool hasYtdlp = false;
         static bool hasCheckedYtdlp = false;
 
-        static string YtdlpPath {
+        public static string YtdlpPath {
             get {
-                if (string.IsNullOrEmpty(ytdlpPath))
+                if (!string.IsNullOrEmpty(ytdlpPath))
+                    return ytdlpPath;
+                if (EditorPrefs.HasKey(YTDLP_PREF_KEY)) {
+                    var path = EditorPrefs.GetString(YTDLP_PREF_KEY);
+                    if (!string.IsNullOrEmpty(path) && File.Exists(path))
+                        ytdlpPath = path;
+                }
+                if (string.IsNullOrEmpty(ytdlpPath)) {
                     ytdlpPath = Path.Combine(Application.persistentDataPath, "yt-dlp.exe");
+                    EditorPrefs.SetString(YTDLP_PREF_KEY, ytdlpPath);
+                }
                 return ytdlpPath;
+            }
+            set {
+                if (string.IsNullOrEmpty(value) || !File.Exists(value)) return;
+                ytdlpPath = value;
+                EditorPrefs.SetString("VVMW_YTDLP_PATH", ytdlpPath);
+            }
+        }
+
+        public static string SelectedLocale {
+            get {
+                if (!string.IsNullOrEmpty(selectedLocale))
+                    return selectedLocale;
+                if (EditorPrefs.HasKey(YTDLP_LOCALE_PREF_KEY)) {
+                    var locale = EditorPrefs.GetString(YTDLP_LOCALE_PREF_KEY);
+                    if (!string.IsNullOrEmpty(locale) && locales.ContainsKey(locale))
+                        selectedLocale = locale;
+                }
+                if (string.IsNullOrEmpty(selectedLocale)) {
+                    selectedLocale = GetDefaultLocaleCode();
+                    EditorPrefs.SetString(YTDLP_LOCALE_PREF_KEY, selectedLocale);
+                }
+                return selectedLocale;
+            }
+            set {
+                if (string.IsNullOrEmpty(value) || !locales.ContainsKey(value)) return;
+                selectedLocale = value;
+                EditorPrefs.SetString(YTDLP_LOCALE_PREF_KEY, selectedLocale);
+            }
+        }
+
+        public static Dictionary<string, string> AvailableLocales {
+            get {
+                LoadLocales();
+                return locales;
             }
         }
 
@@ -90,6 +165,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorUtility.ClearProgressBar();
         }
 
+        static void LoadLocales() {
+            if (locales != null && locales.Count > 0) return;
+            var file = File.ReadAllText("Packages/idv.jlchntoz.vvmw/Resources/ytdlp-regions.json");
+            var reader = new JsonReader(file);
+            var json = JsonMapper.ToObject(reader);
+            locales = new Dictionary<string, string>();
+            foreach (var key in json.Keys)
+                locales[key] = json[key].ToString();
+        }
+
         public static async UniTask<List<YtdlpPlayListEntry>> GetPlayLists(string url) {
             await DownLoadYtDlpIfNotExists();
             if (!HasYtDlp()) return new List<YtdlpPlayListEntry>();
@@ -125,7 +210,21 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             var orgInfo = progress.Info;
             var results = new List<YtdlpPlayListEntry>();
             if (cancelToken.IsCancellationRequested) return results;
-            var startInfo = new ProcessStartInfo(YtdlpPath, $"--flat-playlist --no-write-playlist-metafiles --no-exec -sijo - {url}") {
+            string args;
+            using (ListPool<string>.Get(out var argsList)) {
+                argsList.Add("--flat-playlist");
+                argsList.Add("--no-write-playlist-metafiles");
+                argsList.Add("--no-exec");
+                if (!string.IsNullOrEmpty(selectedLocale)) {
+                    argsList.Add("--extractor-args");
+                    argsList.Add($"\"youtube:lang={selectedLocale}\"");
+                }
+                argsList.Add("-sijo");
+                argsList.Add("-");
+                argsList.Add(url);
+                args = string.Join(" ", argsList);
+            }
+            var startInfo = new ProcessStartInfo(YtdlpPath, args) {
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -155,6 +254,20 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 } catch { }
             await UniTask.SwitchToMainThread();
             return results;
+        }
+
+        static string GetDefaultLocaleCode() {
+            LoadLocales();
+            var culture = CultureInfo.CurrentUICulture;
+            while (culture != CultureInfo.InvariantCulture) {
+                var langName = culture.Name;
+                if (locales.ContainsKey(langName)) return langName;
+                if (specialLocalMappings.TryGetValue(langName, out var mapped) &&
+                    locales.ContainsKey(mapped))
+                    return mapped;
+                culture = culture.Parent;
+            }
+            return "en";
         }
     }
 

@@ -11,7 +11,7 @@ namespace JLChnToZ.VRC.VVMW {
                 var sibling = templateTransform.GetSiblingIndex() + 1;
                 var videoPlayerNames = core.PlayerNames;
                 videoPlayerSelectButtons = new ButtonEntry[videoPlayerNames.Length];
-                for (int i = 0; i < videoPlayerNames.Length; i++) {
+                for (int i = 0, ic = videoPlayerNames.Length; i < ic; i++) {
                     var button = Instantiate(videoPlayerSelectButtonTemplate);
                     button.SetActive(true);
                     var buttonTransform = button.transform;

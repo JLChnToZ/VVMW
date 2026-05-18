@@ -66,7 +66,7 @@ namespace JLChnToZ.VRC.VVMW {
             get {
                 if (!Utilities.IsValid(playerNames) || playerNames.Length != playerHandlers.Length) {
                     playerNames = new string[playerHandlers.Length];
-                    for (int i = 0; i < playerNames.Length; i++)
+                    for (int i = 0, ic = playerNames.Length; i < ic; i++)
                         playerNames[i] = playerHandlers[i].playerName;
                 }
                 return playerNames;
@@ -270,7 +270,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (VRCUrl.IsNullOrEmpty(url)) return 0;
             string urlStr = url.Get();
             int largestSupport = int.MinValue, largestSupportIndex = -1;
-            for (int i = 0; i < playerHandlers.Length; i++) {
+            for (int i = 0, ic = playerHandlers.Length; i < ic; i++) {
                 var handler = playerHandlers[i];
                 if (!Utilities.IsValid(handler)) continue;
                 var support = handler.IsSupported(urlStr);

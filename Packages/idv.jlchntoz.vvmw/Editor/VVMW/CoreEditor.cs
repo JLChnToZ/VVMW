@@ -37,7 +37,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty autoPlayDelayProperty;
         SerializedProperty defaultVolumeProperty;
         SerializedProperty defaultMutedProperty;
+        SerializedProperty volumeFadeDurationProperty;
         SerializedProperty muteOnOutOfRangeProperty;
+        SerializedProperty outOfRangeVolumeProperty;
         SerializedProperty loopProperty;
         SerializedProperty audioLinkProperty;
         SerializedProperty yttlManagerProperty;
@@ -83,7 +85,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             autoPlayDelayProperty = serializedObject.FindProperty("autoPlayDelay");
             defaultVolumeProperty = serializedObject.FindProperty("defaultVolume");
             defaultMutedProperty = serializedObject.FindProperty("defaultMuted");
+            volumeFadeDurationProperty = serializedObject.FindProperty("volumeFadeDuration");
             muteOnOutOfRangeProperty = serializedObject.FindProperty("muteOnOutOfRange");
+            outOfRangeVolumeProperty = serializedObject.FindProperty("outOfRangeVolume");
             loopProperty = serializedObject.FindProperty("loop");
             audioLinkProperty = serializedObject.FindProperty("audioLink");
             yttlManagerProperty = serializedObject.FindProperty("yttl");
@@ -150,6 +154,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             EditorGUILayout.PropertyField(defaultVolumeProperty);
             EditorGUILayout.PropertyField(defaultMutedProperty);
+            EditorGUILayout.PropertyField(volumeFadeDurationProperty);
             using (var changed = new EditorGUI.ChangeCheckScope()) {
                 EditorGUILayout.PropertyField(muteOnOutOfRangeProperty);
                 if (changed.changed &&
@@ -173,6 +178,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                 }
             }
+            if (muteOnOutOfRangeProperty.boolValue)
+                using (new EditorGUI.IndentLevelScope())
+                    EditorGUILayout.PropertyField(outOfRangeVolumeProperty);
             if (frontendHandlerEditor != null)
                 frontendHandlerEditor.DrawRepeatShuffleProperty();
             else {

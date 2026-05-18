@@ -65,7 +65,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void UpdateAudioLinkVolume() {
 #if AUDIOLINK_V1
-            if (IsAudioLinked()) audioLink.SetMediaVolume(defaultVolume);
+            if (IsAudioLinked()) audioLink.SetMediaVolume(defaultMuted ? 0 : defaultVolume);
 #endif
         }
 

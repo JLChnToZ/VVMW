@@ -22,8 +22,9 @@ namespace JLChnToZ.VRC.VVMW {
     public partial class ActiveRegionManager : UdonSharpEventSender {
         [SerializeField, LocalizedLabel, LocalizedEnum] internal CoreMatchingStrategy coreControlStrategy = CoreMatchingStrategy.All;
         [SerializeField, LocalizedLabel, LocalizedEnum] internal PlayerDetectOrigin playerDetectOrigin = PlayerDetectOrigin.Head;
-        [SerializeField, HideInInspector, BindUdonSharpEvent] Core[] cores;
+        [SerializeField, HideInInspector] Core[] cores;
         [SerializeField, HideInInspector] Bounds[] coreBounds;
+        [SerializeField, HideInInspector] GameObject[] coreBoundsReferenceObjects;
         [SerializeField, HideInInspector] Transform[] coreBoundsReferenceTransforms;
         [SerializeField, HideInInspector] Matrix4x4[] coreBoundsReferenceMatrices;
         [SerializeField, HideInInspector] int[] coreBoundsMatchOffset;
@@ -120,6 +121,8 @@ namespace JLChnToZ.VRC.VVMW {
                 do {
                     matchIndex = coreBoundsMatchOffset[j];
                 } while (i >= matchIndex && ++j < coreCount);
+                var refObj = coreBoundsReferenceObjects[i];
+                if (Utilities.IsValid(refObj) && !refObj.activeInHierarchy) continue;
                 var bounds = coreBounds[i];
                 var refTransform = coreBoundsReferenceTransforms[i];
                 var localPos = Utilities.IsValid(refTransform) ?
@@ -129,6 +132,8 @@ namespace JLChnToZ.VRC.VVMW {
                     closestDist = -1;
                     closestCore = cores[j - 1];
                     AddCoreToMatching(closestCore);
+                    if (++j >= coreCount) break;
+                    i = coreBoundsMatchOffset[j] - 1;
                     continue;
                 }
                 if (closestDist <= 0) continue;
@@ -185,6 +190,7 @@ namespace JLChnToZ.VRC.VVMW {
             using (PooledObjectExtensions.Get(out List<Core> coreList))
             using (PooledObjectExtensions.Get(out List<int> coreBoundsOffsetList))
             using (PooledObjectExtensions.Get(out List<Transform> boundsRefTransforms))
+            using (PooledObjectExtensions.Get(out List<GameObject> boundsReferenceObjects))
             using (PooledObjectExtensions.Get(out List<Matrix4x4> boundsRefMatrices)) {
                 coreBoundsOffsetList.Add(0);
                 foreach (var core in gameObject.scene.IterateAllComponents<Core>()) {
@@ -194,6 +200,7 @@ namespace JLChnToZ.VRC.VVMW {
                         bounds.Add(boundData.bounds);
                         var boundTransform = boundData.transform;
                         boundsRefTransforms.Add(boundData.staticRegion ? null : boundTransform);
+                        boundsReferenceObjects.Add(boundData.checkActive ? boundTransform.gameObject : null);
                         boundsRefMatrices.Add(boundData.useWorldSpaceBounds ? Matrix4x4.identity : boundTransform.worldToLocalMatrix);
                         count++;
                     }
@@ -210,6 +217,7 @@ namespace JLChnToZ.VRC.VVMW {
                 cores = coreList.ToArray();
                 coreBoundsMatchOffset = coreBoundsOffsetList.ToArray();
                 coreBounds = bounds.ToArray();
+                coreBoundsReferenceObjects = boundsReferenceObjects.ToArray();
                 coreBoundsReferenceTransforms = boundsRefTransforms.ToArray();
                 coreBoundsReferenceMatrices = boundsRefMatrices.ToArray();
                 boundsCount = coreBounds.Length;

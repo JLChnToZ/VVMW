@@ -17,7 +17,21 @@ namespace JLChnToZ.VRC.VVMW {
     [HelpURL("https://xtlcdn.github.io/VizVid/docs/#playlist-queue-handler")]
     public partial class FrontendHandler : UdonSharpEventSender {
         protected const byte NONE = 0, REPEAT_ONE = 0x1, REPEAT_ALL = 0x2, SHUFFLE = 0x4;
-        [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core"), Locatable, BindUdonSharpEvent, SingletonCoreControl] public Core core;
+        [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core"), Locatable, BindUdonSharpEvent(
+            nameof(_OnRangeLoopToggled),
+            nameof(_OnScreenSharedPropertiesChanged),
+            nameof(_OnSpeedChange),
+            nameof(_OnSyncOffsetChange),
+            nameof(_OnTitleData),
+            nameof(_OnVideoBeginLoad),
+            nameof(_OnVideoError),
+            nameof(_OnVolumeChange),
+            nameof(OnVideoReady),
+            nameof(OnVideoStart),
+            nameof(OnVideoPlay),
+            nameof(OnVideoPause),
+            nameof(OnVideoEnd)
+        ), SingletonCoreControl] public Core core;
         [FieldChangeCallback(nameof(Locked))]
         [SerializeField, LocalizedLabel] bool locked = false;
         [SerializeField, LocalizedLabel] bool defaultLoop, defaultShuffle;
@@ -158,7 +172,7 @@ namespace JLChnToZ.VRC.VVMW {
             urlInputFilter = core.urlInputFilter;
             core.urlInputFilter = null;
             synced = core.IsSynced;
-            for (int i = 0; i < playListUrlOffsets.Length; i++)
+            for (int i = 0, ic = playListUrlOffsets.Length; i < ic; i++)
                 LoadDynamicPlaylist(i);
             if (!synced || Networking.IsOwner(gameObject)) {
                 if (core.Loop) localFlags |= REPEAT_ONE;

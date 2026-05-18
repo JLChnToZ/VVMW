@@ -24,6 +24,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         Core loadedCore;
         string[] playerHandlerNames;
         PlayerType[] playerHandlerTypes;
+        string[] localeCodes, localeDisplayNames;
+        int selectedLocaleIndex = -2;
         int firstUnityPlayerIndex = -1, firstAvProPlayerIndex = -1;
         [SerializeField] List<PlayList> playLists = new List<PlayList>();
         ReorderableList playListView;
@@ -33,6 +35,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         Vector2 playListViewScrollPosition, playListEntryViewScrollPosition;
         string ytPlaylistUrl;
         public static event Action<FrontendHandler> OnFrontendUpdated;
+        static readonly GUILayoutOption[] noExpandWidthOptions = new[] { GUILayout.ExpandWidth(false) };
 
         public FrontendHandler FrontendHandler {
             get => frontendHandler;
@@ -50,6 +53,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void UpdateTitle() {
+            if (this == null) return;
             VVMWEditorBase.UpdateTitle(titleContent, "PlaylistEditor.title", isDirty);
             titleContent = titleContent; // Trigger update title
         }
@@ -84,24 +88,29 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         void OnGUI() {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar)) {
                 FrontendHandler = EditorGUILayout.ObjectField(FrontendHandler, typeof(FrontendHandler), true) as FrontendHandler;
-                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.reload"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)) &&
+                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.reload"), EditorStyles.toolbarButton, noExpandWidthOptions) &&
                     i18n.DisplayLocalizedDialog2("PlaylistEditor.reload_confirm"))
                     DeserializePlayList();
                 using (new EditorGUI.DisabledGroupScope(!isDirty))
-                    if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.save"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.save"), EditorStyles.toolbarButton, noExpandWidthOptions))
                         SerializePlayList();
                 GUILayout.FlexibleSpace();
                 using (new EditorGUI.DisabledGroupScope(playLists.Count == 0))
-                    if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.exportAll"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.exportAll"), EditorStyles.toolbarButton, noExpandWidthOptions))
                         ExportPlayListToJson(true);
                 using (new EditorGUI.DisabledGroupScope(selectedPlayList.entries == null))
-                    if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.exportSelected"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                    if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.exportSelected"), EditorStyles.toolbarButton, noExpandWidthOptions))
                         ExportPlayListToJson(false);
-                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.import"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.import"), EditorStyles.toolbarButton, noExpandWidthOptions))
                     ImportPlayListFromJson();
                 EditorGUILayout.Space();
-                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.updateYTDLP"), EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.updateYTDLP"), EditorStyles.toolbarButton, noExpandWidthOptions))
                     YtdlpResolver.DownLoadYtDlp().Forget();
+                if (GUILayout.Button(GUIContent.none, EditorStyles.toolbarDropDown, noExpandWidthOptions)) {
+                    var menu = new GenericMenu();
+                    menu.AddItem(new GUIContent(i18n.GetOrDefault("PlaylistEditor.selectYTDLPInstallation")), false, SelectYtdlpInstallation);
+                    menu.ShowAsContext();
+                }
             }
             var evt = Event.current;
             using (new EditorGUILayout.HorizontalScope()) {
@@ -125,15 +134,32 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     if (playListEntryView != null) {
                         using (new EditorGUILayout.HorizontalScope()) {
                             ytPlaylistUrl = EditorGUILayout.TextField(ytPlaylistUrl);
-                            if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.loadFromYoutube"), GUILayout.ExpandWidth(false))) {
+                            if (selectedLocaleIndex < -1) {
+                                var dict = YtdlpResolver.AvailableLocales;
+                                localeCodes = new string[dict.Count];
+                                localeDisplayNames = new string[dict.Count];
+                                int i = 0;
+                                foreach (var kv in dict) {
+                                    localeCodes[i] = kv.Key;
+                                    localeDisplayNames[i] = kv.Value;
+                                    i++;
+                                }
+                                selectedLocaleIndex = Array.IndexOf(localeCodes, YtdlpResolver.SelectedLocale);
+                            }
+                            using (var changed = new EditorGUI.ChangeCheckScope()) {
+                                selectedLocaleIndex = EditorGUILayout.Popup(selectedLocaleIndex, localeDisplayNames, noExpandWidthOptions);
+                                if (changed.changed && selectedLocaleIndex >= 0 && selectedLocaleIndex < localeCodes.Length)
+                                    YtdlpResolver.SelectedLocale = localeCodes[selectedLocaleIndex];
+                            }
+                            if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.loadFromYoutube"), noExpandWidthOptions)) {
                                 FetchPlayList(ytPlaylistUrl).Forget();
                                 ytPlaylistUrl = string.Empty;
                             }
                             using (new EditorGUI.DisabledGroupScope(selectedPlayList.entries == null || selectedPlayList.entries.Count == 0))
-                                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.fetchTitles"), GUILayout.ExpandWidth(false)))
+                                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.fetchTitles"), noExpandWidthOptions))
                                     FetchTitles().Forget();
                             using (new EditorGUI.DisabledGroupScope(selectedPlayList.entries == null || selectedPlayList.entries.Count == 0))
-                                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.reverse"), GUILayout.ExpandWidth(false)))
+                                if (GUILayout.Button(i18n.GetOrDefault("PlaylistEditor.reverse"), noExpandWidthOptions))
                                     ReversePlaylist();
                         }
                     }
@@ -451,6 +477,19 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
             if (firstUnityPlayerIndex < 0) firstUnityPlayerIndex = 0;
             if (firstAvProPlayerIndex < 0) firstAvProPlayerIndex = 0;
+        }
+
+        void SelectYtdlpInstallation() {
+            var path = YtdlpResolver.YtdlpPath;
+            path = EditorUtility.OpenFilePanel(i18n.GetOrDefault("PlaylistEditor.selectYTDLPInstallation"), Path.GetDirectoryName(path),
+#if UNITY_EDITOR_WIN
+                "exe"
+#else
+                ""
+#endif
+            );
+            if (string.IsNullOrEmpty(path)) return;
+            YtdlpResolver.YtdlpPath = path;
         }
 
         #region Playlist Importers
