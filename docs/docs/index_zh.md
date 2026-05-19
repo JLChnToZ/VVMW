@@ -209,6 +209,10 @@ VizVid 用螢幕，可與控制器分開放置。
     * **播放器處理器**  
     管理 VizVid 串接的後端。  
     預設提供 AVPro、Builtin、Image。  
+        * **AVPro (AVPro Module)**  
+            * **低延遲**  
+            啟用 AVPro 的低延遲模式。  
+            僅限播放直播時有效。  
     * **模組串接**  
     管理已串接至 VizVid 的模組。  
         * **影片螢幕目標**  
