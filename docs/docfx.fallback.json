@@ -1,18 +1,21 @@
 {
     "metadata": [{
         "src": [{
-            "src": "..",
+            "src": "../Library/ScriptAssemblies",
             "files": [
-                "Docfx.JLChnToZ.VVMW.csproj",
-                "Docfx.JLChnToZ.VVMW.Editor.csproj",
-                "Docfx.JLChnToZ.VRC.Foundation.csproj",
-                "Docfx.JLChnToZ.VRC.Foundation.Editor.csproj",
-                "Docfx.LazySwitch.Editor.csproj",
-                "Docfx.LazySwitch.Runtime.csproj"
-            ]
+                "JLChnToZ.VVMW.dll",
+                "JLChnToZ.VVMW.Editor.dll",
+                "JLChnToZ.VRC.Foundation.dll",
+                "JLChnToZ.VRC.Foundation.Editor.dll",
+                "LazySwitch.Runtime.dll",
+                "LazySwitch.Editor.dll"
+            ],
+            "references": [
+                "*.dll"
+            ],
+            "exclude": []
         }],
         "dest": "api",
-        "filter": "filterConfig.yml",
         "globalNamespaceId": "Global",
         "allowCompilationErrors": true
     }],
@@ -34,7 +37,7 @@
         },
         "globalMetadataFiles": [
         ],
-        "content":  [
+        "content": [
             { "files": ["**/*.md", "**/toc.yml"] },
             { "src": "license", "files": ["*.md"], "dest": "license" },
             { "src": "api", "files": ["*.yml", "index.md"], "dest": "api" },

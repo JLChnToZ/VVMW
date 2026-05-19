@@ -83,6 +83,27 @@ jobs:
           test -f JLChnToZ.VVMW.csproj
           test -f JLChnToZ.VVMW.Editor.csproj
 
+      - name: Prepare DocFX project files
+        run: |
+          for f in \
+            JLChnToZ.VVMW.csproj \
+            JLChnToZ.VVMW.Editor.csproj \
+            JLChnToZ.VRC.Foundation.csproj \
+            JLChnToZ.VRC.Foundation.Editor.csproj \
+            LazySwitch.Editor.csproj \
+            LazySwitch.Runtime.csproj
+          do
+            if [ -f "$f" ]; then
+              cp "$f" "Docfx.$f"
+              sed -i 's#<NoStandardLibraries>true</NoStandardLibraries>#<NoStandardLibraries>false</NoStandardLibraries>#g' "Docfx.$f"
+              sed -i 's#<NoStdLib>true</NoStdLib>#<NoStdLib>false</NoStdLib>#g' "Docfx.$f"
+              sed -i 's#<NoConfig>true</NoConfig>#<NoConfig>false</NoConfig>#g' "Docfx.$f"
+              sed -i 's#<DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>#<DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>#g' "Docfx.$f"
+            fi
+          done
+          test -f Docfx.JLChnToZ.VVMW.csproj
+          test -f Docfx.JLChnToZ.VVMW.Editor.csproj
+
       - name: Install DocFX
         working-directory: ${{ runner.temp }}
         run: |
@@ -94,9 +115,22 @@ jobs:
         run: |
           sed -i "s|\$baseUrl|${SITE_URL}|g" docs/docfx.json
           sed -i "s|\$xrefMap|${SITE_URL}/xrefmap.yml|g" docs/docfx.json
+          sed -i "s|\$baseUrl|${SITE_URL}|g" docs/docfx.fallback.json
+          sed -i "s|\$xrefMap|${SITE_URL}/xrefmap.yml|g" docs/docfx.fallback.json
 
       - name: Build the documentation
-        run: docfx docs/docfx.json
+        run: |
+          rm -rf docs/api
+          docfx docs/docfx.json
+          api_count=$(find docs/api -maxdepth 1 -name '*.yml' | wc -l)
+          if [ "$api_count" -eq 0 ]; then
+            echo "Primary metadata produced no API yaml, running source fallback..."
+            rm -rf docs/api
+            docfx docs/docfx.fallback.json
+            api_count=$(find docs/api -maxdepth 1 -name '*.yml' | wc -l)
+          fi
+          echo "API yaml count: $api_count"
+          test "$api_count" -gt 0
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
