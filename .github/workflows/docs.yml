@@ -84,7 +84,10 @@ jobs:
           test -f JLChnToZ.VVMW.Editor.csproj
 
       - name: Install DocFX
-        run: dotnet tool update -g docfx
+        run: |
+          dotnet tool install --tool-path "$RUNNER_TEMP/docfx-tools" docfx || \
+          dotnet tool update --tool-path "$RUNNER_TEMP/docfx-tools" docfx
+          echo "$RUNNER_TEMP/docfx-tools" >> "$GITHUB_PATH"
 
       - name: Update docfx.json with GitHub Pages URL
         run: |
