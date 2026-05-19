@@ -1,19 +1,18 @@
 {
     "metadata": [{
         "src": [{
-            "src": "../Library/ScriptAssemblies",
+            "src": "../Packages/idv.jlchntoz.vvmw",
             "files": [
-                "JLChnToZ.VVMW.dll",
-                "JLChnToZ.VVMW.Editor.dll",
-                "JLChnToZ.VRC.Foundation.dll",
-                "JLChnToZ.VRC.Foundation.Editor.dll",
-                "LazySwitch.Runtime.dll",
-                "LazySwitch.Editor.dll"
+                "Runtime/**/*.cs",
+                "Editor/**/*.cs"
             ],
             "references": [
-                "*.dll"
+                "../Library/ScriptAssemblies/*.dll"
             ],
-            "exclude": []
+            "exclude": [
+                "**/Samples~/**",
+                "**/Tests/**"
+            ]
         }],
         "dest": "api",
         "globalNamespaceId": "Global",
