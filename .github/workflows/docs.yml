@@ -84,6 +84,7 @@ jobs:
           test -f JLChnToZ.VVMW.Editor.csproj
 
       - name: Install DocFX
+        working-directory: ${{ runner.temp }}
         run: |
           dotnet tool install --tool-path "$RUNNER_TEMP/docfx-tools" docfx || \
           dotnet tool update --tool-path "$RUNNER_TEMP/docfx-tools" docfx
