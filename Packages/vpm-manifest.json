@@ -8,6 +8,21 @@
     },
     "com.vrchat.worlds": {
       "version": "3.6.1"
+    },
+    "idv.jlchntoz.lazyswitch": {
+      "version": "0.8.2"
+    },
+    "red.sim.lightvolumes": {
+      "version": "2.1.3"
+    },
+    "at.pimaker.ltcgi": {
+      "version": "1.6.3"
+    },
+    "com.acchosen.vr-stage-lighting": {
+      "version": "2.8.3"
+    },
+    "dev.architech.videoplayershim": {
+      "version": "1.5.0"
     }
   },
   "locked": {
@@ -16,23 +31,50 @@
       "dependencies": {}
     },
     "com.llealloo.audiolink": {
-      "version": "2.1.0",
+      "version": "3.1.2",
       "dependencies": {}
     },
     "com.vrchat.worlds": {
-      "version": "3.7.6",
+      "version": "3.10.3",
       "dependencies": {
-        "com.vrchat.base": "3.7.6"
+        "com.vrchat.base": "3.10.3"
       }
     },
     "com.vrchat.base": {
-      "version": "3.7.6",
+      "version": "3.10.3",
       "dependencies": {}
     },
     "idv.jlchntoz.vrcw-foundation": {
-      "version": "0.0.25",
+      "version": "0.0.58",
       "dependencies": {
-        "com.vrchat.worlds": "3.x.x"
+        "com.vrchat.worlds": "3.x.x >=3.9.0"
+      }
+    },
+    "idv.jlchntoz.lazyswitch": {
+      "version": "0.8.2",
+      "dependencies": {
+        "com.vrchat.worlds": "3.x.x",
+        "idv.jlchntoz.vrcw-foundation": "0.x.x >=0.0.53"
+      }
+    },
+    "red.sim.lightvolumes": {
+      "version": "2.1.3",
+      "dependencies": {}
+    },
+    "at.pimaker.ltcgi": {
+      "version": "1.6.3",
+      "dependencies": {}
+    },
+    "com.acchosen.vr-stage-lighting": {
+      "version": "2.8.4",
+      "dependencies": {
+        "com.llealloo.audiolink": ">=0.3.1"
+      }
+    },
+    "dev.architech.videoplayershim": {
+      "version": "1.5.0",
+      "dependencies": {
+        "com.vrchat.worlds": "^3.3"
       }
     }
   }

@@ -1,55 +1,104 @@
 name: Build Docs
 
-on: 
+on:
   workflow_dispatch:
   push:
     paths:
+      - '.github/workflows/docs.yml'
       - 'docs/**'
+      - 'Assets/Editor/DocfxProjectFileGenerator.cs'
       - 'CHANGELOG.md'
+      - 'Packages/manifest.json'
+      - 'Packages/packages-lock.json'
+      - 'Packages/vpm-manifest.json'
+      - 'Packages/idv.jlchntoz.vvmw/**'
+      - 'ProjectSettings/ProjectVersion.txt'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      UNITY_VERSION: 2022.3.22f1
+      SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Restore Unity Library cache
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-docs-${{ runner.os }}-${{ env.UNITY_VERSION }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-docs-${{ runner.os }}-${{ env.UNITY_VERSION }}-
 
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
+      - name: Resolve VPM packages
+        uses: anatawa12/sh-actions/resolve-vpm-packages@master
+        with:
+          project-path: .
+          repos: |
+            https://xtlcdn.github.io/vpm/index.json
+
+      - name: Remove stale Unity project files
+        run: |
+          find . -maxdepth 1 \( -name '*.csproj' -o -name '*.csproj.lscache' -o -name '*.sln' \) -delete
+
+      - name: Generate Unity project files
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .
+          unityVersion: ${{ env.UNITY_VERSION }}
+          targetPlatform: StandaloneLinux64
+          allowDirtyBuild: true
+          buildMethod: JLChnToZ.VRC.VVMW.Editor.DocfxProjectFileGenerator.Generate
+
+      - name: Validate generated project files
+        run: |
+          test -f JLChnToZ.VVMW.csproj
+          test -f JLChnToZ.VVMW.Editor.csproj
+
       - name: Install DocFX
-        run: dotnet tool install -g docfx
+        run: dotnet tool update -g docfx
 
       - name: Update docfx.json with GitHub Pages URL
-        env:
-          url: ${{ steps.deployment.outputs.page_url }}
         run: |
-          sed -i "s|\$url|$url|g" docs/docfx.json
+          sed -i "s|\$baseUrl|${SITE_URL}|g" docs/docfx.json
+          sed -i "s|\$xrefMap|${SITE_URL}/xrefmap.yml|g" docs/docfx.json
 
       - name: Build the documentation
-        run: |
-          cd docs/
-          docfx
+        run: docfx docs/docfx.json
 
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
 
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

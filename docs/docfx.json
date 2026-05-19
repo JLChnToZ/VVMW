@@ -1,7 +1,14 @@
 {
     "metadata": [{
-        "src": [{ "src": "../Packages/idv.jlchntoz.vvmw/", "files": ["**/*.cs"] }],
+        "src": [{
+            "src": "..",
+            "files": [
+                "JLChnToZ.VVMW.csproj",
+                "JLChnToZ.VVMW.Editor.csproj"
+            ]
+        }],
         "dest": "api",
+        "filter": "filterConfig.yml",
         "globalNamespaceId": "Global",
         "allowCompilationErrors": true
     }],
@@ -31,9 +38,9 @@
         ],
         "resource": [{ "files": ["resources/**/*"] }],
         "template": ["default", "modern", "custom"],
-        "sitemap": { "baseUrl": "'$url'" },
+        "sitemap": { "baseUrl": "$baseUrl" },
         "xref": [
-            "'$url'", 
+            "$xrefMap",
             "https://normanderwan.github.io/UnityXrefMaps/xrefmap.yml"
         ],
         "xrefService": [

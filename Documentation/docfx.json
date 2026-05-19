@@ -1,0 +1,64 @@
+{
+    "metadata": [
+        {
+            "src": [
+                {
+                    "src": "..",
+                    "files": [
+                        "*.csproj"
+                    ],
+                    "exclude": [
+                        "Assets/*",
+                        "*/Samples~/*",
+                        "*/Unity.Collections.*/*"
+                    ]
+                }
+            ],
+            "globalNamespaceId": "Global",
+            "filter": "filterConfig.yml",
+            "dest": "api"
+        }
+    ],
+    "build": {
+        "content": [
+            {
+                "files": [
+                    "toc.yml",
+                    "../README.md",
+                    "../Packages/idv.jlchntoz.vvmw/*.md"
+                ]
+            },
+            {
+                "src": "api",
+                "files": [
+                    "*.yml"
+                ],
+                "dest": "api"
+            }
+        ],
+        "resource": [
+            {
+                "files": [
+                    "../Packages/idv.jlchntoz.vvmw/.tutorial/**"
+                ]
+            }
+        ],
+        "output": "_site",
+        "template": [
+            "default",
+            "modern"
+        ],
+        "globalMetadata": {
+            "_appName": "VizVid",
+            "_appTitle": "VizVid",
+            "_enableSearch": true,
+            "pdf": false
+        },
+        "xref": [
+            "https://normanderwan.github.io/UnityXrefMaps/xrefmap.yml"
+        ],
+        "xrefService": [
+            "https://xref.docs.microsoft.com/query?uid={uid}"
+        ]
+    }
+}
