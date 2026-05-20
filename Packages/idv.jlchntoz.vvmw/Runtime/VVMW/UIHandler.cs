@@ -256,7 +256,7 @@ namespace JLChnToZ.VRC.VVMW {
             InitPlayerSelect();
             InitABLoopSlider();
             if (Utilities.IsValid(playNextIndicator)) playNextIndicator.SetActive(false);
-            InitShiftControl();
+            InitSpeedAndShiftControl();
             _OnUIUpdate();
             _OnVolumeChange();
             _OnSyncOffsetChange();
@@ -552,7 +552,7 @@ namespace JLChnToZ.VRC.VVMW {
                     altUrlInput.interactable = unlocked;
                     if (!unlocked) altUrlInput.SetUrl(VRCUrl.Empty);
                 }
-                InitShiftControl();
+                InitSpeedAndShiftControl();
             }
             bool isRangeLooping = core.IsRangeLooping && Utilities.IsValid(repeatABButtonObject);
             if (hasHandler) {

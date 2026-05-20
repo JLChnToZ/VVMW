@@ -2,16 +2,25 @@ using VRC.SDKBase;
 
 namespace JLChnToZ.VRC.VVMW {
     public partial class UIHandler {
-        void InitShiftControl() {
-            bool isSyncedAndUnlocked = core.IsSynced && wasUnlocked;
-            if (Utilities.IsValid(shiftControlsRoot)) shiftControlsRoot.SetActive(isSyncedAndUnlocked);
+        void InitSpeedAndShiftControl() {
+            bool isSynced = core.IsSynced;
+            if (Utilities.IsValid(shiftControlsRoot)) shiftControlsRoot.SetActive(isSynced);
             else {
-                if (Utilities.IsValid(shiftBackLButtonObject)) shiftBackLButtonObject.SetActive(isSyncedAndUnlocked);
-                if (Utilities.IsValid(shiftBackSButtonObject)) shiftBackSButtonObject.SetActive(isSyncedAndUnlocked);
-                if (Utilities.IsValid(shiftForwardSButtonObject)) shiftForwardSButtonObject.SetActive(isSyncedAndUnlocked);
-                if (Utilities.IsValid(shiftForwardLButtonObject)) shiftForwardLButtonObject.SetActive(isSyncedAndUnlocked);
-                if (Utilities.IsValid(shiftResetButtonObject)) shiftResetButtonObject.SetActive(isSyncedAndUnlocked);
-                if (Utilities.IsValid(shiftOffsetObject)) shiftOffsetObject.SetActive(isSyncedAndUnlocked);
+                if (Utilities.IsValid(shiftBackLButtonObject)) shiftBackLButtonObject.SetActive(isSynced);
+                if (Utilities.IsValid(shiftBackSButtonObject)) shiftBackSButtonObject.SetActive(isSynced);
+                if (Utilities.IsValid(shiftForwardSButtonObject)) shiftForwardSButtonObject.SetActive(isSynced);
+                if (Utilities.IsValid(shiftForwardLButtonObject)) shiftForwardLButtonObject.SetActive(isSynced);
+                if (Utilities.IsValid(shiftResetButtonObject)) shiftResetButtonObject.SetActive(isSynced);
+                if (Utilities.IsValid(shiftOffsetObject)) shiftOffsetObject.SetActive(isSynced);
+            }
+            if (Utilities.IsValid(speedControlsRoot)) speedControlsRoot.SetActive(wasUnlocked);
+            else {
+                if (Utilities.IsValid(speedDownLButtonObject)) speedDownLButtonObject.SetActive(wasUnlocked);
+                if (Utilities.IsValid(speedDownSButtonObject)) speedDownSButtonObject.SetActive(wasUnlocked);
+                if (Utilities.IsValid(speedUpSButtonObject)) speedUpSButtonObject.SetActive(wasUnlocked);
+                if (Utilities.IsValid(speedUpLButtonObject)) speedUpLButtonObject.SetActive(wasUnlocked);
+                if (Utilities.IsValid(speedResetButtonObject)) speedResetButtonObject.SetActive(wasUnlocked);
+                if (Utilities.IsValid(speedOffsetObject)) speedOffsetObject.SetActive(wasUnlocked);
             }
         }
 
