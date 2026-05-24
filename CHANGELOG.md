@@ -5,8 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## 1.7.4 - 2026-05-24
 ### Fixed
 - Speed control/playback progress shift control incorrectly hide/unhide when locked.
+- Unify full-width/half-width punctuations for editor Chinese localizations. ([#85](https://github.com/JLChnToZ/VVMW/issues/85))
 
 ## 1.7.4-beta.1 - 2026-05-18
 ### Added
