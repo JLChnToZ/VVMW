@@ -215,6 +215,10 @@ Regenerate random seed for shuffle playback when VizVid plays a playlist.
 * **Player Handlers**  
 Manages the backends connected to VizVid.  
 AVPro, Builtin, and Image are provided by default.  
+    * **AVPro (AVPro Module)**  
+        * **Is Low Latency**  
+        Enable low latency for AVPro.  
+        Only available for live streaming contents.  
 * **Module Related**  
 Manages the module's specifications on VizVid.  
     * **Video Screen Target**  

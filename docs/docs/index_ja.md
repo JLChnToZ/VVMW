@@ -130,7 +130,7 @@ VizVid の頭脳となるモジュールです。
 デフォルトではローカル設定となっており、他のユーザーからは自分が見ているスクリーンは見えません。  
 * **Screen**  
 VizVid 用のスクリーンです。  
-コントローラーとは別の場所に配置できます。  
+サブクリーンとして、コントローラーとは別の場所に配置できます。  
 
 ---
 * **Resync Button**  
@@ -217,6 +217,10 @@ VizVid のデフォルト値を設定します。
         ユーザー間の再生ズレを検知します。しきい値を超えると自動的に同期が行われます。  
     * **プレイヤーハンドラ**  
     VizVid と紐付けしたバックエンドを管理します。デフォルトでは AVPro、Builtin、Image が提供されています。  
+        * **Live (AVPro Module)**  
+            * **低遅延**  
+            AVProの低遅延モードをオンにします。  
+            ライブ配信の視聴時にのみ有効です。  
     * **モジュール設定**  
     VizVid と紐付けした各モジュールを管理します。  
         * **ビデオスクリーンターゲット**  
@@ -405,7 +409,7 @@ VizVidのプレイリストを旧版の逆順に調整したい場合、以下�
 5. インスペクターにある `Rect Transform` の設定を、画像のように調整します。  
     * Default UIの場合  
     ![image](../resources/images/S1BMC2NJzg.png) ![image](../resources/images/HJijrTVkGg.png)  
-    * Screen With Overlayの場合‎  
+    * Screen With Overlayの場合  
     ![image](../resources/images/rJZx_6E1Gl.png) ![image](../resources/images/H149d641Mg.png)  
 6. 設定完了です。  
 
