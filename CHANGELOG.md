@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- Auto adjust scaling flow
+
 ## 1.7.4 - 2026-05-24
 ### Fixed
 - Speed control/playback progress shift control incorrectly hide/unhide when locked.

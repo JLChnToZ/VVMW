@@ -18,6 +18,16 @@ namespace JLChnToZ.VRC.VVMW {
         bool hasInit;
         Vector2 lastLocalSize, lastLocalScale;
 
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+        static Vector2 GetTransformedSize(Transform transform, Vector2 size) {
+            Span<Vector3> v = stackalloc Vector3[2];
+            v[0] = new(size.x, 0, 0);
+            v[1] = new(0, size.y, 0);
+            transform.TransformVectors(v);
+            return new(v[0].magnitude, v[1].magnitude);
+        }
+#endif
+
         void Awake() {
             if (hasInit) return;
             transform = GetComponent<RectTransform>();
@@ -29,60 +39,55 @@ namespace JLChnToZ.VRC.VVMW {
 
         void Update() {
             if (!hasInit) Awake();
-            if (transform.hasChanged) {
-                Fixup();
-                transform.hasChanged = false;
-            }
-            collider.isTrigger = true;
-            var rect = transform.rect;
-            collider.center = rect.center;
-            Vector3 scale = rect.size;
-            scale.z = 1;
-            collider.size = scale;
+            Fixup();
         }
 
         void Fixup() {
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
             if (AnimationMode.InAnimationMode() || EditorApplication.isPlayingOrWillChangePlaymode) return;
-            var localSize = transform.rect.size;
-            Vector2 size;
-            {
-                Span<Vector3> tempV3 = stackalloc Vector3[2];
-                tempV3[0] = new(localSize.x, 0, 0);
-                tempV3[1] = new(0, localSize.y, 0);
-                transform.TransformVectors(tempV3);
-                size = new(tempV3[0].magnitude, tempV3[1].magnitude);
-            }
+            var rect = transform.rect;
+            var localSize = rect.size;
+            var size = GetTransformedSize(transform, localSize);
             var localAspectRatio = localSize.x / localSize.y;
             var worldAspectRatio = size.x / size.y;
-            if (Mathf.Approximately(localAspectRatio, worldAspectRatio)) return;
-            var localScale = transform.localScale;
-            var parent = transform.parent;
-            Vector2 worldScale = localScale;
-            if (parent != null) {
-                Span<Vector3> tempV3 = stackalloc Vector3[2];
-                tempV3[0] = new(localScale.x, 0, 0);
-                tempV3[1] = new(0, localScale.y, 0);
-                parent.TransformVectors(tempV3);
-                worldScale = new(tempV3[0].magnitude, tempV3[1].magnitude);
+            if (!Mathf.Approximately(localAspectRatio, worldAspectRatio)) {
+                var localScale = transform.localScale;
+                var parent = transform.parent;
+                Vector2 worldScale = localScale;
+                if (parent != null) worldScale = GetTransformedSize(parent, localScale);
+                bool changed = false;
+                if (!Mathf.Approximately(worldScale.x, worldScale.y)) {
+                    if (!changed) Undo.RecordObject(transform, "Fixup Canvas");
+                    changed = true;
+                    localScale.y *= worldScale.x / worldScale.y;
+                    transform.localScale = localScale;
+                    lastLocalScale = localScale;
+                }
+                localSize = transform.sizeDelta;
+                var newHeight = localSize.x / worldAspectRatio;
+                if (localSize.y != newHeight) {
+                    if (!changed) Undo.RecordObject(transform, "Fixup Canvas");
+                    changed = true;
+                    localSize.y = newHeight;
+                    transform.sizeDelta = localSize;
+                }
+                lastLocalSize = localSize;
+                if (changed && PrefabUtility.IsPartOfPrefabInstance(transform))
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(transform);
+                rect = transform.rect;
             }
-            if (!Mathf.Approximately(worldScale.x, worldScale.y)) {
-                localScale.y *= worldScale.x / worldScale.y;
-                transform.localScale = localScale;
-                lastLocalScale = localScale;
+            Vector3 newCenter = rect.center;
+            Vector3 orgScale = collider.size;
+            Vector2 newScale = rect.size, orgV2Scale = orgScale;
+            if (!collider.isTrigger || collider.center != newCenter || orgV2Scale != newScale) {
+                Undo.RecordObject(collider, "Fixup Canvas");
+                collider.isTrigger = true;
+                collider.center = newCenter;
+                collider.size = newScale;
+                if (PrefabUtility.IsPartOfPrefabInstance(collider))
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(collider);
             }
-            localSize = transform.sizeDelta;
-            localSize.y = localSize.x / worldAspectRatio;
-            transform.sizeDelta = localSize;
-            lastLocalSize = localSize;
 #endif
         }
-
-#if UNITY_EDITOR && !COMPILER_UDONSHARP
-        void OnValidate() {
-            if (!isActiveAndEnabled || EditorApplication.isPlayingOrWillChangePlaymode) return;
-            EditorApplication.delayCall += Update;
-        }
-#endif
     }
 }
