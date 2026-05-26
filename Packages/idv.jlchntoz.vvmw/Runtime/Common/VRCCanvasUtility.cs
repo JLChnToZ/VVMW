@@ -72,7 +72,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             Undo.RecordObject(transform, "Fixup Canvas");
             Vector3 localScaleV3 = localScale;
-            localScaleV3.z = (localScale.x + localScale.y) * 0.5F;
+            localScaleV3.z = Mathf.Sqrt(Mathf.Abs(localScale.x * localScale.y));
             transform.localScale = localScaleV3;
             if (Mathf.Approximately(targetAspect, GetGlobalAspect(transform, localSize))) return true;
             switch (fixedAxis) {
@@ -95,8 +95,12 @@ namespace JLChnToZ.VRC.VVMW {
                 return false;
             Undo.RecordObject(collider, "Fixup Canvas");
             collider.isTrigger = true;
+            Vector3 newScaleV3 = newScale;
+            var scale = transform.lossyScale.magnitude;
+            newScaleV3.z = Mathf.Approximately(scale, 0F) ? 1F : 0.001F / scale;
+            newCenter.z = newScaleV3.z * 0.5F;
             collider.center = newCenter;
-            collider.size = newScale;
+            collider.size = newScaleV3;
             return true;
         }
 
