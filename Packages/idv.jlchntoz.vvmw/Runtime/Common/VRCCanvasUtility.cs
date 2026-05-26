@@ -37,24 +37,22 @@ namespace JLChnToZ.VRC.VVMW {
 
         void Update() {
             if (AnimationMode.InAnimationMode() || EditorApplication.isPlayingOrWillChangePlaymode) return;
-            if (FixUpTransformAndGetRect(out var localScale, out var rect))
+            if (FixUpTransformAndGetRect(out var localScale))
                 SavePrefabChanges(transform);
-            if (FixUpCollider(in rect))
+            if (FixUpCollider())
                 SavePrefabChanges(collider);
             lastLocalScale = localScale;
         }
 
-        bool FixUpTransformAndGetRect(out Vector2 localScale, out Rect rect) {
+        bool FixUpTransformAndGetRect(out Vector2 localScale) {
             if (transform == null) {
                 if (!TryGetComponent(out transform)) {
                     localScale = default;
-                    rect = default;
                     return false;
                 }
                 lastLocalScale = localScale = transform.localScale;
             } else
                 localScale = transform.localScale;
-            rect = transform.rect;
             var localSize = transform.sizeDelta;
             if (localScale != lastLocalScale) {
                 scaleChanging = true;
@@ -83,13 +81,13 @@ namespace JLChnToZ.VRC.VVMW {
                 default: return true;
             }
             transform.sizeDelta = localSize;
-            rect = transform.rect;
             return true;
         }
 
-        bool FixUpCollider(in Rect rect) {
+        bool FixUpCollider() {
             if (collider == null && !TryGetComponent(out collider))
                 return false;
+            var rect = transform.rect;
             Vector3 newCenter = rect.center;
             Vector3 orgScale = collider.size;
             Vector2 newScale = rect.size, orgV2Scale = orgScale;
