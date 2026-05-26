@@ -13,15 +13,6 @@ namespace JLChnToZ.VRC.VVMW {
                 if (Utilities.IsValid(shiftResetButtonObject)) shiftResetButtonObject.SetActive(isSynced);
                 if (Utilities.IsValid(shiftOffsetObject)) shiftOffsetObject.SetActive(isSynced);
             }
-            if (Utilities.IsValid(speedControlsRoot)) speedControlsRoot.SetActive(wasUnlocked);
-            else {
-                if (Utilities.IsValid(speedDownLButtonObject)) speedDownLButtonObject.SetActive(wasUnlocked);
-                if (Utilities.IsValid(speedDownSButtonObject)) speedDownSButtonObject.SetActive(wasUnlocked);
-                if (Utilities.IsValid(speedUpSButtonObject)) speedUpSButtonObject.SetActive(wasUnlocked);
-                if (Utilities.IsValid(speedUpLButtonObject)) speedUpLButtonObject.SetActive(wasUnlocked);
-                if (Utilities.IsValid(speedResetButtonObject)) speedResetButtonObject.SetActive(wasUnlocked);
-                if (Utilities.IsValid(speedOffsetObject)) speedOffsetObject.SetActive(wasUnlocked);
-            }
         }
 
 #if COMPILER_UDONSHARP
