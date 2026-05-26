@@ -3,6 +3,7 @@ using UnityEngine;
 using JLChnToZ.VRC.Foundation;
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
 using UnityEditor;
+using UnityObject = UnityEngine.Object;
 #endif
 
 namespace JLChnToZ.VRC.VVMW {
@@ -13,81 +14,98 @@ namespace JLChnToZ.VRC.VVMW {
     [RequireComponent(typeof(RectTransform), typeof(BoxCollider))]
     [AddComponentMenu("VizVid/Common/VRC Canvas Utility")]
     public class VRCCanvasUtility : MonoBehaviour {
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+        [SerializeField] Axis fixedAxis = Axis.Horizontal;
         new RectTransform transform;
         new BoxCollider collider;
-        bool hasInit;
-        Vector2 lastLocalSize, lastLocalScale;
+        [NonSerialized] bool scaleChanging;
+        [NonSerialized] Vector2 lastLocalScale;
 
-#if UNITY_EDITOR && !COMPILER_UDONSHARP
-        static Vector2 GetTransformedSize(Transform transform, Vector2 size) {
+        static float GetGlobalAspect(Transform transform, Vector2 size) {
+            if (transform == null) return size.x / size.y;
             Span<Vector3> v = stackalloc Vector3[2];
-            v[0] = new(size.x, 0, 0);
-            v[1] = new(0, size.y, 0);
+            v[0].x = size.x;
+            v[1].y = size.y;
             transform.TransformVectors(v);
-            return new(v[0].magnitude, v[1].magnitude);
-        }
-#endif
-
-        void Awake() {
-            if (hasInit) return;
-            transform = GetComponent<RectTransform>();
-            collider = GetComponent<BoxCollider>();
-            hasInit = true;
+            return v[0].magnitude / v[1].magnitude;
         }
 
-        void OnEnable() => Fixup();
+        static void SavePrefabChanges(UnityObject obj) {
+            if (PrefabUtility.IsPartOfPrefabInstance(obj))
+                PrefabUtility.RecordPrefabInstancePropertyModifications(obj);   
+        }
 
         void Update() {
-            if (!hasInit) Awake();
-            Fixup();
+            if (AnimationMode.InAnimationMode() || EditorApplication.isPlayingOrWillChangePlaymode) return;
+            if (FixUpTransformAndGetRect(out var localScale, out var rect))
+                SavePrefabChanges(transform);
+            if (FixUpCollider(in rect))
+                SavePrefabChanges(collider);
+            lastLocalScale = localScale;
         }
 
-        void Fixup() {
-#if UNITY_EDITOR && !COMPILER_UDONSHARP
-            if (AnimationMode.InAnimationMode() || EditorApplication.isPlayingOrWillChangePlaymode) return;
-            var rect = transform.rect;
-            var localSize = rect.size;
-            var size = GetTransformedSize(transform, localSize);
-            var localAspectRatio = localSize.x / localSize.y;
-            var worldAspectRatio = size.x / size.y;
-            if (!Mathf.Approximately(localAspectRatio, worldAspectRatio)) {
-                var localScale = transform.localScale;
-                var parent = transform.parent;
-                Vector2 worldScale = localScale;
-                if (parent != null) worldScale = GetTransformedSize(parent, localScale);
-                bool changed = false;
-                if (!Mathf.Approximately(worldScale.x, worldScale.y)) {
-                    if (!changed) Undo.RecordObject(transform, "Fixup Canvas");
-                    changed = true;
-                    localScale.y *= worldScale.x / worldScale.y;
-                    transform.localScale = localScale;
-                    lastLocalScale = localScale;
+        bool FixUpTransformAndGetRect(out Vector2 localScale, out Rect rect) {
+            if (transform == null) {
+                if (!TryGetComponent(out transform)) {
+                    localScale = default;
+                    rect = default;
+                    return false;
                 }
-                localSize = transform.sizeDelta;
-                var newHeight = localSize.x / worldAspectRatio;
-                if (localSize.y != newHeight) {
-                    if (!changed) Undo.RecordObject(transform, "Fixup Canvas");
-                    changed = true;
-                    localSize.y = newHeight;
-                    transform.sizeDelta = localSize;
-                }
-                lastLocalSize = localSize;
-                if (changed && PrefabUtility.IsPartOfPrefabInstance(transform))
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(transform);
-                rect = transform.rect;
+                lastLocalScale = localScale = transform.localScale;
+            } else
+                localScale = transform.localScale;
+            rect = transform.rect;
+            var localSize = transform.sizeDelta;
+            if (localScale != lastLocalScale) {
+                scaleChanging = true;
+                return false;
             }
+            if (scaleChanging) {
+                scaleChanging = false;
+                return false;
+            }
+            float targetAspect = GetGlobalAspect(transform, localSize);
+            var parentAspect = GetGlobalAspect(transform.parent, localScale);
+            if (Mathf.Approximately(parentAspect, 1F)) return false;
+            switch (fixedAxis) {
+                case Axis.Horizontal: localScale.y *= parentAspect; break;
+                case Axis.Vertical: localScale.x /= parentAspect; break;
+                default: return false;
+            }
+            Undo.RecordObject(transform, "Fixup Canvas");
+            Vector3 localScaleV3 = localScale;
+            localScaleV3.z = (localScale.x + localScale.y) * 0.5F;
+            transform.localScale = localScaleV3;
+            if (Mathf.Approximately(targetAspect, GetGlobalAspect(transform, localSize))) return true;
+            switch (fixedAxis) {
+                case Axis.Horizontal: localSize.y = localSize.x / targetAspect; break;
+                case Axis.Vertical: localSize.x = localSize.y * targetAspect; break;
+                default: return true;
+            }
+            transform.sizeDelta = localSize;
+            rect = transform.rect;
+            return true;
+        }
+
+        bool FixUpCollider(in Rect rect) {
+            if (collider == null && !TryGetComponent(out collider))
+                return false;
             Vector3 newCenter = rect.center;
             Vector3 orgScale = collider.size;
             Vector2 newScale = rect.size, orgV2Scale = orgScale;
-            if (!collider.isTrigger || collider.center != newCenter || orgV2Scale != newScale) {
-                Undo.RecordObject(collider, "Fixup Canvas");
-                collider.isTrigger = true;
-                collider.center = newCenter;
-                collider.size = newScale;
-                if (PrefabUtility.IsPartOfPrefabInstance(collider))
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(collider);
-            }
-#endif
+            if (collider.isTrigger && collider.center == newCenter && orgV2Scale == newScale)
+                return false;
+            Undo.RecordObject(collider, "Fixup Canvas");
+            collider.isTrigger = true;
+            collider.center = newCenter;
+            collider.size = newScale;
+            return true;
         }
+
+        enum Axis {
+            Horizontal = 0,
+            Vertical = 1,
+        }
+#endif
     }
 }
