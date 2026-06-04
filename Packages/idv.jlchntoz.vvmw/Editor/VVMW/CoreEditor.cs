@@ -63,7 +63,20 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         List<bool> screenTargetVisibilityState;
         Editor autoPlayControllerEditor;
         Editor[] playerHandlerEditors;
-        bool errorHandlingFoldout, playerHandlersFoldout, moduleSettingsFoldout, otherSettingsFoldout, extraSettingsFoldout;
+        [SerializeField] bool errorHandlingFoldout, moduleSettingsFoldout, otherSettingsFoldout, extraSettingsFoldout;
+
+        static bool TryGetComponent<T>(UnityObject obj, out T component) where T : Component {
+            if (obj is T t) {
+                component = t;
+                return true;
+            }
+            if (obj is GameObject go)
+                return go.TryGetComponent(out component);
+            if (obj is Component comp)
+                return comp.TryGetComponent(out component);
+            component = null;
+            return false;
+        }
 
         protected override void OnEnable() {
             base.OnEnable();
@@ -123,6 +136,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         public override void DrawEmbeddedInspectorGUI() {
+            if (HandleDragDrop()) return;
             var autoPlayControllerEditor = GetAutoPlayControllerEditor();
             if (autoPlayControllerEditor != null)
                 autoPlayControllerEditor.serializedObject.Update();
@@ -133,6 +147,66 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             DrawAdvancedSettings(autoPlayControllerEditor);
             if (autoPlayControllerEditor != null)
                 autoPlayControllerEditor.serializedObject.ApplyModifiedProperties();
+            HorizontalLine();
+            EditorGUILayout.HelpBox(i18n["JLChnToZ.VRC.VVMW.Core.target:add"], MessageType.Info);
+        }
+
+        bool HandleDragDrop() {
+            var e = Event.current;
+            var eventType = e.type;
+            UnityObject[] objRefs;
+            switch (eventType) {
+                case EventType.DragUpdated:
+                    objRefs = DragAndDrop.objectReferences;
+                    if (objRefs == null || objRefs.Length == 0) break;
+                    for (int i = 0; i < objRefs.Length; i++) {
+                        var newTarget = objRefs[i];
+                        if (TryGetComponent(newTarget, out ScreenConfigurator sc)) {
+                            if (sc.core != null && sc.core != target) continue;
+                        } else if (newTarget is CustomRenderTexture crt) {
+                            if (crt.material == null) continue;
+                        } else if (
+                            newTarget is Renderer ||
+                            newTarget is Material ||
+                            newTarget is RawImage ||
+                            newTarget is RenderTexture ||
+                            newTarget is AudioSource
+                        ) {
+                        } else if (newTarget is GameObject go) {
+                            if (go.TryGetComponent<Renderer>(out _)) { }
+                            else if (go.TryGetComponent<RawImage>(out _)) { }
+                            else if (go.TryGetComponent<AudioSource>(out _)) { }
+                            else continue;
+                        } else continue;
+                        DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+                        e.Use();
+                        return true;
+                    }
+                    break;
+                case EventType.DragPerform:
+                    objRefs = DragAndDrop.objectReferences;
+                    if (objRefs == null || objRefs.Length == 0) break;
+                    bool used = false;
+                    foreach (var objRef in objRefs) {
+                        if (AppendScreen(objRef)) {
+                            used = true;
+                            continue;
+                        }
+                        if (TryGetComponent(objRef, out AudioSource audioSource) &&
+                            AppendAudioSource(target as Core, audioSource, audioSourcesProperty)) {
+                            used = true;
+                            continue;
+                        }
+                    }
+                    if (used) {
+                        DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+                        DragAndDrop.AcceptDrag();
+                        e.Use();
+                        return true;
+                    }
+                    break;
+            }
+            return false;
         }
 
         void DrawCommonSettings(VVMWEditorBase controllerEditor) {
@@ -155,32 +229,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.PropertyField(defaultVolumeProperty);
             EditorGUILayout.PropertyField(defaultMutedProperty);
             EditorGUILayout.PropertyField(volumeFadeDurationProperty);
-            using (var changed = new EditorGUI.ChangeCheckScope()) {
-                EditorGUILayout.PropertyField(muteOnOutOfRangeProperty);
-                if (changed.changed &&
-                    muteOnOutOfRangeProperty.boolValue &&
-                    !serializedObject.isEditingMultipleObjects) {
-                    var core = target as Core;
-                    var regionConfigs = ActiveRegionConfig.GetRegionConfigs(core);
-                    if (regionConfigs.Count == 0) {
-                        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(activeRegionPrefabPath);
-                        if (prefab != null) {
-                            var go = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-                            if (go != null) {
-                                go.transform.SetParent(core.transform, false);
-                                go.name = prefab.name;
-                                if (go.TryGetComponent(out ActiveRegionConfig region)) {
-                                    region.core = core;
-                                    EditorGUIUtility.PingObject(region);
-                                } else Undo.DestroyObjectImmediate(go);
-                            }
-                        }
-                    }
-                }
-            }
-            if (muteOnOutOfRangeProperty.boolValue)
-                using (new EditorGUI.IndentLevelScope())
-                    EditorGUILayout.PropertyField(outOfRangeVolumeProperty);
             if (frontendHandlerEditor != null)
                 frontendHandlerEditor.DrawRepeatShuffleProperty();
             else {
@@ -224,15 +272,42 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             moduleSettingsFoldout = EditorGUILayout.Foldout(moduleSettingsFoldout, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.moduleSettings"), true);
             if (!moduleSettingsFoldout) return;
             DrawScreenList();
-            audioSourcesList.DoLayoutList();
-            var newAudioSource = EditorGUILayout.ObjectField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.audioSources:add"), null, typeof(AudioSource), true) as AudioSource;
-            if (newAudioSource != null) AppendAudioSource(target as Core, newAudioSource, audioSourcesProperty);
-            EditorGUILayout.PropertyField(audioLinkProperty);
-            EditorGUILayout.PropertyField(yttlManagerProperty);
             EditorGUILayout.PropertyField(broadcastScreenTextureProperty);
             if (broadcastScreenTextureProperty.boolValue)
-                EditorGUILayout.PropertyField(broadcastScreenTextureNameProperty);
+                using (new EditorGUI.IndentLevelScope())
+                    EditorGUILayout.PropertyField(broadcastScreenTextureNameProperty);
             EditorGUILayout.PropertyField(realtimeGIUpdateIntervalProperty);
+            EditorGUILayout.PropertyField(yttlManagerProperty);
+            EditorGUILayout.Space();
+            audioSourcesList.DoLayoutList();
+            EditorGUILayout.PropertyField(audioLinkProperty);
+            using (var changed = new EditorGUI.ChangeCheckScope()) {
+                EditorGUILayout.PropertyField(muteOnOutOfRangeProperty);
+                if (changed.changed && muteOnOutOfRangeProperty.boolValue && !serializedObject.isEditingMultipleObjects) {
+                    var core = target as Core;
+                    var regionConfigs = ActiveRegionConfig.GetRegionConfigs(core);
+                    if (regionConfigs.Count == 0) {
+                        if (i18n.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.Core.outOfRangeVolume:requireActiveRegion")) {
+                            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(activeRegionPrefabPath);
+                            if (prefab != null) {
+                                var go = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+                                if (go != null) {
+                                    go.transform.SetParent(core.transform, false);
+                                    go.name = prefab.name;
+                                    if (go.TryGetComponent(out ActiveRegionConfig region)) {
+                                        region.core = core;
+                                        region.UpdateValue();
+                                        EditorGUIUtility.PingObject(region);
+                                    } else Undo.DestroyObjectImmediate(go);
+                                }
+                            }
+                        } else muteOnOutOfRangeProperty.boolValue = false;
+                    }
+                }
+            }
+            if (muteOnOutOfRangeProperty.boolValue)
+                using (new EditorGUI.IndentLevelScope())
+                    EditorGUILayout.PropertyField(outOfRangeVolumeProperty);
         }
 
         void DrawOtherSettings() {
@@ -529,27 +604,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         SetScreenMode(modeProperty, mode, useST, blitFlags);
                     }
             }
-            using (var changed = new EditorGUI.ChangeCheckScope()) {
-                var newTarget = EditorGUILayout.ObjectField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.videoScreenTarget:add"), null, typeof(UnityObject), true);
-                if (changed.changed && newTarget != null) {
-                    if (newTarget is ScreenConfigurator sc){
-                        using (var scso = new SerializedObject(sc)) {
-                            scso.FindProperty("core").objectReferenceValue = target;
-                            scso.ApplyModifiedProperties();
-                        }
-                        serializedObject.Update();
-                    } else if (AppendScreen(
-                        newTarget, new ScreenProperties(
-                        screenTargetsProperty,
-                        screenTargetModesProperty,
-                        screenTargetIndecesProperty,
-                        screenTargetPropertyNamesProperty,
-                        screenTargetDefaultTexturesProperty,
-                        avProPropertyNamesProperty,
-                        rtScreenTargetSTsProperty
-                    ))) screenTargetVisibilityState.Add(true);
-                }
-            }
             EditorGUILayout.Space();
         }
 
@@ -678,6 +732,31 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         public static int TryDetermineSpeakerChannelMode(AudioSource audioSource) =>
             audioSource != null && audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker) ?
             (int)speaker.Mode : -1;
+
+        bool AppendScreen(UnityObject newTarget) {
+            if (newTarget is ScreenConfigurator sc || (newTarget is GameObject go && go.TryGetComponent(out sc))) {
+                using (var scso = new SerializedObject(sc)) {
+                    scso.FindProperty("core").objectReferenceValue = target;
+                    scso.ApplyModifiedProperties();
+                }
+                serializedObject.Update();
+                return true;
+            }
+            if (AppendScreen(
+                newTarget, new ScreenProperties(
+                screenTargetsProperty,
+                screenTargetModesProperty,
+                screenTargetIndecesProperty,
+                screenTargetPropertyNamesProperty,
+                screenTargetDefaultTexturesProperty,
+                avProPropertyNamesProperty,
+                rtScreenTargetSTsProperty
+            ))) {
+                screenTargetVisibilityState.Add(true);
+                return true;
+            }
+            return false;
+        }
 
         static bool AppendScreen(UnityObject newTarget, ScreenProperties props) {
             int screenTargetMode;

@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Chaged
 - No longer hides speed adjustment buttons when locked.
+- Moved active region settings in inspector.
+- Removed "Add screen target" and "Add audio source" input fields, now can just drop it anywhere within the component inspector.
+- Now auto selects the first playlist if enabled auto play but selecting queue list.
+- Enabling "Auto volume down on out of range" checkbox will ask before auto spawning an active region.
 
 ## 1.7.4 - 2026-05-24
 ### Fixed

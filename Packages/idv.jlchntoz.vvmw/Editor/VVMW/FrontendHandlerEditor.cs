@@ -159,12 +159,26 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         public void DrawAutoPlaySettings() {
-            EditorGUILayout.PropertyField(autoPlayOnJoinProperty);
-            if (autoPlayOnJoinProperty.boolValue) {
-                EditorGUILayout.PropertyField(autoPlayDelayProperty);
-                if (autoPlayDelayProperty.floatValue < 0) autoPlayDelayProperty.floatValue = 0;
+            using (var changed = new EditorGUI.ChangeCheckScope()) {
+                EditorGUILayout.PropertyField(autoPlayOnJoinProperty);
+                if (changed.changed && autoPlayOnJoinProperty.boolValue) AutoAdjustDefaultPlaylist();
             }
-            EditorGUILayout.PropertyField(autoPlayOnIdleProperty);
+            if (autoPlayOnJoinProperty.boolValue)
+                using (new EditorGUI.IndentLevelScope()) {
+                    EditorGUILayout.PropertyField(autoPlayDelayProperty);
+                    if (autoPlayDelayProperty.floatValue < 0) autoPlayDelayProperty.floatValue = 0;
+                }
+            using (var changed = new EditorGUI.ChangeCheckScope()) {
+                EditorGUILayout.PropertyField(autoPlayOnIdleProperty);
+                if (changed.changed && autoPlayOnIdleProperty.boolValue) AutoAdjustDefaultPlaylist();
+            }
+        }
+
+        void AutoAdjustDefaultPlaylist() {
+            if (!serializedObject.isEditingMultipleObjects &&
+                playListNames.Length > 0 &&
+                defaultPlayListIndexProperty.intValue <= 0)
+                defaultPlayListIndexProperty.intValue = enableQueueListProperty.boolValue ? 1 : 0;
         }
 
         public void DrawRepeatShuffleProperty() {
