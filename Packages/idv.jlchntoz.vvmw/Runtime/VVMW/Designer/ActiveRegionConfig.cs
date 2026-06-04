@@ -71,7 +71,7 @@ namespace JLChnToZ.VRC.VVMW {
 #endif
         }
 
-        void UpdateValue() {
+        internal void UpdateValue() {
             if (core == lastCore) return;
             EnsureActiveRegionManagerExists();
             if (lastCore != null) {
