@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using UdonSharp;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,7 +10,6 @@ using VRC.SDK3.Components;
 using VRC.SDK3.Components.Video;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
-using UnityEngine.XR;
 
 namespace JLChnToZ.VRC.VVMW {
     /// <summary>
@@ -235,6 +235,7 @@ namespace JLChnToZ.VRC.VVMW {
         TimeSpan interactCoolDown = TimeSpan.FromSeconds(5);
         bool afterFirstRun;
         int initKey, playbackStateKey, enqueueKey;
+        Regex youtubeUrlRegex;
 
         void OnEnable() {
             if (Utilities.IsValid(playbackControlsAnimator)) {
@@ -248,6 +249,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (afterFirstRun) return;
             afterFirstRun = true;
             joinTime = DateTime.UtcNow;
+            youtubeUrlRegex = new Regex(@"^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\/", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             if (Utilities.IsValid(luminanceSlider) && !string.IsNullOrEmpty(luminancePropertyName)) {
                 luminancePropertyId = VRCShader.PropertyToID(luminancePropertyName);
                 _OnScreenSharedPropertiesChanged();
@@ -473,7 +475,13 @@ namespace JLChnToZ.VRC.VVMW {
                     switch (errorCode) {
                         case VideoError.InvalidURL: SetLocalizedText(statusText, statusTMPro, "InvalidURL"); break;
                         case VideoError.AccessDenied: SetLocalizedText(statusText, statusTMPro, core.IsTrusted ? "AccessDenied" : "AccessDeniedUntrusted"); break;
-                        case VideoError.PlayerError: SetLocalizedText(statusText, statusTMPro, "PlayerError"); break;
+                        case VideoError.PlayerError:
+                            var coreUrl = core.Url;
+                            SetLocalizedText(statusText, statusTMPro,
+                                !VRCUrl.IsNullOrEmpty(coreUrl) && youtubeUrlRegex.IsMatch(coreUrl.Get()) ?
+                                "PlayerErrorYoutube" : "PlayerError"
+                            );
+                            break;
                         case VideoError.RateLimited: SetLocalizedText(statusText, statusTMPro, "RateLimited"); break;
                         default: SetText(statusText, statusTMPro, string.Format(languageManager.GetLocale("Unknown"), (int)errorCode)); break;
                     }

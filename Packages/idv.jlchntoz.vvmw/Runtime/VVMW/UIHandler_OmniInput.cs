@@ -106,7 +106,7 @@ namespace JLChnToZ.VRC.VVMW {
         public
 #endif
         void _InputCancelClick() {
-            urlInput.SetUrl(VRCUrl.Empty);
+            if (Utilities.IsValid(urlInput)) urlInput.SetUrl(VRCUrl.Empty);
             if (Utilities.IsValid(altUrlInput)) altUrlInput.SetUrl(VRCUrl.Empty);
             _OnUIUpdate();
             _OnURLChanged();
