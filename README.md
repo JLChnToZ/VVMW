@@ -104,6 +104,7 @@ For any issues, please contact me on [Discord server](https://discord.gg/fkDueQM
 > - A reasonable indication of the source (e.g., a link to this repository)
 > 
 > Honest users have nothing to worry about — adding a few lines to your `LICENSE`, `NOTICE`, or `README` is all it takes.
+> Also, since the assets of VizVid have already included this information, you don’t need to add anything further when using it in Unity or VRChat.
 > 
 > **However, be aware:** the MIT License's permission is **conditional on compliance**. Copy a substantial portion without attribution, and your use falls outside the license — leaving plain, unlicensed copying under copyright law. No grace period, no prior warning, no revocation needed: the permission simply never extended to that use. All remedies under copyright law are reserved.
 > 
@@ -130,6 +131,7 @@ For any issues, please contact me on [Discord server](https://discord.gg/fkDueQM
 > - 出典の明示（本リポジトリへのリンク等）
 > 
 > 通常のご利用において、過度に心配される必要はありません。`LICENSE`、`NOTICE`、`README` のいずれかに数行追記いただくだけで十分です。
+> また、VizVid本体では、すでにクレジットの表記が用意されていますので、別途追加で記載していただく必要はございません。
 > 
 > **【重要：法的な留意事項】**
 > MIT ライセンスによる利用許諾は、**本規定の遵守を条件として成立します**。実質的な一部をクレジット表記なしで複製した時点で、その利用はライセンスの許諾範囲外となり、著作権法上の**「無許諾複製（著作権侵害）」**に該当することになります。
