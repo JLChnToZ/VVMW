@@ -15,6 +15,7 @@ using JLChnToZ.VRC.Foundation.ThirdParties.LitJson;
 
 using UnityObject = UnityEngine.Object;
 using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
+using JLChnToZ.VRC.Foundation;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
 
@@ -493,15 +494,17 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         #region Playlist Importers
-        void HandlePlayListObjectDrop(bool creaeNewPlayList = false) {
+        void HandlePlayListObjectDrop(bool createNewPlayList = false) {
             DragAndDrop.AcceptDrag();
             UpdatePlayerHandlerInfos();
             var queue = new Queue<UnityObject>(DragAndDrop.objectReferences);
-            while (queue.Count > 0) {
-                var obj = queue.Dequeue();
+            while (queue.TryDequeue(out var obj)) {
                 if (obj is GameObject gameObject) {
-                    foreach (var component in gameObject.GetComponents<MonoBehaviour>())
-                        queue.Enqueue(component);
+                    using (PooledObjectExtensions.Get(out List<MonoBehaviour> components)) {
+                        gameObject.GetComponentsInChildren(true, components);
+                        foreach (var component in components)
+                            queue.Enqueue(component);
+                    }
                     continue;
                 }
                 if (obj is MonoBehaviour mb) {
@@ -511,33 +514,33 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                             AppendPlaylist(obj);
                             break;
                         case "UdonSharp.Video.USharpVideoPlayer":
-                            ImportPlayListFromUSharpVideo(mb, creaeNewPlayList);
+                            ImportPlayListFromUSharpVideo(mb, createNewPlayList);
                             break;
                         case "Yamadev.YamaStream.Script.PlayList":
-                            ImportPlayListFromYamaPlayer(mb, creaeNewPlayList);
+                            ImportPlayListFromYamaPlayer(mb, createNewPlayList);
                             break;
                         case "Kinel.VideoPlayer.Scripts.KinelPlaylistGroupManagerScript":
-                            ImportPlayListGroupFromKienL(mb, creaeNewPlayList);
+                            ImportPlayListGroupFromKienL(mb, createNewPlayList);
                             break;
                         case "Kinel.VideoPlayer.Scripts.KinelPlaylistScript":
-                            ImportPlayListFromKinel(mb, creaeNewPlayList);
+                            ImportPlayListFromKinel(mb, createNewPlayList);
                             break;
                         case "HoshinoLabs.IwaSync3.Playlist":
-                            ImportPlayListFromIwaSync3(mb, creaeNewPlayList);
+                            ImportPlayListFromIwaSync3(mb, createNewPlayList);
                             break;
                         case "ArchiTech.Playlist":
                         case "ArchiTech.PlaylistData":
-                            ImportPlayListFromProTV(mb, 2, creaeNewPlayList);
+                            ImportPlayListFromProTV(mb, 2, createNewPlayList);
                             break;
                         case "ArchiTech.ProTV.Playlist":
                         case "ArchiTech.ProTV.PlaylistData":
-                            ImportPlayListFromProTV(mb, 3, creaeNewPlayList);
+                            ImportPlayListFromProTV(mb, 3, createNewPlayList);
                             break;
                         case "Texel.PlaylistData":
-                            ImportPlayListFromTXL(mb, creaeNewPlayList);
+                            ImportPlayListFromTXL(mb, createNewPlayList);
                             break;
                         case "JTPlaylist.Udon.JTPlaylist":
-                            ImportPlayListFromJT(mb, creaeNewPlayList);
+                            ImportPlayListFromJT(mb, createNewPlayList);
                             break;
                     }
                 }

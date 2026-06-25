@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 - Null reference on exhibition setup (or other setup without URL input field)
 - Translated wordings in inspector
+- How playlist importer discovers other video players playlist
 
 ## 1.7.5 - 2026-06-04
 ### Fixed
