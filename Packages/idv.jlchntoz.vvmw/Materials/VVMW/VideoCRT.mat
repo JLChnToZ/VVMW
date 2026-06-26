@@ -11,7 +11,8 @@ Material:
   m_Shader: {fileID: 4800000, guid: 7425026872f27ec4faef8d2d64507fc1, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _HAS_EMISSION_INTENSITY
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -30,8 +31,11 @@ Material:
     m_Ints: []
     m_Floats:
     - _AspectRatio: 1.777778
+    - _EmissionIntensity: 1
+    - _HasEmission: 1
     - _IsAVProVideo: 0
     - _ScaleMode: 1
+    - _StereoDebug: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _StereoExtend: {r: 1, g: 1, b: 0, a: 0}

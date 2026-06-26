@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 ### Added
 - Dedicated error message on failing to load YouTube URL
+- Brightness support for LTCGI CRT shader
 
 ### Fixed
 - Null reference on exhibition setup (or other setup without URL input field)
