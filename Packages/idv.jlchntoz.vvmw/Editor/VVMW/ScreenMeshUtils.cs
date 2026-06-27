@@ -75,36 +75,16 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                         sourceList.Add((mr, i));
                     }
                 }
+                var excludePropertyIds = new[] { aspectRatioID };
                 foreach (var kv in materialSourceMap) {
                     var (mat, aspectRatio) = kv.Key;
                     if (!materialAspectMap.TryGetValue(kv.Key, out var newMat)) {
                         var assetPath = AssetDatabase.GetAssetPath(mat);
-                        if (materialsRequireAliasing.Add(mat) && !string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/")) {
+                        if (materialsRequireAliasing.Add(mat) && MaterialUtil.IsMaterialSafeToModify(mat)) {
                             newMat = mat;
                             Undo.RecordObject(newMat, "Fixup Aspect Ratio in Material");
-                        } else {
-                            newMat = new Material(mat);
-                            var shader = mat.shader;
-                            int propertyCount = shader.GetPropertyCount();
-                            var parentMat = mat;
-                            do {
-                                bool hasOtherPropertyChanged = false;
-                                for (int i = 0; i < propertyCount; i++) {
-                                    int id = shader.GetPropertyNameId(i);
-                                    if (id != aspectRatioID &&
-                                        parentMat.IsPropertyOverriden(id)) {
-                                        hasOtherPropertyChanged = true;
-                                        break;
-                                    }
-                                }
-                                if (hasOtherPropertyChanged) {
-                                    newMat.parent = parentMat;
-                                    break;
-                                }
-                                parentMat = parentMat.parent;
-                            } while (parentMat != null);
-                            generatedMaterials.Add((assetPath, newMat, aspectRatio));
-                        }
+                        } else
+                            newMat = MaterialUtil.CreateGeneratedAlias(mat, excludePropertyIds);
                         newMat.SetFloat(aspectRatioID, aspectRatio);
                         materialAspectMap.Add(kv.Key, newMat);
                     }
@@ -118,22 +98,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     }
                     ListPool<(MeshRenderer, int)>.Release(kv.Value);
                 }
-                bool hasValidatedFolder = false;
-                foreach (var (assetPath, mat, aspectRatio) in generatedMaterials) {
-                    string path;
-                    string postfix = $"_Adjusted_{HumanizeAspectRatio(aspectRatio)}";
-                    if (!string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/"))
-                        path = assetPath.Insert(assetPath.LastIndexOf('.'), postfix);
-                    else {
-                        if (!hasValidatedFolder) {
-                            hasValidatedFolder = true;
-                            if (!AssetDatabase.IsValidFolder(directory))
-                                AssetDatabase.CreateFolder("Assets", "VizVid_Generated");
-                        }
-                        path = $"{directory}{mat.name}{postfix}.mat";
-                    }
-                    AssetDatabase.CreateAsset(mat, AssetDatabase.GenerateUniqueAssetPath(path));
-                }
+                foreach (var (assetPath, mat, aspectRatio) in generatedMaterials)
+                    MaterialUtil.SaveMaterialAsAsset(mat, assetPath, $"_Adjusted_{HumanizeAspectRatio(aspectRatio)}", false);
             }
         }
 

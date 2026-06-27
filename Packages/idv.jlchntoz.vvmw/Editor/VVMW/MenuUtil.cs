@@ -268,55 +268,26 @@ namespace JLChnToZ.VRC.VVMW {
 #if VRC_LIGHT_VOLUMES_V2
         [MenuItem(createMenuRoot + "Modules/Light Volume for Screen", false, 159)]
         static void CreateLightVolumeForScreen() {
-            foreach (var screenObject in Selection.gameObjects)
-                CreateLightVolumeForScreen(screenObject);
-            Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
-        }
-
-        static void CreateLightVolumeForScreen(GameObject screenObject) {
-            if (screenObject == null) return;
-            var core = TryGetCoreFromScreenTarget(screenObject, out var targetTransform);
-            if (core == null) return;
-            var adaptor = TryGetAttachedAdaptor(core);
-            var lvObject = new GameObject("Light Volume for Screen", typeof(PointLightVolume));
-            var lvTransform = lvObject.transform;
-            lvTransform.SetParent(targetTransform, false);
-            if (targetTransform.TryGetComponent(out Renderer renderer)) {
-                var bounds = renderer.localBounds;
-                lvTransform.localPosition = bounds.center;
-                lvTransform.localScale = bounds.size;
-            } else {
-                lvTransform.localPosition = Vector3.zero;
-                lvTransform.localScale = Vector3.one;
+            foreach (var screenObject in Selection.gameObjects) {
+                var core = TryGetCoreFromScreenTarget(screenObject, out var targetTransform, out var screenConfigurator);
+                if (screenConfigurator != null)
+                    screenConfigurator.CreateLightVolume();
+                else if (core != null)
+                    ScreenConfigurator.CreateLightVolume(targetTransform, core);
             }
-            lvTransform.localRotation = Quaternion.Euler(0, 180, 0);
-            lvObject.TryGetComponent(out PointLightVolume lv);
-            lv.Type = PointLightVolume.LightType.AreaLight;
-            lv.Dynamic = screenObject.GetComponentInParent<VRC_Pickup>(true) != null;
-            lv.SyncUdonScript();
-
-            var array = adaptor.pointLightVolumes;
-            if (array == null || array.Length == 0)
-                array = new PointLightVolumeInstance[1];
-            else
-                Array.Resize(ref array, array.Length + 1);
-            lvObject.TryGetComponent(out array[^1]);
-            adaptor.pointLightVolumes = array;
-
-            EditorUtility.SetDirty(adaptor);
-            Undo.RegisterCreatedObjectUndo(lvObject, "Create Light Volume for Screen");
+            Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
         }
 
         [MenuItem(createMenuRoot + "Modules/Light Volume for Screen", true, 159)]
         static bool CreateLightVolumeForScreenValidate() {
             var selectedGameObject = Selection.activeGameObject;
             if (selectedGameObject == null) return false;
-            var core = TryGetCoreFromScreenTarget(selectedGameObject, out _);
+            var core = TryGetCoreFromScreenTarget(selectedGameObject, out _, out _);
             return core != null;
         }
 
-        static Core TryGetCoreFromScreenTarget(GameObject target, out Transform targetTransform) {
-            if (target.TryGetComponent(out ScreenConfigurator screenConfigurator)) {
+        static Core TryGetCoreFromScreenTarget(GameObject target, out Transform targetTransform, out ScreenConfigurator screenConfigurator) {
+            if (target.TryGetComponent(out screenConfigurator)) {
                 targetTransform = screenConfigurator.screenRenderer != null ? screenConfigurator.screenRenderer.transform : target.transform;
                 return screenConfigurator.core;
             }

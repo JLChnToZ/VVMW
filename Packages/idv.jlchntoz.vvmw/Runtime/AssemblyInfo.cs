@@ -8,4 +8,11 @@ using JLChnToZ.VRC.Foundation.I18N;
 })]
 #if VRCLV2_IMPORTED
 [assembly: DeclareDefine("VRC_LIGHT_VOLUMES_V2")]
+#else
+[assembly: DeclareUndefine("VRC_LIGHT_VOLUMES_V2")]
+#endif
+#if VRCLV3_IMPORTED
+[assembly: DeclareDefine("VRC_LIGHT_VOLUMES_V3")]
+#else
+[assembly: DeclareUndefine("VRC_LIGHT_VOLUMES_V3")]
 #endif

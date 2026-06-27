@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
-
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using VRC.SDKBase;
+#endif
+#if VRC_LIGHT_VOLUMES_V2
+using VRCLightVolumes;
 #endif
 
 namespace JLChnToZ.VRC.VVMW.Designer {
@@ -24,6 +27,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core.screenTargetPropertyNames")] string targetPropertyName = "_MainTex";
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core.avProPropertyNames")] string avProPropertyName = "_IsAVProVideo";
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core.screenTargetDefaultTextures")] Texture defaultTexture;
+#if VRC_LIGHT_VOLUMES_V3
+        [SerializeField, LocalizedLabel] internal PointLightVolume pointLightVolume;
+#endif
         Renderer previousRenderer;
         Core previousCore;
         int lastIndex;
@@ -58,7 +64,82 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             return null;
         }
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+#if VRC_LIGHT_VOLUMES_V2
+        static LightVolumeAdaptor TryGetAttachedAdaptor(Core core, bool createIfNotFound = true) {
+            foreach (var adaptor in FindObjectsByType<LightVolumeAdaptor>(FindObjectsSortMode.None))
+                if (adaptor.core == core) {
+                    if (createIfNotFound) Undo.RegisterCompleteObjectUndo(adaptor, "Update Light Volume Adaptor");
+                    return adaptor;
+                }
+            if (!createIfNotFound) return null;
+            var lvSetup = FindAnyObjectByType<LightVolumeSetup>();
+            if (lvSetup == null) {
+                var go = new GameObject("Light Volume Manager", typeof(LightVolumeSetup));
+                go.TryGetComponent(out lvSetup);
+                lvSetup.SyncUdonScript();
+                Undo.RegisterCreatedObjectUndo(go, "Create Light Volume Manager");
+            }
+            var newAdaptorObject = new GameObject("Light Volume Adaptor", typeof(LightVolumeAdaptor));
+            newAdaptorObject.TryGetComponent(out LightVolumeAdaptor newAdaptor);
+            GameObjectUtility.SetParentAndAlign(newAdaptorObject, core.gameObject);
+            newAdaptor.core = core;
+            EditorUtility.SetDirty(newAdaptor);
+            Undo.RegisterCreatedObjectUndo(newAdaptorObject, "Create Light Volume Adaptor");
+            return newAdaptor;
+        }
+
+        public static PointLightVolume CreateLightVolume(Transform target, Core core) {
+            var lvObject = new GameObject(GameObjectUtility.GetUniqueNameForSibling(target, "Light Volume for Screen"), typeof(PointLightVolume));
+            var lvTransform = lvObject.transform;
+            var adaptor = TryGetAttachedAdaptor(core);
+            lvTransform.SetParent(target, false);
+            if (target.TryGetComponent(out Renderer renderer)) {
+                var bounds = renderer.localBounds;
+                lvTransform.localPosition = bounds.center;
+                lvTransform.localScale = bounds.size;
+            } else {
+                lvTransform.localPosition = Vector3.zero;
+                lvTransform.localScale = Vector3.one;
+            }
+            lvTransform.localRotation = Quaternion.Euler(0, 180, 0);
+            lvObject.TryGetComponent(out PointLightVolume lv);
+            lv.Type = PointLightVolume.LightType.AreaLight;
+            lv.Dynamic = target.GetComponentInParent<VRC_Pickup>(true) != null;
+            lv.SyncUdonScript();
+
+            var array = adaptor.pointLightVolumes;
+            if (array == null || array.Length == 0)
+                array = new PointLightVolumeInstance[1];
+            else
+                Array.Resize(ref array, array.Length + 1);
+            lvObject.TryGetComponent(out array[^1]);
+            adaptor.pointLightVolumes = array;
+            Undo.RegisterCreatedObjectUndo(lvObject, "Create Light Volume for Screen");
+            return lv;
+        }
+
+        public void CreateLightVolume() {
+#if VRC_LIGHT_VOLUMES_V3
+            if (pointLightVolume == null) {
+                Undo.RecordObject(this, "Assign Light Volume for Screen");
+                pointLightVolume = CreateLightVolume(transform, core);
+                if (PrefabUtility.IsPartOfPrefabInstance(this)) PrefabUtility.RecordPrefabInstancePropertyModifications(this);
+            }
+            var shader = Shader.Find("Hidden/JLChnToZ/VideoBlit (VRCLightVolumes Cookie)");
+            if (shader != null) {
+                var material = new Material(shader) { name = $"{name} Cookie Material" };
+                MaterialUtil.SaveMaterialAsAsset(material, "", "");
+                Undo.RecordObject(pointLightVolume, "Assign Cookie Material for Light Volume");
+                pointLightVolume.Cookie = material;
+                if (PrefabUtility.IsPartOfPrefabInstance(pointLightVolume)) PrefabUtility.RecordPrefabInstancePropertyModifications(pointLightVolume);
+            }
+#else
+            CreateLightVolume(transform, core);
+#endif
+        }
+#endif
+
         static void RemoveIndexFromArray<T>(ref T[] array, int index) {
             if (index < 0 || index >= array.Length) return;
             var newArray = new T[array.Length - 1];
