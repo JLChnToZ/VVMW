@@ -1,12 +1,13 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 using VRC.SDKBase;
 using VRC.SDK3.Rendering;
 using VRC.Udon.Common.Interfaces;
 using UdonSharp;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
-using VRC.SDK3.Data;
-
+using JLChnToZ.VRC.VVMW.Designer;
 #if VRC_LIGHT_VOLUMES
 using VRCLightVolumes;
 #endif
@@ -28,9 +29,15 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] internal PointLightVolumeInstance[] pointLightVolumes;
 #endif
 #if VRC_LIGHT_VOLUMES_V3
-        [SerializeField, HideInInspector] internal bool hasLightVolumes = true;
-        [SerializeField, HideInInspector] internal bool useCookie = true;
-        [SerializeField] internal int[] screenTargetIDs;
+        [SerializeField, HideInInspector]
+#if COMPILER_UDONSHARP
+        internal Component[] screenConfigurators;
+#else
+        internal ScreenConfigurator[] screenConfigurators;
+#endif
+        [SerializeField, HideInInspector] internal PointLightVolumeInstance[] cookiePointLightVolumes;
+        [SerializeField, HideInInspector] internal bool needReadback;
+        [SerializeField] int[] screenTargetIDs;
         int mainTexId, scaleModeId, stereoShiftId, stereoExtendId, aspectRatioId, emissionIntensityId;
         MaterialPropertyBlock mpb;
 #endif
@@ -39,12 +46,15 @@ namespace JLChnToZ.VRC.VVMW {
         Texture videoTexture;
         Color32[] pixels;
         bool isRunning;
-        bool needReadback;
 
         void OnEnable() {
 #if VRC_LIGHT_VOLUMES
-            core.enableMipmap = true;
+#if VRC_LIGHT_VOLUMES_V3
+            if (needReadback) core.enableMipmap = true;
             SendCustomEventDelayedFrames(nameof(_SyncAllScreenTargets), 0);
+#else
+            core.enableMipmap = true;
+#endif
             SendCustomEventDelayedFrames(nameof(_OnTextureChanged), 0);
             if (hasInitialized) return;
             hasInitialized = true;
@@ -65,6 +75,8 @@ namespace JLChnToZ.VRC.VVMW {
 
         void OnDisable() => SetColor(Color.black);
 
+        bool ShouldAutoUpdate() => !core.IsStatic && core.IsPlaying && !core.IsPaused;
+
         public override void OnVideoPlay() {
             if (!isRunning) _OnTextureChanged();
         }
@@ -83,7 +95,6 @@ namespace JLChnToZ.VRC.VVMW {
 #if VRC_LIGHT_VOLUMES_V3
             UpdateTextureCookie();
 #endif
-            if (!isRunning) needReadback = true;
             if (!DoReadbackRequest() || isRunning) return;
             isRunning = true;
             SendCustomEventDelayedFrames(nameof(_DoReadbackRequest), 0);
@@ -100,7 +111,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         bool DoReadbackRequest() {
-            if (!enabled || !gameObject.activeInHierarchy || !needReadback)
+            if (!needReadback || !enabled || !gameObject.activeInHierarchy)
                 return false;
             videoTexture = core.VideoTexture;
             if (!Utilities.IsValid(videoTexture)) {
@@ -108,7 +119,7 @@ namespace JLChnToZ.VRC.VVMW {
                 return false;
             }
             VRCAsyncGPUReadback.Request(videoTexture, videoTexture.mipmapCount - 1, TextureFormat.RGBA32, (IUdonEventReceiver)this);
-            return !core.IsStatic && core.IsPlaying && !core.IsPaused;
+            return ShouldAutoUpdate();
         }
 
         public override void OnAsyncGpuReadbackComplete(VRCAsyncGPUReadbackRequest request) {
@@ -132,23 +143,17 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void SetColor(Color color) {
-            needReadback = false;
 #if VRC_LIGHT_VOLUMES
             if (Utilities.IsValid(lightVolumes))
                 foreach (var lightVolume in lightVolumes) {
                     if (!Utilities.IsValid(lightVolume)) continue;
                     lightVolume.Color = color;
-                    needReadback = true;
                 }
 #if VRC_LIGHT_VOLUMES_V2
             if (Utilities.IsValid(pointLightVolumes))
                 foreach (var pointLightVolume in pointLightVolumes) {
                     if (!Utilities.IsValid(pointLightVolume)) continue;
-#if VRC_LIGHT_VOLUMES_V3
-                    if (Utilities.IsValid(pointLightVolume.CustomTextureMaterial)) continue;
-#endif
                     pointLightVolume.Color = color;
-                    needReadback = true;
                 }
 #else
             else return;
@@ -158,10 +163,8 @@ namespace JLChnToZ.VRC.VVMW {
 #endif
 #endif
         }
-        
 
 #if VRC_LIGHT_VOLUMES_V3
-
         public void SyncScreenTarget(int id) {
             if (id < 0 || id >= pointLightVolumes.Length) return;
             SyncScreenTargetUnchecked(id);
@@ -227,19 +230,22 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                     break;
             }
+            if (!ShouldAutoUpdate()) destLv.SetCustomMaterial(dest, false); // Trigger a manual update if auto-update is disabled
         }
 
         void UpdateTextureCookie() {
-            if (Utilities.IsValid(pointLightVolumes)) {
-                bool autoUpdate = !core.IsStatic && core.IsPlaying && !core.IsPaused;
-                var texture = core.VideoTexture;
-                foreach (var pointLightVolume in pointLightVolumes) {
-                    if (!Utilities.IsValid(pointLightVolume)) continue;
-                    var material = pointLightVolume.CustomTextureMaterial;
-                    if (!Utilities.IsValid(material)) continue;
-                    material.SetTexture(mainTexId, texture);
-                    pointLightVolume.SetCustomMaterial(material, autoUpdate);
-                }
+            if (!Utilities.IsValid(cookiePointLightVolumes)) return;
+            var length = cookiePointLightVolumes.Length;
+            if (length <= 0) return;
+            bool autoUpdate = ShouldAutoUpdate();
+            var texture = core.VideoTexture;
+            for (int i = 0; i < length; i++) {
+                var pointLightVolume = cookiePointLightVolumes[i];
+                if (!Utilities.IsValid(pointLightVolume)) continue;
+                var material = pointLightVolume.CustomTextureMaterial;
+                if (!Utilities.IsValid(material)) continue;
+                material.SetTexture(mainTexId, texture);
+                pointLightVolume.SetCustomMaterial(material, autoUpdate);
             }
         }
 #endif
@@ -255,6 +261,25 @@ namespace JLChnToZ.VRC.VVMW {
         public int Priority => 0;
 
         public void PreProcess() {
+            if (screenConfigurators != null && screenConfigurators.Length > 0)
+                using (PooledObjectExtensions.Get(out List<PointLightVolumeInstance> cookiePointLightVolumes, screenConfigurators.Length))
+                using (PooledObjectExtensions.Get(out List<int> screenTargetIDs, screenConfigurators.Length)) {
+                    foreach (var configurator in screenConfigurators) {
+                        if (configurator == null || configurator.coreIndex < 0) continue;
+                        var pointLightVolume = configurator.pointLightVolume;
+                        if (pointLightVolume == null) continue;
+                        var pointLightVolumeInstance = pointLightVolume.PointLightVolumeInstance;
+                        if (pointLightVolumeInstance == null) continue;
+                        cookiePointLightVolumes.Add(pointLightVolumeInstance);
+                        screenTargetIDs.Add(configurator.coreIndex);
+                    }
+                    this.cookiePointLightVolumes = cookiePointLightVolumes.ToArray();
+                    this.screenTargetIDs = screenTargetIDs.ToArray();
+                }
+            screenConfigurators = null;
+            lightVolumes ??= Array.Empty<LightVolumeInstance>();
+            pointLightVolumes ??= Array.Empty<PointLightVolumeInstance>();
+            needReadback = lightVolumes.Length > 0 || pointLightVolumes.Length > 0;
         }
     }
 #endif

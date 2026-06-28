@@ -33,6 +33,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         Renderer previousRenderer;
         Core previousCore;
         int lastIndex;
+        [SerializeField, HideInInspector] internal int coreIndex = -1;
         [NonSerialized] bool firstRun, isPendingApply;
 
         Core IVizVidCompoonent.Core => core;
@@ -90,9 +91,21 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 
         public static PointLightVolume CreateLightVolume(Transform target, Core core) {
+            var adaptor = TryGetAttachedAdaptor(core);
+            var lv = CreateLightVolume(target);
+            ref var array = ref adaptor.pointLightVolumes;
+            if (array == null || array.Length == 0)
+                array = new PointLightVolumeInstance[1];
+            else
+                Array.Resize(ref array, array.Length + 1);
+            lv.TryGetComponent(out array[^1]);
+            Undo.RecordObject(adaptor, "Assign Light Volume for Screen");
+            return lv;
+        }
+
+        static PointLightVolume CreateLightVolume(Transform target) {
             var lvObject = new GameObject(GameObjectUtility.GetUniqueNameForSibling(target, "Light Volume for Screen"), typeof(PointLightVolume));
             var lvTransform = lvObject.transform;
-            var adaptor = TryGetAttachedAdaptor(core);
             lvTransform.SetParent(target, false);
             if (target.TryGetComponent(out Renderer renderer)) {
                 var bounds = renderer.localBounds;
@@ -107,14 +120,6 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             lv.Type = PointLightVolume.LightType.AreaLight;
             lv.Dynamic = target.GetComponentInParent<VRC_Pickup>(true) != null;
             lv.SyncUdonScript();
-
-            var array = adaptor.pointLightVolumes;
-            if (array == null || array.Length == 0)
-                array = new PointLightVolumeInstance[1];
-            else
-                Array.Resize(ref array, array.Length + 1);
-            lvObject.TryGetComponent(out array[^1]);
-            adaptor.pointLightVolumes = array;
             Undo.RegisterCreatedObjectUndo(lvObject, "Create Light Volume for Screen");
             return lv;
         }
@@ -123,7 +128,15 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 #if VRC_LIGHT_VOLUMES_V3
             if (pointLightVolume == null) {
                 Undo.RecordObject(this, "Assign Light Volume for Screen");
-                pointLightVolume = CreateLightVolume(transform, core);
+                var adaptor = TryGetAttachedAdaptor(core);
+                pointLightVolume = CreateLightVolume(transform);
+                ref var array = ref adaptor.screenConfigurators;
+                if (array == null || array.Length == 0)
+                    array = new ScreenConfigurator[1];
+                else
+                    Array.Resize(ref array, array.Length + 1);
+                array[^1] = this;
+                Undo.RecordObject(adaptor, "Assign Light Volume for Screen");
                 if (PrefabUtility.IsPartOfPrefabInstance(this)) PrefabUtility.RecordPrefabInstancePropertyModifications(this);
             }
             var shader = Shader.Find("Hidden/JLChnToZ/VideoBlit (VRCLightVolumes Cookie)");
@@ -175,7 +188,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             if (core != null) return;
             var cores = FindObjectsOfType<Core>(true);
             foreach (var c in cores) {
-                if (c.screenTargets == null || Array.IndexOf(c.screenTargets, renderer) < 0) continue;
+                if (c.screenTargets == null) continue;
+                coreIndex = Array.IndexOf(c.screenTargets, renderer);
+                if (coreIndex < 0) continue;
                 Undo.RecordObject(this, "Screen Configurator");
                 core = c;
             }
@@ -224,7 +239,6 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     core = compoonent.Core;
                     break;
                 }
-            int index;
             if (previousCore != core) {
                 RemoveFromCore(previousCore, previousRenderer);
                 previousCore = core;
@@ -242,28 +256,28 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     return;
                 }
                 if (previousRenderer == null) previousRenderer = renderer;
-                index = Array.IndexOf(core.screenTargets, previousRenderer);
-                if (index < 0) {
+                coreIndex = Array.IndexOf(core.screenTargets, previousRenderer);
+                if (coreIndex < 0) {
                     AppendToCore(renderer);
                     return;
                 }
                 if (
-                    targetMode != core.screenTargetModes[index] ||
-                    targetIndex != core.screenTargetIndeces[index] ||
-                    targetPropertyName != core.screenTargetPropertyNames[index] ||
-                    avProPropertyName != core.avProPropertyNames[index] ||
-                    defaultTexture != core.screenTargetDefaultTextures[index]
+                    targetMode != core.screenTargetModes[coreIndex] ||
+                    targetIndex != core.screenTargetIndeces[coreIndex] ||
+                    targetPropertyName != core.screenTargetPropertyNames[coreIndex] ||
+                    avProPropertyName != core.avProPropertyNames[coreIndex] ||
+                    defaultTexture != core.screenTargetDefaultTextures[coreIndex]
                 ) {
                     Undo.RecordObject(this, "Screen Configurator");
-                    targetMode = core.screenTargetModes[index];
-                    targetIndex = core.screenTargetIndeces[index];
-                    targetPropertyName = core.screenTargetPropertyNames[index];
-                    avProPropertyName = core.avProPropertyNames[index];
-                    defaultTexture = core.screenTargetDefaultTextures[index];
+                    targetMode = core.screenTargetModes[coreIndex];
+                    targetIndex = core.screenTargetIndeces[coreIndex];
+                    targetPropertyName = core.screenTargetPropertyNames[coreIndex];
+                    avProPropertyName = core.avProPropertyNames[coreIndex];
+                    defaultTexture = core.screenTargetDefaultTextures[coreIndex];
                 }
                 if (previousRenderer != renderer) {
                     Undo.RecordObject(core, "Screen Configurator");
-                    core.screenTargets[index] = renderer;
+                    core.screenTargets[coreIndex] = renderer;
                 }
             } finally {
                 if (previousRenderer != renderer || lastIndex != targetIndex) {
@@ -280,6 +294,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             if (core.screenTargets != null && core.screenTargets.Length > 0)
                 return false;
             Undo.RecordObject(core, "Screen Configurator");
+            coreIndex = 0;
             core.screenTargets = new[] { renderer };
             core.screenTargetModes = new[] { targetMode };
             core.screenTargetIndeces = new[] { targetIndex };
@@ -291,21 +306,21 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 
         void AppendToCore(Renderer renderer) {
-            int index = core.screenTargets.Length;
-            int size = index + 1;
+            coreIndex = core.screenTargets.Length;
+            int size = coreIndex + 1;
             Undo.RecordObject(core, "Screen Configurator");
             Array.Resize(ref core.screenTargets, size);
-            core.screenTargets[index] = renderer;
+            core.screenTargets[coreIndex] = renderer;
             Array.Resize(ref core.screenTargetModes, size);
-            core.screenTargetModes[index] = targetMode;
+            core.screenTargetModes[coreIndex] = targetMode;
             Array.Resize(ref core.screenTargetIndeces, size);
-            core.screenTargetIndeces[index] = targetIndex;
+            core.screenTargetIndeces[coreIndex] = targetIndex;
             Array.Resize(ref core.screenTargetPropertyNames, size);
-            core.screenTargetPropertyNames[index] = targetPropertyName;
+            core.screenTargetPropertyNames[coreIndex] = targetPropertyName;
             Array.Resize(ref core.avProPropertyNames, size);
-            core.avProPropertyNames[index] = avProPropertyName;
+            core.avProPropertyNames[coreIndex] = avProPropertyName;
             Array.Resize(ref core.screenTargetDefaultTextures, size);
-            core.screenTargetDefaultTextures[index] = defaultTexture;
+            core.screenTargetDefaultTextures[coreIndex] = defaultTexture;
             SaveCoreModifications();
         }
 
