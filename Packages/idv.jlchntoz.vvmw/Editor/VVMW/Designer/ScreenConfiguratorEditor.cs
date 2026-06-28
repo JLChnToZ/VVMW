@@ -3,6 +3,10 @@ using UnityEngine;
 using UnityEditor;
 using JLChnToZ.VRC.VVMW.Editors;
 using JLChnToZ.VRC.Foundation.I18N.Editors;
+#if VRC_LIGHT_VOLUMES_V3
+using VRCLightVolumes;
+#endif
+
 namespace JLChnToZ.VRC.VVMW.Designer {
     [CustomEditor(typeof(ScreenConfigurator))]
     public class ScreenConfiguratorEditor : VVMWEditorBase {
@@ -96,11 +100,16 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     defaultTextureProperty
                 );
 #if VRC_LIGHT_VOLUMES_V3
+            using (var changeCheck = new EditorGUI.ChangeCheckScope())
             using (new EditorGUILayout.HorizontalScope()) {
                 EditorGUILayout.PropertyField(pointLightVolumeProperty);
-                if (pointLightVolumeProperty.objectReferenceValue == null &&
-                    GUILayout.Button(i18n.GetLocalizedContent("ScreenConfigurator.CreateLightVolume"), GUILayout.ExpandWidth(false))) {
-                    target.CreateLightVolume();
+                var lv = pointLightVolumeProperty.objectReferenceValue as PointLightVolume;
+                if (lv == null) {
+                    if (GUILayout.Button(i18n.GetLocalizedContent("ScreenConfigurator.CreateLightVolume"), GUILayout.ExpandWidth(false)))
+                        target.CreateLightVolume();
+                } else if (GUILayout.Button(i18n.GetLocalizedContent("ScreenConfigurator.FixupLightVolume"), GUILayout.ExpandWidth(false)) || changeCheck.changed) {
+                    var renderer = screenRendererProperty.objectReferenceValue;
+                    ScreenConfigurator.EnsureLightVolumeCookie(lv, renderer != null ? renderer.name : target.name);
                 }
             }
 #endif

@@ -132,17 +132,23 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 pointLightVolume = CreateLightVolume(screenRenderer.transform);
                 if (PrefabUtility.IsPartOfPrefabInstance(this)) PrefabUtility.RecordPrefabInstancePropertyModifications(this);
             }
+            EnsureLightVolumeCookie(pointLightVolume, screenRenderer.name);
+#else
+            CreateLightVolume(transform, core);
+#endif
+        }
+#endif
+
+#if VRC_LIGHT_VOLUMES_V3
+        internal static void EnsureLightVolumeCookie(PointLightVolume pointLightVolume, string name) {
             var shader = Shader.Find("Hidden/JLChnToZ/VideoBlit (VRCLightVolumes Cookie)");
-            if (shader != null) {
-                var material = new Material(shader) { name = $"{name} Cookie Material" };
+            if (shader != null && (!(pointLightVolume.Cookie is Material material) || material == null || material.shader != shader)) {
+                material = new Material(shader) { name = $"{name} Cookie Material" };
                 MaterialUtil.SaveMaterialAsAsset(material, "", "");
                 Undo.RecordObject(pointLightVolume, "Assign Cookie Material for Light Volume");
                 pointLightVolume.Cookie = material;
                 if (PrefabUtility.IsPartOfPrefabInstance(pointLightVolume)) PrefabUtility.RecordPrefabInstancePropertyModifications(pointLightVolume);
             }
-#else
-            CreateLightVolume(transform, core);
-#endif
         }
 #endif
 
