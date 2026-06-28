@@ -129,7 +129,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             if (pointLightVolume == null) {
                 Undo.RecordObject(this, "Assign Light Volume for Screen");
                 var adaptor = TryGetAttachedAdaptor(core);
-                pointLightVolume = CreateLightVolume(transform);
+                pointLightVolume = CreateLightVolume(screenRenderer.transform);
                 ref var array = ref adaptor.screenConfigurators;
                 if (array == null || array.Length == 0)
                     array = new ScreenConfigurator[1];

@@ -14,6 +14,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         SerializedProperty targetPropertyNameProperty, coreTargetPropertyNameProperty;
         SerializedProperty avProPropertyNameProperty, coreAvProPropertyNameProperty;
         SerializedProperty defaultTextureProperty, coreDefaultTextureProperty;
+#if VRC_LIGHT_VOLUMES_V3
+        SerializedProperty pointLightVolumeProperty;
+#endif
         int lastIndex = -1;
 
         protected override void OnEnable() {
@@ -25,6 +28,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             targetPropertyNameProperty = serializedObject.FindProperty("targetPropertyName");
             avProPropertyNameProperty = serializedObject.FindProperty("avProPropertyName");
             defaultTextureProperty = serializedObject.FindProperty("defaultTexture");
+#if VRC_LIGHT_VOLUMES_V3
+            pointLightVolumeProperty = serializedObject.FindProperty("pointLightVolume");
+#endif
         }
 
         protected override void OnDisable() {
@@ -89,6 +95,13 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     avProPropertyNameProperty,
                     defaultTextureProperty
                 );
+            using (new EditorGUILayout.HorizontalScope()) {
+                EditorGUILayout.PropertyField(pointLightVolumeProperty);
+                if (pointLightVolumeProperty.objectReferenceValue == null &&
+                    GUILayout.Button(i18n.GetLocalizedContent("ScreenConfigurator.CreateLightVolume"), GUILayout.ExpandWidth(false))) {
+                    target.CreateLightVolume();
+                }
+            }
             if (GUILayout.Button(i18n.GetLocalizedContent("ScreenConfigurator.FixupAspectRatio"))) {
                 var meshRenderer = screenRendererProperty.objectReferenceValue as MeshRenderer;
                 ScreenMeshUtils.TryFixupAspectRatioInMaterial(meshRenderer);
