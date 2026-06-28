@@ -127,16 +127,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         public void CreateLightVolume() {
 #if VRC_LIGHT_VOLUMES_V3
             if (pointLightVolume == null) {
+                TryGetAttachedAdaptor(core);
                 Undo.RecordObject(this, "Assign Light Volume for Screen");
-                var adaptor = TryGetAttachedAdaptor(core);
                 pointLightVolume = CreateLightVolume(screenRenderer.transform);
-                ref var array = ref adaptor.screenConfigurators;
-                if (array == null || array.Length == 0)
-                    array = new ScreenConfigurator[1];
-                else
-                    Array.Resize(ref array, array.Length + 1);
-                array[^1] = this;
-                Undo.RecordObject(adaptor, "Assign Light Volume for Screen");
                 if (PrefabUtility.IsPartOfPrefabInstance(this)) PrefabUtility.RecordPrefabInstancePropertyModifications(this);
             }
             var shader = Shader.Find("Hidden/JLChnToZ/VideoBlit (VRCLightVolumes Cookie)");

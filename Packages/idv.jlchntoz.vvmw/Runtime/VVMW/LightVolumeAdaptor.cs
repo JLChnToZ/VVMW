@@ -29,16 +29,10 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] internal PointLightVolumeInstance[] pointLightVolumes;
 #endif
 #if VRC_LIGHT_VOLUMES_V3
-        [SerializeField, HideInInspector]
-#if COMPILER_UDONSHARP
-        internal Component[] screenConfigurators;
-#else
-        internal ScreenConfigurator[] screenConfigurators;
-#endif
-        [SerializeField, HideInInspector] internal PointLightVolumeInstance[] cookiePointLightVolumes;
+        [SerializeField] internal PointLightVolumeInstance[] cookiePointLightVolumes;
         [SerializeField, HideInInspector] internal bool needReadback;
         [SerializeField] int[] screenTargetIDs;
-        int mainTexId, scaleModeId, stereoShiftId, stereoExtendId, aspectRatioId, emissionIntensityId;
+        int textureId, scaleModeId, stereoShiftId, stereoExtendId, aspectRatioId, emissionIntensityId;
         MaterialPropertyBlock mpb;
 #endif
 #endif
@@ -59,7 +53,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (hasInitialized) return;
             hasInitialized = true;
 #if VRC_LIGHT_VOLUMES_V3
-            mainTexId = VRCShader.PropertyToID("_MainTex");
+            textureId = VRCShader.PropertyToID("_VideoTex");
             scaleModeId = VRCShader.PropertyToID("_ScaleMode");
             stereoShiftId = VRCShader.PropertyToID("_StereoShift");
             stereoExtendId = VRCShader.PropertyToID("_StereoExtend");
@@ -111,7 +105,10 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         bool DoReadbackRequest() {
-            if (!needReadback || !enabled || !gameObject.activeInHierarchy)
+#if VRC_LIGHT_VOLUMES_V3
+            if (!needReadback) return false;
+#endif
+            if (!enabled || !gameObject.activeInHierarchy)
                 return false;
             videoTexture = core.VideoTexture;
             if (!Utilities.IsValid(videoTexture)) {
@@ -166,17 +163,17 @@ namespace JLChnToZ.VRC.VVMW {
 
 #if VRC_LIGHT_VOLUMES_V3
         public void SyncScreenTarget(int id) {
-            if (id < 0 || id >= pointLightVolumes.Length) return;
+            if (id < 0 || id >= cookiePointLightVolumes.Length) return;
             SyncScreenTargetUnchecked(id);
         }
 
         public void _SyncAllScreenTargets() {
-            for (int i = 0, count = pointLightVolumes.Length; i < count; i++)
+            for (int i = 0, count = cookiePointLightVolumes.Length; i < count; i++)
                 SyncScreenTargetUnchecked(i);
         }
 
         void SyncScreenTargetUnchecked(int id) {
-            var destLv = pointLightVolumes[id];
+            var destLv = cookiePointLightVolumes[id];
             if (!Utilities.IsValid(destLv)) return;
             var dest = destLv.CustomTextureMaterial;
             if (!Utilities.IsValid(dest)) return;
@@ -244,7 +241,7 @@ namespace JLChnToZ.VRC.VVMW {
                 if (!Utilities.IsValid(pointLightVolume)) continue;
                 var material = pointLightVolume.CustomTextureMaterial;
                 if (!Utilities.IsValid(material)) continue;
-                material.SetTexture(mainTexId, texture);
+                material.SetTexture(textureId, texture);
                 pointLightVolume.SetCustomMaterial(material, autoUpdate);
             }
         }
@@ -261,22 +258,32 @@ namespace JLChnToZ.VRC.VVMW {
         public int Priority => 0;
 
         public void PreProcess() {
-            if (screenConfigurators != null && screenConfigurators.Length > 0)
-                using (PooledObjectExtensions.Get(out List<PointLightVolumeInstance> cookiePointLightVolumes, screenConfigurators.Length))
-                using (PooledObjectExtensions.Get(out List<int> screenTargetIDs, screenConfigurators.Length)) {
-                    foreach (var configurator in screenConfigurators) {
-                        if (configurator == null || configurator.coreIndex < 0) continue;
-                        var pointLightVolume = configurator.pointLightVolume;
-                        if (pointLightVolume == null) continue;
-                        var pointLightVolumeInstance = pointLightVolume.PointLightVolumeInstance;
-                        if (pointLightVolumeInstance == null) continue;
-                        cookiePointLightVolumes.Add(pointLightVolumeInstance);
-                        screenTargetIDs.Add(configurator.coreIndex);
-                    }
-                    this.cookiePointLightVolumes = cookiePointLightVolumes.ToArray();
-                    this.screenTargetIDs = screenTargetIDs.ToArray();
+            using (PooledObjectExtensions.Get(out List<ScreenConfigurator> screenConfigurators)) {
+                foreach (var screenConfigurator in gameObject.scene.IterateAllComponents<ScreenConfigurator>()) {
+                    if (screenConfigurator == null || screenConfigurator.core != core)
+                        continue;
+                    screenConfigurators.Add(screenConfigurator);
                 }
-            screenConfigurators = null;
+                if (screenConfigurators.Count > 0)
+                    using (PooledObjectExtensions.Get(out HashSet<PointLightVolumeInstance> cookiePointLightVolumes, screenConfigurators.Count))
+                    using (PooledObjectExtensions.Get(out List<int> screenTargetIDs, screenConfigurators.Count)) {
+                        foreach (var configurator in screenConfigurators) {
+                            if (configurator == null || configurator.coreIndex < 0)
+                                continue;
+                            var pointLightVolume = configurator.pointLightVolume;
+                            if (pointLightVolume == null)
+                                continue;
+                            var pointLightVolumeInstance = pointLightVolume.PointLightVolumeInstance;
+                            if (pointLightVolumeInstance == null ||
+                                !cookiePointLightVolumes.Add(pointLightVolumeInstance))
+                                continue;
+                            screenTargetIDs.Add(configurator.coreIndex);
+                        }
+                        this.cookiePointLightVolumes = new PointLightVolumeInstance[cookiePointLightVolumes.Count];
+                        cookiePointLightVolumes.CopyTo(this.cookiePointLightVolumes);
+                        this.screenTargetIDs = screenTargetIDs.ToArray();
+                    }
+            }
             lightVolumes ??= Array.Empty<LightVolumeInstance>();
             pointLightVolumes ??= Array.Empty<PointLightVolumeInstance>();
             needReadback = lightVolumes.Length > 0 || pointLightVolumes.Length > 0;

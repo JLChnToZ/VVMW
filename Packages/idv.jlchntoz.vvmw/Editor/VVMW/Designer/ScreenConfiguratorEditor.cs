@@ -95,6 +95,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     avProPropertyNameProperty,
                     defaultTextureProperty
                 );
+#if VRC_LIGHT_VOLUMES_V3
             using (new EditorGUILayout.HorizontalScope()) {
                 EditorGUILayout.PropertyField(pointLightVolumeProperty);
                 if (pointLightVolumeProperty.objectReferenceValue == null &&
@@ -102,6 +103,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     target.CreateLightVolume();
                 }
             }
+#endif
             if (GUILayout.Button(i18n.GetLocalizedContent("ScreenConfigurator.FixupAspectRatio"))) {
                 var meshRenderer = screenRendererProperty.objectReferenceValue as MeshRenderer;
                 ScreenMeshUtils.TryFixupAspectRatioInMaterial(meshRenderer);

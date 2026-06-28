@@ -1,7 +1,8 @@
 Shader "Hidden/JLChnToZ/VideoBlit (VRCLightVolumes Cookie)" {
     Properties {
         [HDR] _Color ("Color", Color) = (1,1,1,1)
-        _MainTex ("Video Texture", 2D) = "black" {}
+        [HideInInspector] _MainTex ("(Unused)", 2D) = "black" {}
+        _VideoTex ("Video Texture", 2D) = "black" {}
         [Toggle(_)] _IsAVProVideo ("AVPro Video", Int) = 0
         [Enum(Stretch, 0, Contain, 1, Cover, 2)]
         _ScaleMode ("Scale Mode", Int) = 2
@@ -16,7 +17,6 @@ Shader "Hidden/JLChnToZ/VideoBlit (VRCLightVolumes Cookie)" {
         Tags {
             "RenderType" = "Opaque"
             "PreviewType" = "Plane"
-            "Queue" = "Geometry"
             "VideoScreenFeatures" = "Brightness,AutoScale,Stereo"
         }
         Pass {
@@ -30,9 +30,9 @@ Shader "Hidden/JLChnToZ/VideoBlit (VRCLightVolumes Cookie)" {
             #pragma fragment frag
             #include "./VideoShaderCommon.cginc"
 
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
-            float4 _MainTex_TexelSize;
+            sampler2D _VideoTex;
+            float4 _VideoTex_ST;
+            float4 _VideoTex_TexelSize;
             float4 _Color;
             int _IsAVProVideo;
             int _ScaleMode;
@@ -51,13 +51,13 @@ Shader "Hidden/JLChnToZ/VideoBlit (VRCLightVolumes Cookie)" {
             v2f vert(appdata_base v) {
                 v2f o;
                 o.pos = UnityObjectToClipPos(v.vertex);
-                o.uv = vert_getVideoUV(TRANSFORM_TEX(v.texcoord, _MainTex).xy, _MainTex_TexelSize, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
+                o.uv = vert_getVideoUV(TRANSFORM_TEX(v.texcoord, _VideoTex).xy, _VideoTex_TexelSize, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
                 return o;
             }
 
             half4 frag(v2f i) : SV_Target {
                 float4 color = _Color;
-                color *= frag_getVideoTexture(_MainTex, i.uv, _IsAVProVideo, _StereoShift, _StereoExtend);
+                color *= frag_getVideoTexture(_VideoTex, i.uv, _IsAVProVideo, _StereoShift, _StereoExtend);
                 #ifdef _HAS_EMISSION_INTENSITY
                     color.rgb *= _EmissionIntensity;
                 #endif
