@@ -29,9 +29,9 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField] internal PointLightVolumeInstance[] pointLightVolumes;
 #endif
 #if VRC_LIGHT_VOLUMES_V3
-        [SerializeField] internal PointLightVolumeInstance[] cookiePointLightVolumes;
+        [SerializeField, HideInInspector] internal PointLightVolumeInstance[] cookiePointLightVolumes;
         [SerializeField, HideInInspector] internal bool needReadback;
-        [SerializeField] int[] screenTargetIDs;
+        [SerializeField, HideInInspector] int[] screenTargetIDs;
         int textureId, scaleModeId, stereoShiftId, stereoExtendId, aspectRatioId, emissionIntensityId;
         MaterialPropertyBlock mpb;
 #endif
