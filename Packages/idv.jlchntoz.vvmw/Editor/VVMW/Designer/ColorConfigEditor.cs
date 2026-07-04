@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
-using JLChnToZ.VRC.Foundation.Editors;
+using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N.Editors;
 using JLChnToZ.VRC.VVMW.Editors;
 using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
@@ -9,9 +10,28 @@ using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
 namespace JLChnToZ.VRC.VVMW.Designer {
     [CustomEditor(typeof(ColorConfig))]
     public class ColorConfigEditor : VVMWEditorBase {
+        const float TAU = Mathf.PI * 2;
         SerializedProperty colorsProperty;
         SerializedProperty autoApplyOnBuildProperty;
         bool addRemoveFoldout;
+
+        static Vector4 Color2Chroma(Color c) {
+            const float sqrt3Over2 = 0.8660254f; // sqrt(3)/2
+            return new Vector4(c.r - 0.5f * (c.g + c.b), sqrt3Over2 * (c.g - c.b), Mathf.Max(c.r, Mathf.Max(c.g, c.b)), c.a);
+        }
+
+        static Color Chroma2Color(Vector4 c) {
+            const float _2Over3 = 2F / 3F; // 2/3
+            const float _n1Over3 = -1F / 3F; // -1/3
+            const float sqrt3Over3 = 0.5773503f; // sqrt(3)/3
+            var color = new Vector3(
+                c.x * _2Over3,
+                c.y * sqrt3Over3 + c.x * _n1Over3,
+                c.y * -sqrt3Over3 + c.x * _n1Over3
+            );
+            color += Vector3.one * (c.z - Mathf.Max(color.x, Mathf.Max(color.y, color.z)));
+            return new Color(color.x, color.y, color.z, c.w);
+        }
 
         protected override void OnEnable() {
             base.OnEnable();
@@ -21,19 +41,50 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
         public override void DrawEmbeddedInspectorGUI() {
             EditorGUILayout.LabelField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorPalette"), EditorStyles.boldLabel);
-            for (int i = 0; i < colorsProperty.arraySize; i++) {
-                var colorProperty = colorsProperty.GetArrayElementAtIndex(i);
+            int count = colorsProperty.arraySize;
+            using (PooledObjectExtensions.Get(out List<Vector4> chromas, colorsProperty.arraySize)) {
+                var averageChroma = Vector4.zero;
+                for (int i = 0; i < count; i++) {
+                    using var colorProperty = colorsProperty.GetArrayElementAtIndex(i);
+                    var color = colorProperty.colorValue;
+                    var chroma = Color2Chroma(color);
+                    chromas.Add(chroma);
+                    averageChroma += chroma;
+                }
+                averageChroma /= count;
+                averageChroma.z = 1;
+                averageChroma.w = 1;
+                var averageColor = Chroma2Color(averageChroma);
+                using (var changed = new EditorGUI.ChangeCheckScope()) {
+                    averageColor = EditorGUILayout.ColorField(GUIContent.none, averageColor, true, false, false);
+                    if (changed.changed) {
+                        var deltaChroma = Color2Chroma(averageColor) - averageChroma;
+                        deltaChroma.z = 0;
+                        deltaChroma.w = 0;
+                        for (int i = 0; i < count; i++) {
+                            using var colorProperty = colorsProperty.GetArrayElementAtIndex(i);
+                            var chroma = chromas[i];
+                            chroma += deltaChroma;
+                            colorProperty.colorValue = Chroma2Color(chroma);
+                        }
+                    }
+                }
+            }
+            EditorGUILayout.Space();
+            for (int i = 0; i < count; i++) {
+                using var colorProperty = colorsProperty.GetArrayElementAtIndex(i);
                 EditorGUILayout.PropertyField(colorProperty, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorN", i + 1));
             }
             addRemoveFoldout = EditorGUILayout.Foldout(addRemoveFoldout, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.advanced"));
             if (addRemoveFoldout)
                 using (new EditorGUILayout.HorizontalScope()) {
                     if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.addPalette"))) {
-                        colorsProperty.InsertArrayElementAtIndex(colorsProperty.arraySize);
-                        var colorProperty = colorsProperty.GetArrayElementAtIndex(colorsProperty.arraySize - 1);
+                        colorsProperty.InsertArrayElementAtIndex(count);
+                        using var colorProperty = colorsProperty.GetArrayElementAtIndex(count);
                         colorProperty.colorValue = Color.white;
+                        count++;
                     }
-                    using (new EditorGUI.DisabledScope(colorsProperty.arraySize <= 0))
+                    using (new EditorGUI.DisabledScope(count <= 0))
                         if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.removePalette")))
                             FUtils.DeleteElement(colorsProperty, colorsProperty.arraySize - 1);
                 }

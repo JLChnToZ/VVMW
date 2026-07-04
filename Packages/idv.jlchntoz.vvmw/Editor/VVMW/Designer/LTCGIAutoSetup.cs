@@ -154,10 +154,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                             foreach (var sm in renderer.sharedMaterials)
                                 if (sm != null) {
                                     if (sm.HasFloat(aspectRatioId)) {
-                                        aspectRatios += sm.GetFloat(aspectRatioId);
+                                        aspectRatios += Mathf.Log(sm.GetFloat(aspectRatioId));
                                         count++;
                                     } else {
-                                        aspectRatios++;
                                         count++;
                                     }
                                 }
@@ -165,10 +164,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                             var sm = renderer.sharedMaterials[matIndex];
                             if (sm != null) {
                                 if (sm.HasFloat(aspectRatioId)) {
-                                    aspectRatios += sm.GetFloat(aspectRatioId);
+                                    aspectRatios += Mathf.Log(sm.GetFloat(aspectRatioId));
                                     count++;
                                 } else {
-                                    aspectRatios++;
                                     count++;
                                 }
                             }
@@ -176,8 +174,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                         continue;
                     }
                 }
-                if (aspectRatios == 0 || count == 0) aspectRatios = 16F / 9F;
-                else aspectRatios /= count;
+                if (count == 0) aspectRatios = 16F / 9F;
+                else aspectRatios = Mathf.Exp(aspectRatios / count);
                 mat.SetFloat(aspectRatioId, aspectRatios);
                 int index = Array.IndexOf(core.screenTargets, mat);
                 if (index < 0) {
