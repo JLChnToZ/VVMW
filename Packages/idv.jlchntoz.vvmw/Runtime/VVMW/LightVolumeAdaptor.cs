@@ -31,9 +31,6 @@ namespace JLChnToZ.VRC.VVMW {
 #if VRC_LIGHT_VOLUMES_V3
         [SerializeField, HideInInspector] internal PointLightVolumeInstance[] cookiePointLightVolumes;
         [SerializeField, HideInInspector] internal bool needReadback;
-        [SerializeField, HideInInspector] int[] screenTargetIDs;
-        int textureId, scaleModeId, stereoShiftId, stereoExtendId, aspectRatioId, emissionIntensityId;
-        MaterialPropertyBlock mpb;
 #endif
 #endif
         bool hasInitialized;
@@ -52,15 +49,6 @@ namespace JLChnToZ.VRC.VVMW {
             SendCustomEventDelayedFrames(nameof(_OnTextureChanged), 0);
             if (hasInitialized) return;
             hasInitialized = true;
-#if VRC_LIGHT_VOLUMES_V3
-            textureId = VRCShader.PropertyToID("_VideoTex");
-            scaleModeId = VRCShader.PropertyToID("_ScaleMode");
-            stereoShiftId = VRCShader.PropertyToID("_StereoShift");
-            stereoExtendId = VRCShader.PropertyToID("_StereoExtend");
-            aspectRatioId = VRCShader.PropertyToID("_AspectRatio");
-            emissionIntensityId = VRCShader.PropertyToID("_EmissionIntensity");
-            mpb = new MaterialPropertyBlock();
-#endif
 #else
             Debug.LogWarning("[LightVolumeAdaptor] VRC Light Volumes are not imported. Please import the package to use this feature.");
             enabled = false;
@@ -177,56 +165,6 @@ namespace JLChnToZ.VRC.VVMW {
             if (!Utilities.IsValid(destLv)) return;
             var dest = destLv.CustomTextureMaterial;
             if (!Utilities.IsValid(dest)) return;
-            id = screenTargetIDs[id];
-            if (id < 0) return;
-            var src = core.screenTargets[id];
-            if (!Utilities.IsValid(src)) return;
-            switch (core.screenTargetModes[id] & 0x7) {
-                case 0: {
-                        var material = (Material)src;
-                        ShaderUtils.CopyMaterialIntegerProperty(material, dest, scaleModeId);
-                        ShaderUtils.CopyMaterialVectorProperty(material, dest, stereoShiftId);
-                        ShaderUtils.CopyMaterialVectorProperty(material, dest, stereoExtendId);
-                        ShaderUtils.CopyMaterialFloatProperty(material, dest, aspectRatioId);
-                        ShaderUtils.CopyMaterialFloatProperty(material, dest, emissionIntensityId);
-                    }
-                    break;
-                case 1: {
-                        var renderer = (Renderer)src;
-                        var materials = renderer.sharedMaterials;
-                        int index = core.screenTargetIndeces[id];
-                        mpb.Clear();
-                        if (index < 0) {
-                            renderer.GetPropertyBlock(mpb);
-                            ShaderUtils.CopyMaterialIntegerProperty(mpb, materials, dest, scaleModeId);
-                            ShaderUtils.CopyMaterialVectorProperty(mpb, materials, dest, stereoShiftId);
-                            ShaderUtils.CopyMaterialVectorProperty(mpb, materials, dest, stereoExtendId);
-                            ShaderUtils.CopyMaterialFloatProperty(mpb, materials, dest, aspectRatioId);
-                            ShaderUtils.CopyMaterialFloatProperty(mpb, materials, dest, emissionIntensityId);
-                        } else {
-                            renderer.GetPropertyBlock(mpb, index);
-                            var material = materials[index];
-                            ShaderUtils.CopyMaterialIntegerProperty(mpb, material, dest, scaleModeId);
-                            ShaderUtils.CopyMaterialVectorProperty(mpb, material, dest, stereoShiftId);
-                            ShaderUtils.CopyMaterialVectorProperty(mpb, material, dest, stereoExtendId);
-                            ShaderUtils.CopyMaterialFloatProperty(mpb, material, dest, aspectRatioId);
-                            ShaderUtils.CopyMaterialFloatProperty(mpb, material, dest, emissionIntensityId);
-                        }
-                    }
-                    break;
-                case 2:
-                case 3: {
-                        var renderer = (Renderer)src;
-                        int index = core.screenTargetIndeces[id];
-                        var material = renderer.sharedMaterials[index];
-                        ShaderUtils.CopyMaterialIntegerProperty(material, dest, scaleModeId);
-                        ShaderUtils.CopyMaterialVectorProperty(material, dest, stereoShiftId);
-                        ShaderUtils.CopyMaterialVectorProperty(material, dest, stereoExtendId);
-                        ShaderUtils.CopyMaterialFloatProperty(material, dest, aspectRatioId);
-                        ShaderUtils.CopyMaterialFloatProperty(material, dest, emissionIntensityId);
-                    }
-                    break;
-            }
             if (!ShouldAutoUpdate()) destLv.SetCustomMaterial(dest, false); // Trigger a manual update if auto-update is disabled
         }
 
@@ -235,14 +173,11 @@ namespace JLChnToZ.VRC.VVMW {
             var length = cookiePointLightVolumes.Length;
             if (length <= 0) return;
             bool autoUpdate = ShouldAutoUpdate();
-            var texture = core.VideoTexture;
             for (int i = 0; i < length; i++) {
                 var pointLightVolume = cookiePointLightVolumes[i];
-                if (!Utilities.IsValid(pointLightVolume)) continue;
-                var material = pointLightVolume.CustomTextureMaterial;
-                if (!Utilities.IsValid(material)) continue;
-                material.SetTexture(textureId, texture);
-                pointLightVolume.SetCustomMaterial(material, autoUpdate);
+                if (Utilities.IsValid(pointLightVolume) &&
+                    (!autoUpdate || pointLightVolume.AutoUpdateCustomTexture != autoUpdate))
+                    pointLightVolume.SetCustomMaterial(pointLightVolume.CustomTextureMaterial, autoUpdate);
             }
         }
 #endif
@@ -264,9 +199,13 @@ namespace JLChnToZ.VRC.VVMW {
                         continue;
                     screenConfigurators.Add(screenConfigurator);
                 }
+                var scaleModeId = Shader.PropertyToID("_ScaleMode");
+                var stereoShiftId = Shader.PropertyToID("_StereoShift");
+                var stereoExtendId = Shader.PropertyToID("_StereoExtend");
+                var aspectRatioId = Shader.PropertyToID("_AspectRatio");
                 if (screenConfigurators.Count > 0)
-                    using (PooledObjectExtensions.Get(out HashSet<PointLightVolumeInstance> cookiePointLightVolumes, screenConfigurators.Count))
-                    using (PooledObjectExtensions.Get(out List<int> screenTargetIDs, screenConfigurators.Count)) {
+                    using (PooledObjectExtensions.Get(out HashSet<PointLightVolumeInstance> cookiePLV, screenConfigurators.Count))
+                    using (PooledObjectExtensions.Get(out HashSet<PointLightVolumeInstance> dynamicCookiePLV, screenConfigurators.Count)) {
                         foreach (var configurator in screenConfigurators) {
                             if (configurator == null || configurator.coreIndex < 0)
                                 continue;
@@ -274,14 +213,42 @@ namespace JLChnToZ.VRC.VVMW {
                             if (pointLightVolume == null)
                                 continue;
                             var pointLightVolumeInstance = pointLightVolume.PointLightVolumeInstance;
-                            if (pointLightVolumeInstance == null ||
-                                !cookiePointLightVolumes.Add(pointLightVolumeInstance))
-                                continue;
-                            screenTargetIDs.Add(configurator.coreIndex);
+                            if (pointLightVolumeInstance == null || !cookiePLV.Add(pointLightVolumeInstance)) continue;
+                            var material = pointLightVolumeInstance.CustomTextureMaterial;
+                            if (material == null) continue;
+                            var targetMaterials = configurator.Renderer.sharedMaterials;
+                            var targetIndex = core.screenTargetIndeces[configurator.coreIndex];
+                            if (targetIndex >= 0 && targetIndex < targetMaterials.Length) {
+                                var targetMaterial = targetMaterials[targetIndex];
+                                if (targetMaterial != null) {
+                                    ShaderUtils.CopyMaterialIntegerProperty(material, targetMaterial, scaleModeId);
+                                    ShaderUtils.CopyMaterialVectorProperty(material, targetMaterial, stereoShiftId);
+                                    ShaderUtils.CopyMaterialVectorProperty(material, targetMaterial, stereoExtendId);
+                                    ShaderUtils.CopyMaterialFloatProperty(material, targetMaterial, aspectRatioId);
+                                }
+                            } else {
+                                bool hasScaleMode = false, hasStereoShift = false, hasStereoExtend = false, hasAspectRatio = false;
+                                foreach (var targetMaterial in targetMaterials) {
+                                    if (targetMaterial == null) continue;
+                                    if (!hasScaleMode) hasScaleMode = ShaderUtils.CopyMaterialIntegerProperty(material, targetMaterial, scaleModeId);
+                                    if (!hasStereoShift) hasStereoShift = ShaderUtils.CopyMaterialVectorProperty(material, targetMaterial, stereoShiftId);
+                                    if (!hasStereoExtend) hasStereoExtend = ShaderUtils.CopyMaterialVectorProperty(material, targetMaterial, stereoExtendId);
+                                    if (!hasAspectRatio) hasAspectRatio = ShaderUtils.CopyMaterialFloatProperty(material, targetMaterial, aspectRatioId);
+                                }
+                            }
+                            core.AddScreen(
+                                material, 0, -1,
+                                "_VideoTex",
+                                "_IsAVProVideo",
+                                core.screenTargetDefaultTextures[configurator.coreIndex],
+                                Vector4.zero
+                            );
+                            var defaultTexture = configurator.core.screenTargetDefaultTextures[configurator.coreIndex];
+                            pointLightVolumeInstance.AutoUpdateCustomTexture = defaultTexture != null && defaultTexture is RenderTexture;
+                            if (!pointLightVolumeInstance.AutoUpdateCustomTexture) dynamicCookiePLV.Add(pointLightVolumeInstance);
                         }
-                        this.cookiePointLightVolumes = new PointLightVolumeInstance[cookiePointLightVolumes.Count];
-                        cookiePointLightVolumes.CopyTo(this.cookiePointLightVolumes);
-                        this.screenTargetIDs = screenTargetIDs.ToArray();
+                        cookiePointLightVolumes = new PointLightVolumeInstance[dynamicCookiePLV.Count];
+                        dynamicCookiePLV.CopyTo(cookiePointLightVolumes);
                     }
             }
             lightVolumes ??= Array.Empty<LightVolumeInstance>();

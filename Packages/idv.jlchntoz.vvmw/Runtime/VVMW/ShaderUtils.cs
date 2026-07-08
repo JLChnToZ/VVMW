@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using VRC.SDKBase;
 
@@ -6,10 +5,10 @@ namespace JLChnToZ.VRC.VVMW {
     public static class ShaderUtils {
         public static bool CopyMaterialIntegerProperty(MaterialPropertyBlock src, Material dest, int propertyId) {
             if (src.HasInteger(propertyId)) {
-                dest.SetInt(propertyId, src.GetInteger(propertyId));
+                dest.SetInteger(propertyId, src.GetInteger(propertyId));
                 return true;
             }
-            return false;
+            return CopyMaterialFloatProperty(src, dest, propertyId);
         }
 
         public static bool CopyMaterialFloatProperty(MaterialPropertyBlock src, Material dest, int propertyId) {
@@ -46,10 +45,10 @@ namespace JLChnToZ.VRC.VVMW {
 
         public static bool CopyMaterialIntegerProperty(Material src, Material dest, int propertyId) {
             if (Utilities.IsValid(src) && src.HasInteger(propertyId)) {
-                dest.SetInt(propertyId, src.GetInteger(propertyId));
+                dest.SetInteger(propertyId, src.GetInteger(propertyId));
                 return true;
             }
-            return false;
+            return CopyMaterialFloatProperty(src, dest, propertyId);
         }
 
         public static bool CopyMaterialFloatProperty(Material src, Material dest, int propertyId) {

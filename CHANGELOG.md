@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 - Adjusted LTCGI multi monitor average aspect ratio calculation logic
 
+### Changed
+- Logic in Light Volume Adaptor for support luminance and other integrations.
+
 ## 1.7.6-beta.2 - 2026-06-29
 ### Fixed
 - Compile errors on build
