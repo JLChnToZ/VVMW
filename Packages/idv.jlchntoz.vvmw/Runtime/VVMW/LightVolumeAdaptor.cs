@@ -42,7 +42,6 @@ namespace JLChnToZ.VRC.VVMW {
 #if VRC_LIGHT_VOLUMES
 #if VRC_LIGHT_VOLUMES_V3
             if (needReadback) core.enableMipmap = true;
-            SendCustomEventDelayedFrames(nameof(_SyncAllScreenTargets), 0);
 #else
             core.enableMipmap = true;
 #endif
@@ -150,24 +149,6 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
 #if VRC_LIGHT_VOLUMES_V3
-        public void SyncScreenTarget(int id) {
-            if (id < 0 || id >= cookiePointLightVolumes.Length) return;
-            SyncScreenTargetUnchecked(id);
-        }
-
-        public void _SyncAllScreenTargets() {
-            for (int i = 0, count = cookiePointLightVolumes.Length; i < count; i++)
-                SyncScreenTargetUnchecked(i);
-        }
-
-        void SyncScreenTargetUnchecked(int id) {
-            var destLv = cookiePointLightVolumes[id];
-            if (!Utilities.IsValid(destLv)) return;
-            var dest = destLv.CustomTextureMaterial;
-            if (!Utilities.IsValid(dest)) return;
-            if (!ShouldAutoUpdate()) destLv.SetCustomMaterial(dest, false); // Trigger a manual update if auto-update is disabled
-        }
-
         void UpdateTextureCookie() {
             if (!Utilities.IsValid(cookiePointLightVolumes)) return;
             var length = cookiePointLightVolumes.Length;
@@ -251,8 +232,23 @@ namespace JLChnToZ.VRC.VVMW {
                         dynamicCookiePLV.CopyTo(cookiePointLightVolumes);
                     }
             }
-            lightVolumes ??= Array.Empty<LightVolumeInstance>();
-            pointLightVolumes ??= Array.Empty<PointLightVolumeInstance>();
+            if (lightVolumes == null)
+                lightVolumes = Array.Empty<LightVolumeInstance>();
+            else if (lightVolumes.Length > 0)
+                using (PooledObjectExtensions.Get(out HashSet<LightVolumeInstance> lv, lightVolumes.Length)) {
+                    foreach (var l in lightVolumes) if (l != null) lv.Add(l);
+                    lightVolumes = new LightVolumeInstance[lv.Count];
+                    lv.CopyTo(lightVolumes);
+                }
+            if (pointLightVolumes == null)
+                pointLightVolumes = Array.Empty<PointLightVolumeInstance>();
+            else if (pointLightVolumes.Length > 0)
+                using (PooledObjectExtensions.Get(out HashSet<PointLightVolumeInstance> plv, pointLightVolumes.Length)) {
+                    foreach (var pl in pointLightVolumes) if (pl != null) plv.Add(pl);
+                    plv.ExceptWith(cookiePointLightVolumes);
+                    pointLightVolumes = new PointLightVolumeInstance[plv.Count];
+                    plv.CopyTo(pointLightVolumes);
+                }
             needReadback = lightVolumes.Length > 0 || pointLightVolumes.Length > 0;
         }
     }
