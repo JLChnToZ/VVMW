@@ -325,6 +325,7 @@ Active Regionの有効範囲を調整します。
 
 > [!Note]  
 > VRC Light Volume の効果を正常に表示させるには、対応したシェーダーを使用する必要があります。  
+> [こちらのドキュメント](https://github.com/REDSIM/VRCLightVolumes/blob/main/Documentation/CompatibleShaders.md) を参照し、適切なシェーダーを選択してください。    
 
 ### ストリーミング関連  
 配信系イベント向け、低遅延ストリーミングを求め、外部 RTMP/RTSP サービスを使う場合はよくあります。  

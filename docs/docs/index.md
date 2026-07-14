@@ -329,6 +329,7 @@ Supported video players in the following:
 
 > [!Note]  
 > Please note that VRC Light Volume requires the use of supported shaders to display effects correctly.  
+> Refer to [this documentation](https://github.com/REDSIM/VRCLightVolumes/blob/main/Documentation/CompatibleShaders.md) to select a suitable shader.  
 
 ### Audio/Video Streaming  
 

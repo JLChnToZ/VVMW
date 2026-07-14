@@ -310,6 +310,7 @@ VizVid 用螢幕，可與控制器分開放置。
 
 > [!Note]
 > 需注意，VRC Light Volume 需要使用支援的著色器，才可正常顯示效果。  
+> 請參考[該說明文件](https://github.com/REDSIM/VRCLightVolumes/blob/main/Documentation/CompatibleShaders.md)，選擇適合的著色器。  
 
 ### 影音串流相關  
 不少串流類型表演活動，為了達成低延遲，經常會使用外部 RTMP/RTSP 服務，將影音內容串流至 VRChat 中。  
