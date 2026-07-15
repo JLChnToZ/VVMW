@@ -11,6 +11,7 @@ using VRC.SDKBase;
 #if VRC_LIGHT_VOLUMES_V2
 using VRCLightVolumes;
 #endif
+using UnityObject = UnityEngine.Object;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
     [ExecuteInEditMode]
@@ -20,6 +21,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     public class ScreenConfigurator : MonoBehaviour, IVizVidCompoonent {
         static readonly List<MonoBehaviour> monoBehaviours = new List<MonoBehaviour>();
         static readonly Dictionary<(Renderer, int), ScreenConfigurator> instances = new Dictionary<(Renderer, int), ScreenConfigurator>();
+        readonly HashSet<HideIfIdleTextureAvailable> hideIfIdleTextureAvailableComponents = new HashSet<HideIfIdleTextureAvailable>();
         [SerializeField, Locatable, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")] internal Core core;
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core.videoScreenTarget")] internal Renderer screenRenderer;
         [SerializeField] int targetMode = 1;
@@ -59,10 +61,37 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             }
         }
 
+        internal bool HasIdleTexture => core == null ? defaultTexture != null :
+            core.screenTargetDefaultTextures != null && coreIndex >= 0 &&
+            coreIndex < core.screenTargetDefaultTextures.Length &&
+            (core.screenTargetDefaultTextures[coreIndex] != null ||
+            core.defaultTexture != null &&
+            AssetDatabase.GetAssetPath(core.defaultTexture) != "Packages/idv.jlchntoz.vvmw/Textures/Sprites/black.png");
+
         public static ScreenConfigurator GetInstance(Renderer renderer, int index = -1) {
             if (renderer && instances.TryGetValue((renderer, index), out var instance))
                 return instance;
             return null;
+        }
+
+        internal void RegisterHideIfIdleTextureAvailable(HideIfIdleTextureAvailable component) {
+            if (component == null) return;
+            hideIfIdleTextureAvailableComponents.Add(component);
+            component.ShouldHide = HasIdleTexture;
+        }
+
+        internal void UnregisterHideIfIdleTextureAvailable(HideIfIdleTextureAvailable component) {
+            if (component == null) return;
+            hideIfIdleTextureAvailableComponents.Remove(component);
+            component.ShouldHide = false;
+        }
+
+        internal static void NotifyDefaultTextureChanged(Renderer target, int index) {
+            if (instances.TryGetValue((target, index), out var instance)) {
+                bool hasIdleTexture = instance.HasIdleTexture;
+                foreach (var component in instance.hideIfIdleTextureAvailableComponents)
+                    if (component != null) component.ShouldHide = hasIdleTexture;
+            }
         }
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
@@ -142,12 +171,27 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 #if VRC_LIGHT_VOLUMES_V3
         internal static void EnsureLightVolumeCookie(PointLightVolume pointLightVolume, string name) {
             var shader = Shader.Find("Hidden/JLChnToZ/VideoBlit (VRCLightVolumes Cookie)");
+            bool valueChanged = false;
             if (shader != null && (!(pointLightVolume.Cookie is Material material) || material == null || material.shader != shader)) {
                 material = new Material(shader) { name = $"{name} Cookie Material" };
                 MaterialUtil.SaveMaterialAsAsset(material, "", "");
-                Undo.RecordObject(pointLightVolume, "Assign Cookie Material for Light Volume");
+                if (!valueChanged) {
+                    Undo.RecordObject(pointLightVolume, "Assign Cookie Material for Light Volume");
+                    valueChanged = true;
+                }
                 pointLightVolume.Cookie = material;
-                if (PrefabUtility.IsPartOfPrefabInstance(pointLightVolume)) PrefabUtility.RecordPrefabInstancePropertyModifications(pointLightVolume);
+            }
+            if (pointLightVolume.Color.maxColorComponent <= 0f) {
+                if (!valueChanged) {
+                    Undo.RecordObject(pointLightVolume, "Assign Color for Light Volume");
+                    valueChanged = true;
+                }
+                pointLightVolume.Color = Color.white;
+            }
+            if (valueChanged) {
+                if (PrefabUtility.IsPartOfPrefabInstance(pointLightVolume))
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(pointLightVolume);
+                pointLightVolume.SyncUdonScript();
             }
         }
 #endif
@@ -323,7 +367,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             SaveCoreModifications();
         }
 
-        static void SavePrefabModifications(UnityEngine.Object obj) {
+        static void SavePrefabModifications(UnityObject obj) {
             if (PrefabUtility.IsPartOfPrefabInstance(obj))
                 PrefabUtility.RecordPrefabInstancePropertyModifications(obj);
         }

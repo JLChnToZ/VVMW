@@ -597,10 +597,14 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                                 avProPropertyNamesProperty.GetArrayElementAtIndex(i),
                                 ref useST, selectedShader, materials
                             );
-                        DrawScreenTextureOptions(
+                        if (DrawScreenTextureOptions(
                             screenTargetDefaultTexturesProperty.GetArrayElementAtIndex(i),
                             defaultTextureProperty
-                        );
+                        ))
+                            ScreenConfigurator.NotifyDefaultTextureChanged(
+                                targetProperty.objectReferenceValue as Renderer,
+                                screenTargetIndecesProperty.GetArrayElementAtIndex(i).intValue
+                            );
                         SetScreenMode(modeProperty, mode, useST, blitFlags);
                     }
             }
@@ -664,7 +668,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
         }
 
-        public static void DrawScreenTextureOptions(
+        public static bool DrawScreenTextureOptions(
             SerializedProperty textureProperty,
             SerializedProperty defaultTextureProperty = null
         ) {
@@ -676,8 +680,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (texture == null && defaultTextureProperty != null)
                     texture = defaultTextureProperty.objectReferenceValue;
                 texture = EditorGUI.ObjectField(rect, label, texture, typeof(Texture), false);
-                if (changed.changed) textureProperty.objectReferenceValue = texture;
+                if (changed.changed) {
+                    textureProperty.objectReferenceValue = texture;
+                    return true;
+                }
             }
+            return false;
         }
 
         public static void DrawScreenSTOptions(SerializedProperty stProperty, ref int blitFlags) {

@@ -1,8 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UdonSharpEditor;
 using JLChnToZ.VRC.Foundation.Editors;
+using JLChnToZ.VRC.VVMW.Designer;
+
+using Pool = JLChnToZ.VRC.Foundation.PooledObjectExtensions;
+
+using static UnityEngine.Object;
 
 namespace JLChnToZ.VRC.VVMW.Editors {
     internal class CoreConfigPreprocessor : IPreprocessor {
@@ -37,6 +43,19 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 if (!core.muteOnOutOfRange) core.outOfRangeVolume = 1f;
                 UdonSharpEditorUtility.CopyProxyToUdon(core);
             }
+            foreach (var screenConfigurator in scene.IterateAllComponents<ScreenConfigurator>())
+                if (screenConfigurator.HasIdleTexture)
+                    foreach (var hiita in screenConfigurator.gameObject.IterateAllComponents<HideIfIdleTextureAvailable>())
+                        using (Pool.Get(out List<Component> components)) {
+                            hiita.GetComponents(components);
+                            components.Sort(DependencyUtils.DependencyComparer.instance);
+                            for (int i = 0, count = components.Count; i < count; i++) {
+                                var type = components[i].GetType();
+                                if (typeof(Graphic).IsAssignableFrom(type) ||
+                                    DependencyUtils.IsRequired(type, typeof(Graphic), deep: true))
+                                    DestroyImmediate(components[i]);
+                            }
+                        }
         }
     }
 }

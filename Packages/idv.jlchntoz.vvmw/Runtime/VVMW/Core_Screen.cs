@@ -13,7 +13,7 @@ namespace JLChnToZ.VRC.VVMW {
 #endif
         Vector4 normalST = new Vector4(1, 1, 0, 0), flippedST = new Vector4(1, -1, 0, 1);
         Rect normalRect = new Rect(0, 0, 1, 1), flippedRect = new Rect(0, 1, 1, -1);
-        [SerializeField, LocalizedLabel] Texture defaultTexture;
+        [SerializeField, LocalizedLabel] internal Texture defaultTexture;
         [SerializeField, LocalizedLabel] Material blitMaterial;
         [SerializeField] internal int screenCount;
         [SerializeField] internal Object[] screenTargets;

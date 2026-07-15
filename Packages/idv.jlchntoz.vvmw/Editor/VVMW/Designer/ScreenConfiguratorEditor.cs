@@ -140,7 +140,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 avProPropertyNameProperty,
                 ref useST, shader, materials
             );
-            CoreEditor.DrawScreenTextureOptions(defaultTextureProperty);
+            if (CoreEditor.DrawScreenTextureOptions(defaultTextureProperty))
+                ScreenConfigurator.NotifyDefaultTextureChanged(renderer, targetIndexProperty.intValue);
             CoreEditor.SetScreenMode(targetModeProperty, mode, useST, blitFlags);
         }
 
