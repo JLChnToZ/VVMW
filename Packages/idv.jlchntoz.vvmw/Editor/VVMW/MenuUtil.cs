@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
-#if VRC_LIGHT_VOLUMES_V2
+#if VRCLV2_IMPORTED
 using VRC.SDKBase;
 using VRCLightVolumes;
 #endif
@@ -265,7 +265,7 @@ namespace JLChnToZ.VRC.VVMW {
         [MenuItem(createMenuRoot + "Modules/Auto Play On Near (Local Only)", false, 148)]
         static void CreateAutoPlayOnNear() => SpawnPrefab(prefabRoot + "Auto Play On Near.prefab");
 
-#if VRC_LIGHT_VOLUMES_V2
+#if VRCLV2_IMPORTED
         [MenuItem(createMenuRoot + "Modules/Light Volume for Screen", false, 159)]
         static void CreateLightVolumeForScreen() {
             foreach (var screenObject in Selection.gameObjects) {
@@ -308,6 +308,7 @@ namespace JLChnToZ.VRC.VVMW {
                     return adaptor;
                 }
             if (!createIfNotFound) return null;
+#if !VRCLV3_IMPORTED || VRCLV3_EARLY_VERSION
             var lvSetup = FindAnyObjectByType<LightVolumeSetup>();
             if (lvSetup == null) {
                 var go = new GameObject("Light Volume Manager", typeof(LightVolumeSetup));
@@ -315,6 +316,13 @@ namespace JLChnToZ.VRC.VVMW {
                 lvSetup.SyncUdonScript();
                 Undo.RegisterCreatedObjectUndo(go, "Create Light Volume Manager");
             }
+#else
+            var lvSetup = FindAnyObjectByType<LightVolumeManager>();
+            if (lvSetup == null) {
+                var go = new GameObject("Light Volume Manager", typeof(LightVolumeManager));
+                Undo.RegisterCreatedObjectUndo(go, "Create Light Volume Manager");
+            }
+#endif
             var newAdaptorObject = new GameObject("Light Volume Adaptor", typeof(LightVolumeAdaptor));
             newAdaptorObject.TryGetComponent(out LightVolumeAdaptor newAdaptor);
             GameObjectUtility.SetParentAndAlign(newAdaptorObject, core.gameObject);

@@ -3,8 +3,10 @@ using UnityEngine;
 using UnityEditor;
 using JLChnToZ.VRC.VVMW.Editors;
 using JLChnToZ.VRC.Foundation.I18N.Editors;
-#if VRC_LIGHT_VOLUMES_V3
+#if VRCLV3_EARLY_VERSION
 using VRCLightVolumes;
+#elif VRCLV3_IMPORTED
+using PointLightVolume = VRCLightVolumes.PointLightVolumeInstance;
 #endif
 
 namespace JLChnToZ.VRC.VVMW.Designer {
@@ -18,7 +20,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         SerializedProperty targetPropertyNameProperty, coreTargetPropertyNameProperty;
         SerializedProperty avProPropertyNameProperty, coreAvProPropertyNameProperty;
         SerializedProperty defaultTextureProperty, coreDefaultTextureProperty;
-#if VRC_LIGHT_VOLUMES_V3
+#if VRCLV3_IMPORTED
         SerializedProperty pointLightVolumeProperty;
 #endif
         int lastIndex = -1;
@@ -32,7 +34,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             targetPropertyNameProperty = serializedObject.FindProperty("targetPropertyName");
             avProPropertyNameProperty = serializedObject.FindProperty("avProPropertyName");
             defaultTextureProperty = serializedObject.FindProperty("defaultTexture");
-#if VRC_LIGHT_VOLUMES_V3
+#if VRCLV3_IMPORTED
             pointLightVolumeProperty = serializedObject.FindProperty("pointLightVolume");
 #endif
         }
@@ -99,7 +101,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     avProPropertyNameProperty,
                     defaultTextureProperty
                 );
-#if VRC_LIGHT_VOLUMES_V3
+#if VRCLV3_IMPORTED
             using (var changeCheck = new EditorGUI.ChangeCheckScope())
             using (new EditorGUILayout.HorizontalScope()) {
                 EditorGUILayout.PropertyField(pointLightVolumeProperty);

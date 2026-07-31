@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 ### Changed
 - Auto hide idle screen UI if idle texture been set.
+- Global broadcast texture will now set corresponding scale transform property.
+- Make it compatible with VRCLightVolumes 3.0.0.dev-13 beyond.
 
 ## 1.7.6-beta.3 - 2026-07-09
 ### Added

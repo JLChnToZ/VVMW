@@ -8,8 +8,11 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using VRC.SDKBase;
 #endif
-#if VRC_LIGHT_VOLUMES_V2
+#if VRCLV2_IMPORTED
 using VRCLightVolumes;
+#if VRCLV3_IMPORTED && !VRCLV3_EARLY_VERSION
+using PointLightVolume = VRCLightVolumes.PointLightVolumeInstance;
+#endif
 #endif
 using UnityObject = UnityEngine.Object;
 
@@ -29,7 +32,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core.screenTargetPropertyNames")] string targetPropertyName = "_MainTex";
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core.avProPropertyNames")] string avProPropertyName = "_IsAVProVideo";
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core.screenTargetDefaultTextures")] Texture defaultTexture;
-#if VRC_LIGHT_VOLUMES_V3
+#if VRCLV3_IMPORTED
         [SerializeField, LocalizedLabel] internal PointLightVolume pointLightVolume;
 #endif
         Renderer previousRenderer;
@@ -64,9 +67,11 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         internal bool HasIdleTexture => core == null ? defaultTexture != null :
             core.screenTargetDefaultTextures != null && coreIndex >= 0 &&
             coreIndex < core.screenTargetDefaultTextures.Length &&
-            (core.screenTargetDefaultTextures[coreIndex] != null ||
-            core.defaultTexture != null &&
-            AssetDatabase.GetAssetPath(core.defaultTexture) != "Packages/idv.jlchntoz.vvmw/Textures/Sprites/black.png");
+            (core.screenTargetDefaultTextures[coreIndex] != null || core.defaultTexture != null
+#if UNITY_EDITOR
+            && AssetDatabase.GetAssetPath(core.defaultTexture) != "Packages/idv.jlchntoz.vvmw/Textures/Sprites/black.png"
+#endif
+            );
 
         public static ScreenConfigurator GetInstance(Renderer renderer, int index = -1) {
             if (renderer && instances.TryGetValue((renderer, index), out var instance))
@@ -95,7 +100,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
-#if VRC_LIGHT_VOLUMES_V2
+#if VRCLV2_IMPORTED
         static LightVolumeAdaptor TryGetAttachedAdaptor(Core core, bool createIfNotFound = true) {
             foreach (var adaptor in FindObjectsByType<LightVolumeAdaptor>(FindObjectsSortMode.None))
                 if (adaptor.core == core) {
@@ -103,6 +108,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     return adaptor;
                 }
             if (!createIfNotFound) return null;
+#if !VRCLV3_IMPORTED || VRCLV3_EARLY_VERSION
             var lvSetup = FindAnyObjectByType<LightVolumeSetup>();
             if (lvSetup == null) {
                 var go = new GameObject("Light Volume Manager", typeof(LightVolumeSetup));
@@ -110,6 +116,13 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 lvSetup.SyncUdonScript();
                 Undo.RegisterCreatedObjectUndo(go, "Create Light Volume Manager");
             }
+#else
+            var lvSetup = FindAnyObjectByType<LightVolumeManager>();
+            if (lvSetup == null) {
+                var go = new GameObject("Light Volume Manager", typeof(LightVolumeManager));
+                Undo.RegisterCreatedObjectUndo(go, "Create Light Volume Manager");
+            }
+#endif
             var newAdaptorObject = new GameObject("Light Volume Adaptor", typeof(LightVolumeAdaptor));
             newAdaptorObject.TryGetComponent(out LightVolumeAdaptor newAdaptor);
             GameObjectUtility.SetParentAndAlign(newAdaptorObject, core.gameObject);
@@ -146,15 +159,20 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             }
             lvTransform.localRotation = Quaternion.Euler(0, 180, 0);
             lvObject.TryGetComponent(out PointLightVolume lv);
+#if !VRCLV3_IMPORTED || VRCLV3_EARLY_VERSION
             lv.Type = PointLightVolume.LightType.AreaLight;
             lv.Dynamic = target.GetComponentInParent<VRC_Pickup>(true) != null;
             lv.SyncUdonScript();
+#else
+            lv.LightType = 2; // AreaLight
+            lv.IsDynamic = target.GetComponentInParent<VRC_Pickup>(true) != null;
+#endif
             Undo.RegisterCreatedObjectUndo(lvObject, "Create Light Volume for Screen");
             return lv;
         }
 
         public void CreateLightVolume() {
-#if VRC_LIGHT_VOLUMES_V3
+#if VRCLV3_IMPORTED
             if (pointLightVolume == null) {
                 TryGetAttachedAdaptor(core);
                 Undo.RecordObject(this, "Assign Light Volume for Screen");
@@ -168,7 +186,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 #endif
 
-#if VRC_LIGHT_VOLUMES_V3
+#if VRCLV3_IMPORTED
         internal static void EnsureLightVolumeCookie(PointLightVolume pointLightVolume, string name) {
             var shader = Shader.Find("Hidden/JLChnToZ/VideoBlit (VRCLightVolumes Cookie)");
             bool valueChanged = false;
@@ -191,7 +209,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             if (valueChanged) {
                 if (PrefabUtility.IsPartOfPrefabInstance(pointLightVolume))
                     PrefabUtility.RecordPrefabInstancePropertyModifications(pointLightVolume);
+#if !VRCLV3_IMPORTED || VRCLV3_EARLY_VERSION
                 pointLightVolume.SyncUdonScript();
+#endif
             }
         }
 #endif

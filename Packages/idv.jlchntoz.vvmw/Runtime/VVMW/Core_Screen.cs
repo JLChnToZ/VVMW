@@ -33,7 +33,7 @@ namespace JLChnToZ.VRC.VVMW {
         bool enableMipmap;
         int[] screenTargetPropertyIds, avProPropertyIds;
         MaterialPropertyBlock screenTargetPropertyBlock;
-        int broadcastTextureId, mainTexSTPropertyId;
+        int broadcastTextureId, broadcastTextureSTId, mainTexSTPropertyId;
         DataDictionary screenSharedProperties;
         bool isBlitterRunning;
 
@@ -45,7 +45,10 @@ namespace JLChnToZ.VRC.VVMW {
         void StartBroadcastScreenTexture() {
             if (!broadcastScreenTexture || !IsActiveInternal) return;
             var videoTexture = VideoTexture;
-            if (Utilities.IsValid(videoTexture)) VRCShader.SetGlobalTexture(broadcastTextureId, videoTexture);
+            if (Utilities.IsValid(videoTexture)) {
+                VRCShader.SetGlobalTexture(broadcastTextureId, videoTexture);
+                VRCShader.SetGlobalVector(broadcastTextureSTId, activeHandler.IsAvPro ? flippedST : normalST);
+            }
         }
 
         void StopBroadcastScreenTexture() {
@@ -74,7 +77,10 @@ namespace JLChnToZ.VRC.VVMW {
                     }
                 }
             }
-            if (broadcastTextureId == 0) broadcastTextureId = VRCShader.PropertyToID(broadcastScreenTextureName);
+            if (!string.IsNullOrEmpty(broadcastScreenTextureName)) {
+                if (broadcastTextureId == 0) broadcastTextureId = VRCShader.PropertyToID(broadcastScreenTextureName);
+                if (broadcastTextureSTId == 0) broadcastTextureSTId = VRCShader.PropertyToID(broadcastScreenTextureName + "_ST");
+            }
             if (mainTexSTPropertyId == 0) mainTexSTPropertyId = VRCShader.PropertyToID("_MainTex_ST");
             SendCustomEventDelayedFrames(nameof(_OnTextureChanged), 0);
         }

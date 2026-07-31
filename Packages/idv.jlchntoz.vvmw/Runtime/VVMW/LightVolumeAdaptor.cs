@@ -25,10 +25,10 @@ namespace JLChnToZ.VRC.VVMW {
 #if VRC_LIGHT_VOLUMES
         [SerializeField, Resolve("/**")] LightVolumeManager lightVolumeManager;
         [SerializeField] internal LightVolumeInstance[] lightVolumes;
-#if VRC_LIGHT_VOLUMES_V2
+#if VRCLV2_IMPORTED
         [SerializeField] internal PointLightVolumeInstance[] pointLightVolumes;
 #endif
-#if VRC_LIGHT_VOLUMES_V3
+#if VRCLV3_IMPORTED
         [SerializeField, HideInInspector] internal PointLightVolumeInstance[] cookiePointLightVolumes;
         [SerializeField, HideInInspector] internal bool needReadback;
 #endif
@@ -40,7 +40,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void OnEnable() {
 #if VRC_LIGHT_VOLUMES
-#if VRC_LIGHT_VOLUMES_V3
+#if VRCLV3_IMPORTED
             if (needReadback) core.enableMipmap = true;
 #else
             core.enableMipmap = true;
@@ -73,7 +73,7 @@ namespace JLChnToZ.VRC.VVMW {
         public
 #endif
         void _OnTextureChanged() {
-#if VRC_LIGHT_VOLUMES_V3
+#if VRCLV3_IMPORTED
             UpdateTextureCookie();
 #endif
             if (!DoReadbackRequest() || isRunning) return;
@@ -92,7 +92,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         bool DoReadbackRequest() {
-#if VRC_LIGHT_VOLUMES_V3
+#if VRCLV3_IMPORTED
             if (!needReadback) return false;
 #endif
             if (!enabled || !gameObject.activeInHierarchy)
@@ -133,7 +133,7 @@ namespace JLChnToZ.VRC.VVMW {
                     if (!Utilities.IsValid(lightVolume)) continue;
                     lightVolume.Color = color;
                 }
-#if VRC_LIGHT_VOLUMES_V2
+#if VRCLV2_IMPORTED
             if (Utilities.IsValid(pointLightVolumes))
                 foreach (var pointLightVolume in pointLightVolumes) {
                     if (!Utilities.IsValid(pointLightVolume)) continue;
@@ -148,7 +148,7 @@ namespace JLChnToZ.VRC.VVMW {
 #endif
         }
 
-#if VRC_LIGHT_VOLUMES_V3
+#if VRCLV3_IMPORTED
         void UpdateTextureCookie() {
             if (!Utilities.IsValid(cookiePointLightVolumes)) return;
             var length = cookiePointLightVolumes.Length;
@@ -169,7 +169,7 @@ namespace JLChnToZ.VRC.VVMW {
         Core IVizVidCompoonent.Core => core;
     }
 
-#if UNITY_EDITOR && VRC_LIGHT_VOLUMES_V3
+#if UNITY_EDITOR && VRCLV3_IMPORTED
     partial class LightVolumeAdaptor : ISelfPreProcess {
         public int Priority => 0;
 
@@ -190,10 +190,14 @@ namespace JLChnToZ.VRC.VVMW {
                         foreach (var configurator in screenConfigurators) {
                             if (configurator == null || configurator.coreIndex < 0)
                                 continue;
+#if VRCLV3_EARLY_VERSION
                             var pointLightVolume = configurator.pointLightVolume;
                             if (pointLightVolume == null)
                                 continue;
                             var pointLightVolumeInstance = pointLightVolume.PointLightVolumeInstance;
+#else
+                            var pointLightVolumeInstance = configurator.pointLightVolume;
+#endif
                             if (pointLightVolumeInstance == null || !cookiePLV.Add(pointLightVolumeInstance)) continue;
                             var material = pointLightVolumeInstance.CustomTextureMaterial;
                             if (material == null) continue;
