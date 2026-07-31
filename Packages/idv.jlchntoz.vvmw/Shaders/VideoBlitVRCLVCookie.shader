@@ -28,6 +28,8 @@ Shader "Hidden/JLChnToZ/VideoBlit (VRCLightVolumes Cookie)" {
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma shader_feature_local_fragment _ _HAS_EMISSION_INTENSITY
+            #pragma shader_feature_local_fragment _ _STEREO_DEBUG
             #include "./VideoShaderCommon.cginc"
 
             sampler2D _VideoTex;

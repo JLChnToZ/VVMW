@@ -25,10 +25,10 @@ namespace JLChnToZ.VRC.VVMW {
 #if VRC_LIGHT_VOLUMES
         [SerializeField, Resolve("/**")] LightVolumeManager lightVolumeManager;
         [SerializeField] internal LightVolumeInstance[] lightVolumes;
-#if VRC_LIGHT_VOLUMES_V2
+#if VRC_LIGHT_VOLUMES_V2 || VRCLV2_IMPORTED
         [SerializeField] internal PointLightVolumeInstance[] pointLightVolumes;
 #endif
-#if VRC_LIGHT_VOLUMES_V3
+#if VRC_LIGHT_VOLUMES_V3 || VRCLV3_IMPORTED
         [SerializeField, HideInInspector] internal PointLightVolumeInstance[] cookiePointLightVolumes;
         [SerializeField, HideInInspector] internal bool needReadback;
 #endif
@@ -133,7 +133,7 @@ namespace JLChnToZ.VRC.VVMW {
                     if (!Utilities.IsValid(lightVolume)) continue;
                     lightVolume.Color = color;
                 }
-#if VRCLV2_IMPORTED
+#if VRC_LIGHT_VOLUMES_V2
             if (Utilities.IsValid(pointLightVolumes))
                 foreach (var pointLightVolume in pointLightVolumes) {
                     if (!Utilities.IsValid(pointLightVolume)) continue;
