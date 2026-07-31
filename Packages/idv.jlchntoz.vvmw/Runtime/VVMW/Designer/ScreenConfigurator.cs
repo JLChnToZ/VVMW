@@ -140,7 +140,11 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 array = new PointLightVolumeInstance[1];
             else
                 Array.Resize(ref array, array.Length + 1);
+#if !VRCLV3_IMPORTED || VRCLV3_EARLY_VERSION
             lv.TryGetComponent(out array[^1]);
+#else
+            array[^1] = lv;
+#endif
             Undo.RecordObject(adaptor, "Assign Light Volume for Screen");
             return lv;
         }
