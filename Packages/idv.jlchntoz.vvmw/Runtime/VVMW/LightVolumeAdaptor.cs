@@ -25,10 +25,10 @@ namespace JLChnToZ.VRC.VVMW {
 #if VRC_LIGHT_VOLUMES
         [SerializeField, Resolve("/**")] LightVolumeManager lightVolumeManager;
         [SerializeField] internal LightVolumeInstance[] lightVolumes;
-#if VRCLV2_IMPORTED
+#if VRC_LIGHT_VOLUMES_V2
         [SerializeField] internal PointLightVolumeInstance[] pointLightVolumes;
 #endif
-#if VRCLV3_IMPORTED
+#if VRC_LIGHT_VOLUMES_V3
         [SerializeField, HideInInspector] internal PointLightVolumeInstance[] cookiePointLightVolumes;
         [SerializeField, HideInInspector] internal bool needReadback;
 #endif
@@ -40,7 +40,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void OnEnable() {
 #if VRC_LIGHT_VOLUMES
-#if VRCLV3_IMPORTED
+#if VRC_LIGHT_VOLUMES_V3
             if (needReadback) core.enableMipmap = true;
 #else
             core.enableMipmap = true;
@@ -73,7 +73,7 @@ namespace JLChnToZ.VRC.VVMW {
         public
 #endif
         void _OnTextureChanged() {
-#if VRCLV3_IMPORTED
+#if VRC_LIGHT_VOLUMES_V3
             UpdateTextureCookie();
 #endif
             if (!DoReadbackRequest() || isRunning) return;
@@ -92,7 +92,7 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         bool DoReadbackRequest() {
-#if VRCLV3_IMPORTED
+#if VRC_LIGHT_VOLUMES_V3
             if (!needReadback) return false;
 #endif
             if (!enabled || !gameObject.activeInHierarchy)
@@ -148,7 +148,7 @@ namespace JLChnToZ.VRC.VVMW {
 #endif
         }
 
-#if VRCLV3_IMPORTED
+#if VRC_LIGHT_VOLUMES_V3
         void UpdateTextureCookie() {
             if (!Utilities.IsValid(cookiePointLightVolumes)) return;
             var length = cookiePointLightVolumes.Length;
