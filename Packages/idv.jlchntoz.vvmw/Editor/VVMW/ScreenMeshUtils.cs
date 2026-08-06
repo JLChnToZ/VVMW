@@ -115,7 +115,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             using var meshDatas = Mesh.AcquireReadOnlyMeshData(mesh);
             using var job = ScreenEstimator.Create(meshDatas[0], subMeshIndex, objectToWorld, out var count);
             job.Schedule(count, 64).Complete();
-            if (!job.TryGetResult(out _, out var v, out var u)) {
+            if (!job.TryGetResult(out _, out var v, out var u, out _, out _)) {
                 aspectRatio = 1;
                 return false;
             }
@@ -136,7 +136,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             using var meshDatas = Mesh.AcquireReadOnlyMeshData(mesh);
             using var job = ScreenEstimator.Create(meshDatas[0], subMeshIndex, objectToWorld, out var count);
             job.Schedule(count, 64).Complete();
-            if (!job.TryGetResult(out var c, out var v, out var u)) {
+            if (!job.TryGetResult(out var c, out var v, out var u, out _, out _)) {
                 position = Vector3.zero;
                 rotation = Quaternion.identity;
                 scale = Vector3.one;
@@ -170,35 +170,26 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             [ReadOnly] NativeArray<float3> vertices;
             [ReadOnly] NativeArray<float2> uvs;
             [ReadOnly] NativeSlice<ushort> indices;
-            [WriteOnly] NativeArray<Screen> results;
+            [WriteOnly] NativeArray<Fragment> frags;
+            [WriteOnly] NativeArray<float4> uvRanges;
 
-            public static ScreenEstimator Create(Mesh.MeshData meshData, int subMeshIndex, Matrix4x4 objectToWorld, out int length) {
-                var vc = meshData.vertexCount;
-                var vertices = new NativeArray<Vector3>(vc, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-                var uvs = new NativeArray<Vector2>(vc, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            public static ScreenEstimator Create(Mesh.MeshData meshData, int subMeshIndex, Matrix4x4 objectToWorld, out int resultCount) {
+                var vertexCount = meshData.vertexCount;
+                ScreenEstimator instance;
                 var indices = meshData.GetIndexData<ushort>();
-                meshData.GetVertices(vertices);
-                meshData.GetUVs(0, uvs);
-                NativeSlice<ushort> indexSlice;
                 if (subMeshIndex < 0) {
-                    length = indices.Length / 3;
-                    indexSlice = indices;
+                    instance = new ScreenEstimator(objectToWorld, vertexCount, indices, out resultCount);
                 } else {
                     var subMesh = meshData.GetSubMesh(subMeshIndex);
-                    length = subMesh.indexCount / 3;
-                    indexSlice = indices.Slice(subMesh.indexStart, subMesh.indexCount);
+                    instance = new ScreenEstimator(objectToWorld, vertexCount, indices.Slice(subMesh.indexStart, subMesh.indexCount), out resultCount);
                 }
-                return new ScreenEstimator {
-                    indices = indexSlice,
-                    vertices = vertices.Reinterpret<float3>(),
-                    uvs = uvs.Reinterpret<float2>(),
-                    results = new NativeArray<Screen>(length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory),
-                    objectToWorld = objectToWorld,
-                };
+                meshData.GetVertices(instance.vertices.Reinterpret<Vector3>());
+                meshData.GetUVs(0, instance.uvs.Reinterpret<Vector2>());
+                return instance;
             }
 
-            static Screen KahanSum(in NativeArray<Screen> array) {
-                Screen sum = default, c = default;
+            static Fragment KahanSum(in NativeArray<Fragment> array) {
+                Fragment sum = default, c = default;
                 foreach (var v in array) {
                     var y = v - c;
                     var t = sum + y;
@@ -208,10 +199,24 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 return sum;
             }
 
+            ScreenEstimator(float4x4 objectToWorld, int vertexCount, NativeSlice<ushort> indices, out int resultCount) {
+                this.objectToWorld = objectToWorld;
+                vertices = new NativeArray<float3>(vertexCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                uvs = new NativeArray<float2>(vertexCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                this.indices = indices;
+                resultCount = indices.Length / 3;
+                frags = new NativeArray<Fragment>(resultCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                uvRanges = new NativeArray<float4>(resultCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            }
+
             readonly float3 WorldPos(int index) => mul(objectToWorld, float4(vertices[index], 1)).xyz;
 
             public void Execute(int index) {
-                results[index] = default;
+                frags[index] = default;
+                uvRanges[index] = new float4(
+                    float.PositiveInfinity, float.PositiveInfinity,
+                    float.NegativeInfinity, float.NegativeInfinity
+                );
                 int i = index * 3;
                 if (i + 2 >= indices.Length) return;
                 ushort i1 = indices[i++], i2 = indices[i++], i3 = indices[i];
@@ -219,7 +224,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 float3 e1 = p1 - p0, e2 = p2 - p0;
                 float w = lengthsq(cross(e1, e2));
                 if (!(w > 0)) return;
-                float2 uv0 = uvs[i1], d1 = uvs[i2] - uv0, d2 = uvs[i3] - uv0;
+                float2 uv0 = uvs[i1], uv1 = uvs[i2], uv2 = uvs[i3];
+                float2 d1 = uv1 - uv0, d2 = uv2 - uv0;
                 float det = d1.x * d2.y - d2.x * d1.y;
                 if (!(abs(det) > 0)) return;
                 float rcp = 1f / det;
@@ -227,55 +233,65 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 float3 v = (e2 * d1.x - e1 * d2.x) * rcp;
                 if (!(lengthsq(u) > 0) || !(lengthsq(v) > 0)) return;
                 float3 origin = p0 - u * uv0.x - v * uv0.y;
-                results[index] = new Screen(origin + (u + v) * 0.5f, v, u) * w;
+                frags[index] = new Fragment(origin + (u + v) * 0.5F, v, u) * w;
+                uvRanges[index] = new float4(min(uv0, min(uv1, uv2)), max(uv0, max(uv1, uv2)));
             }
 
-            public readonly bool TryGetResult(out float3 center, out float3 up, out float3 right) {
-                var s = KahanSum(results);
-                if (s.weight > 0) {
-                    float rcp = 1f / s.weight;
-                    center = s.center * rcp;
-                    up = s.up * rcp;
-                    right = s.right * rcp;
-                    return true;
+            public readonly bool TryGetResult(out float3 center, out float3 up, out float3 right, out float2 uvMin, out float2 uvMax) {
+                var s = KahanSum(frags);
+                if (!(s.weight > 0F)) {
+                    center = up = right = float.NaN;
+                    uvMin = 0F;
+                    uvMax = 1F;
+                    return false;
                 }
-                center = up = right = float.NaN;
-                return false;
+                float rcp = 1f / s.weight;
+                center = s.center * rcp;
+                up = s.up * rcp;
+                right = s.right * rcp;
+                uvMin = float.PositiveInfinity;
+                uvMax = float.NegativeInfinity;
+                foreach (var uvRange in uvRanges) {
+                    uvMin = min(uvRange.xy, uvMin);
+                    uvMax = max(uvRange.zw, uvMax);
+                }
+                return true;
             }
 
             public void Dispose() {
                 if (vertices.IsCreated) vertices.Dispose();
                 if (uvs.IsCreated) uvs.Dispose();
-                if (results.IsCreated) results.Dispose();
+                if (frags.IsCreated) frags.Dispose();
+                if (uvRanges.IsCreated) uvRanges.Dispose();
             }
         }
 
-        struct Screen {
+        struct Fragment {
             public float3 center, up, right;
             public float weight;
 
-            public Screen(float3 center, float3 up, float3 right, float weight = 1F) {
+            public Fragment(float3 center, float3 up, float3 right, float weight = 1F) {
                 this.center = center;
                 this.up = up;
                 this.right = right;
                 this.weight = weight;
             }
 
-            public static Screen operator *(Screen a, float b) => new Screen(
-                a.center * b,
-                a.up * b,
-                a.right * b,
-                a.weight * b
+            public static Fragment operator *(Fragment a, float w) => new Fragment(
+                a.center * w,
+                a.up * w,
+                a.right * w,
+                a.weight * w
             );
 
-            public static Screen operator +(Screen a, Screen b) => new Screen(
+            public static Fragment operator +(Fragment a, Fragment b) => new Fragment(
                 a.center + b.center,
                 a.up + b.up,
                 a.right + b.right,
                 a.weight + b.weight
             );
 
-            public static Screen operator -(Screen a, Screen b) => new Screen(
+            public static Fragment operator -(Fragment a, Fragment b) => new Fragment(
                 a.center - b.center,
                 a.up - b.up,
                 a.right - b.right,
