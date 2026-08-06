@@ -118,6 +118,11 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             if (GUILayout.Button(i18n.GetLocalizedContent("ScreenConfigurator.FixupAspectRatio"))) {
                 var meshRenderer = screenRendererProperty.objectReferenceValue as MeshRenderer;
                 ScreenMeshUtils.TryFixupAspectRatioInMaterial(meshRenderer);
+#if VRCLV3_IMPORTED
+                var lv = pointLightVolumeProperty.objectReferenceValue as PointLightVolume;
+                if (lv != null)
+                    ScreenConfigurator.TryEstimatePlacement(lv.transform, targetIndexProperty.intValue, true);
+#endif
             }
         }
 

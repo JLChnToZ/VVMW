@@ -22,6 +22,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     [HelpURL("https://xtlcdn.github.io/VizVid/docs/#screen-configurator")]
     [AddComponentMenu("VizVid/Components/Screen Configurator")]
     public class ScreenConfigurator : MonoBehaviour, IVizVidCompoonent {
+        internal static TryEstimatePlacementDelegate tryEstimatePlacement;
         static readonly List<MonoBehaviour> monoBehaviours = new List<MonoBehaviour>();
         static readonly Dictionary<(Renderer, int), ScreenConfigurator> instances = new Dictionary<(Renderer, int), ScreenConfigurator>();
         readonly HashSet<HideIfIdleTextureAvailable> hideIfIdleTextureAvailableComponents = new HashSet<HideIfIdleTextureAvailable>();
@@ -132,9 +133,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             return newAdaptor;
         }
 
-        public static PointLightVolume CreateLightVolume(Transform target, Core core) {
+        public static PointLightVolume CreateLightVolume(Transform target, Core core, int subMeshIndex = -1) {
             var adaptor = TryGetAttachedAdaptor(core);
-            var lv = CreateLightVolume(target);
+            var lv = CreateLightVolume(target, subMeshIndex);
             ref var array = ref adaptor.pointLightVolumes;
             if (array == null || array.Length == 0)
                 array = new PointLightVolumeInstance[1];
@@ -149,19 +150,21 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             return lv;
         }
 
-        static PointLightVolume CreateLightVolume(Transform target) {
+        static PointLightVolume CreateLightVolume(Transform target, int subMeshIndex = -1) {
             var lvObject = new GameObject(GameObjectUtility.GetUniqueNameForSibling(target, "Light Volume for Screen"), typeof(PointLightVolume));
             var lvTransform = lvObject.transform;
             lvTransform.SetParent(target, false);
-            if (target.TryGetComponent(out Renderer renderer)) {
-                var bounds = renderer.localBounds;
-                lvTransform.localPosition = bounds.center;
-                lvTransform.localScale = bounds.size;
-            } else {
-                lvTransform.localPosition = Vector3.zero;
-                lvTransform.localScale = Vector3.one;
+            if (!TryEstimatePlacement(lvTransform, subMeshIndex)) {
+                if (target.TryGetComponent(out Renderer renderer)) {
+                    var bounds = renderer.localBounds;
+                    lvTransform.localPosition = bounds.center;
+                    lvTransform.localScale = bounds.size;
+                } else {
+                    lvTransform.localPosition = Vector3.zero;
+                    lvTransform.localScale = Vector3.one;
+                }
+                lvTransform.localRotation = Quaternion.Euler(0, 180, 0);
             }
-            lvTransform.localRotation = Quaternion.Euler(0, 180, 0);
             lvObject.TryGetComponent(out PointLightVolume lv);
 #if !VRCLV3_IMPORTED || VRCLV3_EARLY_VERSION
             lv.Type = PointLightVolume.LightType.AreaLight;
@@ -175,17 +178,40 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             return lv;
         }
 
+        public static bool TryEstimatePlacement(Transform lvTransform, int subMeshIndex, bool undo = false) {
+            if (tryEstimatePlacement == null) return false;
+            var parent = lvTransform.parent;
+            if (parent == null || !parent.TryGetComponent(out Renderer renderer)) return false;
+            Mesh mesh = null;
+            if (renderer is MeshRenderer && parent.TryGetComponent(out MeshFilter mf)) {
+                mesh = mf.sharedMesh;
+            } else if (renderer is SkinnedMeshRenderer smr) {
+                mesh = smr.sharedMesh;
+            }
+            if (mesh == null || !mesh.isReadable || !tryEstimatePlacement(
+                mesh, subMeshIndex, renderer.localToWorldMatrix,
+                out var t, out var r, out var s)) return false;
+            if (undo) Undo.RecordObject(lvTransform, "Estimate Light Volume Placement");
+            lvTransform.SetPositionAndRotation(t, r);
+            var parentScale = parent.lossyScale;
+            s.x /= Mathf.Abs(parentScale.x);
+            s.y /= Mathf.Abs(parentScale.y);
+            s.z = (s.x + s.y) * 0.5F;
+            lvTransform.localScale = s;
+            return true;
+        }
+
         public void CreateLightVolume() {
 #if VRCLV3_IMPORTED
             if (pointLightVolume == null) {
                 TryGetAttachedAdaptor(core);
                 Undo.RecordObject(this, "Assign Light Volume for Screen");
-                pointLightVolume = CreateLightVolume(screenRenderer.transform);
+                pointLightVolume = CreateLightVolume(screenRenderer.transform, targetIndex);
                 if (PrefabUtility.IsPartOfPrefabInstance(this)) PrefabUtility.RecordPrefabInstancePropertyModifications(this);
             }
             EnsureLightVolumeCookie(pointLightVolume, screenRenderer.name);
 #else
-            CreateLightVolume(transform, core);
+            CreateLightVolume(transform, core, targetIndex);
 #endif
         }
 #endif
@@ -398,5 +424,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
         void SaveCoreModifications() => SavePrefabModifications(core);
 #endif
+        internal delegate bool TryEstimatePlacementDelegate(
+            Mesh mesh, int subMeshIndex, Matrix4x4 objectToWorld,
+            out Vector3 localPosition, out Quaternion localRotation, out Vector3 localScale
+        );
     }
 }

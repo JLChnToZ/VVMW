@@ -11,12 +11,16 @@ using Unity.Collections;
 using Unity.Burst;
 using JLChnToZ.VRC.Foundation;
 using static Unity.Mathematics.math;
+using static Unity.Mathematics.quaternion;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
-
+    [InitializeOnLoad]
     public static class ScreenMeshUtils {
         const string fixupMenu = "Tools/VizVid/Fixup Aspect Ratios";
-        const string directory = "Assets/VizVid_Generated/";
+
+        static ScreenMeshUtils() {
+            ScreenConfigurator.tryEstimatePlacement = TryEstimatePlacement;
+        }
 
         [MenuItem(fixupMenu, priority = 1000)]
         static void MenuFixupAspectRatioInMaterial() =>
@@ -104,14 +108,44 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 
         public static bool TryEstimateAspectRatio(Mesh mesh, int subMeshIndex, Matrix4x4 objectToWorld, out float aspectRatio) {
-            if (mesh == null || subMeshIndex < 0 || subMeshIndex >= mesh.subMeshCount) {
+            if (mesh == null || subMeshIndex >= mesh.subMeshCount) {
                 aspectRatio = 1;
                 return false;
             }
             using var meshDatas = Mesh.AcquireReadOnlyMeshData(mesh);
-            using var job = AspectRatioFinder.Create(meshDatas[0], subMeshIndex, objectToWorld, out var length);
-            job.Schedule(length, 64).Complete();
-            return job.TryGetResult(out aspectRatio);
+            using var job = ScreenEstimator.Create(meshDatas[0], subMeshIndex, objectToWorld, out var count);
+            job.Schedule(count, 64).Complete();
+            if (!job.TryGetResult(out _, out var v, out var u)) {
+                aspectRatio = 1;
+                return false;
+            }
+            aspectRatio = sqrt(lengthsq(u) / lengthsq(v));
+            return true;
+        }
+
+        public static bool TryEstimatePlacement(
+            Mesh mesh, int subMeshIndex, Matrix4x4 objectToWorld,
+            out Vector3 position, out Quaternion rotation, out Vector3 scale
+        ) {
+            if (mesh == null || subMeshIndex >= mesh.subMeshCount) {
+                position = Vector3.zero;
+                rotation = Quaternion.identity;
+                scale = Vector3.one;
+                return false;
+            }
+            using var meshDatas = Mesh.AcquireReadOnlyMeshData(mesh);
+            using var job = ScreenEstimator.Create(meshDatas[0], subMeshIndex, objectToWorld, out var count);
+            job.Schedule(count, 64).Complete();
+            if (!job.TryGetResult(out var c, out var v, out var u)) {
+                position = Vector3.zero;
+                rotation = Quaternion.identity;
+                scale = Vector3.one;
+                return false;
+            }
+            position = c;
+            rotation = LookRotationSafe(cross(v, u), v);
+            scale = sqrt(float3(lengthsq(u), lengthsq(v), 1));
+            return true;
         }
 
         static string HumanizeAspectRatio(float aspectRatio) {
@@ -131,33 +165,40 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 
         [BurstCompile]
-        struct AspectRatioFinder : IJobParallelFor, IDisposable {
+        struct ScreenEstimator : IJobParallelFor, IDisposable {
             [ReadOnly] float4x4 objectToWorld;
             [ReadOnly] NativeArray<float3> vertices;
             [ReadOnly] NativeArray<float2> uvs;
             [ReadOnly] NativeSlice<ushort> indices;
-            [WriteOnly] NativeArray<float2> results;
+            [WriteOnly] NativeArray<Screen> results;
 
-            public static AspectRatioFinder Create(Mesh.MeshData meshData, int subMeshIndex, Matrix4x4 objectToWorld, out int length) {
-                var subMesh = meshData.GetSubMesh(subMeshIndex);
+            public static ScreenEstimator Create(Mesh.MeshData meshData, int subMeshIndex, Matrix4x4 objectToWorld, out int length) {
                 var vc = meshData.vertexCount;
                 var vertices = new NativeArray<Vector3>(vc, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var uvs = new NativeArray<Vector2>(vc, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var indices = meshData.GetIndexData<ushort>();
                 meshData.GetVertices(vertices);
                 meshData.GetUVs(0, uvs);
-                length = subMesh.indexCount / 3;
-                return new AspectRatioFinder {
-                    indices = indices.Slice(subMesh.indexStart, subMesh.indexCount),
+                NativeSlice<ushort> indexSlice;
+                if (subMeshIndex < 0) {
+                    length = indices.Length / 3;
+                    indexSlice = indices;
+                } else {
+                    var subMesh = meshData.GetSubMesh(subMeshIndex);
+                    length = subMesh.indexCount / 3;
+                    indexSlice = indices.Slice(subMesh.indexStart, subMesh.indexCount);
+                }
+                return new ScreenEstimator {
+                    indices = indexSlice,
                     vertices = vertices.Reinterpret<float3>(),
                     uvs = uvs.Reinterpret<float2>(),
-                    results = new NativeArray<float2>(length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory),
+                    results = new NativeArray<Screen>(length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory),
                     objectToWorld = objectToWorld,
                 };
             }
 
-            static float2 KahanSum(in NativeArray<float2> array) {
-                float2 sum = 0, c = 0;
+            static Screen KahanSum(in NativeArray<Screen> array) {
+                Screen sum = default, c = default;
                 foreach (var v in array) {
                     var y = v - c;
                     var t = sum + y;
@@ -170,29 +211,35 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             readonly float3 WorldPos(int index) => mul(objectToWorld, float4(vertices[index], 1)).xyz;
 
             public void Execute(int index) {
+                results[index] = default;
                 int i = index * 3;
-                results[index] = 0;
                 if (i + 2 >= indices.Length) return;
                 ushort i1 = indices[i++], i2 = indices[i++], i3 = indices[i];
                 float3 p0 = WorldPos(i1), p1 = WorldPos(i2), p2 = WorldPos(i3);
                 float3 e1 = p1 - p0, e2 = p2 - p0;
                 float w = lengthsq(cross(e1, e2));
-                if (w <= 0) return;
-                float4 duv = float4(uvs[i2], uvs[i3]) - uvs[i1].xyxy;
-                float tt = lengthsq(e1 * duv.w - e2 * duv.y);
-                if (tt <= 0) return;
-                float bb = lengthsq(e2 * duv.x - e1 * duv.z);
-                if (bb <= 0) return;
-                results[index] = float2(log2(tt / bb) * w, w);
+                if (!(w > 0)) return;
+                float2 uv0 = uvs[i1], d1 = uvs[i2] - uv0, d2 = uvs[i3] - uv0;
+                float det = d1.x * d2.y - d2.x * d1.y;
+                if (!(abs(det) > 0)) return;
+                float rcp = 1f / det;
+                float3 u = (e1 * d2.y - e2 * d1.y) * rcp;
+                float3 v = (e2 * d1.x - e1 * d2.x) * rcp;
+                if (!(lengthsq(u) > 0) || !(lengthsq(v) > 0)) return;
+                float3 origin = p0 - u * uv0.x - v * uv0.y;
+                results[index] = new Screen(origin + (u + v) * 0.5f, v, u) * w;
             }
 
-            public readonly bool TryGetResult(out float result) {
-                float2 resultWeights = KahanSum(results);
-                if (resultWeights.y > 0) {
-                    result = exp2(resultWeights.x / resultWeights.y * 0.5f);
+            public readonly bool TryGetResult(out float3 center, out float3 up, out float3 right) {
+                var s = KahanSum(results);
+                if (s.weight > 0) {
+                    float rcp = 1f / s.weight;
+                    center = s.center * rcp;
+                    up = s.up * rcp;
+                    right = s.right * rcp;
                     return true;
                 }
-                result = float.NaN;
+                center = up = right = float.NaN;
                 return false;
             }
 
@@ -201,6 +248,39 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 if (uvs.IsCreated) uvs.Dispose();
                 if (results.IsCreated) results.Dispose();
             }
+        }
+
+        struct Screen {
+            public float3 center, up, right;
+            public float weight;
+
+            public Screen(float3 center, float3 up, float3 right, float weight = 1F) {
+                this.center = center;
+                this.up = up;
+                this.right = right;
+                this.weight = weight;
+            }
+
+            public static Screen operator *(Screen a, float b) => new Screen(
+                a.center * b,
+                a.up * b,
+                a.right * b,
+                a.weight * b
+            );
+
+            public static Screen operator +(Screen a, Screen b) => new Screen(
+                a.center + b.center,
+                a.up + b.up,
+                a.right + b.right,
+                a.weight + b.weight
+            );
+
+            public static Screen operator -(Screen a, Screen b) => new Screen(
+                a.center - b.center,
+                a.up - b.up,
+                a.right - b.right,
+                a.weight - b.weight
+            );
         }
     }
 }
