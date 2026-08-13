@@ -20,6 +20,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         SerializedProperty playListTitlesProperty;
         SerializedProperty autoPlayOnJoinProperty;
         SerializedProperty autoPlayOnIdleProperty;
+        SerializedProperty idleModeProperty;
         SerializedProperty autoPlayDelayProperty;
         SerializedProperty targetsProperty;
         SerializedProperty seedRandomBeforeShuffleProperty;
@@ -39,6 +40,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             playListTitlesProperty = serializedObject.FindProperty("playListTitles");
             autoPlayOnJoinProperty = serializedObject.FindProperty("autoPlayOnJoin");
             autoPlayOnIdleProperty = serializedObject.FindProperty("autoPlayOnIdle");
+            idleModeProperty = serializedObject.FindProperty("idleMode");
             autoPlayDelayProperty = serializedObject.FindProperty("autoPlayDelay");
             targetsProperty = serializedObject.FindProperty("targets");
             seedRandomBeforeShuffleProperty = serializedObject.FindProperty("seedRandomBeforeShuffle");
@@ -169,8 +171,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     if (autoPlayDelayProperty.floatValue < 0) autoPlayDelayProperty.floatValue = 0;
                 }
             using (var changed = new EditorGUI.ChangeCheckScope()) {
-                EditorGUILayout.PropertyField(autoPlayOnIdleProperty);
-                if (changed.changed && autoPlayOnIdleProperty.boolValue) AutoAdjustDefaultPlaylist();
+                EditorGUILayout.PropertyField(idleModeProperty);
+                if (changed.changed && idleModeProperty.intValue > 0) AutoAdjustDefaultPlaylist();
+            }
+            if (autoPlayOnIdleProperty.boolValue && idleModeProperty.intValue == 0) {
+                idleModeProperty.intValue = 1;
+                autoPlayOnIdleProperty.boolValue = false;
+                AutoAdjustDefaultPlaylist();
             }
         }
 

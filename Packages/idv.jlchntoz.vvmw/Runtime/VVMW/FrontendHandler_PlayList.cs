@@ -8,16 +8,18 @@ namespace JLChnToZ.VRC.VVMW {
     public partial class FrontendHandler {
         [SerializeField] string[] playListTitles;
         [SerializeField] int[] playListUrlOffsets;
-        [SerializeField] VRCUrl[] playListUrls, playListUrlsQuest;
+        [SerializeField] VRCUrl[] playListUrls, playListUrlsQuest, playListUrlsIOS;
         [SerializeField] string[] playListEntryTitles;
         [SerializeField] byte[] playListPlayerIndex;
         [SerializeField, FormerlySerializedAs("localPlayListIndex")] int defaultPlayListIndex;
         [UdonSynced] ushort[] playListOrder;
         [UdonSynced] ushort playingIndex;
         [UdonSynced] ushort playListIndex;
+        [UdonSynced] ushort lastPlayingIndex;
         ushort[] localPlayListOrder;
         int localPlayListIndex;
         ushort localPlayingIndex;
+        ushort localLastPlayingIndex;
 
         /// <summary>
         /// All titles of the playlists.
@@ -119,6 +121,7 @@ namespace JLChnToZ.VRC.VVMW {
             if (index >= 0) RefreshPlayListQueue(index);
             if (!Utilities.IsValid(localPlayListOrder)) {
                 localPlayListIndex = 0;
+                localLastPlayingIndex = 0;
                 RequestSync();
                 UpdateState();
                 return;
@@ -126,11 +129,13 @@ namespace JLChnToZ.VRC.VVMW {
             int newLength = localPlayListOrder.Length;
             if (newLength <= 0) {
                 localPlayListIndex = 0;
+                localLastPlayingIndex = 0;
                 RequestSync();
                 UpdateState();
                 return;
             }
             localPlayingIndex = localPlayListOrder[0];
+            localLastPlayingIndex = (ushort)(localPlayingIndex + 1);
             newLength--;
             if (RepeatAll) {
                 Array.Copy(localPlayListOrder, 1, localPlayListOrder, 0, newLength);

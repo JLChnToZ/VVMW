@@ -37,6 +37,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] bool defaultLoop, defaultShuffle;
         [SerializeField, LocalizedLabel, FormerlySerializedAs("autoPlay")] bool autoPlayOnJoin = true;
         [SerializeField, LocalizedLabel] bool autoPlayOnIdle = false;
+        [SerializeField, LocalizedLabel, LocalizedEnum] IdleMode idleMode = 0;
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core.autoPlayDelay")] float autoPlayDelay = 0;
         [SerializeField, LocalizedLabel] bool seedRandomBeforeShuffle = true;
         InputFilterBase urlInputFilter;
@@ -198,8 +199,23 @@ namespace JLChnToZ.VRC.VVMW {
                 localFlags |= SHUFFLE;
                 SeedRandomBeforeShuffle();
             }
-            localPlayListIndex = defaultPlayListIndex;
             int index = 0;
+            if (idleMode == IdleMode.ResumeLastPlayingItem && localLastPlayingIndex > 0) {
+                localPlayListIndex = playListUrlOffsets.Length;
+                index = localLastPlayingIndex - 1;
+                int offset = 0;
+                for (int i = 1; i < localPlayListIndex; i++) {
+                    offset = playListUrlOffsets[i];
+                    if (index < offset) {
+                        localPlayListIndex = i;
+                        offset = i > 0 ? playListUrlOffsets[i - 1] : 0;
+                        break;
+                    }
+                }
+                PlayPlayList(index - offset);
+                return;
+            }
+            localPlayListIndex = defaultPlayListIndex;
             if (defaultShuffle) {
                 int length = localPlayListIndex == playListUrlOffsets.Length ?
                     playListUrls.Length :
@@ -359,6 +375,7 @@ namespace JLChnToZ.VRC.VVMW {
             currentTitle = localCurrentTitle;
             flags = localFlags;
             playListIndex = (ushort)localPlayListIndex;
+            lastPlayingIndex = localLastPlayingIndex;
             playingIndex = localPlayingIndex;
             bool shouldLoop = RepeatOne;
             if (core.Loop != shouldLoop) {
@@ -394,6 +411,7 @@ namespace JLChnToZ.VRC.VVMW {
             } else core._ResetTitle();
             localPlayListIndex = playListIndex;
             localPlayingIndex = playingIndex;
+            localLastPlayingIndex = lastPlayingIndex;
             core.Loop = RepeatOne;
             UpdateState();
         }
@@ -417,13 +435,13 @@ namespace JLChnToZ.VRC.VVMW {
             if ((synced && !Networking.IsOwner(gameObject)) || core.IsLoading) return;
             if (localPlayListIndex == 0) {
                 if (IsArrayNullOrEmpty(localQueuedUrls) && !RepeatAll) {
-                    if (autoPlayOnIdle) _AutoPlay();
+                    if (idleMode != IdleMode.DoNothing) _AutoPlay();
                     return;
                 }
                 PlayQueueList(-1, false);
             } else {
                 if (IsArrayNullOrEmpty(localPlayListOrder)) {
-                    if (autoPlayOnIdle) _AutoPlay();
+                    if (idleMode != IdleMode.DoNothing) _AutoPlay();
                     return;
                 }
                 PlayPlayList(-1);
@@ -506,6 +524,12 @@ namespace JLChnToZ.VRC.VVMW {
         public
 #endif
         void _OnRangeLoopToggled() => UpdateState();
+    }
+
+    public enum IdleMode {
+        DoNothing = 0,
+        PlayDefaultPlaylist = 1,
+        ResumeLastPlayingItem = 2
     }
 
 #if !COMPILER_UDONSHARP
