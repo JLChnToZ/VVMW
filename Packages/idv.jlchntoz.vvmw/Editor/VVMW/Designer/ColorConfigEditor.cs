@@ -9,11 +9,12 @@ using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
 
 namespace JLChnToZ.VRC.VVMW.Designer {
     [CustomEditor(typeof(ColorConfig))]
+    [CanEditMultipleObjects]
     public class ColorConfigEditor : VVMWEditorBase {
-        const float TAU = Mathf.PI * 2;
         SerializedProperty colorsProperty;
         SerializedProperty autoApplyOnBuildProperty;
         bool addRemoveFoldout;
+        bool showApplyAll;
 
         static Vector4 Color2Chroma(Color c) {
             const float sqrt3Over2 = 0.8660254f; // sqrt(3)/2
@@ -40,65 +41,20 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 
         public override void DrawEmbeddedInspectorGUI() {
-            EditorGUILayout.LabelField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorPalette"), EditorStyles.boldLabel);
             int count = colorsProperty.arraySize;
-            using (PooledObjectExtensions.Get(out List<Vector4> chromas, colorsProperty.arraySize)) {
-                var averageChroma = Vector4.zero;
-                for (int i = 0; i < count; i++) {
-                    using var colorProperty = colorsProperty.GetArrayElementAtIndex(i);
-                    var color = colorProperty.colorValue;
-                    var chroma = Color2Chroma(color);
-                    chromas.Add(chroma);
-                    averageChroma += chroma;
-                }
-                averageChroma /= count;
-                averageChroma.z = 1;
-                averageChroma.w = 1;
-                var averageColor = Chroma2Color(averageChroma);
-                using (var changed = new EditorGUI.ChangeCheckScope()) {
-                    averageColor = EditorGUILayout.ColorField(GUIContent.none, averageColor, true, false, false);
-                    if (changed.changed) {
-                        var deltaChroma = Color2Chroma(averageColor) - averageChroma;
-                        deltaChroma.z = 0;
-                        deltaChroma.w = 0;
-                        for (int i = 0; i < count; i++) {
-                            using var colorProperty = colorsProperty.GetArrayElementAtIndex(i);
-                            var chroma = chromas[i];
-                            chroma += deltaChroma;
-                            colorProperty.colorValue = Chroma2Color(chroma);
-                        }
-                    }
-                }
-            }
+            DrawChromaEditor(count);
             EditorGUILayout.Space();
             for (int i = 0; i < count; i++) {
                 using var colorProperty = colorsProperty.GetArrayElementAtIndex(i);
                 EditorGUILayout.PropertyField(colorProperty, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorN", i + 1));
             }
-            addRemoveFoldout = EditorGUILayout.Foldout(addRemoveFoldout, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.advanced"));
-            if (addRemoveFoldout)
-                using (new EditorGUILayout.HorizontalScope()) {
-                    if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.addPalette"))) {
-                        colorsProperty.InsertArrayElementAtIndex(count);
-                        using var colorProperty = colorsProperty.GetArrayElementAtIndex(count);
-                        colorProperty.colorValue = Color.white;
-                        count++;
-                    }
-                    using (new EditorGUI.DisabledScope(count <= 0))
-                        if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.removePalette")))
-                            FUtils.DeleteElement(colorsProperty, colorsProperty.arraySize - 1);
-                }
             EditorGUILayout.PropertyField(autoApplyOnBuildProperty);
-        }
-
-        public override void DrawInspectorGUI() {
-            serializedObject.Update();
-            DrawEmbeddedInspectorGUI();
-            EditorGUILayout.Space();
             using (new EditorGUILayout.HorizontalScope()) {
-                if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply")))
-                    (target as ColorConfig).ConfigurateColors();
-                if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply_all")) &&
+                if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply"))) {
+                    foreach (var colorConfig in targets)
+                        (colorConfig as ColorConfig).ConfigurateColors();
+                }
+                if (showApplyAll && GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply_all")) &&
                     i18n.DisplayLocalizedDialog2("JLChnToZ.VRC.VVMW.Designer.ColorConfig.apply_all")) {
                     var colorConfigs = FindObjectsOfType<ColorConfig>();
                     foreach (var colorConfig in colorConfigs) {
@@ -109,6 +65,60 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                             }
                         colorConfig.ConfigurateColors();
                     }
+                }
+            }
+        }
+
+        void DrawChromaEditor(int count) {
+            if (colorsProperty.hasMultipleDifferentValues) return;
+            using (PooledObjectExtensions.Get(out List<Vector4> chromas, colorsProperty.arraySize)) {
+                var averageChroma = Vector4.zero;
+                for (int i = 0; i < count; i++) {
+                    using var colorProperty = colorsProperty.GetArrayElementAtIndex(i);
+                    if (colorProperty.hasMultipleDifferentValues) return;
+                    var color = colorProperty.colorValue;
+                    var chroma = Color2Chroma(color);
+                    chromas.Add(chroma);
+                    averageChroma += chroma;
+                }
+                averageChroma /= count;
+                averageChroma.z = 1;
+                averageChroma.w = 1;
+                var averageColor = Chroma2Color(averageChroma);
+                using var changed = new EditorGUI.ChangeCheckScope();
+                averageColor = EditorGUILayout.ColorField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.colorPalette"), averageColor, true, false, false);
+                if (!changed.changed) return;
+                var deltaChroma = Color2Chroma(averageColor) - averageChroma;
+                deltaChroma.z = 0;
+                deltaChroma.w = 0;
+                for (int i = 0; i < count; i++) {
+                    using var colorProperty = colorsProperty.GetArrayElementAtIndex(i);
+                    var chroma = chromas[i];
+                    chroma += deltaChroma;
+                    colorProperty.colorValue = Chroma2Color(chroma);
+                }
+            }
+        }
+
+        public override void DrawInspectorGUI() {
+            serializedObject.Update();
+            showApplyAll = true;
+            DrawEmbeddedInspectorGUI();
+            showApplyAll = false;
+            EditorGUILayout.Space();
+            addRemoveFoldout = EditorGUILayout.Foldout(addRemoveFoldout, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.advanced"));
+            if (addRemoveFoldout) {
+                var count = colorsProperty.arraySize;
+                using (new EditorGUILayout.HorizontalScope()) {
+                    if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.addPalette"))) {
+                        colorsProperty.InsertArrayElementAtIndex(count);
+                        using var colorProperty = colorsProperty.GetArrayElementAtIndex(count);
+                        colorProperty.colorValue = Color.white;
+                        count++;
+                    }
+                    using (new EditorGUI.DisabledScope(count <= 0))
+                        if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.ColorConfig.removePalette")))
+                            FUtils.DeleteElement(colorsProperty, colorsProperty.arraySize - 1);
                 }
             }
             serializedObject.ApplyModifiedProperties();

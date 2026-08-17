@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
 #if UNITY_EDITOR
@@ -15,12 +16,26 @@ namespace JLChnToZ.VRC.VVMW.Designer {
     [AddComponentMenu("VizVid/Color Configurator/Color Config")]
     [HelpURL("https://xtlcdn.github.io/VizVid/docs/#how-to-change-color")]
     public partial class ColorConfig : MonoBehaviour, ISelfPreProcess {
+        static Dictionary<Core, HashSet<ColorConfig>> coreToColorConfigs = new Dictionary<Core, HashSet<ColorConfig>>();
+        static Action<Core, HashSet<ColorConfig>> onColorConfigsRemapped;
         /// <summary>
         /// The color palette for all children components.
         /// </summary>
         public Color[] colors;
         [SerializeField, HideInInspector] AbstractAutoConfigurator[] appliedAutoConfigurators;
         [SerializeField, LocalizedLabel] internal bool autoApplyOnBuild = true;
+        [NonSerialized] Core mappedCore;
+        [NonSerialized] bool hasAwaken;
+
+        internal static event Action<Core, HashSet<ColorConfig>> OnColorConfigsRemapped {
+            add {
+                onColorConfigsRemapped += value;
+                foreach (var kv in coreToColorConfigs)
+                    if (kv.Value.Count > 0)
+                        value.Invoke(kv.Key, kv.Value);
+            }
+            remove => onColorConfigsRemapped -= value;
+        }
 
         int IPrioritizedPreProcessor.Priority => 0;
 
@@ -32,6 +47,71 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 return Application.isPlaying;
 #endif
             }
+        }
+
+        Core FindCore() {
+#if !COMPILER_UDONSHARP
+            for (var t = transform; t != null; t = t.parent) {
+                if (t.TryGetComponent(out Core core)) return core;
+                using (PooledObjectExtensions.Get(out List<MonoBehaviour> mbs)) {
+                    t.GetComponents(mbs);
+                    foreach (var mb in mbs) {
+                        if (mb is IVizVidCompoonent vvComponent)
+                            return vvComponent.Core;
+                    }
+                }
+            }
+#endif
+            return null;
+        }
+
+        void Awake() {
+            if (hasAwaken) return;
+            hasAwaken = true;
+            destroyCancellationToken.Register(OnDestroying);
+#if UNITY_EDITOR
+            EditorApplication.hierarchyChanged += OnHierarchyChanged;
+#endif
+            mappedCore = FindCore();
+            AddColorConfigToCore(mappedCore);
+        }
+
+        void OnValidate() {Awake();
+        }
+
+        void OnDestroying() {
+#if UNITY_EDITOR
+            EditorApplication.hierarchyChanged -= OnHierarchyChanged;
+#endif
+            if (mappedCore == null) return;
+            RemoveColorConfigFromCore(mappedCore);
+            mappedCore = null;
+        }
+
+        void OnHierarchyChanged() {
+            var newMappedCore = FindCore();
+            if (newMappedCore == mappedCore) return;
+            RemoveColorConfigFromCore(mappedCore);
+            mappedCore = newMappedCore;
+            AddColorConfigToCore(mappedCore);
+        }
+
+        void RemoveColorConfigFromCore(Core core) {
+            if (core == null) return;
+            if (!coreToColorConfigs.TryGetValue(core, out var colorConfigs)) return;
+            if (colorConfigs.Remove(this) && colorConfigs.Count == 0)
+                coreToColorConfigs.Remove(core);
+            onColorConfigsRemapped?.Invoke(core, colorConfigs);
+        }
+
+        void AddColorConfigToCore(Core core) {
+            if (core == null) return;
+            if (!coreToColorConfigs.TryGetValue(core, out var colorConfigs)) {
+                colorConfigs = new HashSet<ColorConfig>();
+                coreToColorConfigs.Add(core, colorConfigs);
+            }
+            colorConfigs.Add(this);
+            onColorConfigsRemapped?.Invoke(core, colorConfigs);
         }
 
         /// <summary>

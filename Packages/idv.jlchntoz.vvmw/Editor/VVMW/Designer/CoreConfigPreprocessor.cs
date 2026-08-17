@@ -56,6 +56,13 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                                     DestroyImmediate(components[i]);
                             }
                         }
+            foreach (var frontendHandler in scene.IterateAllComponents<FrontendHandler>()) {
+                if (frontendHandler.autoPlayOnIdle) {
+                    frontendHandler.autoPlayOnIdle = false;
+                    if (frontendHandler.idleMode == IdleMode.DoNothing) frontendHandler.idleMode = IdleMode.PlayDefaultPlaylist;
+                }
+                UdonSharpEditorUtility.CopyProxyToUdon(frontendHandler);
+            }
         }
     }
 }

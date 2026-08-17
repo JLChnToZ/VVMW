@@ -36,8 +36,8 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] bool locked = false;
         [SerializeField, LocalizedLabel] bool defaultLoop, defaultShuffle;
         [SerializeField, LocalizedLabel, FormerlySerializedAs("autoPlay")] bool autoPlayOnJoin = true;
-        [SerializeField, LocalizedLabel] bool autoPlayOnIdle = false;
-        [SerializeField, LocalizedLabel, LocalizedEnum] IdleMode idleMode = 0;
+        [SerializeField, LocalizedLabel] internal bool autoPlayOnIdle = false;
+        [SerializeField, LocalizedLabel, LocalizedEnum] internal IdleMode idleMode = 0;
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core.autoPlayDelay")] float autoPlayDelay = 0;
         [SerializeField, LocalizedLabel] bool seedRandomBeforeShuffle = true;
         InputFilterBase urlInputFilter;

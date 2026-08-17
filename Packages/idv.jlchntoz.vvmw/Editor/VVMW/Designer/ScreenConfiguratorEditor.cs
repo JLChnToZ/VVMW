@@ -101,6 +101,11 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     avProPropertyNameProperty,
                     defaultTextureProperty
                 );
+            DrawExtraProperties();
+        }
+
+        public void DrawExtraProperties() {
+            var target = this.target as ScreenConfigurator;
 #if VRCLV3_IMPORTED
             using (var changeCheck = new EditorGUI.ChangeCheckScope())
             using (new EditorGUILayout.HorizontalScope()) {
@@ -143,6 +148,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 ref mode, out var shader, out var materials
             );
             CoreEditor.DrawScreenMaterialOptions(
+                screenRendererProperty,
                 targetPropertyNameProperty,
                 avProPropertyNameProperty,
                 ref useST, shader, materials

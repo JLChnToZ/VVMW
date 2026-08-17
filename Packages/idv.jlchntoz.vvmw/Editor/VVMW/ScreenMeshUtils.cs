@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Pool;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
@@ -32,78 +33,246 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
         public static void TryFixupAspectRatioInMaterial(MeshRenderer meshRenderer) => TryFixupAspectRatioInMaterial(new[] { meshRenderer });
 
-        public static void TryFixupAspectRatioInMaterial(IEnumerable<MeshRenderer> renderers) {
-            using (DictionaryPool<MeshRenderer, Mesh>.Get(out var renderererMap))
+        public readonly struct MaterialPropertyOverride {
+            public readonly int propertyId;
+            public readonly ShaderPropertyType propertyType;
+            public readonly object value;
+
+            public MaterialPropertyOverride(int propertyId, ShaderPropertyType propertyType, object value) {
+                this.propertyId = propertyId;
+                this.propertyType = propertyType;
+                this.value = value;
+            }
+
+            public MaterialPropertyOverride(string propertyName, ShaderPropertyType propertyType, object value) : this(Shader.PropertyToID(propertyName), propertyType, value) { }
+
+            public MaterialPropertyOverride(string propertyName, float value) : this(Shader.PropertyToID(propertyName), ShaderPropertyType.Float, value) { }
+
+            public MaterialPropertyOverride(string propertyName, int value) : this(Shader.PropertyToID(propertyName), ShaderPropertyType.Int, value) { }
+
+            public MaterialPropertyOverride(string propertyName, Color value) : this(Shader.PropertyToID(propertyName), ShaderPropertyType.Color, value) { }
+
+            public MaterialPropertyOverride(string propertyName, Vector4 value) : this(Shader.PropertyToID(propertyName), ShaderPropertyType.Vector, value) { }
+
+            public MaterialPropertyOverride(string propertyName, Texture value) : this(Shader.PropertyToID(propertyName), ShaderPropertyType.Texture, value) { }
+        }
+
+        readonly struct MaterialPropertyKey : IEquatable<MaterialPropertyKey> {
+            readonly MaterialPropertyOverride[] properties;
+            readonly int hashCode;
+
+            public MaterialPropertyKey(MaterialPropertyOverride[] properties) {
+                this.properties = properties;
+                var hc = new HashCode();
+                foreach (var property in properties) {
+                    hc.Add(property.propertyId);
+                    hc.Add(property.propertyType);
+                    hc.Add(property.value);
+                }
+                hashCode = hc.ToHashCode();
+            }
+
+            public bool Equals(MaterialPropertyKey other) {
+                if (properties.Length != other.properties.Length) return false;
+                for (int i = 0; i < properties.Length; i++) {
+                    var a = properties[i];
+                    var b = other.properties[i];
+                    if (a.propertyId != b.propertyId ||
+                        a.propertyType != b.propertyType ||
+                        !Equals(a.value, b.value))
+                        return false;
+                }
+                return true;
+            }
+
+            public override bool Equals(object obj) => obj is MaterialPropertyKey other && Equals(other);
+
+            public override int GetHashCode() => hashCode;
+        }
+
+        public static void TryFixupAspectRatioInMaterial(IEnumerable<Renderer> renderers) =>
+            TryFixupMaterialProperties(renderers, GetAspectRatioProperties, GetAspectRatioPostfix, "Fixup Aspect Ratio in Material");
+
+        static MaterialPropertyOverride[] GetAspectRatioProperties(Renderer renderer, int subMeshIndex) {
+            if (!renderer.TryGetComponent(out MeshFilter meshFilter)) return null;
+            var mesh = meshFilter.sharedMesh;
+            if (mesh == null || !mesh.isReadable || !TryEstimateAspectRatio(mesh, subMeshIndex, renderer.localToWorldMatrix, out var aspectRatio))
+                return null;
+            return new[] { new MaterialPropertyOverride("_AspectRatio", aspectRatio) };
+        }
+
+        static string GetAspectRatioPostfix(MaterialPropertyOverride[] properties) =>
+            $"_Adjusted_{HumanizeAspectRatio((float)properties[0].value)}";
+
+        public static void TryFixupMaterialProperties(
+            IEnumerable<Renderer> renderers,
+            MaterialPropertyOverride[] properties,
+            string generatedMaterialPostfix = "_Adjusted"
+        ) {
+            var provider = new FixedMaterialPropertyProvider(properties, generatedMaterialPostfix);
+            TryFixupMaterialProperties(renderers, provider.GetProperties, provider.GetGeneratedMaterialPostfix, "Fixup Aspect Ratio in Material");
+        }
+
+        sealed class FixedMaterialPropertyProvider {
+            readonly MaterialPropertyOverride[] properties;
+            readonly string generatedMaterialPostfix;
+
+            public FixedMaterialPropertyProvider(MaterialPropertyOverride[] properties, string generatedMaterialPostfix) {
+                this.properties = properties;
+                this.generatedMaterialPostfix = generatedMaterialPostfix;
+            }
+
+            public MaterialPropertyOverride[] GetProperties(Renderer renderer, int subMeshIndex) => properties;
+
+            public string GetGeneratedMaterialPostfix(MaterialPropertyOverride[] properties) => generatedMaterialPostfix;
+        }
+
+        public static void TryFixupMaterialProperties(
+            IEnumerable<Renderer> renderers,
+            Func<Renderer, int, MaterialPropertyOverride[]> getProperties,
+            Func<MaterialPropertyOverride[], string> getGeneratedMaterialPostfix = null,
+            string undoName = "Fixup Material Properties"
+        ) {
+            getGeneratedMaterialPostfix ??= GetDefaultGeneratedMaterialPostfix;
+            using (HashSetPool<Renderer>.Get(out var renderererMap))
             using (HashSetPool<Material>.Get(out var materialsRequireAliasing))
-            using (DictionaryPool<(Material, float), List<(MeshRenderer, int)>>.Get(out var materialSourceMap))
-            using (ListPool<(string, Material, float)>.Get(out var generatedMaterials))
-            using (DictionaryPool<(Material, float), Material>.Get(out var materialAspectMap)) {
+            using (DictionaryPool<(Material, MaterialPropertyKey), List<(Renderer, int)>>.Get(out var materialSourceMap))
+            using (ListPool<(string, Material, MaterialPropertyOverride[])>.Get(out var generatedMaterials))
+            using (DictionaryPool<(Material, MaterialPropertyKey), Material>.Get(out var materialPropertyMap)) {
                 foreach (var r in renderers) {
-                    if (r == null ||
-                        renderererMap.ContainsKey(r) ||
-                        !r.TryGetComponent(out MeshFilter mf))
-                        continue;
-                    var mesh = mf.sharedMesh;
-                    if (mesh == null || !mesh.isReadable) continue;
-                    renderererMap.Add(r, mesh);
+                    if (r == null) continue;
+                    renderererMap.Add(r);
                 }
                 var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
                 var scene = prefabStage != null ? prefabStage.scene : SceneManager.GetActiveScene();
                 foreach (var renderer in scene.IterateAllComponents<Renderer>()) {
-                    if (renderer is MeshRenderer mr && renderererMap.ContainsKey(mr))
+                    if (renderererMap.Contains(renderer))
                         continue;
                     foreach (var mat in renderer.sharedMaterials)
                         if (mat != null)
                             materialsRequireAliasing.Add(mat);
                 }
-                var aspectRatioID = Shader.PropertyToID("_AspectRatio");
-                foreach (var kv in renderererMap) {
-                    var mr = kv.Key;
-                    var mesh = kv.Value;
+                foreach (var mr in renderererMap) {
                     var materials = mr.sharedMaterials;
-                    var matrix = mr.localToWorldMatrix;
-                    List<(MeshRenderer, int)> sourceList = null;
                     for (int i = 0; i < materials.Length; i++) {
                         var mat = materials[i];
                         if (mat == null) continue;
-                        if (!mat.HasProperty(aspectRatioID) ||
-                            !TryEstimateAspectRatio(mesh, i, matrix, out var aspectRatio) ||
-                            Mathf.Approximately(mat.GetFloat(aspectRatioID), aspectRatio)) {
+                        var properties = getProperties(mr, i);
+                        if (!TryGetPropertyKey(mat, properties, out var propertyKey) ||
+                            ArePropertiesEqual(mat, properties)) {
                             materialsRequireAliasing.Add(mat);
                             continue;
                         }
-                        if (sourceList == null && !materialSourceMap.TryGetValue((mat, aspectRatio), out sourceList)) {
-                            sourceList = ListPool<(MeshRenderer, int)>.Get();
-                            materialSourceMap.Add((mat, aspectRatio), sourceList);
+                        if (!materialSourceMap.TryGetValue((mat, propertyKey), out var sourceList)) {
+                            sourceList = ListPool<(Renderer, int)>.Get();
+                            materialSourceMap.Add((mat, propertyKey), sourceList);
                         }
                         sourceList.Add((mr, i));
                     }
                 }
-                var excludePropertyIds = new[] { aspectRatioID };
                 foreach (var kv in materialSourceMap) {
-                    var (mat, aspectRatio) = kv.Key;
-                    if (!materialAspectMap.TryGetValue(kv.Key, out var newMat)) {
+                    var mat = kv.Key.Item1;
+                    if (!materialPropertyMap.TryGetValue(kv.Key, out var newMat)) {
                         var assetPath = AssetDatabase.GetAssetPath(mat);
-                        if (materialsRequireAliasing.Add(mat) && MaterialUtil.IsMaterialSafeToModify(mat)) {
+                        var properties = kv.Value.Count > 0 ? getProperties(kv.Value[0].Item1, kv.Value[0].Item2) : null;
+                        var excludePropertyIds = GetPropertyIds(properties);
+                        bool canModify = materialsRequireAliasing.Add(mat) && MaterialUtil.IsMaterialSafeToModify(mat);
+                        if (canModify) {
                             newMat = mat;
-                            Undo.RecordObject(newMat, "Fixup Aspect Ratio in Material");
+                            Undo.RecordObject(newMat, undoName);
                         } else
                             newMat = MaterialUtil.CreateGeneratedAlias(mat, excludePropertyIds);
-                        newMat.SetFloat(aspectRatioID, aspectRatio);
-                        materialAspectMap.Add(kv.Key, newMat);
+                        SetProperties(newMat, properties);
+                        if (!canModify && getGeneratedMaterialPostfix != null)
+                            generatedMaterials.Add((assetPath, newMat, properties));
+                        materialPropertyMap.Add(kv.Key, newMat);
                     }
                     foreach (var (mr, index) in kv.Value) {
                         var sharedMaterials = mr.sharedMaterials;
                         sharedMaterials[index] = newMat;
-                        Undo.RecordObject(mr, "Fixup Aspect Ratio in Material");
+                        Undo.RecordObject(mr, undoName);
                         mr.sharedMaterials = sharedMaterials;
                         if (PrefabUtility.IsPartOfPrefabInstance(mr))
                             PrefabUtility.RecordPrefabInstancePropertyModifications(mr);
                     }
-                    ListPool<(MeshRenderer, int)>.Release(kv.Value);
+                    ListPool<(Renderer, int)>.Release(kv.Value);
                 }
-                foreach (var (assetPath, mat, aspectRatio) in generatedMaterials)
-                    MaterialUtil.SaveMaterialAsAsset(mat, assetPath, $"_Adjusted_{HumanizeAspectRatio(aspectRatio)}", false);
+                foreach (var (assetPath, mat, properties) in generatedMaterials)
+                    MaterialUtil.SaveMaterialAsAsset(mat, assetPath, getGeneratedMaterialPostfix(properties), false);
+            }
+        }
+
+        static string GetDefaultGeneratedMaterialPostfix(MaterialPropertyOverride[] properties) => "_Adjusted";
+
+        static bool TryGetPropertyKey(Material material, MaterialPropertyOverride[] properties, out MaterialPropertyKey key) {
+            if (properties == null) {
+                key = default;
+                return false;
+            }
+            foreach (var property in properties)
+                if (property.propertyId == 0 || !material.HasProperty(property.propertyId)) {
+                    key = default;
+                    return false;
+                }
+            key = new MaterialPropertyKey(properties);
+            return true;
+        }
+
+        static bool ArePropertiesEqual(Material material, MaterialPropertyOverride[] properties) {
+            foreach (var property in properties) {
+                switch (property.propertyType) {
+                    case ShaderPropertyType.Float:
+                    case ShaderPropertyType.Range:
+                        if (property.value is not float value || !Mathf.Approximately(material.GetFloat(property.propertyId), value)) return false;
+                        break;
+                    case ShaderPropertyType.Int:
+                        if (property.value is not int intValue || material.GetInteger(property.propertyId) != intValue) return false;
+                        break;
+                    case ShaderPropertyType.Color:
+                        if (property.value is not Color color || material.GetColor(property.propertyId) != color) return false;
+                        break;
+                    case ShaderPropertyType.Vector:
+                        if (property.value is not Vector4 vector || material.GetVector(property.propertyId) != vector) return false;
+                        break;
+                    case ShaderPropertyType.Texture:
+                        if (property.value is not Texture && property.value != null) return false;
+                        if (material.GetTexture(property.propertyId) != (Texture)property.value) return false;
+                        break;
+                    default:
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        static int[] GetPropertyIds(MaterialPropertyOverride[] properties) {
+            if (properties == null) return null;
+            var ids = new int[properties.Length];
+            for (int i = 0; i < properties.Length; i++)
+                ids[i] = properties[i].propertyId;
+            return ids;
+        }
+
+        static void SetProperties(Material material, MaterialPropertyOverride[] properties) {
+            foreach (var property in properties) {
+                switch (property.propertyType) {
+                    case ShaderPropertyType.Float:
+                    case ShaderPropertyType.Range:
+                        material.SetFloat(property.propertyId, (float)property.value);
+                        break;
+                    case ShaderPropertyType.Int:
+                        material.SetInteger(property.propertyId, (int)property.value);
+                        break;
+                    case ShaderPropertyType.Color:
+                        material.SetColor(property.propertyId, (Color)property.value);
+                        break;
+                    case ShaderPropertyType.Vector:
+                        material.SetVector(property.propertyId, (Vector4)property.value);
+                        break;
+                    case ShaderPropertyType.Texture:
+                        material.SetTexture(property.propertyId, property.value as Texture);
+                        break;
+                }
             }
         }
 

@@ -10,7 +10,7 @@
         _AspectRatio ("Target Aspect Ratio", Float) = 1.777778
         [Toggle(_ESTIMATE_ASPECT_RATIO)] _EstimateAspectRatio ("Auto Estimate (PC Only, Experimental)", Int) = 0
         [Toggle(_)] _IsMirror ("Mirror Flip", Int) = 1
-        [EnumMask(Direct Look, VR Handheld Camera, Desktop Handheld Camera, Screenshot, VR Mirror, VR Handheld Camera in Mirror, _, VR Screenshot in Mirror, Desktop Mirror, _, Desktop Handheld Camera in Mirror, Desktop Screenshot in Mirror)]
+        [EnumMask(Direct Look, VR Handheld Camera, Desktop Handheld Camera, Screenshot, VR Mirror, VR Handheld Camera in Mirror, VR Face Mirror, VR Screenshot in Mirror, Desktop Mirror, Desktop Face Mirror, Desktop Handheld Camera in Mirror, Desktop Screenshot in Mirror)]
         _RenderMode ("Visible Modes", Int) = 4095
         [Toggle(_HAS_EMISSION_INTENSITY)] _HasEmission ("Enable Emission Intensity", Int) = 0
         _EmissionIntensity ("Emission Intensity", Range(0, 10)) = 1.0

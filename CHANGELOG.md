@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 - Light Volume component placement now precisely estimated (calculated with polygon geometries).
 - Enhanced custom title display flow
+- Rearranged inspector layout
 
 ## 1.7.6-beta.4 - 2026-08-01
 ### Fixed

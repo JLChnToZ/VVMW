@@ -1,5 +1,6 @@
-using UdonSharp;
+using System;
 using UnityEngine;
+using UdonSharp;
 
 namespace JLChnToZ.VRC.VVMW {
     /// <summary>
@@ -16,5 +17,14 @@ namespace JLChnToZ.VRC.VVMW {
         /// The VizVid Core.
         /// </summary>
         Core Core { get; }
+    }
+
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
+    public class CollapsableHeaderAttribute : Attribute {
+        public readonly string key;
+
+        public CollapsableHeaderAttribute(string key) {
+            this.key = key;
+        }
     }
 }

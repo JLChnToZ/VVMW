@@ -17,8 +17,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         const string fontGUID = "088cf7162d0a81c46ad54028cfdcb382";
         const string listingsID = "idv.jlchntoz.xtlcdn-listing";
         const string listingsURL = "https://xtlcdn.github.io/vpm/index.json";
+        const string documentationURL = "https://xtlcdn.github.io/VizVid/docs/";
+        const string discordServerURL = "https://discord.gg/fkDueQMbj8";
         protected static readonly Dictionary<Type, (FieldInfo fieldInfo, Type editorType)> controllableTypes = new Dictionary<Type, (FieldInfo, Type)>();
         protected static readonly Dictionary<Type, Type> editorTypes = new Dictionary<Type, Type>();
+        readonly Dictionary<string, (string key, bool shown)> foldoutStates = new Dictionary<string, (string, bool)>();
+        static readonly GUIContent[] buttonBar = new[] { new GUIContent(), new GUIContent(), new GUIContent() };
         static readonly List<MonoBehaviour> behaviours = new List<MonoBehaviour>();
         static Texture2D bannerTexture;
         static PackageSelfUpdater selfUpdater;
@@ -26,6 +30,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static GUIStyle versionLabelStyle;
         protected static EditorI18N i18n;
         bool isUdonSharp;
+        bool firstRun;
 
         [InitializeOnLoadMethod]
         static void Init() {
@@ -141,6 +146,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 #endif
             i18n = EditorI18N.Instance;
             isUdonSharp = target is UdonSharpBehaviour;
+            firstRun = true;
         }
 
         protected virtual void OnDisable() {
@@ -167,7 +173,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     if (b == target) DrawBanner();
                     break;
                 }
-            if (GUILayout.Button(i18n.GetOrDefault("GlobalSettings"))) GlobalSettingsEditorWindow.ShowWindow();
+            using (new EditorGUILayout.HorizontalScope()) {
+                i18n.GetLocalizedContent("GlobalSettings", buttonBar[0]);
+                i18n.GetLocalizedContent("Documentation", buttonBar[1]);
+                i18n.GetLocalizedContent("Discord", buttonBar[2]);
+                switch (GUILayout.Toolbar(-1, buttonBar)) {
+                    case 0: GlobalSettingsEditorWindow.ShowWindow(); break;
+                    case 1: Application.OpenURL(documentationURL); break;
+                    case 2: Application.OpenURL(discordServerURL); break;
+                }
+            }
             if (isUdonSharp) {
                 using (new EditorGUILayout.VerticalScope(GUI.skin.box))
                 using (new EditorGUI.IndentLevelScope()) {
@@ -214,12 +229,27 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         public virtual void DrawEmbeddedInspectorGUI() {
-            var iterator = serializedObject.GetIterator();
-            if (iterator.NextVisible(true))
-                do {
-                    if (iterator.propertyPath == "m_Script") continue;
-                    EditorGUILayout.PropertyField(iterator);
-                } while (iterator.NextVisible(false));
+            using var iterator = serializedObject.GetIterator();
+            if (!iterator.NextVisible(true)) return;
+            bool show = true;
+            do {
+                if (iterator.propertyPath == "m_Script") continue;
+                var propertyPath = iterator.propertyPath;
+                if (firstRun) {
+                    var fieldInfo = Utils.GetFieldInfoFromProperty(iterator, out _);
+                    var collapsableHeaderAttribute = fieldInfo?.GetCustomAttribute<CollapsableHeaderAttribute>();
+                    if (collapsableHeaderAttribute != null)
+                        if (!foldoutStates.ContainsKey(collapsableHeaderAttribute.key))
+                            foldoutStates[propertyPath] = (collapsableHeaderAttribute.key, false);
+                }
+                if (foldoutStates.TryGetValue(propertyPath, out var foldout)) {
+                    EditorGUILayout.Space();
+                    foldout.shown = show = EditorGUILayout.Foldout(foldout.shown, i18n.GetLocalizedContent(foldout.key), true, EditorStyles.foldoutHeader);
+                    foldoutStates[propertyPath] = foldout;
+                }
+                if (show) EditorGUILayout.PropertyField(iterator);
+            } while (iterator.NextVisible(false));
+            firstRun = false;
         }
     }
 }

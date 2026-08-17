@@ -21,7 +21,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DefaultExecutionOrder(2)]
     [HelpURL("https://xtlcdn.github.io/VizVid/docs/#default-ui--screen-with-overlay")]
     public partial class UIHandler : VizVidBehaviour {
-        [LocalizedHeader("HEADER:Main_Reference")]
+        [CollapsableHeader("HEADER:Main_Reference")]
         [SerializeField, BindUdonSharpEvent(
             nameof(_OnPerformerChange),
             nameof(_OnRangeLoopChange),
@@ -47,7 +47,7 @@ namespace JLChnToZ.VRC.VVMW {
         public FrontendHandler handler;
         [SerializeField, HideInInspector, BindUdonSharpEvent] LanguageManager languageManager;
 
-        [LocalizedHeader("HEADER:URL_Input")]
+        [CollapsableHeader("HEADER:URL_Input")]
         [BindEvent(nameof(VRCUrlInputField.onValueChanged), nameof(_OnURLChanged))]
         [BindEvent(nameof(VRCUrlInputField.onEndEdit), nameof(_OnURLEndEdit))]
         [SerializeField, LocalizedLabel] VRCUrlInputField urlInput;
@@ -76,7 +76,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, Resolve(nameof(queueMode), NullOnly = false)] TextMeshProUGUI queueModeTMPro;
         [SerializeField, LocalizedLabel] GameObject otherObjectUnderUrlInput;
 
-        [LocalizedHeader("HEADER:Playback_Controls")]
+        [CollapsableHeader("HEADER:Playback_Controls")]
         [SerializeField, LocalizedLabel] Animator playbackControlsAnimator;
         [BindEvent(nameof(Button.onClick), nameof(_Play))]
         [SerializeField, LocalizedLabel] Button playButton;
@@ -134,7 +134,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel, BindUdonSharpEvent] RangeSlider abLoopSlider;
         [SerializeField, HideInInspector, Resolve(nameof(abLoopSlider), NullOnly = false)] GameObject abLoopSliderObject;
 
-        [LocalizedHeader("HEADER:Volume_Control")]
+        [CollapsableHeader("HEADER:Volume_Control")]
         [BindEvent("m_OnValueChanged", nameof(_OnVolumeSlide))]
         [SerializeField, LocalizedLabel] Slider volumeSlider;
         [BindEvent(nameof(Button.onClick), nameof(_OnMute))]
@@ -142,10 +142,10 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, Resolve(nameof(muteButton), NullOnly = false)] GameObject muteButtonObject;
         [SerializeField, HideInInspector, Resolve(nameof(unmuteButton), NullOnly = false)] GameObject unmuteButtonObject;
 
-        [LocalizedHeader("HEADER:Idle_Screen")]
+        [CollapsableHeader("HEADER:Idle_Screen")]
         [SerializeField, LocalizedLabel] GameObject idleScreenRoot;
 
-        [LocalizedHeader("HEADEAR:Queue_List_PlayList")]
+        [CollapsableHeader("HEADEAR:Queue_List_PlayList")]
         [SerializeField, LocalizedLabel] GameObject playListPanelRoot;
         [SerializeField, LocalizedLabel, BindUdonSharpEvent] PooledScrollView playListScrollView;
         [SerializeField, HideInInspector, Resolve(nameof(playListScrollView), NullOnly = false)] GameObject playListGameObject;
@@ -174,7 +174,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] GameObject historySelectedIndicator;
         [SerializeField, LocalizedLabel] bool autoHideCurrentPlayListButton = true;
 
-        [LocalizedHeader("HEADER:Sync_Offset_Controls")]
+        [CollapsableHeader("HEADER:Sync_Offset_Controls")]
         [SerializeField, LocalizedLabel] GameObject shiftControlsRoot;
         [BindEvent(nameof(Button.onClick), nameof(_ShiftBackL))]
         [SerializeField, LocalizedLabel, FormerlySerializedAs("shiftBack100msButton")] Button shiftBackLButton;
@@ -202,7 +202,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, Resolve(nameof(performerDisplay), NullOnly = false)] Text performerText;
         [SerializeField, HideInInspector, Resolve(nameof(performerDisplay), NullOnly = false)] TextMeshProUGUI performerTMPro;
 
-        [LocalizedHeader("HEADER:Speed_Adjustment_Controls")]
+        [CollapsableHeader("HEADER:Speed_Adjustment_Controls")]
         [SerializeField, LocalizedLabel] GameObject speedControlsRoot;
         [BindEvent(nameof(Button.onClick), nameof(_SpeedDownL))]
         [SerializeField, LocalizedLabel] Button speedDownLButton;
@@ -223,7 +223,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, HideInInspector, Resolve(nameof(speedOffsetObject), NullOnly = false)] Text speedOffsetText;
         [SerializeField, HideInInspector, Resolve(nameof(speedOffsetObject), NullOnly = false)] TextMeshProUGUI speedOffsetTMPro;
 
-        [LocalizedHeader("HEADER:Screen_Controls")]
+        [CollapsableHeader("HEADER:Screen_Controls")]
         [BindEvent("m_OnValueChanged", nameof(_OnLuminanceSliderChanged))]
         [SerializeField, LocalizedLabel] Slider luminanceSlider;
         [SerializeField, LocalizedLabel] string luminancePropertyName = "_EmissionIntensity";
