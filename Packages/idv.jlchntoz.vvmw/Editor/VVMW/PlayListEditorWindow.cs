@@ -23,16 +23,16 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         static EditorI18N i18n;
         FrontendHandler frontendHandler;
         Core loadedCore;
-        string[] playerHandlerNames;
-        PlayerType[] playerHandlerTypes;
-        string[] localeCodes, localeDisplayNames;
-        int selectedLocaleIndex = -2;
-        int firstUnityPlayerIndex = -1, firstAvProPlayerIndex = -1;
+        [NonSerialized] string[] playerHandlerNames;
+        [NonSerialized] PlayerType[] playerHandlerTypes;
+        [NonSerialized] string[] localeCodes, localeDisplayNames;
+        [NonSerialized] int selectedLocaleIndex = -2;
+        [NonSerialized] int firstUnityPlayerIndex = -1, firstAvProPlayerIndex = -1;
         [SerializeField] List<PlayList> playLists = new List<PlayList>();
-        ReorderableList playListView;
-        ReorderableList playListEntryView;
+        [NonSerialized] ReorderableList playListView;
+        [NonSerialized] ReorderableList playListEntryView;
         [NonSerialized] PlayList selectedPlayList;
-        bool isDirty;
+        [NonSerialized] bool isDirty;
         Vector2 playListViewScrollPosition, playListEntryViewScrollPosition;
         string ytPlaylistUrl;
         public static event Action<FrontendHandler> OnFrontendUpdated;
@@ -217,6 +217,11 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         void DrawPlayListHeader(Rect rect) => EditorGUI.LabelField(rect, i18n.GetOrDefault("PlaylistEditor.playLists"), EditorStyles.boldLabel);
 
         void DrawPlayList(Rect rect, int index, bool isActive, bool isFocused) {
+            var evt = Event.current;
+            if (evt.type == EventType.MouseDown && rect.Contains(evt.mousePosition) && playListView.index != index) {
+                playListView.index = index;
+                PlayListSelected(playListView);
+            }
             var playList = playLists[index];
             if (playListView.index == index) selectedPlayList = playList;
             using (var changed = new EditorGUI.ChangeCheckScope()) {

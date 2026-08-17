@@ -5,11 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- A UI bug on selecting playlist in playlist editor
+
 ### Added
 - New option to return to previous playing playlist item on queue list clear.
 
 ### Changed
 - Light Volume component placement now precisely estimated (calculated with polygon geometries).
+- Enhanced custom title display flow
 
 ## 1.7.6-beta.4 - 2026-08-01
 ### Fixed
