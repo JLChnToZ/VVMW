@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEditor;
 using UdonSharp;
 using UdonSharpEditor;
+using JLChnToZ.VRC.Foundation;
 using JLChnToZ.VRC.Foundation.I18N;
 using JLChnToZ.VRC.Foundation.Editors;
 using JLChnToZ.VRC.Foundation.I18N.Editors;
@@ -23,7 +24,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         protected static readonly Dictionary<Type, Type> editorTypes = new Dictionary<Type, Type>();
         readonly Dictionary<string, (string key, bool shown)> foldoutStates = new Dictionary<string, (string, bool)>();
         static readonly GUIContent[] buttonBar = new[] { new GUIContent(), new GUIContent(), new GUIContent() };
-        static readonly List<MonoBehaviour> behaviours = new List<MonoBehaviour>();
         static Texture2D bannerTexture;
         static PackageSelfUpdater selfUpdater;
         static Font font;
@@ -104,28 +104,18 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                         if (controllableTypes.TryGetValue(inspectedType, out var value))
                             controllableTypes[inspectedType] = (value.fieldInfo, type);
                         editorTypes[inspectedType] = type;
-                        if ((bool)editorForChildClassesField.GetValue(customEditorAttribute)) {
+                        if ((bool)editorForChildClassesField.GetValue(customEditorAttribute))
                             inheritedEditors[inspectedType] = type;
-                            foreach (var pType in processedTypes) {
-                                int baseScore = 0, currentScore = 0;
-                                if (editorTypes.TryGetValue(pType, out var editorType)) {
-                                    for (var bt = pType; bt != null; bt = bt.BaseType) {
-                                        if (bt == editorType) break;
-                                        baseScore--;
-                                    }
-                                } else
-                                    baseScore = int.MinValue;
-                                for (var bt = pType; bt != null; bt = bt.BaseType) {
-                                    if (bt == inspectedType) {
-                                        if (currentScore > baseScore) editorTypes[pType] = type;
-                                        break;
-                                    }
-                                    currentScore--;
-                                }
-                            }
-                        }
                     }
                 }
+            foreach (var type in processedTypes) {
+                if (editorTypes.ContainsKey(type)) continue;
+                for (var t = type.BaseType; t != null; t = t.BaseType)
+                    if (inheritedEditors.TryGetValue(t, out var editorType)) {
+                        editorTypes[type] = editorType;
+                        break;
+                    }
+            }
         }
 
         protected virtual void OnEnable() {
@@ -157,38 +147,32 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         protected bool GetFirstVizVidComponent(out IVizVidCompoonent firstComponent) {
             if (targets.Length == 1)
-                foreach (var b in behaviours)
-                    if (b is IVizVidCompoonent) {
-                        firstComponent = b as IVizVidCompoonent;
-                        return b == target;
-                    }
+                using (PooledObjectExtensions.Get(out List<MonoBehaviour> behaviours)) {
+                    (target as Component).gameObject.GetComponents(behaviours);
+                    foreach (var b in behaviours)
+                        if (b is IVizVidCompoonent) {
+                            firstComponent = b as IVizVidCompoonent;
+                            return b == target;
+                        }
+                }
             firstComponent = null;
             return false;
         }
 
         public override void OnInspectorGUI() {
-            (target as Component).GetComponents(behaviours);
-            foreach (var b in behaviours)
-                if (editorTypes.ContainsKey(b.GetType())) {
-                    if (b == target) DrawBanner();
-                    break;
-                }
-            using (new EditorGUILayout.HorizontalScope()) {
-                i18n.GetLocalizedContent("GlobalSettings", buttonBar[0]);
-                i18n.GetLocalizedContent("Documentation", buttonBar[1]);
-                i18n.GetLocalizedContent("Discord", buttonBar[2]);
-                switch (GUILayout.Toolbar(-1, buttonBar)) {
-                    case 0: GlobalSettingsEditorWindow.ShowWindow(); break;
-                    case 1: Application.OpenURL(documentationURL); break;
-                    case 2: Application.OpenURL(discordServerURL); break;
-                }
+            using (PooledObjectExtensions.Get(out List<MonoBehaviour> behaviours)) {
+                (target as Component).gameObject.GetComponents(behaviours);
+                foreach (var b in behaviours)
+                    if (editorTypes.ContainsKey(b.GetType())) {
+                        if (b == target) DrawBanner();
+                        break;
+                    }
             }
             if (isUdonSharp) {
                 using (new EditorGUILayout.VerticalScope(GUI.skin.box))
-                using (new EditorGUI.IndentLevelScope()) {
+                using (new EditorGUI.IndentLevelScope())
                     if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target, true, false))
                         return;
-                }
                 EditorGUILayout.Space();
             }
             DrawInspectorGUI();
@@ -219,6 +203,15 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             EditorGUILayout.Space();
             I18NUtils.DrawLocaleField();
             selfUpdater.DrawUpdateNotifier();
+            EditorGUILayout.Space();
+            i18n.GetLocalizedContent("GlobalSettings", buttonBar[0]);
+            i18n.GetLocalizedContent("Documentation", buttonBar[1]);
+            i18n.GetLocalizedContent("Discord", buttonBar[2]);
+            switch (GUILayout.Toolbar(-1, buttonBar)) {
+                case 0: GlobalSettingsEditorWindow.ShowWindow(); break;
+                case 1: Application.OpenURL(documentationURL); break;
+                case 2: Application.OpenURL(discordServerURL); break;
+            }
             EditorGUILayout.Space();
         }
 

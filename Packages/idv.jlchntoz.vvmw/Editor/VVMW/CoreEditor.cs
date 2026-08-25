@@ -20,6 +20,7 @@ using UnityObject = UnityEngine.Object;
 namespace JLChnToZ.VRC.VVMW.Editors {
     [CustomEditor(typeof(Core))]
     public class CoreEditor : VVMWEditorBase {
+        const string showAllSettingsPrefsKey = "VVMW_CoreEditor_ShowAllSettings";
         const string activeRegionPrefabPath = "Packages/idv.jlchntoz.vvmw/Prefabs/Active Region.prefab";
         readonly Dictionary<Core, UdonSharpBehaviour> autoPlayControllers = new Dictionary<Core, UdonSharpBehaviour>();
         readonly Dictionary<AudioSource, (SerializedObject, SerializedObject)> audioSourceComponents = new Dictionary<AudioSource, (SerializedObject, SerializedObject)>();
@@ -87,6 +88,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         protected override void OnEnable() {
             base.OnEnable();
+            showAllSettings = EditorPrefs.GetBool(showAllSettingsPrefsKey, false);
             playerHandlersProperty = serializedObject.FindProperty("playerHandlers");
             playerHandlersList = new SerializedReorderableList(playerHandlersProperty) {
                 drawHeaderCallback = DrawPlayerHandlersListHeader,
@@ -167,7 +169,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 autoPlayControllerEditor.serializedObject.Update();
             i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.simpleSettings", settingsModes[0]);
             i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.advancedSettings", settingsModes[1]);
-            showAllSettings = GUILayout.Toolbar(showAllSettings ? 1 : 0, settingsModes) == 1;
+            using (var change = new EditorGUI.ChangeCheckScope()) {
+                showAllSettings = GUILayout.Toolbar(showAllSettings ? 1 : 0, settingsModes) == 1;
+                if (change.changed) EditorPrefs.SetBool(showAllSettingsPrefsKey, showAllSettings);
+            }
             DrawAudioSettings();
             DrawRepeatShuffleSettings(autoPlayControllerEditor);
             DrawCommonSettings(autoPlayControllerEditor);
