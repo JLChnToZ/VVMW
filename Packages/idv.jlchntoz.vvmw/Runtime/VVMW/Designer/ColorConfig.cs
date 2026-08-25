@@ -89,6 +89,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 
         void OnHierarchyChanged() {
+            if (this == null) return;
             var newMappedCore = FindCore();
             if (newMappedCore == mappedCore) return;
             RemoveColorConfigFromCore(mappedCore);
