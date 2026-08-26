@@ -76,8 +76,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             AddColorConfigToCore(mappedCore);
         }
 
-        void OnValidate() {Awake();
-        }
+        void OnValidate() => Awake();
 
         void OnDestroying() {
 #if UNITY_EDITOR

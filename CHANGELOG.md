@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - New option to return to previous playing playlist item on queue list clear.
+- Audio Source Configurator for 5.1 and stereo audio sources.
 
 ### Changed
 - Light Volume component placement now precisely estimated (calculated with polygon geometries).
