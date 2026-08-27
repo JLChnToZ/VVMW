@@ -56,43 +56,44 @@ And follow the steps on the image below to migrate.
 
 ---
 ## Basic Settings  
-### Common Settings  
-* **Edit Playlists...**  
-Opens the playlist editor window. You can create, edit, and import playlists.  
-For detailed usage, ckeck on [Editing Playlists](#editing-playlists).  
-* **Enable Queue List**  
-When enabled, URLs you input can be queued into the queue list.  
-* **History Size**  
-Set how many playback URLs are stored in history. Set `0` to disable it.  
-*Note: Contents played from playlists will not be recorded in history.*  
-
-### Default Behavior  
-Adjust VizVid's default values for this world.  
-* **Auto Play on Join**  
-Auto play the default playlist when the first player joined the world.  
-* **Auto Play Delay**  
-If there are no other video players besides VizVid in the world, you don't need adjust this.  
-* **Auto Play on Idle**  
-If the current playlist finishes, VizVid will continue play the default playlist.  
-* **Default Playlist**  
-Choose a playlist to use as the default from your saved playlists.  
+### Audio Settings  
 * **Default Volume**  
 The default volume level for players when they join the world.  
 * **Default Muted**  
 VizVid's volume are muted by default when players join the world.  
+
+### Repeat & Shuffle Settings
 * **Default Repeat Mode**  
 Choose from: None, Repeat One, Repeat All.  
 * **Default Shuffle**  
 Shuffle is enable by default when players join the world.  
-* **Seed Random Before Shuffle**  
-Regenerate random seed for shuffle playback when VizVid plays a playlist.  
 
----
-## UI  
-1. Select the VizVid's Screen child object.  
-2. Collapse the UI Handler and Screen Configurator.  
-3. Use the Color Config component to customize VizVid's color scheme.  
-![image](../resources/images/Sy-MZZz2le.png)  
+### General Settings
+* **Edit Playlists...**  
+Opens the playlist editor window. You can create, edit, and import playlists.  
+For detailed usage, ckeck on [Editing Playlists](#editing-playlists).  
+
+### Default Behavior  
+* **Default Playlist**  
+Choose a playlist to use as the default from your saved playlists.  
+* **Auto Play on Join**  
+Auto play the default playlist when the first player joined the world.  
+* **Low-latency mode**  
+Enable low latency on AVPro for less latency on stream playbacks.
+
+### Theme Settings  
+* **Collor Palette**  
+Adjust color tones based on your current color settings.  
+* **Color #**  
+Set colors on VizVid individually.
+* **Auto Apply on Build**
+Toggle for auto apply current color settings into VizVid's UI.
+* **Apply**
+Apply color settings to VizVid's UI.  
+
+### Display Settings  
+* **Standby Screen**  
+Set a static image if no video or image appears on screen.  
 
 ---
 ## Editing Playlists  
