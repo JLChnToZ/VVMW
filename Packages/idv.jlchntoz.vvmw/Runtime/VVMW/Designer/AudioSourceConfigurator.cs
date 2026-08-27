@@ -156,11 +156,11 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 this.radius = radius;
             }
 
-            public readonly bool Equals(SphereBounds other) => center == other.center && Mathf.Approximately(radius, other.radius);
+            public bool Equals(SphereBounds other) => center == other.center && Mathf.Approximately(radius, other.radius);
 
-            public override readonly bool Equals(object obj) => obj is SphereBounds other && Equals(other);
+            public override bool Equals(object obj) => obj is SphereBounds other && Equals(other);
 
-            public override readonly int GetHashCode() => HashCode.Combine(center, radius);
+            public override int GetHashCode() => HashCode.Combine(center, radius);
         }
     }
 }
