@@ -13,20 +13,28 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         BoxBoundsHandle placementHandle;
         SphereBoundsHandle nearHandle, farHandle;
         SerializedProperty audioSourceProp, nearBoundsProp, farBoundsProp;
+        bool drawNearBoundsHandle, drawFarBoundsHandle;
 
-        static bool DrawSphereHandle(SphereBoundsHandle handle, ref AudioSourceConfigurator.SphereBounds bounds, AudioSourceConfigurator undoTarget) {
-            using var change = new EditorGUI.ChangeCheckScope();
-            handle.radius = bounds.radius;
-            handle.center = Handles.PositionHandle(bounds.center, Quaternion.identity);
-            handle.DrawHandle();
-            if (change.changed) {
-                Undo.RecordObject(undoTarget, "Adjust Bounds");
-                bounds.radius = handle.radius;
-                bounds.center = handle.center;
-                if (PrefabUtility.IsPartOfPrefabInstance(undoTarget))
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(undoTarget);
-                return true;
-            }
+        static bool DrawSphereHandle(SphereBoundsHandle handle, ref AudioSourceConfigurator.SphereBounds bounds, AudioSourceConfigurator undoTarget, bool drawHandle = true) {
+            if (drawHandle) {
+                using var change = new EditorGUI.ChangeCheckScope();
+                handle.radius = bounds.radius;
+                handle.center = Handles.PositionHandle(bounds.center, Quaternion.identity);
+                handle.DrawHandle();
+                if (change.changed) {
+                    Undo.RecordObject(undoTarget, "Adjust Bounds");
+                    bounds.radius = handle.radius;
+                    bounds.center = handle.center;
+                    if (PrefabUtility.IsPartOfPrefabInstance(undoTarget))
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(undoTarget);
+                    return true;
+                }
+            } else
+                using (new Handles.DrawingScope(handle.wireframeColor * 0.75F)) {
+                    Handles.DrawWireDisc(bounds.center, Vector3.up, bounds.radius);
+                    Handles.DrawWireDisc(bounds.center, Vector3.right, bounds.radius);
+                    Handles.DrawWireDisc(bounds.center, Vector3.forward, bounds.radius);
+                }
             return false;
         }
 
@@ -43,20 +51,22 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         public override void DrawEmbeddedInspectorGUI() {
             EditorGUILayout.PropertyField(audioSourceProp);
             EditorGUILayout.PropertyField(nearBoundsProp);
+            drawNearBoundsHandle = nearBoundsProp.isExpanded;
             EditorGUILayout.PropertyField(farBoundsProp);
+            drawFarBoundsHandle = farBoundsProp.isExpanded;
             using (new EditorGUILayout.HorizontalScope()) {
                 if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.AudioSourceConfigurator.estimate")))
-                    (target as AudioSourceConfigurator).TryEstimate();
+                    (target as AudioSourceConfigurator).TryEstimate(true);
                 if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Designer.AudioSourceConfigurator.fit")))
-                    (target as AudioSourceConfigurator).TryFit();
+                    (target as AudioSourceConfigurator).TryFit(true);
             }
         }
 
         void OnSceneGUI() {
             var target = this.target as AudioSourceConfigurator;
             if (target == null) return;
-            DrawSphereHandle(nearHandle, ref target.nearBounds, target);
-            DrawSphereHandle(farHandle, ref target.farBounds, target);
+            DrawSphereHandle(nearHandle, ref target.nearBounds, target, drawNearBoundsHandle);
+            DrawSphereHandle(farHandle, ref target.farBounds, target, drawFarBoundsHandle);
             DrawAudioSourceAdjustmenthandles(target.audioSources);
         }
 
