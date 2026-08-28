@@ -179,8 +179,8 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             DrawDefaultBehaviourSettings(autoPlayControllerEditor);
             DrawColorConfigSettings();
             DrawVideoSettings();
+            DrawModuleSettings();
             if (showAllSettings) {
-                DrawModuleSettings();
                 DrawErrorHandlingSettings();
                 DrawOtherSettings(autoPlayControllerEditor);
             }
@@ -373,10 +373,15 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         void DrawModuleSettings() {
             HorizontalLine();
             EditorGUILayout.LabelField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.moduleSettings"), EditorStyles.boldLabel);
-            DrawScreenList();
-            DrawAudioSourcesSettings();
-            DrawPlayerHandlers();
-            DrawThirdPartyModuleSettings();
+            if (showAllSettings) {
+                DrawScreenList();
+                DrawAudioSourcesSettings();
+                DrawPlayerHandlers();
+                DrawThirdPartyModuleSettings();
+            } else {
+                DrawSimpleScreenSettings();
+                DrawSimpleAudioSourceSettings();
+            }
         }
 
         void DrawVideoSettings() {
@@ -487,70 +492,94 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             }
         }
 
+        void DrawSimpleAudioSourceSettings() {
+            EditorGUILayout.LabelField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.audioSourceWithCount", audioSourcesProperty.arraySize));
+            using (new EditorGUI.IndentLevelScope())
+                if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.setupSpeakers")))
+                    SetupSpeakers();
+        }
+
         void DrawAudioSourcesSettings() {
             using (new EditorGUILayout.HorizontalScope()) {
                 audioRelatedFoldout = EditorGUILayout.Foldout(audioRelatedFoldout, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.audioSources"), true);
                 if (!audioRelatedFoldout) return;
-                if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.setupSpeakers"), EditorStyles.miniButton, GUILayout.ExpandWidth(false))) {
-                    Undo.IncrementCurrentGroup();
-                    int undoGroup = Undo.GetCurrentGroup();
-                    var builtinPlayerHandlers = new List<AbstractMediaPlayerHandler>();
-                    AbstractMediaPlayerHandler avProPlayerHandler = null; // only one avpro player handler is supported
-                    bool hasMultipleAvProPlayerHandler = false;
-                    for (int i = 0, count = playerHandlersProperty.arraySize; i < count; i++) {
-                        var playerHandler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as AbstractMediaPlayerHandler;
-                        if (playerHandler == null) continue;
-                        if (!playerHandler.IsAvPro)
-                            builtinPlayerHandlers.Add(playerHandler);
-                        else if (avProPlayerHandler == null)
-                            avProPlayerHandler = playerHandler;
-                        else
-                            hasMultipleAvProPlayerHandler = true;
+                if (GUILayout.Button(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.setupSpeakers"), EditorStyles.miniButton, GUILayout.ExpandWidth(false))) 
+                    SetupSpeakers();
+            }
+            using (new EditorGUI.IndentLevelScope())
+                DrawAudioList();
+        }
+
+        void SetupSpeakers() {
+            Undo.IncrementCurrentGroup();
+            int undoGroup = Undo.GetCurrentGroup();
+            var builtinPlayerHandlers = new List<AbstractMediaPlayerHandler>();
+            AbstractMediaPlayerHandler avProPlayerHandler = null; // only one avpro player handler is supported
+            bool hasMultipleAvProPlayerHandler = false;
+            for (int i = 0, count = playerHandlersProperty.arraySize; i < count; i++) {
+                var playerHandler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as AbstractMediaPlayerHandler;
+                if (playerHandler == null) continue;
+                if (!playerHandler.IsAvPro)
+                    builtinPlayerHandlers.Add(playerHandler);
+                else if (avProPlayerHandler == null)
+                    avProPlayerHandler = playerHandler;
+                else
+                    hasMultipleAvProPlayerHandler = true;
+            }
+            if (audioSourcesProperty.arraySize > 1)
+                i18n.DisplayLocalizedDialog1("JLChnToZ.VRC.VVMW.Core.audioSources:multiple_source_message");
+            var primaryAudioSource = audioSourcesProperty.arraySize > 0 ? audioSourcesProperty.GetArrayElementAtIndex(0).objectReferenceValue : null;
+            foreach (var handler in builtinPlayerHandlers) {
+                using (var so = new SerializedObject(handler)) {
+                    var property = so.FindProperty("primaryAudioSource");
+                    if (property != null) property.objectReferenceValue = primaryAudioSource;
+                    so.ApplyModifiedProperties();
+                }
+                if (handler.TryGetComponent(out VRCUnityVideoPlayer unityVideoPlayer))
+                    using (var so = new SerializedObject(unityVideoPlayer)) {
+                        var prop = so.FindProperty("targetAudioSources");
+                        prop.arraySize = 1;
+                        prop.GetArrayElementAtIndex(0).objectReferenceValue = primaryAudioSource;
+                        so.ApplyModifiedProperties();
                     }
-                    if (audioSourcesProperty.arraySize > 1)
-                        i18n.DisplayLocalizedDialog1("JLChnToZ.VRC.VVMW.Core.audioSources:multiple_source_message");
-                    var primaryAudioSource = audioSourcesProperty.arraySize > 0 ? audioSourcesProperty.GetArrayElementAtIndex(0).objectReferenceValue : null;
-                    foreach (var handler in builtinPlayerHandlers) {
-                        using (var so = new SerializedObject(handler)) {
-                            var property = so.FindProperty("primaryAudioSource");
-                            if (property != null) property.objectReferenceValue = primaryAudioSource;
-                            so.ApplyModifiedProperties();
-                        }
-                        if (handler.TryGetComponent(out VRCUnityVideoPlayer unityVideoPlayer))
-                            using (var so = new SerializedObject(unityVideoPlayer)) {
-                                var prop = so.FindProperty("targetAudioSources");
-                                prop.arraySize = 1;
-                                prop.GetArrayElementAtIndex(0).objectReferenceValue = primaryAudioSource;
-                                so.ApplyModifiedProperties();
+            }
+            if (hasMultipleAvProPlayerHandler)
+                i18n.DisplayLocalizedDialog1("JLChnToZ.VRC.VVMW.Core.audioSources:multiple_players_message");
+            else if (avProPlayerHandler != null) {
+                bool hasAppliedPrimaryAudioSource = false;
+                var actualPlayer = avProPlayerHandler.GetComponent<VRCAVProVideoPlayer>();
+                for (int i = 0, count = audioSourcesProperty.arraySize; i < count; i++) {
+                    var audioSource = audioSourcesProperty.GetArrayElementAtIndex(i).objectReferenceValue as AudioSource;
+                    if (audioSource == null || !audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) continue;
+                    using (var so = new SerializedObject(speaker)) {
+                        so.FindProperty("videoPlayer").objectReferenceValue = actualPlayer;
+                        if (so.FindProperty("mode").intValue == 0 && !hasAppliedPrimaryAudioSource) {
+                            using (var so2 = new SerializedObject(avProPlayerHandler)) {
+                                so2.FindProperty("primaryAudioSource").objectReferenceValue = audioSource;
+                                so2.ApplyModifiedProperties();
                             }
-                    }
-                    if (hasMultipleAvProPlayerHandler)
-                        i18n.DisplayLocalizedDialog1("JLChnToZ.VRC.VVMW.Core.audioSources:multiple_players_message");
-                    else if (avProPlayerHandler != null) {
-                        bool hasAppliedPrimaryAudioSource = false;
-                        var actualPlayer = avProPlayerHandler.GetComponent<VRCAVProVideoPlayer>();
-                        for (int i = 0, count = audioSourcesProperty.arraySize; i < count; i++) {
-                            var audioSource = audioSourcesProperty.GetArrayElementAtIndex(i).objectReferenceValue as AudioSource;
-                            if (audioSource == null || !audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) continue;
-                            using (var so = new SerializedObject(speaker)) {
-                                so.FindProperty("videoPlayer").objectReferenceValue = actualPlayer;
-                                if (so.FindProperty("mode").intValue == 0 && !hasAppliedPrimaryAudioSource) {
-                                    using (var so2 = new SerializedObject(avProPlayerHandler)) {
-                                        so2.FindProperty("primaryAudioSource").objectReferenceValue = audioSource;
-                                        so2.ApplyModifiedProperties();
-                                    }
-                                    hasAppliedPrimaryAudioSource = true;
-                                }
-                                so.ApplyModifiedProperties();
-                            }
+                            hasAppliedPrimaryAudioSource = true;
                         }
+                        so.ApplyModifiedProperties();
                     }
-                    Undo.SetCurrentGroupName(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.Core.setupSpeakers"));
-                    Undo.CollapseUndoOperations(undoGroup);
                 }
             }
-            using var _ = new EditorGUI.IndentLevelScope();
-            DrawAudioList();
+            Undo.SetCurrentGroupName(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.Core.setupSpeakers"));
+            Undo.CollapseUndoOperations(undoGroup);
+        }
+
+        void DrawSimpleScreenSettings() {
+            EditorGUILayout.LabelField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.Core.videoScreenTargetsWithCount", screenTargetsProperty.arraySize));
+            using (new EditorGUI.IndentLevelScope())
+                if (GUILayout.Button(i18n.GetLocalizedContent("ScreenConfigurator.FixupAspectRatio")))
+                    using (PooledObjects.Get(out List<Renderer> renderers)) {
+                        for (int i = 0, count = screenTargetsProperty.arraySize; i < count; i++) {
+                            var targetProperty = screenTargetsProperty.GetArrayElementAtIndex(i);
+                            if (targetProperty.objectReferenceValue is Renderer renderer)
+                                renderers.Add(renderer);
+                        }
+                        ScreenMeshUtils.TryFixupAspectRatioInMaterial(renderers);
+                    }
         }
 
         void DrawScreenList() {
