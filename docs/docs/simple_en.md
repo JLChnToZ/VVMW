@@ -95,6 +95,14 @@ Apply color settings to VizVid's UI.
 * **Standby Screen**  
 Set a static image if no video or image appears on screen.  
 
+### Module Related
+#### Screen Targets
+* **Fixup Aspect Ratio**  
+Automatically fixes aspect ratio after resizing the player to prevent image distortion.  
+#### Audio Sources
+* **Auto Find & Setup**  
+Auto-detects and configures available audio sources. Use this option to restore audio if no sound plays.  
+
 ---
 ## Editing Playlists  
 Here's the detailed guide for playlist editor.  
