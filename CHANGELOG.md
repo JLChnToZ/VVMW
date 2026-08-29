@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - A UI bug on selecting playlist in playlist editor
 - Setup speakers button stuck when removed default audio source.
 - Audio configurator handles not moving along.
-- Spamming exception when deleted assignaed screen targets.
+- Spamming exception when deleted assigned screen targets.
 
 ### Added
 - New option to return to previous playing playlist item on queue list clear.
