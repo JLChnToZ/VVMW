@@ -611,6 +611,10 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 screenTargetDefaultTexturesProperty.arraySize = length;
             if (rtScreenTargetSTsProperty.arraySize != length)
                 rtScreenTargetSTsProperty.arraySize = length;
+            if (length == 0) {
+                EditorGUILayout.HelpBox(i18n["JLChnToZ.VRC.VVMW.Core.videoScreenTargets:empty"], MessageType.Info);
+                return;
+            }
             while (screenTargetVisibilityState.Count < length)
                 screenTargetVisibilityState.Add(false);
             for (int i = 0; i < length; i++) {
@@ -740,7 +744,12 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         }
 
         void DrawAudioList() {
-            for (int i = 0, count = audioSourcesProperty.arraySize; i < count; i++) {
+            int count = audioSourcesProperty.arraySize;
+            if (count == 0) {
+                EditorGUILayout.HelpBox(i18n["JLChnToZ.VRC.VVMW.Core.audioSources:empty"], MessageType.Info);
+                return;
+            }
+            for (int i = 0; i < count; i++) {
                 using var audioSourceProperty = audioSourcesProperty.GetArrayElementAtIndex(i);
                 var audioSource = audioSourceProperty.objectReferenceValue as AudioSource;
                 if (audioSource == null) continue;
