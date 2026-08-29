@@ -65,19 +65,22 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         void OnSceneGUI() {
             var target = this.target as AudioSourceConfigurator;
             if (target == null) return;
-            DrawSphereHandle(nearHandle, ref target.nearBounds, target, drawNearBoundsHandle);
-            DrawSphereHandle(farHandle, ref target.farBounds, target, drawFarBoundsHandle);
-            DrawAudioSourceAdjustmenthandles(target.audioSources);
+            var transform = target.transform;
+            using (new Handles.DrawingScope(transform.localToWorldMatrix)) {
+                DrawSphereHandle(nearHandle, ref target.nearBounds, target, drawNearBoundsHandle);
+                DrawSphereHandle(farHandle, ref target.farBounds, target, drawFarBoundsHandle);
+                DrawAudioSourceAdjustmenthandles(target.audioSources, transform);
+            }
         }
 
-        void DrawAudioSourceAdjustmenthandles(AudioSource[] audioSources) {
+        void DrawAudioSourceAdjustmenthandles(AudioSource[] audioSources, Transform transform) {
             if (audioSources == null || audioSources.Length == 0) return;
             using (PooledObjectExtensions.Get(out List<Vector3> positions)) {
                 bool isFirst = true;
                 Bounds bounds = default;
                 foreach (var audioSource in audioSources) {
                     if (audioSource == null) continue;
-                    var pos = audioSource.transform.position;
+                    var pos = transform.InverseTransformPoint(audioSource.transform.position);
                     if (isFirst) {
                         bounds = new Bounds(pos, Vector3.zero);
                         isFirst = false;
@@ -87,7 +90,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 }
                 var min = bounds.min;
                 var max = bounds.max;
-                for (int i = 0, count = positions.Count; i < count; i++) {
+                int i, count;
+                for (i = 0, count = positions.Count; i < count; i++) {
                     var pos = positions[i];
                     pos.Set(
                         Mathf.InverseLerp(min.x, max.x, pos.x),
@@ -98,30 +102,28 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 }
                 placementHandle.center = bounds.center;
                 placementHandle.size = bounds.size;
-                using (var change = new EditorGUI.ChangeCheckScope()) {
-                    placementHandle.DrawHandle();
-                    if (change.changed) {
-                        var newBounds = new Bounds(placementHandle.center, placementHandle.size);
-                        min = newBounds.min;
-                        max = newBounds.max;
-                        int i = 0;
-                        foreach (var audioSource in audioSources) {
-                            if (audioSource == null) continue;
-                            var pos = positions[i++];
-                            pos.Set(
-                                Mathf.Lerp(min.x, max.x, pos.x),
-                                Mathf.Lerp(min.y, max.y, pos.y),
-                                Mathf.Lerp(min.z, max.z, pos.z)
-                            );
-                            var transform = audioSource.transform;
-                            Undo.RecordObject(transform, "Move Audio Source");
-                            transform.position = pos;
-                            if (PrefabUtility.IsPartOfPrefabInstance(transform))
-                                PrefabUtility.RecordPrefabInstancePropertyModifications(transform);
-                        }
-                        Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
-                    }
+                using var change = new EditorGUI.ChangeCheckScope();
+                placementHandle.DrawHandle();
+                if (!change.changed) return;
+                var newBounds = new Bounds(placementHandle.center, placementHandle.size);
+                min = newBounds.min;
+                max = newBounds.max;
+                i = 0;
+                foreach (var audioSource in audioSources) {
+                    if (audioSource == null) continue;
+                    var pos = positions[i++];
+                    pos.Set(
+                        Mathf.Lerp(min.x, max.x, pos.x),
+                        Mathf.Lerp(min.y, max.y, pos.y),
+                        Mathf.Lerp(min.z, max.z, pos.z)
+                    );
+                    var asTransform = audioSource.transform;
+                    Undo.RecordObject(asTransform, "Move Audio Source");
+                    asTransform.position = transform.TransformPoint(pos);
+                    if (PrefabUtility.IsPartOfPrefabInstance(asTransform))
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(asTransform);
                 }
+                Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
             }
         }
     }

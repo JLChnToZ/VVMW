@@ -516,7 +516,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             var builtinPlayerHandlers = new List<AbstractMediaPlayerHandler>();
             AbstractMediaPlayerHandler avProPlayerHandler = null; // only one avpro player handler is supported
             bool hasMultipleAvProPlayerHandler = false;
-            for (int i = 0, count = playerHandlersProperty.arraySize; i < count; i++) {
+            for (int i = 0, handlerCount = playerHandlersProperty.arraySize; i < handlerCount; i++) {
                 var playerHandler = playerHandlersProperty.GetArrayElementAtIndex(i).objectReferenceValue as AbstractMediaPlayerHandler;
                 if (playerHandler == null) continue;
                 if (!playerHandler.IsAvPro)
@@ -526,9 +526,21 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                 else
                     hasMultipleAvProPlayerHandler = true;
             }
-            if (audioSourcesProperty.arraySize > 1)
-                i18n.DisplayLocalizedDialog1("JLChnToZ.VRC.VVMW.Core.audioSources:multiple_source_message");
-            var primaryAudioSource = audioSourcesProperty.arraySize > 0 ? audioSourcesProperty.GetArrayElementAtIndex(0).objectReferenceValue : null;
+            int audioCount = audioSourcesProperty.arraySize;
+            for (int i = 0; i < audioCount; i++) {
+                var property = audioSourcesProperty.GetArrayElementAtIndex(i);
+                if (property.objectReferenceValue != null) continue;
+                audioSourcesProperty.DeleteArrayElementAtIndex(i);
+                var newCount = audioSourcesProperty.arraySize;
+                if (newCount == audioCount) {
+                    audioSourcesProperty.DeleteArrayElementAtIndex(i);
+                    newCount = audioSourcesProperty.arraySize;
+                }
+                i--;
+                audioCount = newCount;
+            }
+            if (audioCount > 1) i18n.DisplayLocalizedDialog1("JLChnToZ.VRC.VVMW.Core.audioSources:multiple_source_message");
+            var primaryAudioSource = audioCount > 0 ? audioSourcesProperty.GetArrayElementAtIndex(0).objectReferenceValue : null;
             foreach (var handler in builtinPlayerHandlers) {
                 using (var so = new SerializedObject(handler)) {
                     var property = so.FindProperty("primaryAudioSource");
@@ -548,7 +560,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             else if (avProPlayerHandler != null) {
                 bool hasAppliedPrimaryAudioSource = false;
                 var actualPlayer = avProPlayerHandler.GetComponent<VRCAVProVideoPlayer>();
-                for (int i = 0, count = audioSourcesProperty.arraySize; i < count; i++) {
+                for (int i = 0; i < audioCount; i++) {
                     var audioSource = audioSourcesProperty.GetArrayElementAtIndex(i).objectReferenceValue as AudioSource;
                     if (audioSource == null || !audioSource.TryGetComponent(out VRCAVProVideoSpeaker speaker)) continue;
                     using (var so = new SerializedObject(speaker)) {
