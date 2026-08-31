@@ -2,13 +2,14 @@
 
 ![Banner](./docs/resources/images/cover.png)
 
-Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It aims to cover many use cases, from watch-together video/live stream player in lounges, to large event venue for music performances, or even booths for exhibitions or showcases. Due to its target customers, it has a flexible architecture, just like a factory made electronic but with a easy to open back lid, make it easier to let users mess them around for their needs.
+VizVid is a versatile multimedia player frontend designed specifically for VRChat.  
+Whether you are watching videos with friends, hosting music performances, or setting up a gallery exhibition, VizVid provides a powerful solution for any scenario.  
 
 ## Features
 - Basic playback, seeking controls
 - Pre-defined playlists & user queue list
 - Playback history for user inputed URLs (since v1.0.32)
-- Quest (Android) client specific URLs (only available on pre-defined URLs, play lists and API)
+- Mobile platform client specific URLs (only available on pre-defined URLs, play lists and API)
 - PNG/JPEG Image Viewer (since v1.0.37)
 - Low latency mode, (tested with RTSP/RTMP streams)
 - Playback speed adjustment (since v1.1.0)
@@ -17,7 +18,7 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 - Modulized screen, audio & UI architecture, support multiple instances
 - Both on-screen & separated interfaces available
 - Optional extra alternative URL input for supporting cross-platform users (since v1.3.0)
-- (Almost) one-click to change interface colors
+- Easy to customize UI colors
 - Supports both legacy UI and TextMeshPro setup (since v1.0.32)
 - Local pickupable & scaleable screen
 - Wrist band (VR) / keyboard (desktop) resync button & volume controls
@@ -28,7 +29,7 @@ Welcome! VizVid is a general-purpose video player frontend for use in VRChat. It
 - Luminance adjustment for screens using built-in materials (sice v1.1.0)
 - Localization system with auto language detection (English, Chinese, Japanese & Korean)
 - Locked UI with [Udon Auth](https://xtl.booth.pm/items/3826907).
-- Basic [Audio Link](https://github.com/llealloo/vrc-udon-audio-link) support, which will auto switch audio source when playing, also reports player state (playback progress, volume, loop, shuffle, etc.) on newer version (1.0.0+).
+- Basic [AudioLink](https://github.com/llealloo/audiolink) support, which will auto switch audio source when playing, also reports player state (playback progress, volume, loop, shuffle, etc.) on newer version (1.0.0+).
 - Basic [LTCGI](https://ltcgi.dev/) integration, provided CustomRenderTexture for use.
 - Bundled a modified version of [YTTL](https://65536.booth.pm/items/4588619) to display video title from known sources.
 - Dedicated updater for [VRC Light Volumes](https://github.com/REDSIM/VRCLightVolumes).

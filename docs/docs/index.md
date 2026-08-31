@@ -3,7 +3,7 @@ _lang: en-US
 ---
 # VizVid Documentation  
 
-VizVid is a versatile multimedia player frontend designed specifically for VRChat. Whether you are watching videos with friends, hosting music performances, or setting up a gallery exhibition, VizVid provides a robust solution for any scenario.  
+VizVid is a versatile multimedia player frontend designed specifically for VRChat. Whether you are watching videos with friends, hosting music performances, or setting up a gallery exhibition, VizVid provides a powerful solution for any scenario.  
 
 Built with a modular design, VizVid allows you to pick and choose the exact components you need to build a custom player tailored to your world.  
 
