@@ -190,14 +190,7 @@ namespace JLChnToZ.VRC.VVMW {
                         foreach (var configurator in screenConfigurators) {
                             if (configurator == null || configurator.coreIndex < 0)
                                 continue;
-#if VRCLV3_EARLY_VERSION
-                            var pointLightVolume = configurator.pointLightVolume;
-                            if (pointLightVolume == null)
-                                continue;
-                            var pointLightVolumeInstance = pointLightVolume.PointLightVolumeInstance;
-#else
                             var pointLightVolumeInstance = configurator.pointLightVolume;
-#endif
                             if (pointLightVolumeInstance == null || !cookiePLV.Add(pointLightVolumeInstance)) continue;
                             var material = pointLightVolumeInstance.CustomTextureMaterial;
                             if (material == null) continue;

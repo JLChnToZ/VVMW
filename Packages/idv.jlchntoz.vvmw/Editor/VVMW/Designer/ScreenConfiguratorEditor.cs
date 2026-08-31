@@ -3,9 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using JLChnToZ.VRC.VVMW.Editors;
 using JLChnToZ.VRC.Foundation.I18N.Editors;
-#if VRCLV3_EARLY_VERSION
-using VRCLightVolumes;
-#elif VRCLV3_IMPORTED
+#if VRCLV3_IMPORTED
 using PointLightVolume = VRCLightVolumes.PointLightVolumeInstance;
 #endif
 

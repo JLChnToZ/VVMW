@@ -308,7 +308,7 @@ namespace JLChnToZ.VRC.VVMW {
                     return adaptor;
                 }
             if (!createIfNotFound) return null;
-#if !VRCLV3_IMPORTED || VRCLV3_EARLY_VERSION
+#if !VRCLV3_IMPORTED
             var lvSetup = FindAnyObjectByType<LightVolumeSetup>();
             if (lvSetup == null) {
                 var go = new GameObject("Light Volume Manager", typeof(LightVolumeSetup));

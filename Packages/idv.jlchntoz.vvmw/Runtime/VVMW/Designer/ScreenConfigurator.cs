@@ -10,7 +10,7 @@ using VRC.SDKBase;
 #endif
 #if VRCLV2_IMPORTED
 using VRCLightVolumes;
-#if VRCLV3_IMPORTED && !VRCLV3_EARLY_VERSION
+#if VRCLV3_IMPORTED
 using PointLightVolume = VRCLightVolumes.PointLightVolumeInstance;
 #endif
 #endif
@@ -109,7 +109,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     return adaptor;
                 }
             if (!createIfNotFound) return null;
-#if !VRCLV3_IMPORTED || VRCLV3_EARLY_VERSION
+#if !VRCLV3_IMPORTED
             var lvSetup = FindAnyObjectByType<LightVolumeSetup>();
             if (lvSetup == null) {
                 var go = new GameObject("Light Volume Manager", typeof(LightVolumeSetup));
@@ -141,7 +141,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 array = new PointLightVolumeInstance[1];
             else
                 Array.Resize(ref array, array.Length + 1);
-#if !VRCLV3_IMPORTED || VRCLV3_EARLY_VERSION
+#if !VRCLV3_IMPORTED
             lv.TryGetComponent(out array[^1]);
 #else
             array[^1] = lv;
@@ -166,7 +166,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 lvTransform.localRotation = Quaternion.Euler(0, 180, 0);
             }
             lvObject.TryGetComponent(out PointLightVolume lv);
-#if !VRCLV3_IMPORTED || VRCLV3_EARLY_VERSION
+#if !VRCLV3_IMPORTED
             lv.Type = PointLightVolume.LightType.AreaLight;
             lv.Dynamic = target.GetComponentInParent<VRC_Pickup>(true) != null;
             lv.SyncUdonScript();
@@ -239,7 +239,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             if (valueChanged) {
                 if (PrefabUtility.IsPartOfPrefabInstance(pointLightVolume))
                     PrefabUtility.RecordPrefabInstancePropertyModifications(pointLightVolume);
-#if !VRCLV3_IMPORTED || VRCLV3_EARLY_VERSION
+#if !VRCLV3_IMPORTED
                 pointLightVolume.SyncUdonScript();
 #endif
             }
