@@ -5,8 +5,8 @@ _lang: zh-TW
 VizVid 是一款為 VRChat 所設計，用途廣泛的多媒體播放器前端。除了跟朋友一起看影片、直播，大音樂表演活動場地，展示會場也能使用，用途極為廣泛。  
 VizVid 採用模組化設計，針對任何使用情境，可根據自己的需求，選擇適合的模組，輕鬆地拼裝出屬於自己的 VizVid。  
 
-> [!NOTE]  
-> 本說明文件涵蓋 v1.7.6 或往後版本，一部分說明可能與舊版有所不同  
+> [!NOTE]
+> 本說明文件涵蓋 v1.8.0 或往後版本，一部分說明可能與舊版有所不同  
 
 ---
 ## 快速上手
@@ -62,17 +62,20 @@ VizVid 採用模組化設計，針對任何使用情境，可根據自己的需�
     指標指向螢幕任何一處，按下即可顯示介面。  
 * **核心控制策略**  
 Active Region 專用功能。調整功能觸發策略。預設值為 `僅在邊界內`。  
-    * **全部控制  
-    [待補]
+    * **全部控制**  
+    僅啟用以下 Active Region 功能：  
+        * AudioLink  
+        * Overlay Control  
     * **僅在邊界內**  
-    [待補]
+    進入 Active Region 內才會啟用所有功能  
     * **僅在邊界內，如果沒有則選擇最近的**  
-    [待補]
+    進入 Active Region 內會啟用，若沒有進入，則會偵測離玩家最近的 Active Region 並啟用所有功能。  
 * **玩家檢測原點**  
-Active Region 專用功能，設定偵測判定位置。  
+設定 Active Region 偵測判定位置。  
 
 #### 播放器設定  
 將簡易模式切換至進階模式，可顯示完整設定選項。  
+![image](../resources/images/HkKk0FeOMg.png)  
 詳細說明請見 [Core](#core)。  
 
 ---
@@ -160,8 +163,8 @@ VizVid 用螢幕，可與控制器分開放置。
 * **Stream Key Assigner**  
 自動生成 Streamkey。可設定 TopazChat 等串流服務。  
 常用於影音表演型活動。  
-> [!Note]  
-> 相關應用，可參照 [Stream Key Assigner](#streamkeyassigner)
+    > [!Note]
+    > 相關應用，可參照 [Stream Key Assigner](#streamkeyassigner)
 
 ---
 * **Audio Source (Mono)**  
@@ -170,7 +173,7 @@ VizVid 用螢幕，可與控制器分開放置。
 新增一組 VizVid 用的立體聲 Audio Source。  
 * **Audio Source (5.1 Surround)**  
 新增一組 VizVid 用的 5.1 環繞音效 Audio Source。  
-可參照 [5.1 聲道配置](#51-聲道配置)。
+可參照 [5.1 聲道配置](#51-聲道配置)。  
 
 ---
 * **Auto Play on Near (Local Only)**  
@@ -179,15 +182,22 @@ VizVid 用螢幕，可與控制器分開放置。
 (該功能僅支援 Local 模式。)  
 
 ---
+* **Light Volume for Screen**  
+讓 VizVid 螢幕支援 VRC Light Volumes (VRCLV)  
+    > [!note]
+    該選項僅在選擇含有螢幕物件時才出現。  
+
+---
 * **Active Region**  
 提供 VizVid 一個有效範圍，玩家一旦進入，即可觸發指定功能。  
+詳細功能請見 [Active Region](#active-region)  
 
 ---
 ### 元件 (Component)  
 #### Core  
-該元件為 VizVid 的大腦，管理所有播放控制。
+該元件為 VizVid 的大腦，管理所有播放控制。  
 > [!Note]
-> 若有遺失模組，部分選項將不予顯示 / 變更。
+> 若有遺失模組，部分選項將不予顯示 / 變更。  
 ##### 音訊設定
 * **預設音量**  
 玩家加入世界時的預設音量。  
@@ -259,25 +269,35 @@ VizVid 用螢幕，可與控制器分開放置。
 * **螢幕目標**  
 列出含有 `Screen Configurator` 元件的螢幕物件。  
     * **模式**  
-    [待補]
+    預設提供三個選項：  
+        * 屬性塊  
+        在不修改材質屬性的前提，直接將畫面套用至該物件上。最節省計算資源。  
+        * 共享材質  
+        將影片畫面直接輸出至材質上，若有其他使用該材質的物件，皆會顯示 VizVid 的畫面。  
+        * 複製材質  
+        先自動複製該材質，並將影片畫面直接輸出至材質上。  
+        > [!note]
+        > 根據情況，該選項可能無法使用。
     * **材質**  
-    [待補]
+    若一個物件上，有多個材質，可指定 VizVid 畫面要輸出的目標材質。  
     * **影片材質屬性名稱**  
-    [待補]
+    影片畫面貼圖屬性名稱。會根據該材質的 Shader，自動填入預設名稱。
     * **使用縮放偏移**  
-    [待補]
+    若材質 Shader 不支援 AVPro 模式，發生畫面顛倒的情況，則可勾起該選項嘗試修復。  
+    * **AVPro 模式屬性名稱**
+    若材質 Shader 支援 AVPro 模式，可自訂屬性名稱進行對應。
     * **發光強度**  
     設定預設螢幕發光強度，預設值為 `1`。
     * **鏡像翻轉**  
-    [待補]
+    決定畫面是否在鏡子內水平反轉。勾起為會反轉。
     * **可見模式**  
-    [待補]
+    決定 VizVid 螢幕在 VRChat 中會顯示的條件。
     * **待機圖片**  
     有別於全域待機圖片設定，可針對該螢幕目標設定特定的待機圖片。  
     * **Point Light Volume**  
-    [待補]
-    * **修正螢幕比例**
-    若有調整過播放器物件比例，可透過此按鈕自動修正顯示比例，防止影像變形。
+    設定 VRC Light Volume。詳情請見 [VRC Light Volume (VRCLV)](#vrc-light-volume-vrclv)  
+    * **修正螢幕比例**  
+    若有調整過播放器物件比例，可透過此按鈕自動修正顯示比例，防止影像變形。  
 
 * **音源**  
 列出輸出 VizVid 聲音的 `Audio Source`  
@@ -314,20 +334,22 @@ VizVid 用螢幕，可與控制器分開放置。
     向 YouTube 等支援多解析度網站發出存取請求時，預設要求的解析度。  
     * **主要音源 (立體聲混音/左聲道)**  
     設定主要輸出的音源。可根據音源的設定，輸出立體聲或左聲道。  
-    ※由於內建後端不支援多個音源，建議將輸出目標音源設定為立體聲。  
+        > [!note]
+        由於內建後端不支援多個音源，建議將輸出目標音源設定為立體聲。  
     * **後備播放器處理器**  
     若播放內容無法使用內建播放器進行播放，則切換至該播放後端繼續嘗試。預設為 `AVPro Module`。  
 * **圖片 (Image Module)**  
-    ※該區域設定不建議更動  
     * **影片播放器後端名稱**  
     圖片後端處理器名稱。  
     * **後備播放器處理器**  
     若內容無法顯示，則切換至該播放後端繼續嘗試。預設為空。  
+    > [!note]
+    > 該區域設定不建議更動  
 * **影片標題查看器 (YTTL)**  
 指定串接的 `YTTL Manager` 元件。  
-* **Audio Link**  
-指定串接的 `Audio Link` 元件。  
-若專案中有 Audio Link，可使用 <kbd>自動搜尋</kbd> 進行串接。  
+* **AudioLink**  
+指定串接的 `AudioLink` 元件。  
+若專案中有 AudioLink，可使用 <kbd>自動搜尋</kbd> 進行串接。  
 
 ##### 錯誤處理  
 * **最大重試次數**  
@@ -356,6 +378,7 @@ URL 過濾設定。
 該元件負責管理播放清單，播放器預設行為。  
 > [!note]
 > `Core` 元件中已整合本元件之選項。可參照 [Core](#Core) 章節。  
+
 #### UI Handler  
 該元件負責管理播放器 UI 相關的串接。  
 * **主要參考**  
@@ -401,9 +424,10 @@ URL 過濾設定。
 * **靜態區域**  
 鎖定有效範圍位置。  
 * **啟動狀態檢測**  
-[待補]
+若不勾起，Active Region 物件為停用時，仍會視為有效的 Active Region。  
 * **使用世界空間邊界**  
-[待補]  
+無視 Active Region 本身的 Transform，僅讀取範圍盒。可稍微減輕效能。  
+![image](../resources/images/r1CIWFx_Ml.png)  
 
 #### Audio Source Configurator  
 該元件負責統整 2.0 / 5.1 音源組的位置、衰減距離設定。  
@@ -414,7 +438,7 @@ URL 過濾設定。
 * **遠距離邊界**  
 玩家離開該範圍後，即聽不到這些音源。  
 * **估算**  
-根據目前音源位置，計算適合的邊界衰減設定。  
+根據目前規劃的音場範圍，計算適合的邊界衰減設定。  
 * **套用**  
 將相關設定套用至音源。  
 
@@ -454,6 +478,7 @@ URL 過濾設定。
 不少串流類型表演活動，為了達成低延遲，經常會使用外部 RTMP/RTSP 服務，將影音內容串流至 VRChat 中。  
 VizVid 提供以下三種方式套用串流網址。  
 以下以 [TopazChat](https://github.com/TopazChat/TopazChat) 舉例。  
+
 #### Stream Key Assigner<a id="streamkeyassigner"></a>  
 可自動為串流服務，生成、套用串流金鑰。  
 ![image](../resources/images/H1w9i-w7-g.png)
@@ -499,6 +524,17 @@ VizVid 提供以下三種方式套用串流網址。
 ![image](../resources/images/rkDVnbPXWg.png)  
 4. 完成！  
 
+#### 立體聲道配置  
+因應世界創作者的需求，可能會需要 VizVid 輸出有方位的立體聲配置。  
+可依照以下方法進行設定：  
+1. 透過選單新增 `Audio Source (Stereo)` 後，會自動對應至 VizVid。  
+2. 根據場景需求，調整圖片中黃色線條範圍，設定音源位置。  
+![image](../resources/images/HJxdTYeOfg.png)  
+3. 點選 <kbd>估算</kbd> 重新調整衰減設定。  
+詳細設定可參考 [Audio Source Configurator ](#audio-source-configurator)  
+4. 點選 <kbd>套用</kbd> 將設定套用至音源。  
+5. 完成。  
+
 #### 5.1 聲道配置  
 VRChat 的 AVPro 後端，可以在 VRChat 提供 5.1 環繞音效的聲音輸出。  
 常應用於電影院等場景。  
@@ -510,11 +546,15 @@ VRChat 的 AVPro 後端，可以在 VRChat 提供 5.1 環繞音效的聲音輸�
 4. 點選 <kbd>套用</kbd> 將設定套用至音源。  
 5. 完成。  
 
+> [!note]
+因 Builtin 後端技術限制，無法支援多個 Audio Source，可能導致聲音會只從左方發出。  
+使用時請依照需求，針對 Builtin 後端進行相應調整。  
+
 ### 顯示相關  
 #### 反轉播放清單排序  
 若想將 VizVid 播放清單調整為舊版的倒序排列，可以透過以下方法更改：  
 1. 於播放清單物件中，找到 `Play List Entries` 物件。  
-    > [!Note]  
+    > [!Note]
     > On-Screen Controls 與 Seperated Controls 的位置略有不同。  
     > ![image](../resources/images/r11e9x4hZx.png)  
 2. 於 Inspector 中，找到 `Pooled Scroll View` 元件。  

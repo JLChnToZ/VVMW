@@ -7,8 +7,8 @@ VizVid is a versatile multimedia player frontend designed specifically for VRCha
 
 Built with a modular design, VizVid allows you to pick and choose the exact components you need to build a custom player tailored to your world.  
 
-> [!NOTE]  
-> This documentation covers version v1.7.3 and later. Some features or instructions may differ in older versions.  
+> [!NOTE]
+> This documentation covers version v1.8.0 and later. Some features or instructions may differ in older versions.  
 
 ---
 ## Quick Start  
@@ -52,6 +52,35 @@ Using Text Mesh Pro will make fonts on VizVid even clearer.
 Select all VizVid prefabs in hierarchy.  
 And follow the steps on the image below to migrate.  
 ![image](../resources/images/S1Bar91MWe.png)
+
+---
+### Settings  
+#### Global Settings  
+Settings applied to all VizVid instances in this world.  
+![image](../resources/images/Syfd09euGx.png)  
+* **Unlock Mode**  
+Adjusts the default unlock mode for the VizVid touchscreen.  
+    * **Classic**  
+    Aim the pointer at the bottom of the screen, and press after the indicator appears to display the interface.  
+    * **Fullscreen**  
+    Point anywhere on the screen and press to display the interface.  
+* **Core Control Strategy**  
+Feature exclusive to Active Region. Adjusts the function trigger strategy. Default value is `Within Bounds Only`.  
+    * **All Controlled**  
+    Only enables the following Active Region features:  
+        * AudioLink  
+        * Overlay Control
+    * **Only in bounds**  
+    All features are enabled only upon entering an Active Region.  
+    * **Only in bounds, nearset if none**  
+    Enables all features when inside an Active Region. If the player is outside, it automatically selects and enables the nearest region.
+* **Player Detect Origin**  
+Sets the detection origin position on users for the Active Region.  
+
+#### VizVid Settings  
+Switch from <kbd>Simple Mode</kbd> to <kbd>Advanced Mode</kbd> to display the full configuration options.  
+![image](../resources/images/Bkh9lilOzl.png)  
+For detailed information, please refer [Core](#core) section.
 
 ---
 ### Editing Playlists  
@@ -137,8 +166,8 @@ A standard screen object that can be placed independently from the controls.
 A standalone button to force synchronization. Highly recommended for live events.  
 * **Stream Key Assigner**  
 Automatically generates stream keys for services like TopazChat. Useful for music events.  
-> [!Note]  
-> See [Stream Key Assigner](#streamkeyassigner) for more details.  
+    > [!Note]
+    > See [Stream Key Assigner](#streamkeyassigner) for more details.  
 
 ---
 * **Audio Source (Mono)**  
@@ -154,138 +183,240 @@ Add a 5.1 sorround audio source set for VizVid.
 Triggers a default video when a user approaches and stops it when they leave. Ideal for exhibition booths.  
 
 ---
+* **Light Volume for Screen**  
+Enables VRC Light Volumes (VRCLV) support for screen on VizVid.  
+    > [!note]
+    This option only appears when an object containing a screen is selected.
+
+---
 * **Active Region**  
 Executing functions when a player enters the specified region on this prefab.  
+For detailed information, please refer [Active Region](#active-region) section.  
 
 ---
 ### Components  
-
-> [!Note]  
-> This section covers settings relevant to most users.  
-> For advanced usage, go check [OtherScenarios](#Other-Scenarios), [Q&A](#QampA), or [join our Discord server](https://discord.gg/fkDueQMbj8).  
-
-#### **Core**  
-
+#### Core  
 This component manages VizVid's playback logic.  
-*(Note: Some options only appear when a `Frontend Handler` is specified).*
-* **Common Settings**  
-    * **Edit Playlists...**  
+> [!Note]
+> If any modules are missing, some options will not be displayed or swapped.
+##### Audio Settings  
+* **Default Volume**  
+The default volume level for players when they join the world.  
+* **Default Muted**  
+VizVid's volume are muted by default when players join the world.  
+* **Volume Fade Duration**  
+Sets the volume fade duration when muting / unmuting or entering / leaving an Active Region. Set to `0` to disable.  
+* **Out-of-Range Volume**  
+Set the target volume level when leaving an Active Region.  
+
+##### Repeat & Shuffle Settings
+* **Default Repeat Mode**  
+Choose from: None, Repeat One, Repeat All.  
+* **Default Shuffle**  
+Shuffle is enable by default when players join the world.  
+* **Seed Random Before Shuffle**  
+Regenerate random seed for shuffle playback when VizVid plays a playlist.  
+
+##### General Settings
+* **Edit Playlists...**  
 Opens the playlist editor window. You can create, edit, and import playlists.  
 For detailed usage, ckeck on [Editing Playlists](#editing-playlists).  
-    * **Enable Queue List**  
+* **Enable Queue List**  
 When enabled, URLs you input can be queued into the queue list.  
-    * **History Size**  
+* **History Size**  
 Set how many playback URLs are stored in history. Set `0` to disable it.  
 *Note: Contents played from playlists will not be recorded in history.*  
 
-* **Default Behavior**  
-Adjust VizVid's default values for this world.  
-    * **Auto Play on Join**  
+##### Default Behavior  
+* **Default Playlist**  
+Choose a playlist to use as the default from your saved playlists.  
+* **Auto Play on Join**  
 Auto play the default playlist when the first player joined the world.  
     * **Auto Play Delay**  
-If there are no other video players besides VizVid in the world, you don't need adjust this.  
-    * **Auto Play on Idle**  
-If the current playlist finishes, VizVid will continue play the default playlist.  
-    * **Default Playlist**  
-Choose a playlist to use as the default from your saved playlists.  
-    * **Default Volume**  
-The default volume level for players when they join the world.  
-    * **Default Muted**  
-VizVid's volume are muted by default when players join the world.  
-    * **Default Repeat Mode**  
-Choose from: None, Repeat One, Repeat All.  
-    * **Default Shuffle**  
-Shuffle is enable by default when players join the world.  
-    * **Seed Random Before Shuffle**  
-Regenerate random seed for shuffle playback when VizVid plays a playlist.  
+    If there are no other video players besides VizVid in the world, you don't need adjust this.  
+* **Idle Behavior**  
+Executes the specified action when the playlist finishes playing:  
+    * **Stop Playing**  
+    Takes no action.  
+    * **Play Default Playlist**  
+    Switches back to the default playlist and starts from the top.  
+    * **Resume Last Playing Item**  
+    Switches back to the last playing item on the playlist.
+* **Low-latency mode**  
+Enable low latency on AVPro for less latency on stream playbacks.  
 
-* **Advanced Settings**  
-    * **Exception Handling**  
-        * **Total Retry Count**  
-        The maximum number of retry attempts when loading fails.  
-        * **Fallback Retry Count**  
-        Playback backend will auto-switch if the threshold is exceeded.  
-        * **Retry Delay**  
-        The interval time between retries when loading fails.  
-        * **Time Drift Detect Threshold**  
-        Detects playback latency between all users.  
-        Playback progress will be auto-adjust if the threshold is exceeded.  
+##### Theme Settings  
+* **Collor Palette**  
+Adjust color tones based on your current color settings.  
+* **Color #**  
+Set colors on VizVid individually.
+* **Auto Apply on Build**
+Toggle for auto apply current color settings into VizVid's UI.
+* **Apply**
+Apply color settings to VizVid's UI.  
 
+##### Display Settings  
+* **Standby Screen**  
+Set a static image if no video or image appears on screen.  
+* **Broadcast Screen Texture**  
+Enables broadcast screen textures, allowing supported shaders (e.g., [Poiyomi](https://www.poiyomi.com/color-and-normals/decals#video-texture)) to display VizVid's video signals.  
+* **Realtime GI Update Interval**  
+The update interval for Realtime Global Illumination. Set to `0` to disable.  
+
+##### Module Related
+* **Screen Targets**  
+Lists screen GameObjects that contain a `Screen Configurator` component.  
+    * **Mode**  
+    Offers three rendering modes by default:  
+        * **Property Block**  
+        Applies the texture to the object via MaterialPropertyBlock without altering material assets. 
+        This is the most performance-efficient option.  
+        * **Shared Material**  
+        Outputs the texture directly to the material. Any other object sharing this material will also display the video.  
+        * **Cloned Material**  
+        Automatically creates a clone of the material and outputs the texture onto the duplicate.  
+        > [!note]
+        > This option may not be available by some case.  
+    * **Material**  
+    Specifies which material slot to target if the object has multiple materials applied.  
+    * **Video Texture Property Name**  
+    The shader property name for the video texture. Automatically populated based on the material's shader.  
+    * **Use Scale Offset**  
+    Enable this if the material's shader lacks native AVPro support and the video appears flipped / inverted.  
+    * **AVPro Flag Property Name**  
+    Set a custom shader property names for shaders that support AVPro mode.  
+    * **Emission Intensity**  
+    Sets the default screen emission brightness (default: `1`).  
+    * **Flip in Mirrors**  
+    Flips the video horizontally to keep text and visuals readable when viewed in mirrors.  
+    * **Visible Mode**  
+    Controls where the screen is rendered.
+    * **Standby Screen**  
+    Overrides the global standby image with a custom image for this specific screen target.  
+    * **Point Light Volume**  
+    Configures VRC Light Volumes. For details, see [VRC Light Volume (VRCLV)](#vrc-light-volume-vrclv).  
+    * **Fixup Aspect Ratio**  
+    Automatically fixes aspect ratio after resizing the player to prevent image distortion.  
+
+* **Audio Sources**  
+Lists `Audio Source` components used for VizVid sound output.  
+Multiple Audio Sources can be assigned to configure multi-channel audio setups.  
+    * **Mode**  
+    Selects the audio channel to receive (AVPro only).  
+    > [!note]
+    > All other settings correspond to standard VRC Spatial Audio Source options.  
+    > Please refer to the [VRChat Documentation](https://creators.vrchat.com/worlds/components/vrc_spatialaudiosource/) for setup details.  
+    * **Show Audio Source Properties**  
+    Opens the inspector properties window for this Audio Source to make adjustments.
 
 * **Player Handlers**  
 Manages the backends connected to VizVid.  
 AVPro, Builtin, and Image are provided by default.  
-    * **AVPro (AVPro Module)**  
-        * **Is Low Latency**  
-        Enable low latency for AVPro.  
-        Only available for live streaming contents.  
-* **Module Related**  
-Manages the module's specifications on VizVid.  
-    * **Video Screen Target**  
-Specifies the screen object containing the `Screen Configurator` component.  
-    * **Audio Sources**  
-Specifies the `Audio Source` for VizVid’s sound output.  
-Multiple Audio Sources can be specified for multi-channel setups.  
-    * **Audio Link**  
+Reorder priority by dragging the <kbd>=</kbd> icon on the left.  
+![image](../resources/images/B1vVyZfdGe.png)  
+
+* **AVPro (AVPro Module)**  
+    * **Max Resolution**  
+    The default requested resolution when fetching streams from multi-resolution platforms (e.g., YouTube).  
+    * **Low Latency mode**  
+    Enables AVPro low-latency mode (only effective during live streams).  
+    * **Primary Audio Source (Stereo Mix / Left)**  
+    Sets the primary output Audio Source. Outputs either stereo mix or the left channel depending on source settings.  
+    * **Primary Audio Source (Right)**  
+    Sets the primary output Audio Source for the right channel when configured accordingly.  
+    * **Use Flicker Workaround**  
+    Applies a fix for occasional screen flickering issues during AVPro playback.  
+        > [!Note]
+        > VRChat has resolved this flicker issue in recent updates, so this option is disabled by default.  
+    * **Fallback Player Handler**  
+    The backup player backend to try if media playback fails under AVPro (default: `Builtin Module`).  
+
+* **Builtin (Builtin Module)**  
+    * **Max Resolution**  
+    The default requested resolution when fetching streams from multi-resolution platforms (e.g., YouTube).  
+    * **Primary Audio Source (Stereo Mix / Left)**  
+    Sets the primary output Audio Source (outputs stereo or left channel based on source settings).  
+        > [!note]
+        Note: Since the Unity Built-in backend does not support multiple audio sources, setting the output source to stereo is recommended.  
+    * **Fallback Player Handler**  
+    The backup player backend to try if playback fails under the Builtin player (default: `AVPro Module`).  
+
+* **Image (Image Module)**  
+    * **Video Player Backend Name**  
+    The identifier name for the Image backend handler.  
+    * **Fallback Player Handler**  
+    The backup player backend to try if an image fails to load (empty by default).
+    > [!note]
+    Modifying settings in this section is not recommended.  
+
+* **AudioLink**  
 Specifies the `AudioLink` component.  
 If you already had AudioLink in the project, you can click <kbd>Auto Find</kbd> to specify.  
-    * **Video Title Viewer (YTTL)**  
+* **Video Title Viewer (YTTL)**  
 Specifies the `YTTL Manager` component.  
-    * **Broadcast Screen Texture**  
-Enables broadcast screen textures, allowing supported shaders (e.g., [Poiyomi](https://www.poiyomi.com/color-and-normals/decals#video-texture)) to display VizVid's video signals.  
-    * **Realtime GI Update Interval**  
-The update interval for Realtime Global Illumination. Set to `0` to disable.  
-* **Others**  
-    * **URL Input Filter**  
+
+##### Exception Handling  
+* **Total Retry Count**  
+The maximum number of retry attempts when loading fails.  
+* **Fallback Retry Count**  
+Playback backend will auto-switch if the threshold is exceeded.  
+* **Retry Delay**  
+The interval time between retries when loading fails.  
+* **Time Drift Detect Threshold**  
+Detects playback latency between all users.  
+Playback progress will be auto-adjust if the threshold is exceeded.  
+
+
+##### Others
+* **Synced**  
+Sets whether VizVid operates globally. Enabled by default.  
+* **Enable Persistence**  
+Sets whether to save VizVid settings (such as volume). Enabled by default.  
+* **URL Input Filter**  
 URL filtering settings.  
 Implementation can be based on inheritance by referring to this [Udon Script](https://github.com/JLChnToZ/VVMW/blob/develop/Packages/idv.jlchntoz.vvmw/Runtime/VVMW/InputFilterBase.cs).  
-    * **Global Default Texture**  
-The texture displayed by default on all screens when VizVid has no video content.  
-This can be changed individually in each `Screen Configurator`.  
-    * **Synced**  
-Sets whether VizVid operates globally. Enabled by default.  
-    * **Enable Persistence**  
-Sets whether to save VizVid settings (such as volume). Enabled by default.  
-* **Extra Features**  
-    * **Locked**  
+* **Locked**  
 Locks the player by default. You can configure this by writing a [compatible script](../api/JLChnToZ.VRC.VVMW.FrontendHandler.html?q=locked#JLChnToZ_VRC_VVMW_FrontendHandler_Locked) or purchasing [Udon Auth](https://xtl.booth.pm/items/3826907).  
 * **Event Targets**  
 Sends event data to Udon Sharp scripts set here to integrate custom scripts.  
 
 #### Frontend Handler  
 This component manages playlists and VizVid's default behavior.  
+> [!note]
+> The options for this component are integrated into the `Core` component.  
+> Please refer to the [Core](#Core) section.  
 
-The options for this component are integrated into the `Core` component.  
-Please refer to the [Core](#Core) section.  
+#### UI Handler  
+Manages UI integrations and component references for the player.  
+* **Primary References**  
+    * **Player Core**  
+    Links to the `Core` component.  
+    If unassigned, click <kbd>Auto Search</kbd> to automatically find and link the `Core` component in the scene.  
+    * **Playlist Queue Handler**  
+    Links to the `Playlist Queue Handler` component.  
+    If unassigned, click <kbd>Auto Search</kbd> to automatically find and link the `Playlist Queue Handler` component in the scene.  
 
-#### **UI Handler**  
-This component manages VizVid’s UI element's specification.  
-
-* **Main References**  
-    * **Core Handler**  
-    Responsible for connecting to the `Core` component.  
-If the reference is missing, you can click <kbd>Auto Find</kbd> to link it to the `Core` component in the scene.  
-    * **Playlist Handler**  
-    Responsible for connecting to the `Playlist Queue Handler` component.  
-    If the reference is missing, you can click <kbd>Auto Find</kbd> to link it to the `Playlist Queue Handler` component in the scene.  
-
-
-
-#### Color Config  
-
-This component manages UI color and usually appears alongside the `UI Handler`.  
-
-* **Color Palette**  
-Provides six default colors that can be assigned to different UI parts of VizVid.  
-* **Apply on Build**  
-Enabled by default. The currently modified colors will be applied automatically when Unity builds the scene.  
-* **Apply**  
-Allows you to apply colors to only the current `Color Config` component, or to all `Color Config` components in the scene.  
+> [!note]
+> The remaining options vary depending on the UI type. Adjust these settings as needed, or connect your own custom UI components.
 
 #### Screen Configurator  
 This component is made for linking the video screen output to a specified shader.  
 * **Screen Renderer**  
 Specifies the Mesh Renderer where the video content will be output.  
+> [!note]
+> Part of the options for this component are integrated into the `Core` component.  
+> Please refer to the [Core](#Core) section.  
+
+#### Color Config  
+This component manages UI color and usually appears alongside the `UI Handler`.  
+* **Collor Palette**  
+Adjust color tones based on your current color settings.  
+* **Color #**  
+Set colors on VizVid individually.
+* **Auto Apply on Build**
+Toggle for auto apply current color settings into VizVid's UI.
+* **Apply**  
+Allows you to apply colors to only the current `Color Config` component, or to all `Color Config` components in the scene.  
 
 #### Active Region  
 This component manages VizVid proximity logic, executing functions when a player enters the specified region.  
@@ -296,10 +427,29 @@ If it displays "None (Core)", you can click <kbd>Auto Find</kbd> to specify the 
 Specifies the region for this component.  
 * **Static Region**  
 Lock the position of this region.  
+* **Affected by Active State**  
+If unchecked, the Active Region remains effective even when its GameObject is disabled.  
+* **Use World Space Bounds**  
+Ignores the Active Region's Transform and evaluates only its bounding box, slightly reducing overhead.  
+![image](../resources/images/r1CIWFx_Ml.png)  
+
+#### Audio Source Configurator  
+Manages positioning and falloff distance settings for 2.0 / 5.1 audio source setups.  
+
+* **Audio Sources**  
+Specifies the audio sources to configure.  
+* **Near Bounds**  
+Inside this range, all audio sources output at their full original volume.  
+* **Far Bounds**  
+Outside this range, the audio sources become completely inaudible.  
+* **Estimate**  
+Calculates optimal falloff settings based on the current sound stage layout.  
+* **Fit**  
+Applies the settings to the audio sources.
 
 ---
 ## Other Scenarios  
-### Import　Playlist from Other Video Players  
+### Import Playlist from Other Video Players  
 Just drag video player's object, drop in VizVid's playlist editor.  
 Supported video players in the following:  
 * VizVid  
@@ -317,7 +467,7 @@ Supported video players in the following:
 2. In the LTCGI Inspector, an "Auto-Configure XXX" button will automatically appear.  
 3. Confirm that "XXX" is your VizVid Core, then click the button to allow LTCGI to receive the video signal from VizVid.  
 
-> [!Note]  
+> [!Note]
 > LTCGI requires the use of supported shaders to display effects correctly.  
 > Refer to [this documentation](https://ltcgi.dev/Getting%20Started/Installation/Compatible_Shaders) to select a suitable shader.  
 
@@ -327,7 +477,7 @@ Supported video players in the following:
 2. Follow the settings shown in the attached image to enable VRC Light Volume for VizVid:  
 ![image](../resources/images/SyEubsBm-e.png)  
 
-> [!Note]  
+> [!Note]
 > Please note that VRC Light Volume requires the use of supported shaders to display effects correctly.  
 > Refer to [this documentation](https://github.com/REDSIM/VRCLightVolumes/blob/main/Documentation/CompatibleShaders.md) to select a suitable shader.  
 
@@ -356,7 +506,7 @@ The primary stream URL. Defaults to the TopazChat service and can be changed as 
 * **Alt. Stream URL Template**  
 Alternative link for mobile platforms.  
 Defaults to the TopazChat service; please use the same server as the URL above.  
-> [!Note]  
+> [!Note]
 > `{0}` represents the unique ID for stream key; please ensure it is kept in the template.  
 * **Key Count**  
 The number of keys to be generated.  
@@ -376,7 +526,6 @@ Configuration reference image below:
 ![image](../resources/images/rykrj9Bm-e.png)  
 
 ### Audio  
-
 #### BGM Volume Control  
 
 If your world has background music or ambient sounds, you can add this component to allow VizVid to automatically mute these Audio Sources when media content is playing. They will be unmuted when playback stops.  
@@ -387,29 +536,33 @@ If your world has background music or ambient sounds, you can add this component
 ![image](../resources/images/HkOf5cr7bl.png)  
 4. Done!  
 
-#### 5.1 Surround Configuration  
+#### Stereo Audio Setup  
+To meet the needs of world creators, VizVid can be configured to output directional stereo audio.  
+Follow these steps to configure it:  
+1. Add `Audio Source (Stereo)` via the `Module` menu; it will automatically bind to VizVid.  
+2. Adjust the yellow bounds shown in the image to position the audio sources according to your scene layout.  
+![image](../resources/images/HJxdTYeOfg.png)  
+3. Click <kbd>Estimate</kbd> to recalculate falloff settings.  
+For detailed settings, see [Audio Source Configurator](#audio-source-configurator).  
+4. Click <kbd>Fit</kbd> to apply the settings to the audio sources.  
+5. Done!  
 
+#### 5.1 Surround Setup  
 VRChat's AVPro backend supports 5.1 surround sound output within VRChat.  
 This is commonly used in cinema scenes or similar environments.  
-After adding `Audio Source (5.1 Surround)` via the menu, it will automatically link to VizVid.  
-Finally, adjust the positions of the Audio Sources as needed.  
-![image](../resources/images/By3PPiBXbx.png)  
+1. Add `Audio Source (5.1 Surround)` via the `Module` menu; it will automatically bind to VizVid.  
+2. Adjust the yellow bounding lines shown in the image to position the audio sources according to your scene layout.  
+![image](../resources/images/H1sKewJ_zl.png)  
+3. Click <kbd>Estimate</kbd> to recalculate falloff settings.  
+For detailed settings, see [Audio Source Configurator](#audio-source-configurator).  
+4. Click <kbd>Fit</kbd> to apply the settings to the audio sources.  
+5. Done!  
 
-### UI Display Related  
-#### Set Fullscreen Unlock Mode by Default  
-Classic unlock mode for On-Screen Controlls is set by default on VizVid.  
-If you prefer to use fullscreen unlock mode by default, follow these steps:  
-1. Follow the image on below, locate the `FullScreen` object.  
-2. In the Inspector on the right, check the box for State 1.  
-![image](../resources/images/rJDkfe43-g.png)
-3. Done!  
+> [!note]
+> Due to technical limitations, the Builtin backend does not support multiple Audio Sources, which may cause audio to output only from the left channel.  
+> Please adjust your configuration accordingly if using the Builtin backend.
 
-> [!Note]  
-> This setting synchronizes the control modes of all On-Screen Controlls in the scene. To unlink them, simply delete the persistence key.  
-
-> [!Note]  
-> To ensure that linked settings are correctly saved, if there are multiple On-Screen Controlls in your scene, please apply this change to all of them.  
-
+### UI Display  
 #### Reversing Playlist Order  
 If you prefer to use VizVid’s old version reverse-order playlist, you can change it using the following method:  
 1. Locate the `Play List Entries` object in your scene.  
@@ -447,11 +600,11 @@ It also supports Text Mesh Pro UI elements outside of VizVid.
 3. Enter the corresponding Language Key.  
 4. Done.  
 
-> [!Tip]  
+> [!Tip]
 > Language Manager can operate without VizVid. You can remove related objects (including the Core) if you don't need VizVid.  
 > Keep the language menu, you can still switching between languages.  
 
-> [!Note]  
+> [!Note]
 > Language Manager supports importing multiple JSON files. If you are concerned about overwriting VizVid's built-in JSON lists, you can create a separate JSON and import it into this component.  
 > ![image](../resources/images/rk6ChErX-l.png)  
 
@@ -472,7 +625,7 @@ Please refer to [this page](../api/Global.html) to link custom functions to VizV
 **Q2**: I changed the default volume for VizVid, but it doesn't seem to reflect in VRChat?  
 **A2**: VRChat will use user's data first if they visited the world when `Enable Persistence` is checked in the VizVid Core.  
 To reset this and apply new default values, users must reset their data for that world in VRChat.  
-![image](../resources/images/ryr1oWvQZg.png)  
+![image](../resources/images/SkRoJbz_zx.png)  
 
 ---
 **Q3**: I can't find `Core` option in some components.  
@@ -497,6 +650,6 @@ Due to the limitations of Unity's inspector editor, if the component has already
 ![image](../resources/images/Hk1DzfFyMg.png)  
 
 ---
-> [!Note]  
+> [!Note]
 > If this section didn't solve your problem.  
 > Just [join our Discord server](https://discord.gg/fkDueQMbj8) look for help.  
