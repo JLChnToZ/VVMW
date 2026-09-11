@@ -21,7 +21,7 @@ namespace JLChnToZ.VRC.VVMW {
     [DefaultExecutionOrder(2)]
     [HelpURL("https://xtlcdn.github.io/VizVid/docs/#default-ui--screen-with-overlay")]
     public partial class UIHandler : VizVidBehaviour {
-        [CollapsableHeader("HEADER:Main_Reference")]
+        [LocalizedHeader("HEADER:Main_Reference")]
         [SerializeField, BindUdonSharpEvent(
             nameof(_OnPerformerChange),
             nameof(_OnRangeLoopChange),
