@@ -299,14 +299,24 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         void DrawRepeatShuffleSettings(VVMWEditorBase controllerEditor) {
             HorizontalLine();
             EditorGUILayout.LabelField(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.repeatShuffleSettings"), EditorStyles.boldLabel);
-            if (controllerEditor is FrontendHandlerEditor frontendHandlerEditor) {
+            if (controllerEditor is FrontendHandlerEditor frontendHandlerEditor)
                 frontendHandlerEditor.DrawRepeatShuffleSettings(showAllSettings: showAllSettings);
-                return;
+            else {
+                frontendHandlerEditor = null;
+                EditorGUILayout.PropertyField(loopProperty, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.FrontendHandler.loopMode.singleLoop"));
             }
-            EditorGUILayout.PropertyField(loopProperty, i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.FrontendHandler.loopMode.singleLoop"));
             if (!showAllSettings) return;
-            EditorGUILayout.PropertyField(autoPlayDelayProperty);
-            if (autoPlayDelayProperty.floatValue < 0) autoPlayDelayProperty.floatValue = 0;
+            bool autoPlayOnJoin;
+            if (frontendHandlerEditor == null) {
+                autoPlayOnJoin = float.IsFinite(autoPlayDelayProperty.floatValue);
+                using var change = new EditorGUI.ChangeCheckScope();
+                autoPlayOnJoin = EditorGUILayout.Toggle(i18n.GetLocalizedContent("JLChnToZ.VRC.VVMW.FrontendHandler.autoPlayOnJoin"), autoPlayOnJoin);
+                if (change.changed) autoPlayDelayProperty.floatValue = autoPlayOnJoin ? 0f : float.PositiveInfinity;
+            } else
+                autoPlayOnJoin = true;
+            if (autoPlayOnJoin)
+                using (new EditorGUI.IndentLevelScope())
+                    EditorGUILayout.PropertyField(autoPlayDelayProperty);
         }
 
         void DrawDefaultBehaviourSettings(VVMWEditorBase controllerEditor) {

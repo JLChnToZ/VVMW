@@ -37,7 +37,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel] bool synced = true;
         [SerializeField, LocalizedLabel] int totalRetryCount = 3, fallbackRetryCount = 1;
         [SerializeField, LocalizedLabel, Range(5, 20)] float retryDelay = 5.5F;
-        [SerializeField, LocalizedLabel] float autoPlayDelay = 0;
+        [SerializeField, LocalizedLabel, Min(0)] float autoPlayDelay = 0;
         [SerializeField, LocalizedLabel] internal InputFilterBase urlInputFilter;
         [UdonSynced] VRCUrl pcUrl, questUrl;
         VRCUrl localUrl, loadingUrl, lastUrl, altUrl, lastAltUrl;
@@ -231,7 +231,8 @@ namespace JLChnToZ.VRC.VVMW {
                 handler.core = this;
             InitScreenProperties();
             UpdateVolume();
-            if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedSeconds(nameof(_PlayDefaultUrl), autoPlayDelay);
+            if (float.IsInfinity(autoPlayDelay)) { }
+            else if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedSeconds(nameof(_PlayDefaultUrl), autoPlayDelay);
             else if (synced) SendCustomEventDelayedSeconds(nameof(_RequestOwnerSync), autoPlayDelay + 3);
             afterFirstRun = true;
 #if VRC_ENABLE_PLAYER_PERSISTENCE
