@@ -335,7 +335,7 @@ VizVid が連携するバックエンドを管理します。
     * **最先順位Audio Source (ステレオ / 左)**  
     メインで出力するAudio Sourceを設定します。Audio Sourceの設定に応じて、ステレオまたは左チャンネルを出力できます。  
         > [!note]
-        Builtinバックエンドは複数のAudio Sourceに対応していないため、出力先のAudio Sourceをステレオに設定することを推奨します。  
+        > Builtinバックエンドは複数のAudio Sourceに対応していないため、出力先のAudio Sourceをステレオに設定することを推奨します。  
     * **フォールバックハンドラー**  
     コンテンツを Builtin で再生できない場合、該当再生バックエンドに切り替えて再試行します。デフォルトは `AVPro Module` です。  
 * **画像 (Image Module)**  
