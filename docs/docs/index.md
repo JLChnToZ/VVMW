@@ -186,7 +186,7 @@ Triggers a default video when a user approaches and stops it when they leave. Id
 * **Light Volume for Screen**  
 Enables VRC Light Volumes (VRCLV) support for screen on VizVid.  
     > [!note]
-    This option only appears when an object containing a screen is selected.
+    > This option only appears when an object containing a screen is selected.
 
 ---
 * **Active Region**  
@@ -337,7 +337,7 @@ Reorder priority by dragging the <kbd>=</kbd> icon on the left.
     * **Primary Audio Source (Stereo Mix / Left)**  
     Sets the primary output Audio Source (outputs stereo or left channel based on source settings).  
         > [!note]
-        Note: Since the Unity Built-in backend does not support multiple audio sources, setting the output source to stereo is recommended.  
+        > Since the Unity Built-in backend does not support multiple audio sources, setting the output source to stereo is recommended.  
     * **Fallback Player Handler**  
     The backup player backend to try if playback fails under the Builtin player (default: `AVPro Module`).  
 
@@ -347,7 +347,7 @@ Reorder priority by dragging the <kbd>=</kbd> icon on the left.
     * **Fallback Player Handler**  
     The backup player backend to try if an image fails to load (empty by default).
     > [!note]
-    Modifying settings in this section is not recommended.  
+    > Modifying settings in this section is not recommended.  
 
 * **AudioLink**  
 Specifies the `AudioLink` component.  
