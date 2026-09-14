@@ -36,12 +36,12 @@ jobs:
 
       # Checkout Local Repository
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Get the Package version based on the package.json file
       - name: Get Version
         id: version
-        uses: zoexx/github-action-json-file-properties@b9f36ce6ee6fe2680cd3c32b2c62e22eade7e590
+        uses: zoexx/github-action-json-file-properties@42c424cc2a0f9dfd36c79aedb70d429c0ae3e3fa
         with: 
           file_path: "${{ env.packagePath }}/package.json"
           prop_path: "version"
@@ -136,7 +136,7 @@ jobs:
 
       # Publish the Release to GitHub
       - name: Make Release
-        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
         with:
           files: |
             ${{ steps.release_vars.outputs.zipFile }}

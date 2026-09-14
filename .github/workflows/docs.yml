@@ -31,16 +31,16 @@ jobs:
       SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           lfs: true
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Restore Unity Library cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Library
           key: Library-docs-${{ runner.os }}-${{ env.UNITY_VERSION }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
@@ -48,12 +48,12 @@ jobs:
             Library-docs-${{ runner.os }}-${{ env.UNITY_VERSION }}-
 
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
 
       - name: Resolve VPM packages
-        uses: anatawa12/sh-actions/resolve-vpm-packages@master
+        uses: anatawa12/sh-actions/resolve-vpm-packages@1d155c7a26bcd0a54ffd9cb38fd66ab0d32d23cd
         with:
           project-path: .
           repos: |
@@ -66,7 +66,7 @@ jobs:
           find . -maxdepth 1 \( -name '*.csproj' -o -name '*.csproj.lscache' -o -name '*.sln' \) -delete
 
       - name: Generate Unity project files
-        uses: game-ci/unity-builder@v4
+        uses: game-ci/unity-builder@v5.0.1
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -133,7 +133,7 @@ jobs:
           test "$api_count" -gt 0
 
       - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
@@ -146,4 +146,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
