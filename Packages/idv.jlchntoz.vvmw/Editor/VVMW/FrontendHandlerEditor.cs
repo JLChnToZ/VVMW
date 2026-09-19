@@ -58,7 +58,6 @@ namespace JLChnToZ.VRC.VVMW.Editors {
             PlayListEditorWindow.OnFrontendUpdated -= OnFrontEndUpdated;
         }
 
-
         public override void DrawInspectorGUI() {
             serializedObject.Update();
             EditorGUILayout.PropertyField(coreProperty);
@@ -226,11 +225,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         void DrawLockProperty() {
             EditorGUILayout.PropertyField(lockedProperty);
-            using (new EditorGUILayout.HorizontalScope()) {
-                GUILayout.Label(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.locked:hint"), GUILayout.ExpandWidth(false));
-                if (GUILayout.Button(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.locked:hint_link"), EditorStyles.linkLabel, GUILayout.ExpandWidth(false)))
-                    Application.OpenURL("https://xtl.booth.pm/items/3826907");
-            }
+            Utils.DrawRichHelpBox(string.Format(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.locked:hint"), "https://xtl.booth.pm/items/3826907"));
         }
 
         void OnFrontEndUpdated(FrontendHandler handler) {

@@ -169,7 +169,7 @@ namespace JLChnToZ.VRC.VVMW {
         Core IVizVidCompoonent.Core => core;
     }
 
-#if UNITY_EDITOR && VRCLV3_IMPORTED
+#if UNITY_EDITOR && VRC_LIGHT_VOLUMES_V3
     partial class LightVolumeAdaptor : ISelfPreProcess {
         public int Priority => 0;
 

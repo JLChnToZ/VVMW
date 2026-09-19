@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Single entry exhibition setup don't have an option to switch off auto play on join.
 - Some localization lost in inspector
 - Incorrect localization key in Global Sync button
+- Compiler errors on switiching platforms [#94](https://github.com/JLChnToZ/VVMW/issues/94)
 
 ### Changed
 - Minor tweaks on the inspector UI

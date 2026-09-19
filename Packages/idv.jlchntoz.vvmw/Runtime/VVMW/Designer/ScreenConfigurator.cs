@@ -136,6 +136,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         public static PointLightVolume CreateLightVolume(Transform target, Core core, int subMeshIndex = -1) {
             var adaptor = TryGetAttachedAdaptor(core);
             var lv = CreateLightVolume(target, subMeshIndex);
+#if VRC_LIGHT_VOLUMES_V2
             ref var array = ref adaptor.pointLightVolumes;
             if (array == null || array.Length == 0)
                 array = new PointLightVolumeInstance[1];
@@ -145,6 +146,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             lv.TryGetComponent(out array[^1]);
 #else
             array[^1] = lv;
+#endif
 #endif
             Undo.RecordObject(adaptor, "Assign Light Volume for Screen");
             return lv;

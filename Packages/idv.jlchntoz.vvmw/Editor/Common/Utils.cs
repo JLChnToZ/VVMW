@@ -3,9 +3,11 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor;
 
+using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
+
 namespace JLChnToZ.VRC.VVMW {
     public static class Utils {
-        static GUIStyle textFieldDropDownTextStyle, textFieldDropDownStyle;
+        static GUIStyle textFieldDropDownTextStyle, textFieldDropDownStyle, richHelpBoxStyle;
 
         public static void DrawShaderPropertiesField(
             SerializedProperty property,
@@ -88,6 +90,25 @@ namespace JLChnToZ.VRC.VVMW {
                     }
             }
             return fallback ?? "_MainTex";
+        }
+
+        public static void DrawRichHelpBox(string message, params GUILayoutOption[] options) {
+            richHelpBoxStyle ??= new GUIStyle(EditorStyles.helpBox) {
+                richText = true,
+                wordWrap = true,
+                stretchWidth = true,
+                padding = new RectOffset(5, 5, 5, 5),
+            };
+            using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
+                EditorGUI.SelectableLabel(
+                    GUILayoutUtility.GetRect(
+                        FUtils.GetTempContent(message),
+                        richHelpBoxStyle,
+                        options
+                    ),
+                    message,
+                    richHelpBoxStyle
+                );
         }
     }
 }
