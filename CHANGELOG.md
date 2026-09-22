@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## 1.8.1 - 2026-09-22
 ### Fixed
 - Single entry exhibition setup don't have an option to switch off auto play on join.
 - Some localization lost in inspector
@@ -33,7 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Light Volume component placement now precisely estimated (calculated with polygon geometries).
 - Enhanced custom title display flow
 - Rearranged inspector layout
-- Simplify script defines for VRCLightVolumes 3
+- Enhanced playlist scroll view interaction
 
 ## 1.7.6-beta.4 - 2026-08-01
 ### Fixed

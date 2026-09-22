@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -8,6 +9,12 @@ using FUtils = JLChnToZ.VRC.Foundation.Editors.Utils;
 namespace JLChnToZ.VRC.VVMW {
     public static class Utils {
         static GUIStyle textFieldDropDownTextStyle, textFieldDropDownStyle, richHelpBoxStyle;
+
+        private static GUIStyle RichHelpBoxStyle => richHelpBoxStyle ??= new GUIStyle(EditorStyles.helpBox) {
+            richText = true,
+            wordWrap = true,
+            stretchWidth = true,
+        };
 
         public static void DrawShaderPropertiesField(
             SerializedProperty property,
@@ -64,13 +71,13 @@ namespace JLChnToZ.VRC.VVMW {
                 var propertyName = ShaderUtil.GetPropertyName(shader, j);
                 menu.AddItem(
                     new GUIContent($"{ShaderUtil.GetPropertyDescription(shader, j)} ({propertyName})".Replace('/', '.')),
-                    property.stringValue == propertyName, SetValue, (property, propertyName)
+                    property.stringValue == propertyName, SetValue, Tuple.Create(property, propertyName)
                 );
             }
         }
 
         static void SetValue(object entry) {
-            (SerializedProperty prop, string value) = ((SerializedProperty, string))entry;
+            var (prop, value) = entry as Tuple<SerializedProperty, string>;
             prop.stringValue = value;
             prop.serializedObject.ApplyModifiedProperties();
         }
@@ -83,32 +90,19 @@ namespace JLChnToZ.VRC.VVMW {
                 int count = shader.GetPropertyCount();
                 for (int i = 0; i < count; i++)
                     if (shader.GetPropertyType(i) == ShaderPropertyType.Texture) {
-                        if (shader.GetPropertyFlags(i).HasFlag(ShaderPropertyFlags.MainTexture))
+                        if ((shader.GetPropertyFlags(i) & ShaderPropertyFlags.MainTexture) == ShaderPropertyFlags.MainTexture)
                             return shader.GetPropertyName(i);
-                        if (fallback == null)
-                            fallback = shader.GetPropertyName(i);
+                        fallback ??= shader.GetPropertyName(i);
                     }
             }
             return fallback ?? "_MainTex";
         }
 
-        public static void DrawRichHelpBox(string message, params GUILayoutOption[] options) {
-            richHelpBoxStyle ??= new GUIStyle(EditorStyles.helpBox) {
-                richText = true,
-                wordWrap = true,
-                stretchWidth = true,
-                padding = new RectOffset(5, 5, 5, 5),
-            };
+        public static void RichHelpBox(string message, params GUILayoutOption[] options) {
             using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
-                EditorGUI.SelectableLabel(
-                    GUILayoutUtility.GetRect(
-                        FUtils.GetTempContent(message),
-                        richHelpBoxStyle,
-                        options
-                    ),
-                    message,
-                    richHelpBoxStyle
-                );
+                RichHelpBox(GUILayoutUtility.GetRect(FUtils.GetTempContent(message), RichHelpBoxStyle, options), message);
         }
+
+        public static void RichHelpBox(Rect rect, string message) => EditorGUI.SelectableLabel(rect, message, RichHelpBoxStyle);
     }
 }

@@ -225,7 +225,7 @@ namespace JLChnToZ.VRC.VVMW.Editors {
 
         void DrawLockProperty() {
             EditorGUILayout.PropertyField(lockedProperty);
-            Utils.DrawRichHelpBox(string.Format(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.locked:hint"), "https://xtl.booth.pm/items/3826907"));
+            Utils.RichHelpBox(string.Format(i18n.GetOrDefault("JLChnToZ.VRC.VVMW.FrontendHandler.locked:hint"), "https://xtl.booth.pm/items/3826907"));
         }
 
         void OnFrontEndUpdated(FrontendHandler handler) {
