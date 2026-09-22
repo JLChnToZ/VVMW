@@ -594,7 +594,7 @@ VizVid 的語言管理元件，是位於 Locale 物件中的 Language Manager。
 ![image](../resources/images/rJFl6WvXZl.png)  
 
 ### API Reference  
-請參考[本頁面](../api/Global.html)，串接需要的功能至 VizVid。  
+請參考[本頁面](../api/JLChnToZ.VRC.VVMW.html)，串接需要的功能至 VizVid。  
 
 
 ---

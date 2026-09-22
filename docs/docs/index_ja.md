@@ -596,7 +596,7 @@ VizVid の言語管理コンポーネントは、Locale オブジェクトにあ
 ![image](../resources/images/Hynj1VDm-l.png)  
 
 ### API リファレンス  
-必要な機能を VizVid と連携させる際は、[こちらのページ](../api/Global.html) (英語) を参照してください。  
+必要な機能を VizVid と連携させる際は、[こちらのページ](../api/JLChnToZ.VRC.VVMW.html) (英語) を参照してください。  
 
 ---
 

@@ -610,7 +610,7 @@ It also supports Text Mesh Pro UI elements outside of VizVid.
 
 ### API Reference  
 
-Please refer to [this page](../api/Global.html) to link custom functions to VizVid.  
+Please refer to [this page](../api/JLChnToZ.VRC.VVMW.html) to link custom functions to VizVid.  
 
 ---
 ## Q&A  
