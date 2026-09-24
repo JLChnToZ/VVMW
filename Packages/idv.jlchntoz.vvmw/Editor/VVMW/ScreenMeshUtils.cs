@@ -218,15 +218,71 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             return true;
         }
 
+        static int SafeGetInteger(Material material, int propertyId) {
+            var shader = material.shader;
+            if (shader == null) return 0;
+            return shader.GetPropertyType(propertyId) switch {
+                ShaderPropertyType.Float or ShaderPropertyType.Range => Mathf.RoundToInt(material.GetFloat(propertyId)),
+                ShaderPropertyType.Int => material.GetInteger(propertyId),
+                _ => 0,
+            };
+        }
+
+        static void SafeSetInteger(Material material, int propertyId, int value) {
+            var shader = material.shader;
+            if (shader == null) return;
+            switch (shader.GetPropertyType(propertyId)) {
+                case ShaderPropertyType.Float:
+                case ShaderPropertyType.Range:
+                    material.SetFloat(propertyId, value);
+                    break;
+                case ShaderPropertyType.Int:
+                    material.SetInteger(propertyId, value);
+                    break;
+                case ShaderPropertyType.Color:
+                case ShaderPropertyType.Vector:
+                    material.SetVector(propertyId, Vector4.one * value);
+                    break;
+            }
+        }
+
+        static float SafeGetFloat(Material material, int propertyId) {
+            var shader = material.shader;
+            if (shader == null) return 0f;
+            return shader.GetPropertyType(propertyId) switch {
+                ShaderPropertyType.Float or ShaderPropertyType.Range => material.GetFloat(propertyId),
+                ShaderPropertyType.Int => material.GetInteger(propertyId),
+                _ => 0f,
+            };
+        }
+
+        static void SafeSetFloat(Material material, int propertyId, float value) {
+            var shader = material.shader;
+            if (shader == null) return;
+            switch (shader.GetPropertyType(propertyId)) {
+                case ShaderPropertyType.Float:
+                case ShaderPropertyType.Range:
+                    material.SetFloat(propertyId, value);
+                    break;
+                case ShaderPropertyType.Int:
+                    material.SetInteger(propertyId, Mathf.RoundToInt(value));
+                    break;
+                case ShaderPropertyType.Color:
+                case ShaderPropertyType.Vector:
+                    material.SetVector(propertyId, Vector4.one * value);
+                    break;
+            }
+        }
+
         static bool ArePropertiesEqual(Material material, MaterialPropertyOverride[] properties) {
             foreach (var property in properties) {
                 switch (property.propertyType) {
                     case ShaderPropertyType.Float:
                     case ShaderPropertyType.Range:
-                        if (property.value is not float value || !Mathf.Approximately(material.GetFloat(property.propertyId), value)) return false;
+                        if (property.value is not float value || !Mathf.Approximately(SafeGetFloat(material, property.propertyId), value)) return false;
                         break;
                     case ShaderPropertyType.Int:
-                        if (property.value is not int intValue || material.GetInteger(property.propertyId) != intValue) return false;
+                        if (property.value is not int intValue || SafeGetInteger(material, property.propertyId) != intValue) return false;
                         break;
                     case ShaderPropertyType.Color:
                         if (property.value is not Color color || material.GetColor(property.propertyId) != color) return false;
@@ -258,10 +314,10 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 switch (property.propertyType) {
                     case ShaderPropertyType.Float:
                     case ShaderPropertyType.Range:
-                        material.SetFloat(property.propertyId, (float)property.value);
+                        SafeSetFloat(material, property.propertyId, (float)property.value);
                         break;
                     case ShaderPropertyType.Int:
-                        material.SetInteger(property.propertyId, (int)property.value);
+                        SafeSetInteger(material, property.propertyId, (int)property.value);
                         break;
                     case ShaderPropertyType.Color:
                         material.SetColor(property.propertyId, (Color)property.value);

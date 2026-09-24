@@ -8,7 +8,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using VRC.SDKBase;
 #endif
-#if VRCLV2_IMPORTED
+#if VRC_LIGHT_VOLUMES && VRCLV2_IMPORTED
 using VRCLightVolumes;
 #if VRCLV3_IMPORTED
 using PointLightVolume = VRCLightVolumes.PointLightVolumeInstance;
@@ -101,6 +101,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         }
 
 #if UNITY_EDITOR && !COMPILER_UDONSHARP
+#if VRC_LIGHT_VOLUMES
 #if VRCLV2_IMPORTED
         static LightVolumeAdaptor TryGetAttachedAdaptor(Core core, bool createIfNotFound = true) {
             foreach (var adaptor in FindObjectsByType<LightVolumeAdaptor>(FindObjectsSortMode.None))
@@ -136,7 +137,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         public static PointLightVolume CreateLightVolume(Transform target, Core core, int subMeshIndex = -1) {
             var adaptor = TryGetAttachedAdaptor(core);
             var lv = CreateLightVolume(target, subMeshIndex);
-#if VRC_LIGHT_VOLUMES_V2
+#if VRCLV2_IMPORTED
             ref var array = ref adaptor.pointLightVolumes;
             if (array == null || array.Length == 0)
                 array = new PointLightVolumeInstance[1];
@@ -238,14 +239,10 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 }
                 pointLightVolume.Color = Color.white;
             }
-            if (valueChanged) {
-                if (PrefabUtility.IsPartOfPrefabInstance(pointLightVolume))
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(pointLightVolume);
-#if !VRCLV3_IMPORTED
-                pointLightVolume.SyncUdonScript();
-#endif
-            }
+            if (valueChanged && PrefabUtility.IsPartOfPrefabInstance(pointLightVolume))
+                PrefabUtility.RecordPrefabInstancePropertyModifications(pointLightVolume);
         }
+#endif
 #endif
 
         static void RemoveIndexFromArray<T>(ref T[] array, int index) {

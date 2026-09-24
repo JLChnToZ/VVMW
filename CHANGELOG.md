@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## 1.8.2 - 2026-09-24
+### Fixed
+- A compiler error on VRCLV first imported.
+- Unable to select screen mode on core inspector.
+
 ## 1.8.1 - 2026-09-22
 ### Fixed
 - Single entry exhibition setup don't have an option to switch off auto play on join.

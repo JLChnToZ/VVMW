@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
-#if VRCLV2_IMPORTED
+#if VRC_LIGHT_VOLUMES && VRCLV2_IMPORTED
 using VRC.SDKBase;
 using VRCLightVolumes;
 #endif
@@ -265,7 +265,7 @@ namespace JLChnToZ.VRC.VVMW {
         [MenuItem(createMenuRoot + "Modules/Auto Play On Near (Local Only)", false, 148)]
         static void CreateAutoPlayOnNear() => SpawnPrefab(prefabRoot + "Auto Play On Near.prefab");
 
-#if VRCLV2_IMPORTED
+#if VRC_LIGHT_VOLUMES && VRCLV2_IMPORTED
         [MenuItem(createMenuRoot + "Modules/Light Volume for Screen", false, 159)]
         static void CreateLightVolumeForScreen() {
             foreach (var screenObject in Selection.gameObjects) {
