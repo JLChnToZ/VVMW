@@ -246,10 +246,18 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             }
         }
 
+        static int FindPropertyIndex(Shader shader, int propertyId) {
+            if (shader == null) return -1;
+            for (int i = 0, count = shader.GetPropertyCount(); i < count; i++)
+                if (shader.GetPropertyNameId(i) == propertyId)
+                    return i;
+            return -1;
+        }
+
         static float SafeGetFloat(Material material, int propertyId) {
             var shader = material.shader;
             if (shader == null) return 0f;
-            return shader.GetPropertyType(propertyId) switch {
+            return shader.GetPropertyType(FindPropertyIndex(shader, propertyId)) switch {
                 ShaderPropertyType.Float or ShaderPropertyType.Range => material.GetFloat(propertyId),
                 ShaderPropertyType.Int => material.GetInteger(propertyId),
                 _ => 0f,
@@ -259,7 +267,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         static void SafeSetFloat(Material material, int propertyId, float value) {
             var shader = material.shader;
             if (shader == null) return;
-            switch (shader.GetPropertyType(propertyId)) {
+            switch (shader.GetPropertyType(FindPropertyIndex(shader, propertyId))) {
                 case ShaderPropertyType.Float:
                 case ShaderPropertyType.Range:
                     material.SetFloat(propertyId, value);

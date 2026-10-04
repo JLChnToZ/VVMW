@@ -2,12 +2,23 @@
 #include "Packages/idv.jlchntoz.vrcw-foundation/Shaders/VRCMirrorCameraSelector.cginc"
 #include "./VideoShaderCommon.cginc"
 
-sampler2D _MainTex;
+#ifndef VERT_GET_VIDEO_TEXTURE_IMPL
+#define VERT_GET_VIDEO_TEXTURE_IMPL vert_getVideoUV
+#endif
+
+#ifndef FRAG_GET_VIDEO_TEXTURE_IMPL
+#define FRAG_GET_VIDEO_TEXTURE_IMPL frag_getVideoTexture
+#endif
+
+#ifndef FRAG_GET_VIDEO_TEXTURE_SS_IMPL
+#define FRAG_GET_VIDEO_TEXTURE_SS_IMPL frag_getVideoTextureSuperSample
+#endif
+
+DECLARE_VIDEO_TEXTURE(_MainTex)
 float4 _Color;
 int _IsAVProVideo;
 int _ScaleMode;
 int _IsMirror;
-float4 _MainTex_TexelSize;
 float4 _StereoShift;
 float3 _StereoExtend;
 #ifndef _ESTIMATE_ASPECT_RATIO
@@ -69,7 +80,7 @@ struct appdata {
             #if defined(_ESTIMATE_ASPECT_RATIO) && defined(_ROUND_CORNER)
                 o.aspectRatio = aspectRatio;
             #endif
-            o.uv.xy = vert_getVideoUV(IN[i].uv, _MainTex_TexelSize, _ScaleMode, aspectRatio, _StereoShift, _StereoExtend);
+            o.uv.xy = VERT_GET_VIDEO_TEXTURE_IMPL(IN[i].uv, _MainTex_TexelSize, _ScaleMode, aspectRatio, _StereoShift, _StereoExtend);
             #ifdef _ROUND_CORNER
                 o.uv.zw = IN[i].uv;
             #endif
@@ -114,7 +125,7 @@ v2g vert (appdata v) {
         o.uv = v.uv;
         o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
     #else
-        o.uv.xy = vert_getVideoUV(v.uv, _MainTex_TexelSize, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
+        o.uv.xy = VERT_GET_VIDEO_TEXTURE_IMPL(v.uv, _MainTex_TexelSize, _ScaleMode, _AspectRatio, _StereoShift, _StereoExtend);
         #ifdef _ROUND_CORNER
             o.uv.zw = v.uv;
         #endif
@@ -133,7 +144,11 @@ half4 frag (g2f i) : SV_Target {
         #endif
         clipRoundCorner(i.uv.zw, aspectRatio, _Radius);
     #endif
-    half4 c = frag_getVideoTexture(_MainTex, i.uv.xy, _IsAVProVideo, _StereoShift, _StereoExtend);
+    #ifdef _SUPER_SAMPLE
+        half4 c = FRAG_GET_VIDEO_TEXTURE_SS_IMPL(_MainTex, i.uv.xy, _MainTex_TexelSize, _IsAVProVideo, _StereoShift, _StereoExtend);
+    #else
+        half4 c = FRAG_GET_VIDEO_TEXTURE_IMPL(_MainTex, i.uv.xy, _IsAVProVideo, _StereoShift, _StereoExtend);
+    #endif
     #ifdef _HAS_EMISSION_INTENSITY
         c.rgb *= _EmissionIntensity;
     #endif

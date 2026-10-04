@@ -250,6 +250,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void OnDisable() {
             StopBroadcastScreenTexture();
+            if (Utilities.IsValid(activeHandler)) NotifyVideoEnd();
         }
 
         /// <summary>
@@ -640,14 +641,18 @@ namespace JLChnToZ.VRC.VVMW {
             ActivePlayer = 0;
             localUrl = synced ? null : defaultUrl;
             trustUpdated = false;
-            SendEvent("_onVideoEnd");
-#if AUDIOLINK_V1
-            if (Utilities.IsValid(audioLink)) audioLink.SetMediaPlaying(MediaPlaying.Stopped);
-#endif
+            NotifyVideoEnd();
             _OnTextureChanged();
             if (!synced || !Networking.IsOwner(gameObject)) return;
             state = IDLE;
             RequestSerialization();
+        }
+
+        void NotifyVideoEnd() {
+            SendEvent("_onVideoEnd");
+#if AUDIOLINK_V1
+            SetAudioLinkPlayBackState(MediaPlaying.Stopped);
+#endif
         }
 
         /// <summary>

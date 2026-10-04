@@ -1,4 +1,4 @@
-﻿Shader "JLChnToZ/VideoSurface" {
+﻿Shader "JLChnToZ/VideoSurface (HybridGI)" {
     Properties {
         [HDR] _Color ("Color", Color) = (1,1,1,1)
         [NoScaleOffset] _MainTex ("Video Texture", 2D) = "black" {}
@@ -12,10 +12,16 @@
         [Toggle(_)] _IsMirror ("Mirror Flip", Int) = 1
         [EnumMask(Direct Look, VR Handheld Camera, Desktop Handheld Camera, Screenshot, VR Mirror, VR Handheld Camera in Mirror, VR Face Mirror, VR Screenshot in Mirror, Desktop Mirror, Desktop Face Mirror, Desktop Handheld Camera in Mirror, Desktop Screenshot in Mirror)]
         _RenderMode ("Visible Modes", Int) = 4095
-        _Glossiness ("Smoothness", Range(0,1)) = 0.5
-        _Metallic ("Metallic", Range(0,1)) = 0.0
+        _Glossiness ("Smoothness", Range(0, 1)) = 0.5
+        _Metallic ("Metallic", Range(0, 1)) = 0.0
         _EmissionIntensity ("Emission Intensity", Range(0, 10)) = 1.0
         [Toggle(_STEREO_DEBUG)] _StereoDebug ("Stereo Debug", Int) = 0
+
+        [Space]
+        [Toggle(_LTCGI)] _LTCGI ("Use LTCGI", Int) = 0
+        [Toggle(_VRCLV)] _VRCLV ("Use VRC Light Volumes", Int) = 0
+        [KeywordEnum(None, SH, RNM, MonoSH)] _Bakery ("Directional Lightmap Mode", Int) = 0
+        [Toggle(_BAKERY_SHNONLINEAR)] _SHNonLinear ("Non-Linear SH", Int) = 0
     }
     SubShader {
         Tags {
@@ -25,7 +31,7 @@
         LOD 200
 
         CGPROGRAM
-        #pragma surface surf Standard fullforwardshadows vertex:vert
+        #pragma surface surf StandardHybrid fullforwardshadows vertex:vert
 
         #pragma target 3.0
         #pragma shader_feature_fragment _EMISSION
@@ -34,6 +40,7 @@
         #ifdef _SUPER_SAMPLE
         #define ENFORCE_POINT_SAMPLING
         #endif
+        #include "Packages/idv.jlchntoz.vrchybridgi/Shaders/Includes/StandardHybrid.cginc"
         #include "Packages/idv.jlchntoz.vrcw-foundation/Shaders/VRCMirrorCameraSelector.cginc"
         #include "./VideoShaderCommon.cginc"
 
@@ -77,5 +84,5 @@
         }
         ENDCG
     }
-    FallBack "Diffuse"
+    FallBack "JLChnToZ/VideoSurface"
 }

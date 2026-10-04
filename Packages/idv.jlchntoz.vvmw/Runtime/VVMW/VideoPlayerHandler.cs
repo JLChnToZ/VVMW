@@ -170,6 +170,11 @@ namespace JLChnToZ.VRC.VVMW {
         }
 
         void OnEnable() {
+            Initialize();
+            if (isActive && !VRCUrl.IsNullOrEmpty(currentUrl)) LoadUrl();
+        }
+
+        void Initialize() {
             if (afterFirstRun) return;
             afterFirstRun = true;
             texturePropertyID = VRCShader.PropertyToID(texturePropertyName);
@@ -181,6 +186,11 @@ namespace JLChnToZ.VRC.VVMW {
             // and then the video screen output texture will be assigned to the clone instead of the original material.
             if (useSharedMaterial)
                 renderer.sharedMaterial = renderer.material;
+        }
+
+        void OnDisable() {
+            if (isActive) videoPlayer.Stop();
+            else Debug.Log($"[VVMW] Video player for {playerName} is not active. Skipping disable.");
         }
 
 #if COMPILER_UDONSHARP
@@ -288,7 +298,7 @@ namespace JLChnToZ.VRC.VVMW {
                 if (delay > 0) {
                     isLoadUrlRequested = true;
                     SendCustomEventDelayedSeconds(nameof(_DoLoadUrl), delay);
-                } else {
+                } else if (isActiveAndEnabled) {
                     loadedUrl = currentUrl;
                     videoPlayer.LoadURL(currentUrl);
                 }
@@ -300,7 +310,7 @@ namespace JLChnToZ.VRC.VVMW {
 #endif
         void _DoLoadUrl() {
             isLoadUrlRequested = false;
-            if (!isActive || VRCUrl.IsNullOrEmpty(currentUrl))
+            if (!isActive || VRCUrl.IsNullOrEmpty(currentUrl) || !isActiveAndEnabled)
                 return;
             loadedUrl = currentUrl;
             videoPlayer.LoadURL(currentUrl);
@@ -416,7 +426,7 @@ namespace JLChnToZ.VRC.VVMW {
             isReady = false;
             if (!isActive) return;
             ClearTexture();
-            core.OnVideoEnd();
+            if (isActiveAndEnabled) core.OnVideoEnd();
         }
 
         public override void OnVideoLoop() {

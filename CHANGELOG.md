@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- Some new localization key missed on merging
+
+### Added
+- Super sample mode for screen shaders
+- Hybrid GI variant for video surface screen shader
+
+### Changed
+- Disabling the video player will now stops the video playing, and reload when re-enabling it.
+
 ## 1.8.2 - 2026-09-24
 ### Fixed
 - A compiler error on VRCLV first imported.

@@ -9,6 +9,7 @@
         [Vector(X, Y, Half Mode)] _StereoExtend ("Stereo Extend", Vector) = (1, 1, 0, 0)
         _AspectRatio ("Target Aspect Ratio", Float) = 1.777778
         [Toggle(_ESTIMATE_ASPECT_RATIO)] _EstimateAspectRatio ("Auto Estimate (PC Only, Experimental)", Int) = 0
+        [Toggle(_SUPER_SAMPLE)] _SuperSample ("Super Sample", Int) = 0
         [Toggle(_)] _IsMirror ("Mirror Flip", Int) = 1
         [EnumMask(Direct Look, VR Handheld Camera, Desktop Handheld Camera, Screenshot, VR Mirror, VR Handheld Camera in Mirror, VR Face Mirror, VR Screenshot in Mirror, Desktop Mirror, Desktop Face Mirror, Desktop Handheld Camera in Mirror, Desktop Screenshot in Mirror)]
         _RenderMode ("Visible Modes", Int) = 4095
@@ -36,11 +37,15 @@
             #pragma multi_compile_local_fragment _ _HAS_EMISSION_INTENSITY
             #pragma multi_compile_local_fragment _ _ALPHA_CLIP
             #pragma shader_feature_local_fragment _ _STEREO_DEBUG
+            #pragma shader_feature_local_fragment _ _SUPER_SAMPLE
             #pragma shader_feature_local _ _ESTIMATE_ASPECT_RATIO
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
 
             #define GEOM_SUPPORT
+            #ifdef _SUPER_SAMPLE
+            #define ENFORCE_POINT_SAMPLING
+            #endif
 
             #include "./VideoUnlit.cginc"
             ENDCG
@@ -61,6 +66,7 @@
             #pragma multi_compile_local_fragment _ _HAS_EMISSION_INTENSITY
             #pragma multi_compile_local_fragment _ _ALPHA_CLIP
             #pragma shader_feature_local_fragment _ _STEREO_DEBUG
+            #pragma shader_feature_local_fragment _ _SUPER_SAMPLE
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
 
