@@ -190,7 +190,6 @@ namespace JLChnToZ.VRC.VVMW {
 
         void OnDisable() {
             if (isActive) videoPlayer.Stop();
-            else Debug.Log($"[VVMW] Video player for {playerName} is not active. Skipping disable.");
         }
 
 #if COMPILER_UDONSHARP
@@ -301,6 +300,7 @@ namespace JLChnToZ.VRC.VVMW {
                 } else if (isActiveAndEnabled) {
                     loadedUrl = currentUrl;
                     videoPlayer.LoadURL(currentUrl);
+                    core._VideoBeginLoad();
                 }
             }
         }
@@ -314,6 +314,7 @@ namespace JLChnToZ.VRC.VVMW {
                 return;
             loadedUrl = currentUrl;
             videoPlayer.LoadURL(currentUrl);
+            core._VideoBeginLoad();
         }
 
 #if COMPILER_UDONSHARP

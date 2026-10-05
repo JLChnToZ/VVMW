@@ -10,6 +10,7 @@ using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     public partial class Core {
+        const int HEALTH_CHECK_THRESHOLD = 10;
         [SerializeField, LocalizedLabel, Range(0, 5)] float timeDriftDetectThreshold = 0.9F;
         [UdonSynced] int ownerNetworkTime;
         // When playing, it is the virtual network time (scaled by speed) when the video started playing;
@@ -35,6 +36,7 @@ namespace JLChnToZ.VRC.VVMW {
         bool isCheckingRangeLoop;
         DateTime lastSyncTime;
         VRCPlayerApi performer;
+        int healthCheckCounter;
 
         /// <summary>
         /// The current time of the video in seconds.
@@ -162,8 +164,10 @@ namespace JLChnToZ.VRC.VVMW {
         /// Internal use only. Do not call this method.
         /// </summary>
         public override void OnOwnershipTransferred(VRCPlayerApi player) {
+            Pong();
             if (!player.isLocal) isLocalReloading = false;
             syncLatency = 0;
+            healthCheckCounter = 0;
         }
 
         void StartSyncTime() {
@@ -199,6 +203,11 @@ namespace JLChnToZ.VRC.VVMW {
                 return;
             }
             SyncTime(false);
+            healthCheckCounter++;
+            if (healthCheckCounter >= HEALTH_CHECK_THRESHOLD) {
+                DoHealthCheckNoSync();
+                healthCheckCounter = 0;
+            }
             SendCustomEventDelayedSeconds(nameof(_AutoSyncTime), 0.5F);
         }
 

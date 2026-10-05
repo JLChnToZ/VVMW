@@ -163,7 +163,10 @@ namespace JLChnToZ.VRC.VVMW {
         public
 #endif
         void _Init() {
-            if (afterFirstRun) return;
+            if (afterFirstRun) {
+                SendCustomEventDelayedFrames(nameof(_DoOwnerHealthCheck), 0);
+                return;
+            }
             if (!core.afterFirstRun) {
                 Debug.LogWarning("[VVMW] It seems FrontendHandler initialized before Core, and this should not happened (Hence the script execution order).\nWaiting for Core to initialize...");
                 if (gameObject.activeInHierarchy && enabled)
@@ -183,7 +186,8 @@ namespace JLChnToZ.VRC.VVMW {
                     RequestSync();
                     UpdateState();
                 }
-            }
+            } else
+                SendCustomEventDelayedFrames(nameof(_DoOwnerHealthCheck), 0);
             afterFirstRun = true;
             if (isDataArrivedBeforeInit)
                 OnDeserialization();
@@ -392,6 +396,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             isDataArrivedBeforeInit = false;
             if (!synced) return;
+            Pong();
             localQueuedUrls = queuedUrls;
             localQueuedQuestUrls = IsArrayNullOrEmpty(queuedQuestUrls) ? null : queuedQuestUrls;
             localQueuedPlayerIndex = queuedPlayerIndex;

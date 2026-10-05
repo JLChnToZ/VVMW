@@ -225,7 +225,10 @@ namespace JLChnToZ.VRC.VVMW {
 
         void OnEnable() {
             RestoreActiveState();
-            if (afterFirstRun) return;
+            if (afterFirstRun) {
+                SendCustomEventDelayedFrames(nameof(_DoOwnerHealthCheck), 0);
+                return;
+            }
             url = VRCUrl.Empty;
             foreach (var handler in playerHandlers)
                 handler.core = this;
@@ -233,7 +236,7 @@ namespace JLChnToZ.VRC.VVMW {
             UpdateVolume();
             if (float.IsInfinity(autoPlayDelay)) { }
             else if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedSeconds(nameof(_PlayDefaultUrl), autoPlayDelay);
-            else if (synced) SendCustomEventDelayedSeconds(nameof(_RequestOwnerSync), autoPlayDelay + 3);
+            else if (synced) SendCustomEventDelayedFrames(nameof(_DoOwnerHealthCheck), 0);
             afterFirstRun = true;
 #if VRC_ENABLE_PLAYER_PERSISTENCE
             RestoreFromPersistence(Networking.LocalPlayer);
@@ -341,9 +344,8 @@ namespace JLChnToZ.VRC.VVMW {
             retryCount = 0;
             lastError = VideoError.Unknown;
             trustUpdated = false;
-            isLoading = true;
             isLocalReloading = false;
-            SendEvent("_OnVideoBeginLoad");
+            _VideoBeginLoad();
 #if AUDIOLINK_V1
             SetAudioLinkPlayBackState(MediaPlaying.Loading);
 #endif
@@ -421,6 +423,16 @@ namespace JLChnToZ.VRC.VVMW {
 #endif
         void _DeferSendErrorEvent() => SendEvent("_OnVideoError");
 
+#if COMPILER_UDONSHARP
+        public
+#else
+        internal
+#endif
+        void _VideoBeginLoad() {
+            isLoading = true;
+            SendEvent("_OnVideoBeginLoad");
+        }
+
         /// <summary>
         /// Reload the current URL.
         /// </summary>
@@ -439,8 +451,7 @@ namespace JLChnToZ.VRC.VVMW {
             }
             isLocalReloading = true;
             activeHandler.LoadUrl(loadingUrl, true);
-            isLoading = true;
-            SendEvent("_OnVideoBeginLoad");
+            _VideoBeginLoad();
         }
 
         /// <summary>
@@ -715,6 +726,7 @@ namespace JLChnToZ.VRC.VVMW {
         /// <param name="result"></param>
         public override void OnDeserialization(DeserializationResult result) {
             if (!synced) return;
+            Pong();
             bool activePlayerChanged = localActivePlayer != activePlayer;
             if (activePlayerChanged) ActivePlayer = activePlayer;
             float sendTime = result.sendTime;
@@ -749,11 +761,10 @@ namespace JLChnToZ.VRC.VVMW {
                 retryUsedPlayers.Clear();
                 retryCount = 0;
                 lastError = VideoError.Unknown;
-                isLoading = true;
                 isError = false;
                 trustUpdated = false;
                 activeHandler.LoadUrl(url, false);
-                SendEvent("_OnVideoBeginLoad");
+                _VideoBeginLoad();
             }
             localUrl = url;
             if (shouldReload) LoadYTTL();
@@ -775,6 +786,7 @@ namespace JLChnToZ.VRC.VVMW {
                         }
                         break;
                 }
+                healthCheckCounter = 0;
                 if (!isLocalReloading && !isLoading) SyncTime(forceSyncTime);
             }
         }

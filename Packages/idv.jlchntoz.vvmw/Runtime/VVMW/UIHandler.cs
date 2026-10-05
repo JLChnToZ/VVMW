@@ -32,6 +32,7 @@ namespace JLChnToZ.VRC.VVMW {
             nameof(OnVideoEnd),
             nameof(OnVideoPause),
             nameof(OnVideoPlay),
+            nameof(OnVideoLoop),
             nameof(OnVideoReady),
             nameof(OnVideoStart)
         ), LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
@@ -246,19 +247,20 @@ namespace JLChnToZ.VRC.VVMW {
                 }
                 playbackControlsAnimator.SetTrigger(initKey);
             }
-            if (afterFirstRun) return;
-            afterFirstRun = true;
-            joinTime = DateTime.UtcNow;
-            youtubeUrlRegex = new Regex(@"^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\/", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            if (Utilities.IsValid(luminanceSlider) && !string.IsNullOrEmpty(luminancePropertyName)) {
-                luminancePropertyId = VRCShader.PropertyToID(luminancePropertyName);
-                _OnScreenSharedPropertiesChanged();
+            if (!afterFirstRun) {
+                afterFirstRun = true;
+                joinTime = DateTime.UtcNow;
+                youtubeUrlRegex = new Regex(@"^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\/", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+                if (Utilities.IsValid(luminanceSlider) && !string.IsNullOrEmpty(luminancePropertyName)) {
+                    luminancePropertyId = VRCShader.PropertyToID(luminancePropertyName);
+                    _OnScreenSharedPropertiesChanged();
+                }
+                InitPlayQueueList();
+                InitPlayerSelect();
+                InitABLoopSlider();
+                if (Utilities.IsValid(playNextIndicator)) playNextIndicator.SetActive(false);
+                InitSpeedAndShiftControl();
             }
-            InitPlayQueueList();
-            InitPlayerSelect();
-            InitABLoopSlider();
-            if (Utilities.IsValid(playNextIndicator)) playNextIndicator.SetActive(false);
-            InitSpeedAndShiftControl();
             _OnUIUpdate();
             _OnVolumeChange();
             _OnSyncOffsetChange();
@@ -641,6 +643,7 @@ namespace JLChnToZ.VRC.VVMW {
         public override void OnVideoStart() => _OnUIUpdate();
         public override void OnVideoPlay() => _OnUIUpdate();
         public override void OnVideoPause() => _OnUIUpdate();
+        public override void OnVideoLoop() => _OnUIUpdate();
         public override void OnVideoEnd() => _OnUIUpdate();
         public void _OnVideoError() => _OnUIUpdate();
         public void _OnVideoBeginLoad() => _OnUIUpdate();

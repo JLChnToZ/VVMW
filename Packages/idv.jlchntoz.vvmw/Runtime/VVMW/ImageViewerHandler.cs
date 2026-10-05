@@ -65,7 +65,7 @@ namespace JLChnToZ.VRC.VVMW {
 #endif
         override void LoadUrl(VRCUrl url, bool reload) {
             if (!Utilities.IsValid(loader)) loader = new VRCImageDownloader();
-            if (url.Equals(currentUrl) && !reload && texture) {
+            if (url.Equals(currentUrl) && !reload && Utilities.IsValid(texture)) {
                 isReady = true;
                 if (isActive) core.OnVideoReady();
                 return;
