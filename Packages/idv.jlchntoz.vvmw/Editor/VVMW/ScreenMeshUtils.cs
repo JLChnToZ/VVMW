@@ -225,7 +225,13 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         static int SafeGetInteger(Material material, int propertyId) {
             var shader = material.shader;
             if (shader == null) return 0;
-            return shader.GetPropertyType(propertyId) switch {
+            int propertyIndex = FindPropertyIndex(shader, propertyId);
+            if (propertyIndex < 0) {
+                if (material.HasInteger(propertyId)) return material.GetInteger(propertyId);
+                if (material.HasFloat(propertyId)) return Mathf.RoundToInt(material.GetFloat(propertyId));
+                return 0;
+            }
+            return shader.GetPropertyType(propertyIndex) switch {
                 ShaderPropertyType.Float or ShaderPropertyType.Range => Mathf.RoundToInt(material.GetFloat(propertyId)),
                 ShaderPropertyType.Int => material.GetInteger(propertyId),
                 _ => 0,
@@ -235,7 +241,12 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         static void SafeSetInteger(Material material, int propertyId, int value) {
             var shader = material.shader;
             if (shader == null) return;
-            switch (shader.GetPropertyType(propertyId)) {
+            int propertyIndex = FindPropertyIndex(shader, propertyId);
+            if (propertyIndex < 0) {
+                material.SetInteger(propertyId, value);
+                return;
+            }
+            switch (shader.GetPropertyType(propertyIndex)) {
                 case ShaderPropertyType.Float:
                 case ShaderPropertyType.Range:
                     material.SetFloat(propertyId, value);
@@ -262,7 +273,11 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             var shader = material.shader;
             if (shader == null) return 0f;
             int propertyIndex = FindPropertyIndex(shader, propertyId);
-            if (propertyIndex < 0) return 0f;
+            if (propertyIndex < 0) {
+                if (material.HasFloat(propertyId)) return material.GetFloat(propertyId);
+                if (material.HasInteger(propertyId)) return material.GetInteger(propertyId);
+                return 0F;
+            }
             return shader.GetPropertyType(propertyIndex) switch {
                 ShaderPropertyType.Float or ShaderPropertyType.Range => material.GetFloat(propertyId),
                 ShaderPropertyType.Int => material.GetInteger(propertyId),
@@ -274,7 +289,10 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             var shader = material.shader;
             if (shader == null) return;
             int propertyIndex = FindPropertyIndex(shader, propertyId);
-            if (propertyIndex < 0) return;
+            if (propertyIndex < 0) {
+                material.SetFloat(propertyId, value);
+                return;
+            }
             switch (shader.GetPropertyType(propertyIndex)) {
                 case ShaderPropertyType.Float:
                 case ShaderPropertyType.Range:
