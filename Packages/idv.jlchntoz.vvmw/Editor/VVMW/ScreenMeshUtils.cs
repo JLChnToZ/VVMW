@@ -90,7 +90,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             public override int GetHashCode() => hashCode;
         }
 
-        public static void TryFixupAspectRatioInMaterial(IEnumerable<Renderer> renderers) =>
+        public static bool TryFixupAspectRatioInMaterial(IEnumerable<Renderer> renderers) =>
             TryFixupMaterialProperties(renderers, GetAspectRatioProperties, GetAspectRatioPostfix, "Fixup Aspect Ratio in Material");
 
         static MaterialPropertyOverride[] GetAspectRatioProperties(Renderer renderer, int subMeshIndex) {
@@ -104,13 +104,13 @@ namespace JLChnToZ.VRC.VVMW.Designer {
         static string GetAspectRatioPostfix(MaterialPropertyOverride[] properties) =>
             $"_Adjusted_{HumanizeAspectRatio((float)properties[0].value)}";
 
-        public static void TryFixupMaterialProperties(
+        public static bool TryFixupMaterialProperties(
             IEnumerable<Renderer> renderers,
             MaterialPropertyOverride[] properties,
             string generatedMaterialPostfix = "_Adjusted"
         ) {
             var provider = new FixedMaterialPropertyProvider(properties, generatedMaterialPostfix);
-            TryFixupMaterialProperties(renderers, provider.GetProperties, provider.GetGeneratedMaterialPostfix, "Fixup Aspect Ratio in Material");
+            return TryFixupMaterialProperties(renderers, provider.GetProperties, provider.GetGeneratedMaterialPostfix, "Fixup Aspect Ratio in Material");
         }
 
         sealed class FixedMaterialPropertyProvider {
@@ -127,12 +127,13 @@ namespace JLChnToZ.VRC.VVMW.Designer {
             public string GetGeneratedMaterialPostfix(MaterialPropertyOverride[] properties) => generatedMaterialPostfix;
         }
 
-        public static void TryFixupMaterialProperties(
+        public static bool TryFixupMaterialProperties(
             IEnumerable<Renderer> renderers,
             Func<Renderer, int, MaterialPropertyOverride[]> getProperties,
             Func<MaterialPropertyOverride[], string> getGeneratedMaterialPostfix = null,
             string undoName = "Fixup Material Properties"
         ) {
+            bool materialListChanged = false;
             getGeneratedMaterialPostfix ??= GetDefaultGeneratedMaterialPostfix;
             using (HashSetPool<Renderer>.Get(out var renderererMap))
             using (HashSetPool<Material>.Get(out var materialsRequireAliasing))
@@ -189,6 +190,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                     }
                     foreach (var (mr, index) in kv.Value) {
                         var sharedMaterials = mr.sharedMaterials;
+                        if (sharedMaterials[index] == newMat) continue;
+                        materialListChanged = true;
                         sharedMaterials[index] = newMat;
                         Undo.RecordObject(mr, undoName);
                         mr.sharedMaterials = sharedMaterials;
@@ -199,6 +202,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
                 }
                 foreach (var (assetPath, mat, properties) in generatedMaterials)
                     MaterialUtil.SaveMaterialAsAsset(mat, assetPath, getGeneratedMaterialPostfix(properties), false);
+                return materialListChanged;
             }
         }
 

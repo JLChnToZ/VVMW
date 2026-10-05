@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 - Some new localization key missed on merging
+- Material slider doesn't work on first cloned
+- Material variant doesn't properly connected on clone
 
 ### Added
 - Super sample mode for screen shaders

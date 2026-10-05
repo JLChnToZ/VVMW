@@ -22,7 +22,7 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
         public static Material CreateGeneratedAlias(Material original, int[] excludePropertyIds = null) {
             if (original == null) return null;
-            var alias = new Material(original);
+            var alias = new Material(original) { parent = original };
             var shader = alias.shader;
             int propertyCount = shader.GetPropertyCount();
             var parentMat = alias;

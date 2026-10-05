@@ -35,9 +35,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                     return;
                 }
-                ScreenMeshUtils.TryFixupMaterialProperties(new [] { renderer }, new [] {
+                if (ScreenMeshUtils.TryFixupMaterialProperties(new [] { renderer }, new [] {
                     new ScreenMeshUtils.MaterialPropertyOverride(mirrorFlipId, ShaderPropertyType.Int, convertedValue)
-                });
+                })) materials = renderer.sharedMaterials;
             }
         }
 
@@ -60,9 +60,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                     return;
                 }
-                ScreenMeshUtils.TryFixupMaterialProperties(new [] { renderer }, new [] {
+                if (ScreenMeshUtils.TryFixupMaterialProperties(new [] { renderer }, new [] {
                     new ScreenMeshUtils.MaterialPropertyOverride(renderModeId, ShaderPropertyType.Int, (int)value)
-                });
+                })) materials = renderer.sharedMaterials;
             }
         }
 
@@ -85,9 +85,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                     return;
                 }
-                ScreenMeshUtils.TryFixupMaterialProperties(new [] { renderer }, new [] {
+                if (ScreenMeshUtils.TryFixupMaterialProperties(new [] { renderer }, new [] {
                     new ScreenMeshUtils.MaterialPropertyOverride(emissionIntensityId, ShaderPropertyType.Float, value)
-                });
+                })) materials = renderer.sharedMaterials;
             }
         }
 
@@ -110,9 +110,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                     }
                     return;
                 }
-                ScreenMeshUtils.TryFixupMaterialProperties(new [] { renderer }, new [] {
+                if (ScreenMeshUtils.TryFixupMaterialProperties(new [] { renderer }, new [] {
                     new ScreenMeshUtils.MaterialPropertyOverride(scaleModeId, ShaderPropertyType.Int, (int)value)
-                });
+                })) materials = renderer.sharedMaterials;
             }
         }
         
