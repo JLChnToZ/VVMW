@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - Super sample mode for screen shaders
 - Hybrid GI variant for video surface screen shader
+- More blending options for video unlit shaders
 
 ### Changed
 - Disabling the video player will now stops the video playing, and reload when re-enabling it.

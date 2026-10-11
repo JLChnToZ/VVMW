@@ -18,6 +18,24 @@
         [Toggle(_ALPHA_CLIP)] _AlphaClip ("Alpha Clip", Int) = 0
         _AlphaClipThreshold ("Alpha Clip Threshold", Range(0, 1)) = 0.5
         [Toggle(_STEREO_DEBUG)] _StereoDebug ("Stereo Debug", Int) = 0
+
+        [Header(Depth)]
+        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("Z Test", Int) = 4
+        [Toggle(_)] _ZWrite ("Z Write", Int) = 1
+
+        [Header(Stencil)]
+        [IntRange] _StencilRef ("Reference", Range(0, 255)) = 0
+        [IntRange] _StencilReadMask ("Read Mask", Range(0, 255)) = 255
+        [IntRange] _StencilWriteMask ("Write Mask", Range(0, 255)) = 255
+        [Enum(UnityEngine.Rendering.CompareFunction)] _StencilFunc ("Operation", Int) = 8
+        [Enum(UnityEngine.Rendering.StencilOp)] _StencilPass ("Pass", Int) = 0
+        [Enum(UnityEngine.Rendering.StencilOp)] _StencilFail ("Fail", Int) = 0
+        [Enum(UnityEngine.Rendering.StencilOp)] _StencilZFail ("Z Fail", Int) = 0
+
+        [Header(Blending)]
+        [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Source", Int) = 1
+        [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination",Int) = 0
+        [Enum(UnityEngine.Rendering.BlendOp)] _BlendOp ("Operation", Int) = 0
     }
     SubShader {
         Name "Full"
@@ -27,6 +45,19 @@
         }
         LOD 200
         Pass {
+            Blend [_SrcBlend] [_DstBlend]
+            BlendOp [_BlendOp]
+            ZTest [_ZTest]
+            ZWrite [_ZWrite]
+            Stencil {
+                Ref [_StencilRef]
+                ReadMask [_StencilReadMask]
+                WriteMask [_StencilWriteMask]
+                Comp [_StencilFunc]
+                Pass [_StencilPass]
+                Fail [_StencilFail]
+                ZFail [_StencilZFail]
+            }
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -59,6 +90,19 @@
         }
         LOD 100
         Pass {
+            Blend [_SrcBlend] [_DstBlend]
+            BlendOp [_BlendOp]
+            ZTest [_ZTest]
+            ZWrite [_ZWrite]
+            Stencil {
+                Ref [_StencilRef]
+                ReadMask [_StencilReadMask]
+                WriteMask [_StencilWriteMask]
+                Comp [_StencilFunc]
+                Pass [_StencilPass]
+                Fail [_StencilFail]
+                ZFail [_StencilZFail]
+            }
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
