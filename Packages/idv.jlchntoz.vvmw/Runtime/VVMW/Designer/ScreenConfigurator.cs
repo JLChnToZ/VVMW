@@ -176,6 +176,8 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 #else
             lv.LightType = 2; // AreaLight
             lv.IsDynamic = target.GetComponentInParent<VRC_Pickup>(true) != null;
+            lv.Intensity = 1F;
+            lv.Color = Color.white;
 #endif
             Undo.RegisterCreatedObjectUndo(lvObject, "Create Light Volume for Screen");
             return lv;
