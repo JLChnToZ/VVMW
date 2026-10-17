@@ -240,11 +240,22 @@ namespace JLChnToZ.VRC.VVMW {
             if (pointLightVolumes == null)
                 pointLightVolumes = Array.Empty<PointLightVolumeInstance>();
             else if (pointLightVolumes.Length > 0)
-                using (PooledObjectExtensions.Get(out HashSet<PointLightVolumeInstance> plv, pointLightVolumes.Length)) {
-                    foreach (var pl in pointLightVolumes) if (pl != null) plv.Add(pl);
-                    plv.ExceptWith(cookiePointLightVolumes);
-                    pointLightVolumes = new PointLightVolumeInstance[plv.Count];
+                using (PooledObjectExtensions.Get(out HashSet<PointLightVolumeInstance> plv, pointLightVolumes.Length))
+                using (PooledObjectExtensions.Get(out HashSet<PointLightVolumeInstance> dplv, pointLightVolumes.Length)) {
+                    dplv.UnionWith(cookiePointLightVolumes);
+                    foreach (var pl in pointLightVolumes) {
+                        if (pl == null) continue;
+                        if (pl.Cookie != null && (Array.IndexOf(core.screenTargets, pl.Cookie) >= 0 ||
+                            (pl.Cookie is CustomRenderTexture crt && Array.IndexOf(core.screenTargets, crt.material) >= 0)
+                        )) dplv.Add(pl);
+                        else if (!dplv.Contains(pl)) plv.Add(pl);
+                    }
+                    if (pointLightVolumes.Length != plv.Count)
+                        pointLightVolumes = new PointLightVolumeInstance[plv.Count];
                     plv.CopyTo(pointLightVolumes);
+                    if (cookiePointLightVolumes == null || cookiePointLightVolumes.Length != dplv.Count)
+                        cookiePointLightVolumes = new PointLightVolumeInstance[dplv.Count];
+                    dplv.CopyTo(cookiePointLightVolumes);
                 }
             needReadback = lightVolumes.Length > 0 || pointLightVolumes.Length > 0;
         }

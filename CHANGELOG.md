@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 - Disabling the video player will now stops the video playing, and reload when re-enabling it.
 - Make created light volume reasonability bright by default.
+- Allow manually adds light volumes with screen texture as cookie (without screen configurator).
 
 ## 1.8.2 - 2026-09-24
 ### Fixed
