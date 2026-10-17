@@ -18,7 +18,9 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, LocalizedLabel(Key = "JLChnToZ.VRC.VVMW.Core")]
         [Resolve(nameof(handler) + "." + nameof(FrontendHandler.core), HideInInspectorIfResolvable = true)]
         [Locatable] Core core;
+        [SerializeField, HideInInspector, Resolve(nameof(core))] GameObject coreGO;
         [SerializeField, Locatable, LocalizedLabel(Key = "VVMW.Handler")] FrontendHandler handler;
+        [SerializeField, HideInInspector, Resolve(nameof(handler))] GameObject handlerGO;
         [SerializeField, LocalizedLabel] float distance = 0;
         [SerializeField] bool interruptOnEnter = true;
         [SerializeField] bool stopOnLeave = true;
@@ -92,17 +94,17 @@ namespace JLChnToZ.VRC.VVMW {
                 if ((!isSynced || Networking.IsOwner(Networking.LocalPlayer, handler.gameObject)) && (interruptOnEnter || !core.IsPlaying))
                     handler._AutoPlay();
             } else if (Utilities.IsValid(core)) {
-                if ((!isSynced || Networking.IsOwner(Networking.LocalPlayer, core.gameObject)) && (interruptOnEnter || !core.IsPlaying))
+                if ((!isSynced || Networking.IsOwner(Networking.LocalPlayer, coreGO)) && (interruptOnEnter || !core.IsPlaying))
                     core._PlayDefaultUrl();
             }
         }
 
         void Stop() {
             if (Utilities.IsValid(handler)) {
-                if ((!isSynced || Networking.IsOwner(Networking.LocalPlayer, handler.gameObject)) && stopOnLeave)
+                if ((!isSynced || Networking.IsOwner(Networking.LocalPlayer, handlerGO)) && stopOnLeave)
                     handler._Stop();
             } else if (Utilities.IsValid(core)) {
-                if ((!isSynced || Networking.IsOwner(Networking.LocalPlayer, core.gameObject)) && stopOnLeave)
+                if ((!isSynced || Networking.IsOwner(Networking.LocalPlayer, coreGO)) && stopOnLeave)
                     core.Stop();
             }
         }

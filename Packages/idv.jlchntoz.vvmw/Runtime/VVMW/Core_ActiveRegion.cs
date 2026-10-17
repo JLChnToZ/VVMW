@@ -3,8 +3,8 @@ using VRC.SDKBase;
 
 namespace JLChnToZ.VRC.VVMW {
     public partial class Core {
-        [SerializeField, HideInInspector] ActiveRegionManager activeRegionManager;
-        [SerializeField, HideInInspector] internal bool hasRegion;
+        [SerializeField] ActiveRegionManager activeRegionManager;
+        [SerializeField] internal bool hasRegion;
 #if COMPILER_UDONSHARP
         public
 #else

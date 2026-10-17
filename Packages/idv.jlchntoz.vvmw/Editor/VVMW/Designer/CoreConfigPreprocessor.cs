@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using VRC.SDK3.Components;
 using UdonSharpEditor;
 using JLChnToZ.VRC.Foundation.Editors;
 using JLChnToZ.VRC.VVMW.Designer;
@@ -56,12 +57,20 @@ namespace JLChnToZ.VRC.VVMW.Editors {
                                     DestroyImmediate(components[i]);
                             }
                         }
-            foreach (var frontendHandler in scene.IterateAllComponents<FrontendHandler>()) {
-                if (frontendHandler.autoPlayOnIdle) {
-                    frontendHandler.autoPlayOnIdle = false;
-                    if (frontendHandler.idleMode == IdleMode.DoNothing) frontendHandler.idleMode = IdleMode.PlayDefaultPlaylist;
+            var globalSettings = FindObjectOfType<GlobalSettings>();
+            var globalSettingsRoot = globalSettings != null ? globalSettings.transform : null;
+            using (Pool.Get(out Queue<Transform> frontendHandlers)) {
+                foreach (var frontendHandler in scene.IterateAllComponents<FrontendHandler>()) {
+                    if (frontendHandler.autoPlayOnIdle) {
+                        frontendHandler.autoPlayOnIdle = false;
+                        if (frontendHandler.idleMode == IdleMode.DoNothing) frontendHandler.idleMode = IdleMode.PlayDefaultPlaylist;
+                    }
+                    if (frontendHandler.GetComponentInParent<VRCPlayerObject>(true) == null)
+                        frontendHandlers.Enqueue(frontendHandler.transform);
+                    UdonSharpEditorUtility.CopyProxyToUdon(frontendHandler);
                 }
-                UdonSharpEditorUtility.CopyProxyToUdon(frontendHandler);
+                while (frontendHandlers.TryDequeue(out var t))
+                    t.SetParent(globalSettingsRoot, false);
             }
         }
     }

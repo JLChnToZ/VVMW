@@ -10,7 +10,8 @@ using JLChnToZ.VRC.Foundation.I18N;
 
 namespace JLChnToZ.VRC.VVMW {
     public partial class Core {
-        const int HEALTH_CHECK_THRESHOLD = 10;
+        const double HEALTH_CHECK_SEND_INTERVAL = 3;
+        const float HEALTH_CHECK_VALIDATE_INTERVAL_MIN = 5, HEALTH_CHECK_VALIDATE_INTERVAL_MAX = 10;
         [SerializeField, LocalizedLabel, Range(0, 5)] float timeDriftDetectThreshold = 0.9F;
         [UdonSynced] int ownerNetworkTime;
         // When playing, it is the virtual network time (scaled by speed) when the video started playing;
@@ -34,9 +35,9 @@ namespace JLChnToZ.VRC.VVMW {
         bool isBuffering;
         bool isResyncTime;
         bool isCheckingRangeLoop;
-        DateTime lastSyncTime;
         VRCPlayerApi performer;
-        int healthCheckCounter;
+        DateTime lastSyncNetworkTime;
+        double lastHealthCheckTime;
 
         /// <summary>
         /// The current time of the video in seconds.
@@ -164,16 +165,15 @@ namespace JLChnToZ.VRC.VVMW {
         /// Internal use only. Do not call this method.
         /// </summary>
         public override void OnOwnershipTransferred(VRCPlayerApi player) {
-            Pong();
+            Heartbeat();
             if (!player.isLocal) isLocalReloading = false;
             syncLatency = 0;
-            healthCheckCounter = 0;
         }
 
         void StartSyncTime() {
             StartCheckRangeLoop();
             if (!synced) return;
-            SyncTime(true);
+            SyncTime(true, false);
             if (!isResyncTime) {
                 isResyncTime = true;
                 SendCustomEventDelayedSeconds(nameof(_AutoSyncTime), 0.5F);
@@ -202,12 +202,7 @@ namespace JLChnToZ.VRC.VVMW {
                 RequestSerialization();
                 return;
             }
-            SyncTime(false);
-            healthCheckCounter++;
-            if (healthCheckCounter >= HEALTH_CHECK_THRESHOLD) {
-                DoHealthCheckNoSync();
-                healthCheckCounter = 0;
-            }
+            SyncTime(false, true);
             SendCustomEventDelayedSeconds(nameof(_AutoSyncTime), 0.5F);
         }
 
@@ -244,7 +239,7 @@ namespace JLChnToZ.VRC.VVMW {
             return loop ? Mathf.Repeat(videoTime, duration) : Mathf.Clamp(videoTime, 0, duration);
         }
 
-        void SyncTime(bool forced) {
+        void SyncTime(bool forced, bool doHealthCheck) {
             if (Networking.IsOwner(gameObject)) {
                 if (!forced && Utilities.IsValid(activeHandler) && IsRangeLooping) {
                     var halfRange = rangeLoopDuration / 2;
@@ -259,6 +254,13 @@ namespace JLChnToZ.VRC.VVMW {
                     time = (int)(newTime * 1000);
                     actualSpeed = speed;
                     RequestSerialization();
+                } else if (doHealthCheck) {
+                    // Send a signal to all other clients to indicate that this client is still active.
+                    var currentTime = Networking.GetServerTimeInSeconds();
+                    if (Networking.CalculateServerDeltaTime(currentTime, lastHealthCheckTime) >= HEALTH_CHECK_SEND_INTERVAL) {
+                        lastHealthCheckTime = currentTime;
+                        SendCustomNetworkEvent(NetworkEventTarget.Others, nameof(Heartbeat));
+                    }
                 }
             } else {
                 var duration = activeHandler.Duration;
@@ -289,8 +291,24 @@ namespace JLChnToZ.VRC.VVMW {
                     Time = t;
                     SendEvent("_OnTimeDrift");
                 }
+                if (doHealthCheck) {
+                    // If current owner is unresponsive, take over ownership to ensure an active client to do progress timekeep.
+                    // We add some randomness to stagger the health check intervals.
+                    var currentTime = Networking.GetServerTimeInSeconds();
+                    if (Networking.CalculateServerDeltaTime(currentTime, lastHealthCheckTime) >=
+                        UnityEngine.Random.Range(HEALTH_CHECK_VALIDATE_INTERVAL_MIN, HEALTH_CHECK_VALIDATE_INTERVAL_MAX)) {
+                        lastHealthCheckTime = currentTime;
+                        Networking.SetOwner(Networking.LocalPlayer, gameObject);
+                    }
+                }
             }
         }
+
+        // If get notified, update the last health check time.
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void Heartbeat() => lastHealthCheckTime = Networking.GetServerTimeInSeconds();
 
         /// <summary>
         /// Set the video player to loop in a specific range.
@@ -408,8 +426,9 @@ namespace JLChnToZ.VRC.VVMW {
         public
 #endif
         void OwnerSync() {
+            isActiveOwnerSyncRequested = false;
             if (!Networking.IsOwner(gameObject) || !synced) return;
-            if ((Networking.GetNetworkDateTime() - lastSyncTime).Ticks < OWNER_SYNC_COOLDOWN_TICKS) return;
+            if ((Networking.GetNetworkDateTime() - lastSyncNetworkTime).Ticks < OWNER_SYNC_COOLDOWN_TICKS) return;
             RequestSerialization();
         }
 

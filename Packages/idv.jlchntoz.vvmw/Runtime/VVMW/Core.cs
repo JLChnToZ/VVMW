@@ -55,7 +55,7 @@ namespace JLChnToZ.VRC.VVMW {
         string[] playerNames;
         bool trustUpdated, isTrusted;
         internal bool afterFirstRun;
-        bool isOwnerSyncRequested, isReloadRequested;
+        bool isOwnerSyncRequested, isActiveOwnerSyncRequested, isReloadRequested;
         DateTime lastClickResyncTime;
         DataDictionary retryUsedPlayers = new DataDictionary();
 
@@ -225,10 +225,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void OnEnable() {
             RestoreActiveState();
-            if (afterFirstRun) {
-                SendCustomEventDelayedFrames(nameof(_DoOwnerHealthCheck), 0);
-                return;
-            }
+            if (afterFirstRun) return;
             url = VRCUrl.Empty;
             foreach (var handler in playerHandlers)
                 handler.core = this;
@@ -236,11 +233,11 @@ namespace JLChnToZ.VRC.VVMW {
             UpdateVolume();
             if (float.IsInfinity(autoPlayDelay)) { }
             else if (!synced || Networking.IsOwner(gameObject)) SendCustomEventDelayedSeconds(nameof(_PlayDefaultUrl), autoPlayDelay);
-            else if (synced) SendCustomEventDelayedFrames(nameof(_DoOwnerHealthCheck), 0);
             afterFirstRun = true;
 #if VRC_ENABLE_PLAYER_PERSISTENCE
             RestoreFromPersistence(Networking.LocalPlayer);
 #endif
+            SendEvent("_OnVizVidInit");
         }
 
         void RestoreActiveState() {
@@ -254,6 +251,13 @@ namespace JLChnToZ.VRC.VVMW {
         void OnDisable() {
             StopBroadcastScreenTexture();
             if (Utilities.IsValid(activeHandler)) NotifyVideoEnd();
+        }
+
+        public override void OnPlayerJoined(VRCPlayerApi player) {
+            if (synced && Networking.IsOwner(gameObject) && !player.isLocal && !isActiveOwnerSyncRequested) {
+                isActiveOwnerSyncRequested = true;
+                SendCustomEventDelayedSeconds(nameof(OwnerSync), 1);
+            }
         }
 
         /// <summary>
@@ -683,8 +687,10 @@ namespace JLChnToZ.VRC.VVMW {
         /// Internal use, do not invoke this.
         /// </summary>
         public override void OnPreSerialization() {
-            if (!synced || isLocalReloading) return;
-            lastSyncTime = Networking.GetNetworkDateTime();
+            if (!synced) return;
+            lastHealthCheckTime = Networking.GetServerTimeInSeconds();
+            if (isLocalReloading) return;
+            lastSyncNetworkTime = Networking.GetNetworkDateTime();
             ownerNetworkTime = Networking.GetServerTimeInMilliseconds();
             syncedSpeed = speed;
             if (!Utilities.IsValid(activeHandler)) {
@@ -726,7 +732,7 @@ namespace JLChnToZ.VRC.VVMW {
         /// <param name="result"></param>
         public override void OnDeserialization(DeserializationResult result) {
             if (!synced) return;
-            Pong();
+            Heartbeat();
             bool activePlayerChanged = localActivePlayer != activePlayer;
             if (activePlayerChanged) ActivePlayer = activePlayer;
             float sendTime = result.sendTime;
@@ -786,8 +792,7 @@ namespace JLChnToZ.VRC.VVMW {
                         }
                         break;
                 }
-                healthCheckCounter = 0;
-                if (!isLocalReloading && !isLoading) SyncTime(forceSyncTime);
+                if (!isLocalReloading && !isLoading) SyncTime(forceSyncTime, false);
             }
         }
 
