@@ -241,7 +241,7 @@ namespace JLChnToZ.VRC.VVMW {
                 pointLightVolumes = Array.Empty<PointLightVolumeInstance>();
             else if (pointLightVolumes.Length > 0)
                 using (PooledObjectExtensions.Get(out HashSet<PointLightVolumeInstance> plv, pointLightVolumes.Length))
-                using (PooledObjectExtensions.Get(out HashSet<PointLightVolumeInstance> dplv, pointLightVolumes.Length)) {
+                using (PooledObjectExtensions.Get(out HashSet<PointLightVolumeInstance> dplv, cookiePointLightVolumes.Length)) {
                     dplv.UnionWith(cookiePointLightVolumes);
                     foreach (var pl in pointLightVolumes) {
                         if (pl == null) continue;

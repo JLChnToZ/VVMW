@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## 1.8.3-beta.0 - 2026-10-18
 ### Fixed
 - Some new localization key missed on merging
 - Material slider doesn't work on first cloned
