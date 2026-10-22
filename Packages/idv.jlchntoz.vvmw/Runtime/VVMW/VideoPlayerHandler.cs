@@ -41,7 +41,7 @@ namespace JLChnToZ.VRC.VVMW {
         [SerializeField, Resolve(".")] BaseVRCVideoPlayer videoPlayer;
         [SerializeField, Resolve(".")] new Renderer renderer;
         RenderTexture bufferedTexture;
-        bool isWaitingForTexture, isReblitRunning, isLoadUrlRequested;
+        bool isWaitingForTexture, isReblitRunning, isLoadUrlRequested, isWatchingTexture, hasTexture;
         MaterialPropertyBlock propertyBlock;
         int texturePropertyID, speedParameterID;
         bool isRealTimeProtocol;
@@ -201,19 +201,55 @@ namespace JLChnToZ.VRC.VVMW {
                 ClearTexture();
                 return;
             }
-            if (useSharedMaterial)
-                texture = renderer.sharedMaterial.GetTexture(texturePropertyID);
-            else {
-                if (!Utilities.IsValid(propertyBlock)) propertyBlock = new MaterialPropertyBlock();
-                renderer.GetPropertyBlock(propertyBlock);
-                texture = propertyBlock.GetTexture(texturePropertyID);
-            }
+            texture = ReadRendererTexture();
             if (Utilities.IsValid(texture)) {
                 isWaitingForTexture = false;
+                hasTexture = true;
                 BlitBufferScreen();
                 core._OnTextureChanged();
+                if (!isWatchingTexture) {
+                    isWatchingTexture = true;
+                    SendCustomEventDelayedSeconds(nameof(_WatchTexture), 0.5F);
+                }
             } else
                 SendCustomEventDelayedSeconds(nameof(_GetTexture), 0.2F);
+        }
+
+        Texture ReadRendererTexture() {
+            if (useSharedMaterial)
+                return renderer.sharedMaterial.GetTexture(texturePropertyID);
+            if (!Utilities.IsValid(propertyBlock)) propertyBlock = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(propertyBlock);
+            return propertyBlock.GetTexture(texturePropertyID);
+        }
+
+#if COMPILER_UDONSHARP
+        public
+#endif
+        void _WatchTexture() {
+            // AVPro replaces its output texture when the stream changes resolution mid-play
+            // (e.g. adaptive HLS switching 720p -> 1080p); pick up the new one instead of
+            // keeping the destroyed reference, which leaves the screen frozen on the last frame.
+            // hasTexture rather than IsValid(texture): the old texture going invalid is the case to catch.
+            if (!isActive || !hasTexture) {
+                isWatchingTexture = false;
+                return;
+            }
+            SendCustomEventDelayedSeconds(nameof(_WatchTexture), 0.5F);
+            if (isWaitingForTexture) return;
+            var current = ReadRendererTexture();
+            if (!Utilities.IsValid(current) || current == texture) return;
+            Debug.Log($"[VVMW] Video texture of {playerName} changed: {current.width}x{current.height}.");
+            texture = current;
+            if (Utilities.IsValid(bufferedTexture) &&
+                (bufferedTexture.width != texture.width || bufferedTexture.height != texture.height)) {
+                // _BlitBufferScreen recreates it at the new size on its next run.
+                Debug.Log($"[VVMW] Released temporary render texture for {playerName}.");
+                VRCRenderTexture.ReleaseTemporary(bufferedTexture);
+                bufferedTexture = null;
+            }
+            BlitBufferScreen();
+            core._OnTextureChanged();
         }
 
         void BlitBufferScreen() {
@@ -464,6 +500,7 @@ namespace JLChnToZ.VRC.VVMW {
 
         void ClearTexture() {
             texture = null;
+            hasTexture = false;
             if (Utilities.IsValid(bufferedTexture)) {
                 Debug.Log($"[VVMW] Released temporary render texture for {playerName}.");
                 VRCRenderTexture.ReleaseTemporary(bufferedTexture);
