@@ -60,13 +60,21 @@ namespace JLChnToZ.VRC.VVMW {
                 localHistoryTitles = new string[1] { title };
                 return;
             }
+            // The Quest URL history is created lazily, with the first entry that has its own Quest URL. Earlier
+            // entries take their PC URL, as PlayHistory does for a missing one. Without this, the Array.Copy
+            // below read a null source and halted the behaviour when a video without a Quest URL was followed
+            // by one with.
+            if (hasQuestUrl && IsArrayNullOrEmpty(localHistoryQuestUrls)) {
+                localHistoryQuestUrls = new VRCUrl[localHistoryUrls.Length];
+                Array.Copy(localHistoryUrls, 0, localHistoryQuestUrls, 0, localHistoryUrls.Length);
+            }
             VRCUrl[] tempUrls, tempQuestUrls = null;
             byte[] tempPlayerIndex;
             string[] tempTitles;
             int currentSize;
             if (localHistoryUrls.Length < historySize) {
                 tempUrls = new VRCUrl[localHistoryUrls.Length + 1];
-                if (hasQuestUrl) tempQuestUrls = new VRCUrl[localHistoryUrls.Length + 1];
+                if (hasQuestUrl || !IsArrayNullOrEmpty(localHistoryQuestUrls)) tempQuestUrls = new VRCUrl[localHistoryUrls.Length + 1];
                 tempPlayerIndex = new byte[localHistoryPlayerIndex.Length + 1];
                 tempTitles = new string[localHistoryTitles.Length + 1];
                 currentSize = localHistoryUrls.Length;
