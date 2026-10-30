@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 - Keep the playback history alive when a Quest URL follows a video without one [#97](https://github.com/JLChnToZ/VVMW/pull/97)
 - Pick up AVPro's new texture when the resolution changes mid-play [#96](https://github.com/JLChnToZ/VVMW/pull/96)
+- Compile error when VRCLightVolumes install after VizVid
+- Live stream video skips/replays on owner re-enables the video player
 
 ## 1.8.3-beta.0 - 2026-10-18
 ### Fixed

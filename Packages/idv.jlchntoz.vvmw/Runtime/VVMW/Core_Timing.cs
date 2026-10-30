@@ -192,17 +192,17 @@ namespace JLChnToZ.VRC.VVMW {
         public
 #endif
         void _AutoSyncTime() {
-            if (!gameObject.activeInHierarchy || !enabled || isLoading || isLocalReloading || !Utilities.IsValid(activeHandler) || !activeHandler.IsReady) {
+            if (!isActiveAndEnabled || isLoading || isLocalReloading || !Utilities.IsValid(activeHandler) || !activeHandler.IsReady) {
                 isResyncTime = false;
                 return;
             }
             var duration = activeHandler.Duration;
-            if (duration <= 0 || float.IsInfinity(duration)) {
-                isResyncTime = false;
-                RequestSerialization();
-                return;
-            }
-            SyncTime(false, true);
+            if (duration > 0 && !float.IsInfinity(duration))
+                SyncTime(false, true);
+            else if (Networking.IsOwner(gameObject))
+                ScheduleHeartbeat();
+            else
+                HealthCheck();
             SendCustomEventDelayedSeconds(nameof(_AutoSyncTime), 0.5F);
         }
 
@@ -254,14 +254,7 @@ namespace JLChnToZ.VRC.VVMW {
                     time = (int)(newTime * 1000);
                     actualSpeed = speed;
                     RequestSerialization();
-                } else if (doHealthCheck) {
-                    // Send a signal to all other clients to indicate that this client is still active.
-                    var currentTime = Networking.GetServerTimeInSeconds();
-                    if (Networking.CalculateServerDeltaTime(currentTime, lastHealthCheckTime) >= HEALTH_CHECK_SEND_INTERVAL) {
-                        lastHealthCheckTime = currentTime;
-                        SendCustomNetworkEvent(NetworkEventTarget.Others, nameof(Heartbeat));
-                    }
-                }
+                } else if (doHealthCheck) ScheduleHeartbeat();
             } else {
                 var duration = activeHandler.Duration;
                 if (duration <= 0 || float.IsInfinity(duration)) return;
@@ -291,16 +284,27 @@ namespace JLChnToZ.VRC.VVMW {
                     Time = t;
                     SendEvent("_OnTimeDrift");
                 }
-                if (doHealthCheck) {
-                    // If current owner is unresponsive, take over ownership to ensure an active client to do progress timekeep.
-                    // We add some randomness to stagger the health check intervals.
-                    var currentTime = Networking.GetServerTimeInSeconds();
-                    if (Networking.CalculateServerDeltaTime(currentTime, lastHealthCheckTime) >=
-                        UnityEngine.Random.Range(HEALTH_CHECK_VALIDATE_INTERVAL_MIN, HEALTH_CHECK_VALIDATE_INTERVAL_MAX)) {
-                        lastHealthCheckTime = currentTime;
-                        Networking.SetOwner(Networking.LocalPlayer, gameObject);
-                    }
-                }
+                if (doHealthCheck) HealthCheck();
+            }
+        }
+
+        void ScheduleHeartbeat() {
+            // Send a signal to all other clients to indicate that this client is still active.
+            var currentTime = Networking.GetServerTimeInSeconds();
+            if (Networking.CalculateServerDeltaTime(currentTime, lastHealthCheckTime) >= HEALTH_CHECK_SEND_INTERVAL) {
+                lastHealthCheckTime = currentTime;
+                SendCustomNetworkEvent(NetworkEventTarget.Others, nameof(Heartbeat));
+            }
+        }
+
+        void HealthCheck() {
+            // If current owner is unresponsive, take over ownership to ensure an active client to do progress timekeep.
+            // We add some randomness to stagger the health check intervals.
+            var currentTime = Networking.GetServerTimeInSeconds();
+            if (Networking.CalculateServerDeltaTime(currentTime, lastHealthCheckTime) >=
+                UnityEngine.Random.Range(HEALTH_CHECK_VALIDATE_INTERVAL_MIN, HEALTH_CHECK_VALIDATE_INTERVAL_MAX)) {
+                lastHealthCheckTime = currentTime;
+                Networking.SetOwner(Networking.LocalPlayer, gameObject);
             }
         }
 
