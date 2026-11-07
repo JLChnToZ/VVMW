@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## 1.8.3 - 2026-11-07
 ### Fixed
 - Keep the playback history alive when a Quest URL follows a video without one [#97](https://github.com/JLChnToZ/VVMW/pull/97)
 - Pick up AVPro's new texture when the resolution changes mid-play [#96](https://github.com/JLChnToZ/VVMW/pull/96)
