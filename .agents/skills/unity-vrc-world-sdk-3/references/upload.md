@@ -1,0 +1,565 @@
+# VRChat World Upload Guide
+
+Complete upload procedure and best practices.
+
+## Table of Contents
+
+- [Pre-Upload Checklist](#pre-upload-checklist)
+- [Build & Test](#build--test)
+- [Validation](#validation)
+- [Upload Process](#upload-process)
+- [World Settings](#world-settings)
+- [Content Warnings](#content-warnings)
+- [Capacity Settings](#capacity-settings)
+- [Post-Upload](#post-upload)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Pre-Upload Checklist
+
+### Required Checks
+
+```text
+□ Scene Setup
+  □ Exactly 1 VRC_SceneDescriptor exists
+  □ Transforms set in Spawns
+  □ Respawn Height is appropriate (well below the floor)
+  □ Reference Camera configured (if needed)
+
+□ Layers & Collision
+  □ "Setup Layers for VRChat" executed
+  □ Collision Matrix verified
+  □ Objects placed on appropriate layers
+
+□ Components
+  □ VRC_Pickup has Collider + Rigidbody
+  □ VRC_Station has Collider
+  □ VRC_ObjectSync has Rigidbody
+  □ Mirror is default OFF
+
+□ Performance
+  □ Project-defined frame-time or frame-rate target met in representative scenes and player counts
+  □ Lightmaps baked
+  □ Minimal realtime lights
+
+□ Content
+  □ No copyright-infringing content
+  □ No terms-of-service violating content
+  □ Content Warnings set
+```
+
+### Recommended Checks
+
+```text
+□ Local verification with Build & Test
+□ Multi-player testing conducted
+□ Quest support (if applicable)
+□ World thumbnail prepared
+□ World description written
+```
+
+---
+
+## Build & Test
+
+### Local Testing Procedure
+
+```text
+1. VRChat SDK > Show Control Panel
+2. Builder tab
+3. "Build & Test New Build" section
+4. Number of Clients: Number of test clients desired
+5. Force Non-VR: Force Desktop mode (optional)
+6. "Build & Test" button
+```
+
+### Test Items
+
+```text
+Single Player Test:
+□ Spawn position is correct
+□ Respawn Height causes correct respawn
+□ Wall/floor collision is correct
+□ Pickup can be grabbed/released
+□ Station can be entered/exited
+□ Mirror works (when enabled)
+□ Audio plays correctly
+□ Video player works
+
+Multi-Player Test (multiple clients):
+□ Spawn positions are distributed
+□ Pickup sync is correct
+□ Station sync is correct
+□ UdonSynced variables sync
+□ State syncs for Late Joiners
+□ Ownership transfer works correctly
+```
+
+### Number of Clients Settings
+
+```text
+Recommended by test purpose:
+
+Basic functionality: 1 client
+Sync testing: 2 clients
+Multi-player testing: 3-4 clients
+
+Notes:
+- Each client is an independent VRChat instance
+- Consumes PC resources
+- First build takes extra time
+```
+
+---
+
+## Validation
+
+### Validation Check Procedure
+
+```text
+1. VRChat SDK > Show Control Panel
+2. Builder tab
+3. Check Validations section
+4. Resolve errors (red)
+5. Review warnings (yellow)
+6. Review informational alerts (white) when they have actionable fixes
+```
+
+For copied validation text, red/yellow/white warning questions, or **Auto Fix**
+side-effect checks, use the SDK-backed catalog:
+[build-validation.md](build-validation.md).
+
+### Build Panel Alert Handling
+
+| Build Panel color | SDK source level | Build consequence | Required response |
+|---|---|---|---|
+| Red | `OnGUIError` | Blocks Build & Test / Build & Upload | Resolve before building |
+| Yellow | `OnGUIWarning` | Does not block solely by color, but can indicate runtime or compatibility issues | Explain impact and use the safest targeted fix |
+| White / info | `OnGUIInformation` | Does not block; often quality/readability guidance | Explain and offer guarded fixes when actionable |
+
+### Common Validation Alerts
+
+| Alert | Cause | Safe direction |
+|---|---|---|
+| Missing or multiple `VRC_SceneDescriptor` | No descriptor, or more than one descriptor in the scene | Keep exactly one valid descriptor and configure Spawns |
+| Layer/collision setup required | VRChat project layers or collision matrix are not configured | Use the SDK setup buttons, then review custom layers and layer masks |
+| Unsupported component warnings | Non-whitelisted scripts or components in the scene | Remove them, tag dev-only objects `EditorOnly`, or mark setup-helper components with `IEditorOnly` (see [components.md](components.md#editor-only-objects-and-components)) |
+| `AudioSource` without `VRC_SpatialAudioSource` | World audio source is missing the VRChat spatial audio companion | Add the companion deliberately; preserve existing loudness, 2D/3D intent, and distance curves |
+| Unity built-in UI shader on uGUI graphics | `Image`, `RawImage`, `Text`, or another uGUI `Graphic` uses `UI/Default` | For affected default-material graphics, assign `Packages/com.vrchat.worlds/Editor/VRCSDK/SDK3/VRCSuperSampledUIMaterial.mat` |
+| Spawn below respawn height or too far from origin | Spawn Transform is invalid for the descriptor settings | Move the spawn or adjust Respawn Height so join/respawn works correctly |
+| Oversized textures or bundles | Imported assets exceed SDK size checks | Reduce/import assets intentionally; do not delete assets blindly |
+
+### Auto Fix policy
+
+An **Auto Fix** button means the SDK has a fix callback, not that the mutation
+is always safe for the world. Before pressing it, check
+[build-validation.md](build-validation.md) for the exact fields/assets it
+changes and whether it may overwrite authored intent.
+
+Common high-risk examples:
+
+- `AudioSource` fixes can add `VRC_SpatialAudioSource` with SDK defaults; for
+  warning-only additions, prefer Gain `0 dB` and preserve existing range/rolloff.
+- Super-sampled UI fixes can replace a default material or change a project
+  material shader in place; do not replace intentional custom UI materials.
+- Layer/collision setup changes project-wide layer configuration.
+- Texture fixes reserialize importers and trigger reimport.
+
+---
+
+## Upload Process
+
+### Upload Procedure
+
+```text
+1. Confirm no Validation errors
+
+2. VRChat SDK > Show Control Panel
+
+3. Builder tab
+
+4. Click "Build and Upload" button
+
+5. For first upload:
+   - Enter World Name
+   - Enter Description
+   - Set Content Warnings
+   - Set Capacity
+
+6. For updates:
+   - Review changes
+   - Modify settings as needed
+
+7. Click "Upload"
+
+8. Wait for upload to complete
+```
+
+### Blueprint ID
+
+```text
+Blueprint ID:
+- Unique identifier for the world
+- Stored in VRC_PipelineManager
+- Overwrites/updates with the same ID
+
+New creation:
+- Click "Attach a New Blueprint ID"
+- Or upload from a new scene
+
+Updating an existing world:
+- Maintain the same Blueprint ID
+- Only settings can be changed
+```
+
+### World Thumbnail
+
+```text
+Thumbnail settings:
+
+Method 1: Screenshot
+- Click "Take Screenshot" on the upload screen
+- Captures the current Scene View
+
+Method 2: External image
+- Import a PNG/JPG
+- Select as thumbnail
+
+Recommended specifications:
+- Resolution: 1200x900 or higher
+- Aspect ratio: 4:3
+- File size: < 10MB
+```
+
+---
+
+## World Settings
+
+### Basic Settings
+
+| Setting | Description | Recommendation |
+|---------|-------------|----------------|
+| Name | World name | Easy to search |
+| Description | Description text | List features and notes |
+| Tags | Tags | Select appropriate tags |
+| Release Status | Publication status | Private → Public |
+
+### Release Status
+
+```text
+Private:
+- Only you and invited people can access
+- For testing and development
+
+Friends:
+- Only friends can access
+- For limited release
+
+Friends+:
+- Friends of friends can also access
+
+Public:
+- Everyone can access
+- Appears in search results
+```
+
+---
+
+## Content Warnings
+
+### Required Settings
+
+```text
+Must be set if applicable:
+
+□ Sexually Suggestive
+  - Sexually suggestive content
+
+□ Adult Language and Themes
+  - Adult language and themes
+
+□ Graphic Violence
+  - Graphic violence
+
+□ Excessive Gore
+  - Excessive gore
+
+□ Extreme Horror
+  - Extreme horror
+```
+
+### Importance of Warning Settings
+
+```text
+⚠️ Warning:
+
+If not set:
+- World may be deleted for terms violation
+- Account restrictions possible
+
+If incorrectly set:
+- Affects user experience
+- Inappropriate flags may drive users away
+
+Best practices:
+- Select all that apply
+- When in doubt, select it
+```
+
+---
+
+## Capacity Settings
+
+### Types of Capacity
+
+| Setting | Purpose | Behavior |
+|---------|---------|----------|
+| **Recommended Capacity** | Recommended count | UI display, search filter |
+| **Maximum Capacity** | Maximum count | Hard limit |
+
+### Configuration Guidelines
+
+```text
+Recommended Capacity:
+- Number of players for comfortable play
+- Number where performance is maintained
+- Displayed in UI
+
+Maximum Capacity:
+- Technically supportable maximum
+- No more can join beyond this
+- Usually 2-4x the Recommended
+
+Examples:
+- Small world: 8-16 players
+- Medium world: 20-32 players
+- Large world: 40-80 players
+```
+
+### Capacity Best Practices
+
+```text
+✅ Recommended:
+
+1. Determine through performance testing
+   - Actually test with multiple people
+   - Check FPS
+
+2. Consider network load
+   - Many synced objects → lower count
+   - Static world → higher count
+
+3. Consider the world's purpose
+   - Event use → higher count
+   - Small group use → lower count
+
+❌ Avoid:
+
+- Setting to maximum without justification
+- Deciding without testing
+- Ignoring performance
+```
+
+---
+
+## Post-Upload
+
+### Verification Items
+
+```text
+1. Verify on VRChat website
+   - https://vrchat.com/home/
+   - "My Worlds" section
+
+2. Verify in-game
+   - World search
+   - Confirm correct display
+
+3. Check settings
+   - Publication status
+   - Thumbnail
+   - Description
+```
+
+### Notes After Updating
+
+```text
+After update:
+- Existing instances remain on the old version
+- Only new instances use the new version
+- Cache clearing may be needed
+
+Propagation time:
+- Usually reflects within minutes
+- Search indexing may take hours
+```
+
+### World Management
+
+```text
+On the VRChat website:
+
+□ Change Release Status
+□ Update description
+□ Change tags
+□ Change Capacity
+□ Change Content Warnings
+□ Change thumbnail
+□ Delete world
+```
+
+---
+
+## Troubleshooting
+
+### Upload Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| "Build failed" | Build error | Check Console for errors |
+| "Upload failed" | Network error | Retry |
+| "File too large" | Size exceeded | Reduce assets |
+| "Not logged in" | Not logged in | Log in via SDK Panel |
+| "Validation failed" | Validation error | Fix errors |
+
+### Common Problems
+
+#### World not found
+
+```text
+Cause:
+1. Still set to Private
+2. Search index not yet updated
+3. World name is too generic
+
+Solution:
+1. Change to Public
+2. Wait a few hours
+3. Change to a unique name
+4. Access via direct URL
+```
+
+#### Upload takes too long
+
+```text
+Cause:
+1. Build size is large
+2. Slow network
+3. Server congestion
+
+Solution:
+1. Optimize assets
+2. Use a stable connection
+3. Retry after some time
+```
+
+#### Changes not reflected
+
+```text
+Cause:
+1. Joined an old instance
+2. Cache issue
+3. Blueprint ID issue
+
+Solution:
+1. Create a new instance
+2. Clear VRChat cache
+3. Verify Blueprint ID
+```
+
+### Debug Checklist
+
+```text
+□ No errors in Console
+□ All Validations pass
+□ Blueprint ID is correct
+□ Logged in
+□ Stable network connection
+□ Sufficient disk space
+```
+
+---
+
+## Platform-Specific Upload
+
+### PC + Quest Cross-Platform
+
+```yaml
+Procedure:
+
+1. Build for PC
+   - Platform: Windows
+   - Build & Upload
+
+2. Build for Quest
+   - Switch Platform to Android
+   - Apply Quest optimizations
+   - Build & Upload (same Blueprint ID)
+
+3. Verify on both platforms
+
+Notes:
+- Use the same Blueprint ID
+- Features may differ between platforms
+- Some features are disabled on Quest
+```
+
+### Quest-Only World
+
+```text
+Settings:
+
+1. Platform: Android
+2. Apply Quest optimizations
+3. Build & Upload
+
+Notes:
+- PC users cannot access
+- Quest optimization is required
+```
+
+---
+
+## Quick Reference
+
+### Upload Checklist (Minimum)
+
+```text
+□ VRC_SceneDescriptor × 1
+□ Spawns configured
+□ Validation passed
+□ Build & Test verified
+□ Content Warnings set
+□ Upload
+```
+
+### SDK Panel Shortcuts
+
+```text
+VRChat SDK > Show Control Panel
+
+Builder tab:
+- Build & Test
+- Build & Upload
+- Validations
+
+Content Manager tab:
+- Manage uploaded content
+
+Settings tab:
+- SDK settings
+```
+
+### Key URLs
+
+| Purpose | URL |
+|---------|-----|
+| VRChat Home | https://vrchat.com/home/ |
+| My Worlds | https://vrchat.com/home/worlds |
+| World Detail | https://vrchat.com/home/world/{worldId} |
+
+## See Also
+
+- [performance.md](performance.md) - Pre-upload performance checklist and Quest optimization requirements
+- [troubleshooting.md](troubleshooting.md) - Upload errors and common build failures

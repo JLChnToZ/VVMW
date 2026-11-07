@@ -1,0 +1,21 @@
+name: PR audit
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  check-audit-marker:
+    name: Check audit marker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require human removal of the audit marker
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if [[ "$PR_BODY" == *"AI-AUDIT-REVIEW-REQUIRED"* ]]; then
+            echo 'Review the PR description and changes, then remove the audit marker yourself.' >&2
+            exit 1
+          fi

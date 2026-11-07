@@ -1,0 +1,852 @@
+# VRChat World Components Complete Reference
+
+Full component reference for SDK 3.7.1 - 3.10.4.
+
+## Table of Contents
+
+- [VRC_SceneDescriptor](#vrc_scenedescriptor)
+- [VRC_Pickup](#vrc_pickup)
+- [VRC_Station](#vrc_station)
+- [VRC_ObjectSync](#vrc_objectsync)
+- [VRC_MirrorReflection](#vrc_mirrorreflection)
+- [VRC_PortalMarker](#vrc_portalmarker)
+- [VRC_SpatialAudioSource](#vrc_spatialaudiosource)
+- [VRC_UIShape](#vrc_uishape)
+- [VRC_AvatarPedestal](#vrc_avatarpedestal)
+- [VRC_CameraDolly](#vrc_cameradolly)
+- [VRCCameraSettings API](#vrccamerasettings-api)
+- [Contacts in Worlds](#contacts-in-worlds)
+- [PhysBones and Global Collision in Worlds](#physbones-and-global-collision-in-worlds)
+- [Avatar-driven features that read world colliders](#avatar-driven-features-that-read-world-colliders)
+- [Allowed Unity Components](#allowed-unity-components)
+
+---
+
+## VRC_SceneDescriptor
+
+**Required**: One is needed in every VRChat world.
+
+### All Properties
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| Spawns | Transform[] | Array of spawn points | Descriptor position |
+| Spawn Order | SpawnOrder | First/Sequential/Random/Demo | Sequential |
+| Respawn Height | float | Respawn Y coordinate | -100 |
+| Object Behaviour At Respawn | enum | Respawn/Destroy | Respawn |
+| Reference Camera | Camera | Camera settings reference | None |
+| Forbid User Portals | bool | Disable portals | false |
+| Voice Falloff Range | float | Voice attenuation range | - |
+| Interact Passthrough | LayerMask | Interact passthrough | Nothing |
+| Maximum Capacity | int | Max player count | - |
+| Recommended Capacity | int | Recommended player count | - |
+| Dynamic Materials | Material[] | Dynamic materials | - |
+| Dynamic Prefabs | GameObject[] | Dynamic prefabs | - |
+
+### Spawn Order Details
+
+```csharp
+// First: Always use the first spawn
+// Every player appears at Spawns[0]
+
+// Sequential: Spawn in order
+// Join order: Player1→Spawn0, Player2→Spawn1, Player3→Spawn2, Player4→Spawn0...
+
+// Random: Random selection
+// Different spawn point each time
+
+// Demo: Room-scale alignment mode
+// The spawn point represents the center of the player's room scale —
+// standing a meter from your room-scale center spawns you a meter from the spawn
+```
+
+### Reference Camera Settings
+
+```csharp
+// Usage:
+// 1. Near Clip Plane: 0.01m recommended for VR
+// 2. Far Clip Plane: Adjust based on world size
+// 3. Post Processing: Apply Profile
+// 4. Background: Skybox or Solid Color
+// 5. Clear Flags: Settings are inherited
+
+// Setup steps:
+// 1. Create a Camera
+// 2. Adjust settings
+// 3. Disable the Camera component
+// 4. Assign to SceneDescriptor's Reference Camera
+```
+
+### Capacity Behavior
+
+```csharp
+// Maximum Capacity:
+// - No new joins once this count is reached
+// - Hard limit
+
+// Recommended Capacity:
+// - Hidden from public listings when reached
+// - Soft limit (direct join is still possible)
+
+// Note: In older SDKs, when Recommended was not set,
+// the actual Max = specified value × 2 (bug)
+```
+
+---
+
+## VRC_Pickup
+
+Allows players to grab objects.
+
+### Required Setup
+
+```text
+[Pickup GameObject]
+├── Collider (Required)
+│   └── IsTrigger = true recommended
+├── Rigidbody (Required)
+│   ├── Use Gravity = true/false
+│   └── Is Kinematic = false (when held)
+├── VRC_Pickup
+└── VRC_ObjectSync (for network sync)
+```
+
+### All Properties
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| Interaction Text | string | Text displayed on desktop | - |
+| Use Text | string | Use text in VR | - |
+| Throw Velocity Boost Min Speed | float | Boost start speed | - |
+| Throw Velocity Boost Scale | float | Throw acceleration multiplier | - |
+| Pickupable | bool | Can be grabbed | true |
+| Pickup Orientation | enum | Any/Grip/Gun | Any |
+| Allow Theft | bool | Allow stealing | true |
+| Exact Grip | Transform | Exact grip position | null |
+| Exact Gun | Transform | Exact gun position | null |
+| Proximity | float | Pickup distance | 2.0 |
+| **Auto Hold** | enum | Yes/No (v1.1; AutoDetect is v1.0-only) | No |
+
+### Auto Hold (SDK 3.9+)
+
+```csharp
+// v1.0 (old): AutoDetect / Yes / No
+// v1.1 (new): Checkbox (Yes/No only)
+
+// Yes: Keeps holding after releasing grip
+// No: Only held while gripping
+
+// AutoDetect (v1.0 only):
+// Auto-determines based on object size
+```
+
+### Pickup Orientation
+
+```csharp
+// Any: Held at the grab position
+//      Small items, balls, etc.
+
+// Grip: Held at grip position
+//       Handles, tools, etc.
+
+// Gun: Gun holding pose
+//      Guns, pointers, etc.
+```
+
+### Udon Events
+
+```csharp
+public class PickupHandler : UdonSharpBehaviour
+{
+    // When grabbed
+    public override void OnPickup()
+    {
+        Debug.Log("Picked up!");
+    }
+
+    // When released
+    public override void OnDrop()
+    {
+        Debug.Log("Dropped!");
+    }
+
+    // Trigger pressed (VR) / Left click (Desktop)
+    public override void OnPickupUseDown()
+    {
+        Debug.Log("Use started!");
+    }
+
+    // Trigger released
+    public override void OnPickupUseUp()
+    {
+        Debug.Log("Use ended!");
+    }
+}
+```
+
+On desktop, `OnPickupUseDown` and `OnPickupUseUp` require Auto Hold = Yes to fire.
+
+### Network Sync
+
+```csharp
+// When VRC_ObjectSync is added:
+// - Position and rotation are auto-synced
+// - Physics state is synced
+// - Ownership is auto-managed
+
+// Ownership flow:
+// 1. Grab → Local player becomes owner
+// 2. Release → Ownership maintained
+// 3. Another player grabs → Ownership transfers
+```
+
+---
+
+## VRC_Station
+
+Creates a location where players can sit.
+
+### Required Setup
+
+```text
+[Station GameObject]
+├── Collider (Required - for Interact)
+└── VRC_Station
+    ├── Station Enter Player Location (optional)
+    └── Station Exit Player Location (optional)
+```
+
+### All Properties
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| Player Mobility | enum | Mobile/Immobilize/ImmobilizeForVehicle | Immobilize |
+| Can Use Station From Station | bool | Station-to-station transfer | true |
+| Animator Controller | AnimatorController | Sitting animation | null |
+| Disable Station Exit | bool | Prevent exit | false |
+| Seated | bool | Use seated animation | true |
+| Station Enter Player Location | Transform | Entry position | null |
+| Station Exit Player Location | Transform | Exit position | null |
+| Controls Object | Transform | Vehicle control target | null |
+
+### Player Mobility
+
+```csharp
+// Mobile: Free to move
+//         Standing positions with animation, etc.
+
+// Immobilize: Fully fixed
+//             Chairs, benches, etc.
+
+// ImmobilizeForVehicle: For vehicles
+//                       Player view follows the Station
+```
+
+### Udon Control
+
+```csharp
+public class StationController : UdonSharpBehaviour
+{
+    // Seat the player
+    public override void Interact()
+    {
+        Networking.LocalPlayer.UseAttachedStation();
+    }
+
+    // When seated
+    public override void OnStationEntered(VRCPlayerApi player)
+    {
+        Debug.Log($"{player.displayName} sat down");
+    }
+
+    // When exited
+    public override void OnStationExited(VRCPlayerApi player)
+    {
+        Debug.Log($"{player.displayName} stood up");
+    }
+}
+```
+
+### Avatar Station Rules
+
+```text
+⚠️ Additional restrictions for Stations on avatars:
+- Maximum 6 Stations
+- Station Descriptor (red box) must be enabled at upload time
+- Entry/Exit must be within 2m of the Station
+- Enable/disable controlled via the FX layer
+```
+
+---
+
+## VRC_ObjectSync
+
+Automatically syncs Transform and Rigidbody over the network.
+
+### All Properties
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| Allow Collision Ownership Transfer | bool | Transfer ownership on collision | false |
+
+### Udon Methods
+
+```csharp
+// Get VRC_ObjectSync
+VRCObjectSync sync = (VRCObjectSync)GetComponent(typeof(VRCObjectSync));
+
+// Reset to initial position
+sync.Respawn();
+
+// Gravity setting
+sync.SetGravity(true);
+
+// Kinematic setting
+sync.SetKinematic(false);
+
+// On teleport (skip interpolation)
+sync.FlagDiscontinuity();
+
+// Network statistics (for debugging)
+float updateInterval = sync.UpdateInterval;
+float receiveInterval = sync.ReceiveInterval;
+```
+
+### Ownership Management
+
+```csharp
+// Check ownership
+bool isOwner = Networking.IsOwner(gameObject);
+
+// Get owner
+VRCPlayerApi owner = Networking.GetOwner(gameObject);
+
+// Transfer ownership
+Networking.SetOwner(Networking.LocalPlayer, gameObject);
+
+// Event
+public override void OnOwnershipTransferred(VRCPlayerApi player)
+{
+    Debug.Log($"New owner: {player.displayName}");
+}
+```
+
+### VRC_ObjectSync vs UdonSynced
+
+| Use Case | VRC_ObjectSync | UdonSynced |
+|----------|----------------|------------|
+| Transform sync | ✅ Automatic | ❌ Manual implementation |
+| Rigidbody sync | ✅ Automatic | ❌ Manual implementation |
+| State only | ❌ Unnecessary overhead | ✅ Optimal |
+| Custom interpolation | ❌ Fixed | ✅ Flexible |
+| Bandwidth control | ❌ Automatic | ✅ Fine-grained control |
+
+---
+
+## VRC_MirrorReflection
+
+Creates a mirror.
+
+### Performance Warning
+
+```text
+⚠️ Significant performance impact:
+- Renders the entire scene an additional time
+- VR: Both eyes × 2 = 4x rendering
+- Multiple mirrors: Increases exponentially
+- Higher resolution = more overhead
+```
+
+### Best Practices
+
+```csharp
+// Recommended implementation:
+// 1. Default OFF
+// 2. Toggle button to enable
+// 3. Auto-disable by distance
+// 4. Set appropriate resolution
+
+public class MirrorController : UdonSharpBehaviour
+{
+    [SerializeField] private GameObject mirrorObject;
+    [SerializeField] private float autoDisableDistance = 10f;
+
+    private VRCPlayerApi _localPlayer;
+    private bool _initialized = false;
+
+    void OnEnable() => Initialize();
+    void Start() => Initialize();
+
+    private void Initialize()
+    {
+        if (_initialized) return;
+        _initialized = true;
+
+        _localPlayer = Networking.LocalPlayer;
+        mirrorObject.SetActive(false);
+    }
+
+    public override void Interact()
+    {
+        Initialize();
+        mirrorObject.SetActive(!mirrorObject.activeSelf);
+    }
+
+    void Update()
+    {
+        if (!_initialized || !mirrorObject.activeSelf) return;
+
+        float dist = Vector3.Distance(
+            _localPlayer.GetPosition(),
+            mirrorObject.transform.position
+        );
+
+        if (dist > autoDisableDistance)
+        {
+            mirrorObject.SetActive(false);
+        }
+    }
+}
+```
+
+### Shader Global Variables
+
+```csharp
+// Mirror-related shader variables (read-only)
+// _VRChatCameraMode:
+//   0 = Normal rendering
+//   1 = VR handheld camera
+//   2 = Desktop handheld camera
+//   3 = Screenshot
+
+// _VRChatMirrorMode:
+//   0 = Normal rendering
+//   1 = VR mirror
+//   2 = Desktop mirror
+
+// _VRChatMirrorCameraPos:
+//   Mirror camera world position
+```
+
+---
+
+## VRC_PortalMarker
+
+Creates a portal to another world.
+
+### Setup
+
+```text
+[Portal GameObject] ← Place at the root of the scene hierarchy
+├── VRC_PortalMarker
+│   ├── World ID: wrld_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+│   └── Custom Portal Prefab (optional)
+└── Visual (optional)
+```
+
+### Important Restrictions
+
+```text
+⚠️ Portals must be placed at the root of the scene hierarchy
+   Instance information from preceding players is synced to other players
+
+⚠️ World ID is obtained from the VRChat website
+   Example: wrld_4432ea9b-729c-46e3-8eaf-846aa0a37fdd
+```
+
+---
+
+## VRC_SpatialAudioSource
+
+Configures VRChat spatial audio for an `AudioSource`. Add it deliberately with each world `AudioSource` to avoid SDK Build Panel warnings; Auto Fix may change authored loudness or range. For the SDK validation entry and Auto Fix mutations, see [build-validation.md](build-validation.md#audiosource-and-vrc_spatialaudiosource).
+
+### All Properties
+
+| Property | Type | Description | Default / safe-preserve note | Range |
+|----------|------|-------------|------------------------------|-------|
+| Gain | float | Additional volume | 10 dB common/default; 0 dB for warning-only additions that preserve loudness | 0-24 dB |
+| Near | float | Attenuation start distance | 0 m unless intentionally authored | - |
+| Far | float | Attenuation end distance | Match existing `AudioSource.maxDistance` or the intended audible range | - |
+| Volumetric Radius | float | Source size | 0 m for point sources | < Far |
+| Use AudioSource Volume Curve | bool | Use curve | true when preserving existing custom 3D rolloff | - |
+| Enable Spatialization | bool | 3D positioning | false for 2D/global audio; true for authored 3D audio | - |
+
+### Settings by Use Case
+
+```csharp
+// Rule: do not overwrite existing VRC_SpatialAudioSource values or tuned
+// AudioSource volume, spatialBlend, rolloffMode, maxDistance, or curves
+// unless the user asks for a new sound design.
+
+// BGM / UI / global audio (2D):
+// Enable Spatialization = false
+// Gain = 0 dB when adding only to avoid the SDK warning
+// Keep AudioSource.spatialBlend = 0 and tune loudness with AudioSource.volume
+
+// Existing tuned 3D AudioSource:
+// Enable Spatialization = true
+// Use AudioSource Volume Curve = true
+// Gain = 0 dB
+// Match Far to existing maxDistance or the intended audible range
+
+// New 3D sound effects (point source):
+// Enable Spatialization = true
+// Gain = 0 dB to start
+// Near = 0, Far = 10-15 or the explicitly intended audible range
+// Volumetric Radius = 0
+
+// Ambient sound (wide source):
+// Enable Spatialization = true
+// Gain = 0 dB unless intentionally boosted
+// Far and Volumetric Radius must be authored for the area size
+```
+
+### AudioSource Pairing
+
+```text
+⚠️ AudioSource pairing:
+- Always add a VRC_SpatialAudioSource companion for world AudioSource components.
+- If the AudioSource is intentionally 2D/global, keep Enable Spatialization off and Gain at 0 dB.
+- If the AudioSource is tuned for 3D rolloff, preserve it with Use AudioSource Volume Curve.
+- Match Far to maxDistance / intended audible range; keep Near at 0 m unless minDistance / Near was authored.
+```
+
+### Avatar Restrictions
+
+```text
+⚠️ AudioSource on avatars:
+- Avatar gain cap: 10 dB
+- Far limit: 40 m
+- Pair with VRC_SpatialAudioSource; do not rely on SDK-generated values
+```
+
+---
+
+## VRC_UIShape
+
+Enables VRChat interaction with Unity UI (Canvas).
+
+### Setup
+
+```text
+[Canvas GameObject]
+├── Canvas (Render Mode: World Space)
+├── VRC_UIShape
+├── Graphic Raycaster (auto-added)
+└── UI Elements (Button, Slider, etc.)
+```
+
+### Configuration Steps
+
+```csharp
+// Method 1 (recommended): Auto setup
+// 1. Select UI > TextMeshPro (VRC)
+// 2. Correct settings are applied automatically
+
+// Method 2: Manual setup
+// 1. Create a Canvas
+// 2. Change Render Mode to "World Space"
+// 3. Change Layer to "Default" (can't interact on UI layer)
+// 4. Add VRC_UIShape component
+// 5. Adjust scale (default 1 = 1 pixel per meter)
+//    Recommended: 0.001 ~ 0.005
+
+// Important:
+// - Keep EventSystem in the scene (don't delete it)
+// - Canvas Z-axis should face away from the player
+// - Set Navigation to "None" on UI elements
+```
+
+### TextMeshPro Recommendation
+
+```text
+✅ TextMeshPro:
+- High-quality text rendering
+- Better readability in VR
+- Supersampling support
+
+❌ Unity Text:
+- Blurry in VR
+- Performance degradation
+- Lower quality
+```
+
+---
+
+## VRC_AvatarPedestal
+
+Displays avatars and allows switching.
+
+### Setup
+
+```text
+[Pedestal GameObject]
+├── VRC_AvatarPedestal
+│   └── Avatar ID: avtr_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+└── Display Model (optional)
+```
+
+---
+
+## VRC_CameraDolly
+
+Applies a camera animation along defined paths to the local player's VRChat user camera (SDK 3.9+). Typically used for cinematic intros, tutorials, and guided tours.
+
+### Components
+
+```text
+GameObject (VRC Camera Dolly Animation)
+├── GameObject (VRC Camera Dolly Path)
+│   ├── GameObject (VRC Camera Dolly Point)
+│   └── GameObject (VRC Camera Dolly Point)
+└── GameObject (VRC Camera Dolly Path)
+```
+
+Animation-level parameters (Path Type, Loop Type, Capture Type, Focus Mode, Anchor Mode, ...) and per-point parameters (Zoom, Duration, Speed, Focal Distance, ...) are configured in the Inspector — see the official VRC_CameraDolly page for the full list.
+
+### Scripting
+
+`VRCCameraDollyAnimation.Import()` applies the defined settings and animation to the local player's VRC user camera. It is the only documented scripting entry point; runtime reads or writes of the parameters from Udon are not documented.
+
+```csharp
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+using VRC.SDK3.Components;
+
+public class DollyTrigger : UdonSharpBehaviour
+{
+    [SerializeField] private VRCCameraDollyAnimation dollyAnimation;
+
+    public override void Interact()
+    {
+        if (!Utilities.IsValid(dollyAnimation)) return;
+        dollyAnimation.Import();
+    }
+}
+```
+
+> **Editor step**: before entering Play mode or building, select the `VRC Camera Dolly Animation` object and click **Collect Paths & Points**; repeat whenever child paths or points change.
+
+### Notes
+
+```text
+- The animation applies to the local player's camera only.
+- To trigger it for everyone, route the call through
+  SendCustomNetworkEvent(NetworkEventTarget.All, ...).
+- No ClientSim preview — use Build and Test to see the animation.
+```
+
+For the full scripting reference, see the udon-sharp skill's
+[`api.md` Camera Dolly section](../../unity-vrc-udon-sharp/references/api.md#vrc-camera-dolly-api-sdk-390).
+
+---
+
+## Contacts in Worlds
+
+`VRC Contact Sender` and `VRC Contact Receiver` components can be used in worlds for touch volumes, avatar/world interaction triggers, and world-side contact routing. This section is for world authoring setup only; for Udon event signatures, `VRCContactSender` / `VRCContactReceiver` scripting, and `Contact*Info` fields, use the UdonSharp dynamics/API references.
+
+### Contact Sender / Contact Receiver shapes (SDK 3.10.4)
+
+Both Contact Sender and Contact Receiver support these shape types:
+
+| Shape Type | Size fields | World-authoring notes |
+|------------|-------------|-----------------------|
+| Sphere | Radius | Simple radial touch volume |
+| Capsule | Radius + Height | Tall/limb-shaped touch volume along the local Y axis |
+| Box | Size | Box-shaped Contact volumes with independent X/Y/Z Box Size axes |
+
+Box-shaped Contact Sender and Box-shaped Contact Receiver setup uses the same transform, tag, and content-type rules as Sphere/Capsule contacts, but `Box Size` X/Y/Z defines the extents instead of radius/height. Contact dimensions are capped after object scale is applied: Sphere/Capsule radius is limited to 3 m, and Box width/height/depth are limited to **6 m** each. Avoid hiding extra scale in parent transforms when measuring the effective 6 m post-scale limit.
+
+### Receiver proximity behavior
+
+For proximity calculations, Sphere/Capsule proximity is based on closeness to the receiver volume center. For a box-shaped Contact Receiver, enabling `Use Face Proximity` changes the proximity calculation so the reported value measures closeness to the box's local positive-Z face. Use this when a box represents a panel, pad, or surface where approaching the front face should drive the proximity signal.
+
+### World scripting boundary
+
+Keep world component authoring here. Detailed Udon script behavior belongs in the UdonSharp references:
+
+- [dynamics.md Contacts](../../unity-vrc-udon-sharp/references/dynamics.md#contacts)
+- [api.md VRCContactReceiver / VRCContactSender](../../unity-vrc-udon-sharp/references/api.md#vrccontactreceiver)
+
+---
+
+## PhysBones and Global Collision in Worlds
+
+Worlds can include PhysBones and `VRCPhysBoneCollider` components. The world-side authoring concern is which colliders can influence world PhysBones, especially when avatar-origin global colliders are present.
+
+### Global Avatar PhysBone Colliders impact
+
+`Global Collision` on a `VRCPhysBoneCollider` makes that collider available to PhysBones in the selected content types, but each PhysBone's `Allow Collision` setting still decides whether global colliders are considered. For worlds:
+
+- World PhysBones can collide with avatar-origin global PhysBone colliders when their `Allow Collision` rules permit it.
+- Avatars can add up to four additional PhysBone colliders with `Global Collision` enabled.
+- Worlds have no documented global collider count limit, but every active collider can add runtime cost; keep world global colliders intentional.
+- `Global Collision` supports Sphere and Capsule collider shapes only. Plane/other shapes are not global-collision shapes.
+
+### VRCPhysBoneCollider Udon access
+
+In worlds, Udon can access `VRCPhysBoneCollider` for runtime-controlled collider properties. Use Udon scripting instead of animator-driven changes for world objects. After changing collider configuration fields from Udon, call `ApplyConfigurationChanges()` once after batching the edits so the runtime collider applies the new shape/size/offset.
+
+For the detailed Udon API, event callbacks, and examples, use the UdonSharp dynamics/API references rather than duplicating script guidance here:
+
+- [dynamics.md PhysBones](../../unity-vrc-udon-sharp/references/dynamics.md#physbones)
+- [api.md PhysBones and Contacts](../../unity-vrc-udon-sharp/references/api.md#vrchat-dynamics-api-sdk-3100)
+
+---
+
+## VRCCameraSettings API
+
+Retrieves camera information (SDK 3.8.1+; CullingMask and GetCurrentCamera added in 3.9.0).
+
+### Properties
+
+```csharp
+using VRC.SDK3.Rendering;
+
+// Two camera instances
+VRCCameraSettings screenCamera = VRCCameraSettings.ScreenCamera;
+VRCCameraSettings photoCamera = VRCCameraSettings.PhotoCamera;
+
+// Properties
+int width = screenCamera.PixelWidth;
+int height = screenCamera.PixelHeight;
+float fov = screenCamera.FieldOfView;
+bool isActive = photoCamera.Active;
+```
+
+### Events
+
+```csharp
+public class CameraMonitor : UdonSharpBehaviour
+{
+    [SerializeField] private TextMeshProUGUI infoText;
+
+    void Start()
+    {
+        OnVRCCameraSettingsChanged(VRCCameraSettings.ScreenCamera);
+    }
+
+    public override void OnVRCCameraSettingsChanged(VRCCameraSettings camera)
+    {
+        // Ignore handheld camera
+        if (camera != VRCCameraSettings.ScreenCamera) return;
+
+        infoText.text = $"{camera.PixelWidth}x{camera.PixelHeight}\n" +
+                        $"FOV: {camera.FieldOfView}°";
+    }
+}
+```
+
+---
+
+## Avatar-driven features that read world colliders
+
+Some avatar-side features fire rays or cast queries into the world and react to whatever collider they hit. `VRCRaycast` (SDK 3.10.3+) is one such feature: avatars can emit rays that intersect world colliders and players. World builders do not author or script `VRCRaycast` — it lives on the avatar side — but **collider presence, layer assignment, and IsTrigger settings on world geometry determine whether those avatar rays produce a "hit" and therefore whether visitors' avatars react as their authors intended**. Treat your interactable/solid geometry's collider+layer setup as an implicit contract with avatar-side tooling, not just with Udon interactions.
+
+---
+
+## Allowed Unity Components
+
+VRChat worlds run only whitelisted components. The authoritative list is the official
+[whitelisted world components](https://creators.vrchat.com/worlds/whitelisted-world-components/)
+page; per that page, components that are not in the list will not work. The Unity
+standard components below are the commonly used whitelisted subset.
+
+### Physics
+
+- Rigidbody
+- BoxCollider, SphereCollider, CapsuleCollider, MeshCollider
+- CharacterJoint, ConfigurableJoint, FixedJoint, HingeJoint, SpringJoint
+- ConstantForce
+- WheelCollider
+
+### Rendering
+
+- MeshRenderer, SkinnedMeshRenderer
+- MeshFilter
+- Camera
+- Light
+- ReflectionProbe, LightProbeGroup, LightProbeProxyVolume
+- LineRenderer, TrailRenderer
+- ParticleSystem, ParticleSystemRenderer
+- Projector
+- Skybox
+- LODGroup
+- OcclusionArea, OcclusionPortal
+
+### Audio
+
+- AudioSource
+- AudioReverbZone
+- AudioChorusFilter, AudioDistortionFilter, AudioEchoFilter
+- AudioHighPassFilter, AudioLowPassFilter, AudioReverbFilter
+
+### UI
+
+- Canvas, CanvasGroup, CanvasRenderer
+- RectTransform
+
+### Animation
+
+- Animator
+- PlayableDirector
+
+### Navigation
+
+- NavMeshAgent
+- NavMeshObstacle
+- OffMeshLink
+
+### Other
+
+- Transform
+- VideoPlayer
+- TextMesh (TextMeshPro recommended)
+- Terrain, TerrainCollider
+- Cloth
+- WindZone
+- Grid, GridLayout
+- Tilemap, TilemapRenderer
+
+### Disabled on Quest/Android
+
+Entries marked "on Avatar" come from avatar-side limitations and are listed here for completeness; unmarked entries are world-relevant where applicable.
+
+```text
+❌ Dynamic Bones
+❌ Cloth — completely disabled on Android/Quest
+❌ Physics on Avatar (Rigidbody, Collider, Joint)
+❌ Cameras on Avatar
+❌ Lights on Avatar
+❌ Audio Sources on Avatar
+⚠️ Unity Constraints are permitted in worlds; avoid overuse and profile them on Android. Prefer VRC equivalents for new work.
+```
+
+### Editor-Only Objects and Components
+
+For dev-only GameObjects such as test rigs, reference geometry, and measurement guides,
+assign the Unity `EditorOnly` tag. Unity excludes GameObjects with the `EditorOnly`
+tag in a Scene, including their child GameObjects, from builds.
+
+For editor-only components that must sit next to runtime components, such as setup-helper
+MonoBehaviours, implement the `VRC.SDKBase.IEditorOnly` marker interface. `IEditorOnly`
+has no members; VRChat SDK validation ignores `IEditorOnly` scripts when scanning the
+world for incompatible scripts.
+
+Use the `EditorOnly` tag when the whole GameObject and its children are dev-only. Use
+`IEditorOnly` when only one setup-helper component is editor-only and runtime components
+on the same GameObject should remain. For the full `IEditorOnly` pattern, `EditorOnly`
+comparison table, and worked setup-helper example, see
+[editor-scripting.md](../../unity-vrc-udon-sharp/references/editor-scripting.md).
+
+Custom MonoBehaviour scripts are not whitelisted and do not run in the client either way;
+the `EditorOnly` tag and `IEditorOnly` interface are about passing SDK validation cleanly
+and keeping dev-only content out of the upload intentionally.
+For the broader SDK Build Panel validation catalog, see
+[build-validation.md](build-validation.md).
+
+## See Also
+
+- [performance.md](performance.md) - Component-level performance budgets and Quest optimization checklist
+- [audio-video.md](audio-video.md) - VRCUnityVideoPlayer, AVPro, and VRCSpatialAudioSource component details

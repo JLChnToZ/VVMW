@@ -1,0 +1,977 @@
+# UdonSharp Event Reference
+
+Complete reference of all events available in UdonSharp. Override these methods to respond to events.
+
+**Supported SDK Versions**: 3.7.1 - 3.10.4
+
+## Important: override vs Non-override
+
+UdonSharp events include those that **require override** and those that **do not**. Using the wrong one causes a compile error (CS0115).
+
+### override Required (VRChat/Udon-Specific Events)
+
+`PostLateUpdate`, `OnPlayerJoined`, `OnPlayerLeft`, `OnPlayerRespawn`, `OnMasterTransferred`, `OnPlayerSuspendChanged`, `OnAvatarChanged`, `OnAvatarEyeHeightChanged`, `OnLanguageChanged`, `OnVRCPlusMassGift`, `OnDeserialization`, `OnPreSerialization`, `OnPostSerialization`, `OnOwnershipTransferred`, `OnOwnershipRequest`, `Interact`, `OnPickup`, `OnDrop`, `OnPickupUseDown`, `OnPickupUseUp`, `OnPlayerTriggerEnter/Stay/Exit`, `OnPlayerCollisionEnter/Stay/Exit`, `OnPlayerParticleCollision`, `OnControllerColliderHitPlayer`, `OnStationEntered/Exited`, `OnPlayerRestored`, `OnPlayerDataUpdated`, `OnPersistenceUsageUpdated`, `OnPlayerDataStorageExceeded/Warning`, `OnPlayerObjectStorageExceeded/Warning`, `OnContactEnter/Exit`, `OnPhysBoneGrabbed/Released`, `OnPhysBonePosed`, `OnPhysBoneUnPosed`, `OnDroneTriggerEnter/Stay/Exit`, `InputJump`, `InputUse`, `InputGrab`, `InputDrop`, `InputMoveHorizontal/Vertical`, `InputLookHorizontal/Vertical`, `OnInputMethodChanged`, `MidiNoteOn/Off`, `MidiControlChange`, `OnVideo*`, `OnStringLoad*`, `OnImageLoad*`, `OnSpawn`, `OnVRCQualitySettingsChanged`, `OnVRCCameraSettingsChanged`, `OnScreenUpdate`, `OnAsyncGpuReadbackComplete`, `OnPurchaseConfirmed`, `OnPurchaseConfirmedMultiple`, `OnPurchaseExpired`, `OnPurchasesLoaded`, `OnListAvailableProducts`, `OnListProductOwners`, `OnListPurchases`, `OnProductEvent`
+
+### override Not Required (Standard Unity Callbacks)
+
+`Start`, `Update`, `LateUpdate`, `FixedUpdate`, `OnEnable`, `OnDisable`, `OnDestroy`, `OnTriggerEnter/Stay/Exit`, `OnCollisionEnter/Stay/Exit`, `OnControllerColliderHit`, `OnAnimatorMove`, `OnAnimatorIK`, `OnWillRenderObject`, `OnBecameVisible/Invisible`
+
+```csharp
+// WRONG: CS0115 error
+// public override void OnTriggerEnter(Collider other) { }
+// CORRECT
+public void OnTriggerEnter(Collider other) { }
+
+// CORRECT: VRChat events require override
+public override void OnPlayerJoined(VRCPlayerApi player) { }
+```
+
+---
+
+## Update Events
+
+Called every frame or physics tick.
+
+| Event | When Called |
+|-------|-------------|
+| `void Update()` | Every frame |
+| `void LateUpdate()` | After all Update calls |
+| `void FixedUpdate()` | Every physics tick (~50Hz) |
+| `void PostLateUpdate()` | After LateUpdate (VRChat-specific) |
+
+```csharp
+void Update()
+{
+    // Called every frame
+    transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
+}
+
+void FixedUpdate()
+{
+    // Called at fixed intervals for physics
+    rb.AddForce(Vector3.up * force);
+}
+```
+
+### SendCustomEventDelayed and EventTiming (SDK 3.10.2+)
+
+The third argument of `SendCustomEventDelayedSeconds` / `SendCustomEventDelayedFrames` specifies the execution timing.
+
+| EventTiming | Description | Added In |
+|-------------|------|--------------|
+| `EventTiming.Update` | Within the Update loop (default) | 3.7.1+ |
+| `EventTiming.LateUpdate` | Within LateUpdate | 3.7.1+ |
+| `EventTiming.FixedUpdate` | Within physics tick | **3.10.2** |
+| `EventTiming.PostLateUpdate` | After LateUpdate | **3.10.2** |
+
+```csharp
+// Default (Update timing)
+SendCustomEventDelayedSeconds(nameof(_MyMethod), 2.0f);
+
+// Execute at FixedUpdate timing (SDK 3.10.2+)
+SendCustomEventDelayedSeconds(nameof(_PhysicsAction), 1.0f, EventTiming.FixedUpdate);
+
+// Frame delay + PostLateUpdate timing (SDK 3.10.2+)
+SendCustomEventDelayedFrames(nameof(_CameraFollow), 1, EventTiming.PostLateUpdate);
+```
+
+> **Note**: `EventTiming.FixedUpdate` is suitable for processing that needs to sync with physics calculations, and `EventTiming.PostLateUpdate` is suitable for camera following and post-IK corrections.
+
+---
+
+## Input Events
+
+VRChat-specific input events. Called when the player presses/releases buttons.
+
+### Action Events
+
+| Event | When Called |
+|-------|-------------|
+| `InputJump(bool value, UdonInputEventArgs args)` | Jump button |
+| `InputUse(bool value, UdonInputEventArgs args)` | Use/Interact button |
+| `InputGrab(bool value, UdonInputEventArgs args)` | Grab button |
+| `InputDrop(bool value, UdonInputEventArgs args)` | Drop button |
+
+### Movement Events
+
+| Event | When Called |
+|-------|-------------|
+| `InputMoveHorizontal(float value, UdonInputEventArgs args)` | Left/right movement |
+| `InputMoveVertical(float value, UdonInputEventArgs args)` | Forward/back movement |
+| `InputLookHorizontal(float value, UdonInputEventArgs args)` | Look left/right |
+| `InputLookVertical(float value, UdonInputEventArgs args)` | Look up/down |
+
+### Input Method Events
+
+| Event | When Called |
+|-------|-------------|
+| `void OnInputMethodChanged(VRCInputMethod inputMethod)` | Player switches input method (keyboard, controller, touch) |
+
+```csharp
+public override void OnInputMethodChanged(VRCInputMethod inputMethod)
+{
+    // Adjust UI layout when player switches between controller, keyboard, or touch
+    UpdateControlHints(inputMethod);
+}
+```
+
+```csharp
+public override void InputJump(bool value, VRC.Udon.Common.UdonInputEventArgs args)
+{
+    if (value) // Button pressed (not released)
+    {
+        Debug.Log("Jump pressed!");
+    }
+}
+
+public override void InputMoveHorizontal(float value, VRC.Udon.Common.UdonInputEventArgs args)
+{
+    // value is -1 to 1
+    Debug.Log($"Horizontal input: {value}");
+}
+```
+
+## Interact Event
+
+Called when a player interacts with the object (requires a Collider).
+
+```csharp
+public override void Interact()
+{
+    Debug.Log($"{Networking.LocalPlayer.displayName} interacted with this!");
+}
+```
+
+**Requirements:**
+- GameObject must have a Collider
+- Collider must NOT be set to "Is Trigger" (for default interact)
+- Set "Interact Text" in UdonBehaviour component to customize prompt
+
+## Pickup Events
+
+Called on objects with a VRC_Pickup component.
+
+| Event | When Called |
+|-------|-------------|
+| `void OnPickup()` | When picked up |
+| `void OnDrop()` | When dropped |
+| `void OnPickupUseDown()` | When use button pressed while holding |
+| `void OnPickupUseUp()` | When use button released while holding |
+
+```csharp
+public override void OnPickup()
+{
+    Debug.Log("Picked up!");
+}
+
+public override void OnDrop()
+{
+    Debug.Log("Dropped!");
+}
+
+public override void OnPickupUseDown()
+{
+    // Fire weapon, activate tool, etc.
+    DoAction();
+}
+
+public override void OnPickupUseUp()
+{
+    // Release trigger, stop action
+    StopAction();
+}
+```
+
+## Player Events
+
+Called when players join, leave, or change state.
+
+| Event | When Called |
+|-------|-------------|
+| `void OnPlayerJoined(VRCPlayerApi player)` | Player joins instance |
+| `void OnPlayerLeft(VRCPlayerApi player)` | Player leaves instance |
+| `void OnPlayerRespawn(VRCPlayerApi player)` | Player respawns |
+| `void OnMasterTransferred(VRCPlayerApi newMaster)` | Instance master role transfers to a new player |
+| `void OnPlayerSuspendChanged(VRCPlayerApi player)` | Player suspend state changes (headset removed, app backgrounded) |
+| `void OnAvatarChanged(VRCPlayerApi player)` | Player changes their avatar |
+| `void OnAvatarEyeHeightChanged(VRCPlayerApi player, float prevEyeHeightAsMeters)` | Player avatar eye height changes |
+| `void OnLanguageChanged(string language)` | Player changes their display language |
+| `void OnVRCPlusMassGift(VRCPlayerApi gifter, int numGifts)` | VRC+ mass gift event occurs in the instance |
+
+```csharp
+public override void OnPlayerJoined(VRCPlayerApi player)
+{
+    Debug.Log($"{player.displayName} joined!");
+
+    // Sync state for new player if we own the object
+    if (Networking.IsOwner(gameObject))
+    {
+        RequestSerialization();
+    }
+}
+
+public override void OnPlayerLeft(VRCPlayerApi player)
+{
+    Debug.Log($"{player.displayName} left!");
+    // Clean up player-specific data
+}
+```
+
+## Persistence Events (SDK 3.7.4+)
+
+Called during PlayerData persistence operations.
+
+| Event | When Called |
+|-------|-------------|
+| `void OnPlayerRestored(VRCPlayerApi player)` | Player's saved data has been loaded |
+| `void OnPlayerDataUpdated(VRCPlayerApi player, PlayerData.Info[] infos)` | PlayerData was updated |
+| `void OnPersistenceUsageUpdated()` | Persistence usage statistics are updated |
+| `void OnPlayerDataStorageExceeded(VRCPlayerApi player)` | Player data storage limit exceeded |
+| `void OnPlayerDataStorageWarning(VRCPlayerApi player)` | Player data storage approaching limit |
+| `void OnPlayerObjectStorageExceeded(VRCPlayerApi player)` | Player object storage limit exceeded |
+| `void OnPlayerObjectStorageWarning(VRCPlayerApi player)` | Player object storage approaching limit |
+
+> **SDK Note**: `OnPersistenceUsageUpdated` and the storage warning/exceeded events require SDK 3.10.0+. The `OnPlayerRestored` and `OnPlayerDataUpdated` events above are available from SDK 3.7.4+.
+
+```csharp
+public override void OnPlayerRestored(VRCPlayerApi player)
+{
+    if (!player.isLocal) return;
+
+    Debug.Log($"{player.displayName}'s data restored!");
+
+    // Access PlayerData to load saved data
+    if (PlayerData.TryGetInt(player, "highScore", out int score))
+    {
+        highScoreDisplay.text = $"High Score: {score}";
+    }
+}
+```
+
+**Important:** Do not access PlayerData until `OnPlayerRestored` has been called.
+
+## VRChat Dynamics Events (SDK 3.10.0+)
+
+Called for PhysBones and Contacts in worlds.
+
+### Contact Events
+
+| Event | When Called |
+|-------|-------------|
+| `void OnContactEnter(ContactEnterInfo info)` | Contact sender starts contacting receiver |
+| `void OnContactExit(ContactExitInfo info)` | Contact ends |
+
+```csharp
+public override void OnContactEnter(ContactEnterInfo info)
+{
+    ContactSenderProxy sender = info.contactSender;
+    ContactReceiverProxy receiver = info.contactReceiver;
+    if (!sender.isValid || !receiver.isValid) return;
+
+    if (sender.usage == DynamicsUsage.Avatar && sender.player != null && sender.player.IsValid())
+    {
+        Debug.Log($"Touched by: {sender.player.displayName}");
+    }
+    else if (sender.usage == DynamicsUsage.World)
+    {
+        Debug.Log("Touched by world object");
+    }
+
+    Debug.Log($"Contact point: {info.contactPoint}, velocity: {info.enterVelocity}");
+}
+
+public override void OnContactExit(ContactExitInfo info)
+{
+    if (!info.contactSender.isValid || !info.contactReceiver.isValid) return;
+    Debug.Log($"Contact ended with {info.matchingTags.Length} matching tags");
+}
+```
+
+### PhysBones Events
+
+| Event | When Called |
+|-------|-------------|
+| `void OnPhysBoneGrabbed(PhysBoneGrabbedInfo physBoneInfo)` | PhysBone grabbed |
+| `void OnPhysBoneReleased(PhysBoneReleasedInfo physBoneInfo)` | PhysBone released |
+| `void OnPhysBonePosed(PhysBonePosedInfo physBoneInfo)` | A PhysBone is manually posed by a player |
+| `void OnPhysBoneUnPosed(PhysBoneUnPosedInfo physBoneInfo)` | A PhysBone pose is released |
+
+```csharp
+public override void OnPhysBoneGrabbed(PhysBoneGrabbedInfo physBoneInfo)
+{
+    Debug.Log($"PhysBone grabbed by {physBoneInfo.player?.displayName}");
+}
+
+public override void OnPhysBoneReleased(PhysBoneReleasedInfo physBoneInfo)
+{
+    Debug.Log($"PhysBone released");
+}
+
+public override void OnPhysBonePosed(PhysBonePosedInfo physBoneInfo)
+{
+    Debug.Log($"PhysBone posed by {physBoneInfo.player?.displayName}");
+}
+
+public override void OnPhysBoneUnPosed(PhysBoneUnPosedInfo physBoneInfo)
+{
+    Debug.Log("PhysBone pose released");
+}
+```
+
+**Note:** Contact events fire on UdonBehaviours attached to the same GameObject as the Contact Receiver. PhysBone events fire on UdonBehaviours attached to the same GameObject as the VRCPhysBone component. SDK 3.10.4 does not expose separate Contact stay or PhysBone-collider enter/stay/exit callbacks on `UdonSharpBehaviour`.
+
+## Player Trigger/Collision Events
+
+Called when players enter/exit triggers or collide.
+
+### Trigger Events
+
+| Event | When Called |
+|-------|-------------|
+| `void OnPlayerTriggerEnter(VRCPlayerApi player)` | Player enters trigger |
+| `void OnPlayerTriggerStay(VRCPlayerApi player)` | Player stays in trigger |
+| `void OnPlayerTriggerExit(VRCPlayerApi player)` | Player exits trigger |
+
+### Collision Events
+
+| Event | When Called |
+|-------|-------------|
+| `void OnPlayerCollisionEnter(VRCPlayerApi player)` | Player collision starts |
+| `void OnPlayerCollisionStay(VRCPlayerApi player)` | Player collision ongoing |
+| `void OnPlayerCollisionExit(VRCPlayerApi player)` | Player collision ends |
+
+### CharacterController Collision Events
+
+Called when a CharacterController on this GameObject collides with a player or another collider.
+
+| Event | When Called |
+|-------|-------------|
+| `void OnControllerColliderHitPlayer(ControllerColliderPlayerHit hit)` | CharacterController on this GameObject hits a player |
+
+**`ControllerColliderPlayerHit` fields** (`VRC.SDK3.ControllerColliderPlayerHit`):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `player` | `VRCPlayerApi` | The player who was hit |
+| `moveDirection` | `Vector3` | Direction the CharacterController was moving |
+| `moveLength` | `float` | Distance the CharacterController moved |
+| `normal` | `Vector3` | Surface normal at the collision point |
+| `point` | `Vector3` | World-space collision point |
+
+```csharp
+public override void OnControllerColliderHitPlayer(ControllerColliderPlayerHit hit)
+{
+    VRCPlayerApi hitPlayer = hit.player;
+    if (hitPlayer == null || !hitPlayer.IsValid()) return;
+
+    // Apply knockback force based on collision direction
+    float knockbackStrength = hit.moveLength * 2.0f;
+    Vector3 knockbackDir = -hit.normal;
+    // Use the collision data to drive gameplay logic
+}
+```
+
+**Difference from OnPlayerCollisionEnter**: `OnPlayerCollisionEnter` fires when a player's capsule collider enters a Collider on this GameObject. `OnControllerColliderHitPlayer` fires when a CharacterController on this GameObject actively moves into a player — the direction of contact is reversed.
+
+**Non-player variant**: `OnControllerColliderHit(ControllerColliderHit hit)` is a standard Unity callback (no `override`) that fires when the CharacterController hits a non-player collider. VRChat internally routes the Unity `OnControllerColliderHit` callback to either the player or non-player event based on whether the hit object belongs to a player.
+
+**Requirements:**
+- GameObject must have a `CharacterController` component
+- Event fires on the GameObject that owns the CharacterController, not on the hit target
+
+### Particle Collision Event
+
+| Event | When Called |
+|-------|-------------|
+| `void OnPlayerParticleCollision(VRCPlayerApi player)` | Particle hits player |
+
+```csharp
+public override void OnPlayerTriggerEnter(VRCPlayerApi player)
+{
+    if (player.isLocal)
+    {
+        // Only affect local player
+        ShowWelcomeMessage();
+    }
+}
+```
+
+**Requirements:**
+- GameObject must have Collider with "Is Trigger" checked
+- For collision events, Collider must NOT be trigger
+
+## Drone Events
+
+Called when a player's drone enters or exits a trigger collider attached to the same GameObject as this behaviour.
+
+| Event | When Called |
+|-------|-------------|
+| `void OnDroneTriggerEnter(VRCDroneApi drone)` | Drone enters the trigger |
+| `void OnDroneTriggerStay(VRCDroneApi drone)` | Drone stays in the trigger (called each frame) |
+| `void OnDroneTriggerExit(VRCDroneApi drone)` | Drone exits the trigger |
+
+```csharp
+public override void OnDroneTriggerEnter(VRCDroneApi drone)
+{
+    if (!Utilities.IsValid(drone)) return;
+
+    VRCPlayerApi pilot = drone.GetPlayer();
+    if (Utilities.IsValid(pilot))
+    {
+        Debug.Log($"{pilot.displayName}'s drone entered the zone");
+    }
+}
+
+public override void OnDroneTriggerExit(VRCDroneApi drone)
+{
+    Debug.Log("Drone exited the trigger zone");
+}
+```
+
+**Requirements:**
+- GameObject must have a Collider with "Is Trigger" checked
+- Events fire only on the local client
+
+## Networking Events
+
+Called during sync and ownership changes.
+
+| Event | When Called |
+|-------|-------------|
+| `void OnPreSerialization()` | Before data is serialized (owner only) |
+| `void OnDeserialization()` | After receiving synced data |
+| `void OnDeserialization(DeserializationResult result)` | With result info |
+| `void OnPostSerialization(SerializationResult result)` | After serialization complete |
+| `void OnOwnershipTransferred(VRCPlayerApi player)` | Ownership changed |
+| `bool OnOwnershipRequest(VRCPlayerApi requestingPlayer, VRCPlayerApi requestedOwner)` | Ownership requested (return `true` to accept, `false` to reject) |
+
+```csharp
+public override void OnPreSerialization()
+{
+    // Prepare data before sending (owner only)
+    // Good place to pack data or update timestamps
+}
+
+public override void OnDeserialization()
+{
+    // Data received from owner
+    UpdateDisplay();
+}
+
+public override void OnPostSerialization(SerializationResult result)
+{
+    if (!result.success)
+    {
+        Debug.LogError($"Serialization failed!");
+    }
+    Debug.Log($"Sent {result.byteCount} bytes");
+}
+
+public override void OnOwnershipTransferred(VRCPlayerApi player)
+{
+    Debug.Log($"New owner: {player.displayName}");
+
+    if (player.isLocal)
+    {
+        // We are now the owner
+        OnBecameOwner();
+    }
+}
+```
+
+### Ownership Request Arbitration
+
+`OnOwnershipRequest` allows the current owner to accept or reject ownership transfers. The callback runs locally on **both the requester and the current owner**, so the logic must return the same result on both sides to avoid desync.
+
+```csharp
+/// <summary>
+/// Called on both the requester's and the current owner's clients
+/// when another player requests ownership. Return true to accept,
+/// false to reject the transfer. The result MUST agree on both sides.
+/// </summary>
+public override bool OnOwnershipRequest(
+    VRCPlayerApi requestingPlayer,
+    VRCPlayerApi requestedOwner)
+{
+    if (requestingPlayer == null || !requestingPlayer.IsValid()) return true;
+
+    // Example: Only allow ownership transfer when game is in lobby phase
+    if (gamePhase != 0)
+    {
+        return false; // Reject during active gameplay
+    }
+
+    return true;
+}
+```
+
+> **Important**: This callback runs locally on **both the requester and the current owner**. The logic must return the same result on both sides to avoid desync. If the current owner has disconnected, the callback is not invoked — VRChat auto-assigns a new owner directly.
+
+## Station Events
+
+Called when a player enters/exits a VRCStation (seat, vehicle).
+
+| Event | When Called |
+|-------|-------------|
+| `void OnStationEntered(VRCPlayerApi player)` | Player sat down |
+| `void OnStationExited(VRCPlayerApi player)` | Player stood up |
+
+```csharp
+public override void OnStationEntered(VRCPlayerApi player)
+{
+    Debug.Log($"{player.displayName} sat down");
+
+    if (player.isLocal)
+    {
+        // Start vehicle controls
+        EnableVehicleControls();
+    }
+}
+
+public override void OnStationExited(VRCPlayerApi player)
+{
+    if (player.isLocal)
+    {
+        DisableVehicleControls();
+    }
+}
+```
+
+## Video Player Events
+
+Called by VRCUnityVideoPlayer or AVProVideoPlayer.
+
+| Event | When Called |
+|-------|-------------|
+| `void OnVideoStart()` | Video starts playing |
+| `void OnVideoEnd()` | Video ends |
+| `void OnVideoPause()` | Video paused |
+| `void OnVideoPlay()` | Video resumed |
+| `void OnVideoReady()` | Video loaded and ready |
+| `void OnVideoError(VideoError error)` | Error occurred |
+| `void OnVideoLoop()` | Video looped |
+
+```csharp
+public override void OnVideoReady()
+{
+    Debug.Log("Video ready to play");
+}
+
+public override void OnVideoError(VideoError videoError)
+{
+    Debug.LogError($"Video error: {videoError}");
+}
+```
+
+## String/Image Loading Events
+
+Called after VRCStringDownloader or VRCImageDownloader requests.
+For API details, constraints, and practical patterns, see `references/web-loading.md`.
+
+| Event | When Called |
+|-------|-------------|
+| `void OnStringLoadSuccess(IVRCStringDownload result)` | String download succeeded |
+| `void OnStringLoadError(IVRCStringDownload result)` | String download failed |
+| `void OnImageLoadSuccess(IVRCImageDownload result)` | Image download succeeded |
+| `void OnImageLoadError(IVRCImageDownload result)` | Image download failed |
+
+**IVRCStringDownload**: `Result` (string), `ResultBytes` (byte[]), `Error` (string), `ErrorCode` (int), `Url` (VRCUrl)
+
+**IVRCImageDownload**: `Result` (Texture2D), `SizeInMemoryBytes` (int), `Error` (string), `ErrorCode` (int), `Material`, `TextureInfo`
+
+```csharp
+public override void OnStringLoadSuccess(IVRCStringDownload result)
+{
+    string data = result.Result;
+    Debug.Log($"Downloaded: {data}");
+}
+
+public override void OnStringLoadError(IVRCStringDownload result)
+{
+    Debug.LogError($"Download failed ({result.ErrorCode}): {result.Error}");
+}
+```
+
+## MIDI Events
+
+Called when MIDI input is received (PC only).
+
+| Event | When Called |
+|-------|-------------|
+| `void MidiNoteOn(int channel, int note, int velocity)` | Note pressed |
+| `void MidiNoteOff(int channel, int note, int velocity)` | Note released |
+| `void MidiControlChange(int channel, int number, int value)` | Control changed |
+
+```csharp
+public override void MidiNoteOn(int channel, int note, int velocity)
+{
+    Debug.Log($"Note on: channel={channel}, note={note}, velocity={velocity}");
+    PlayNote(note, velocity / 127f);
+}
+```
+
+## Object Pool Events
+
+Called on GameObjects spawned from a VRCObjectPool.
+
+| Event | When Called |
+|-------|-------------|
+| `void OnSpawn()` | This object is spawned from a VRCObjectPool |
+
+> **Note**: `OnSpawn` is deprecated per the official docs — use `OnEnable` to react to an object being activated by the pool.
+
+```csharp
+public override void OnSpawn()
+{
+    // OnSpawn is deprecated; prefer OnEnable for activation from the pool.
+    // Initialize state when this pooled object becomes active
+    _isActive = true;
+    _spawnTime = Time.time;
+}
+```
+
+**Requirements:**
+- GameObject must be part of a VRCObjectPool's Pool array
+- Called after the object is enabled by `Pool.TryToSpawn()`
+
+## Settings & Rendering Events
+
+Called when VRChat settings or rendering state changes. The camera/quality settings events require SDK 3.8.1+ (additional camera members in 3.9.0).
+
+| Event | When Called |
+|-------|-------------|
+| `void OnVRCQualitySettingsChanged()` | VRChat quality settings change |
+| `void OnVRCCameraSettingsChanged(VRCCameraSettings cameraSettings)` | VRChat camera settings change |
+| `void OnScreenUpdate(ScreenUpdateData data)` | Screen update data is available |
+| `void OnAsyncGpuReadbackComplete(VRCAsyncGPUReadbackRequest request)` | Async GPU readback operation completes |
+
+```csharp
+public override void OnVRCQualitySettingsChanged()
+{
+    // Adapt visual effects when the player changes quality settings
+    UpdateParticleEffects();
+}
+
+public override void OnAsyncGpuReadbackComplete(VRCAsyncGPUReadbackRequest request)
+{
+    if (request.hasError) return;
+    // Process GPU readback data
+}
+```
+
+## VRC Economy Events
+
+Called in response to VRChat Creator Economy operations. Requires Udon Products configured in the world.
+
+| Event | When Called |
+|-------|-------------|
+| `void OnPurchaseConfirmed(IProduct product, VRCPlayerApi player, bool purchasedNow)` | A product purchase is confirmed |
+| `void OnPurchaseConfirmedMultiple(IProduct product, VRCPlayerApi player, bool purchasedNow, int quantity)` | Multiple product purchases confirmed |
+| `void OnPurchaseExpired(IProduct product, VRCPlayerApi player)` | A product purchase expires |
+| `void OnPurchasesLoaded(IProduct[] products, VRCPlayerApi player)` | Player's purchase data finishes loading |
+| `void OnListAvailableProducts(IProduct[] products)` | Available products list is returned |
+| `void OnListProductOwners(IProduct product, string[] owners)` | Product owner list is returned |
+| `void OnListPurchases(IProduct[] products, VRCPlayerApi player)` | Player's purchase list is returned |
+| `void OnProductEvent(IProduct product, VRCPlayerApi player)` | A product-related event occurs |
+
+```csharp
+public override void OnPurchaseConfirmed(IProduct product, VRCPlayerApi player, bool purchasedNow)
+{
+    if (!player.isLocal) return;
+    // Grant access to purchased content
+    UnlockContent(product);
+}
+
+public override void OnPurchasesLoaded(IProduct[] products, VRCPlayerApi player)
+{
+    if (!player.isLocal) return;
+    // Restore previously purchased items on join
+    foreach (var product in products)
+    {
+        UnlockContent(product);
+    }
+}
+```
+
+**Requirements:**
+- World must have Udon Products configured in the VRChat Creator Economy dashboard
+- Types `IProduct` are from `VRC.Economy` namespace
+
+## Standard Unity Events
+
+Standard Unity events that work in UdonSharp.
+
+### Lifecycle
+
+| Event | When Called |
+|-------|-------------|
+| `void Start()` | First frame (after all Awake) |
+| `void OnEnable()` | When enabled |
+| `void OnDisable()` | When disabled |
+| `void OnDestroy()` | When destroyed |
+
+### Physics
+
+| Event | When Called |
+|-------|-------------|
+| `void OnTriggerEnter(Collider other)` | Object enters trigger |
+| `void OnTriggerStay(Collider other)` | Object stays in trigger |
+| `void OnTriggerExit(Collider other)` | Object exits trigger |
+| `void OnCollisionEnter(Collision collision)` | Collision starts |
+| `void OnCollisionStay(Collision collision)` | Collision ongoing |
+| `void OnCollisionExit(Collision collision)` | Collision ends |
+
+### Rendering
+
+| Event | When Called |
+|-------|-------------|
+| `void OnWillRenderObject()` | Before rendering |
+| `void OnBecameVisible()` | Became visible to camera |
+| `void OnBecameInvisible()` | No longer visible |
+
+### Animation
+
+| Event | When Called |
+|-------|-------------|
+| `void OnAnimatorMove()` | Animator root motion update |
+| `void OnAnimatorIK(int layerIndex)` | IK pass |
+
+```csharp
+void Start()
+{
+    // Initialize after all Awake calls
+    InitializeComponents();
+}
+
+void OnTriggerEnter(Collider other)
+{
+    // Non-player object entered trigger
+    if (other.CompareTag("Projectile"))
+    {
+        TakeDamage();
+    }
+}
+```
+
+## Event Execution Order
+
+Reference: [VRChat Official Docs — Event Execution Order](https://creators.vrchat.com/worlds/udon/event-execution-order/)
+
+### Per-Frame Lifecycle
+
+The Unity/VRChat per-frame execution order (steady state, every frame):
+
+| Step | Event | Notes |
+|------|-------|-------|
+| 1 | `OnEnable()` | Only on the frame the behaviour becomes enabled |
+| 2 | `Start()` | Only on the first frame the behaviour is active |
+| 3 | `FixedUpdate()` | Physics tick (~50 Hz); may run 0 or more times per frame |
+| 4 | `Update()` | Every render frame |
+| 5 | `LateUpdate()` | After all `Update` calls |
+| 6 | `PostLateUpdate()` | VRChat-specific; after `LateUpdate`, before render |
+
+> **Note**: `Awake()` is **not available** in UdonSharp. Use `Start()` for one-time initialization instead.
+
+**Networking events** (`OnDeserialization`, `OnPreSerialization`, etc.) are dispatched between frames and can fire at any point outside the per-frame order above.
+
+---
+
+### Initialization Guarantee
+
+`OnEnable` and `Start` normally run before other event callbacks on the behaviour, and they run with **no gap between them** on the initial activation. This means:
+
+- You can safely access component references set up in `Start()` from ordinary event handlers.
+- No ordinary VRChat event (player join, deserialization, etc.) will interrupt `OnEnable`/`Start`.
+
+> **Exception**: A `[FieldChangeCallback]` setter can run during initial deserialization before `Start()` returns — see the edge case below.
+
+---
+
+### Scenario: Instance Creator (First Player)
+
+When you are the first player to enter an instance:
+
+```text
+_onEnable → _start
+    ↓
+OnPlayerJoined(self)          ← fires for yourself
+    ↓
+OnMasterTransferred           ← master transferred from nobody to you
+```
+
+- You are immediately both Master and Owner of scene objects.
+- No `OnDeserialization` fires because there is no prior state to receive.
+
+---
+
+### Scenario: Late Joiner
+
+When you join an existing instance:
+
+```text
+_onEnable → _start
+    ↓
+OnPlayerJoined(player A)      ← for each player already in the instance
+OnPlayerJoined(player B)      ← (order matches instance join order)
+OnPlayerJoined(self)          ← last: your own join event
+    ↓
+OnDeserialization             ← receives synced variable state from owner
+```
+
+> **Note**: `OnPlayerJoined` fires for **every** player currently in the instance, including yourself. You will always be the last entry in this sequence.
+
+> **Note**: Synced variable values are **not guaranteed to be initialized** before `OnDeserialization` fires. Do not read synced variables in `Start()` for late joiners — they may still be at default values.
+
+#### Edge Case: Owner Calls RequestSerialization Near OnPlayerJoined
+
+If the current owner calls `RequestSerialization()` at or very close to the time a late joiner's `OnPlayerJoined` fires (for example, in their own `OnPlayerJoined` handler), the following race condition can occur on the **late joiner's client**:
+
+1. Synced variable value arrives and changes.
+2. The `[FieldChangeCallback]` property setter runs for the changed field.
+3. `OnDeserialization` follows. The pre-`Start()` window applies only to the
+   `[FieldChangeCallback]` setter — `OnDeserialization` itself dispatches between
+   frames, after `Start()`, per the Initialization Guarantee above.
+
+In this specific edge case (most likely when the late joiner is the **first instance** on its client), the `[FieldChangeCallback]` setter can run **before** `Start()` has returned. Guard against this with an initialization flag (see pattern below).
+
+---
+
+### Scenario: Another Player Joins Your Instance
+
+When a new player joins while you are already in the instance:
+
+```text
+OnPlayerJoined(newPlayer)     ← fires only for the newly joined player
+```
+
+If you are the owner of synced objects, this is the correct place to call `RequestSerialization()` to push current state to the late joiner:
+
+```csharp
+public override void OnPlayerJoined(VRCPlayerApi player)
+{
+    if (Networking.IsOwner(gameObject))
+    {
+        RequestSerialization();
+    }
+}
+```
+
+---
+
+### Practical Patterns
+
+#### Do Not Access Synced State in Start()
+
+```csharp
+// WRONG: syncedScore may still be 0 (default) for a late joiner
+void Start()
+{
+    UpdateScoreDisplay(syncedScore);
+}
+
+// CORRECT: wait for OnDeserialization before reading synced state
+public override void OnDeserialization()
+{
+    UpdateScoreDisplay(syncedScore);
+}
+```
+
+#### Initialization Flag Guard
+
+Use a pair of flags: `_isInitialized` suppresses `[FieldChangeCallback]` side effects until `Start()` completes, and `_hasReceivedState` runs one-time setup exactly once after the first `OnDeserialization`:
+
+```csharp
+[UdonSynced, FieldChangeCallback(nameof(Value))]
+private int _syncedValue;
+
+private bool _isInitialized;    // true once Start() has completed
+private bool _hasReceivedState; // true after the first OnDeserialization
+
+public int Value
+{
+    get => _syncedValue;
+    set
+    {
+        _syncedValue = value;
+        // Suppress side effects until Start() completes — the setter can run
+        // during initial deserialization, before Start() returns.
+        if (!_isInitialized) return;
+        UpdateDisplay();
+    }
+}
+
+void Start()
+{
+    // Render defaults here: on the instance creator's client,
+    // OnDeserialization never fires on initial load.
+    UpdateDisplay();
+    _isInitialized = true;
+}
+
+public override void OnDeserialization()
+{
+    if (!_hasReceivedState)
+    {
+        _hasReceivedState = true;
+        InitializeFromSyncedState();
+    }
+    UpdateDisplay();
+}
+
+private void InitializeFromSyncedState()
+{
+    // Perform any one-time setup that depends on synced variables
+}
+```
+
+> **Note**: On the **instance creator's client**, `OnDeserialization` never fires on initial load (there is no prior state). Initialize with default values in `Start()` and let `OnDeserialization` handle updates from that point on.
+
+## Best Practices
+
+### Player Validity Check
+
+```csharp
+public override void OnPlayerTriggerEnter(VRCPlayerApi player)
+{
+    if (player == null || !player.IsValid())
+    {
+        return;
+    }
+    // Safe to use player
+}
+```
+
+### Local vs All Players
+
+```csharp
+public override void OnPlayerJoined(VRCPlayerApi player)
+{
+    // This runs for ALL players in the instance
+
+    if (player.isLocal)
+    {
+        // Only runs for the joining player themselves
+        ShowTutorial();
+    }
+}
+```
+
+### Ownership Check Before Sync
+
+```csharp
+public override void OnPlayerJoined(VRCPlayerApi player)
+{
+    // Only owner should trigger sync for late joiners
+    if (Networking.IsOwner(gameObject))
+    {
+        RequestSerialization();
+    }
+}
+```
+
+## See Also
+
+- [api.md](api.md) - VRCPlayerApi and Networking class reference for types used in event handlers
+- [dynamics.md](dynamics.md) - PhysBone and Contact component setup for the events listed here
+- [networking.md](networking.md) - Serialization and ownership events in depth (`OnDeserialization`, `OnOwnershipTransferred`)
+- [patterns-video.md](patterns-video.md) - Video player event handling patterns (`OnVideoReady`, `OnVideoError`, `OnVideoStart`, `OnVideoEnd`)

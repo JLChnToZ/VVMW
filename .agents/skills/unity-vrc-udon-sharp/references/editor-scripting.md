@@ -1,0 +1,947 @@
+# UdonSharp Editor Scripting Reference
+
+Guide to editor scripts, custom inspectors, and working with the UdonSharp proxy system.
+
+## Overview
+
+UdonSharp uses a **proxy system** where C# `UdonSharpBehaviour` scripts act as proxies for the underlying `UdonBehaviour` components. Understanding this system is essential for editor scripting.
+
+## Preprocessor Directives
+
+Used for conditional compilation:
+
+```csharp
+#if UNITY_EDITOR
+// Code only compiled in Unity Editor
+using UnityEditor;
+#endif
+
+#if COMPILER_UDONSHARP
+// Code compiled by UdonSharp compiler (for runtime)
+#endif
+
+#if !COMPILER_UDONSHARP
+// Code NOT compiled by UdonSharp (editor-only utilities)
+#endif
+```
+
+**Common Pattern:**
+
+```csharp
+using UdonSharp;
+using UnityEngine;
+
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+using UnityEditor;
+using UdonSharpEditor;
+#endif
+
+public class MyScript : UdonSharpBehaviour
+{
+    public float speed = 5f;
+
+    void Update()
+    {
+        transform.Translate(Vector3.forward * speed * Time.deltaTime);
+    }
+
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+    // Editor-only code here
+    public void _EditorOnlyMethod()
+    {
+        Debug.Log("This only exists in editor!");
+    }
+#endif
+}
+```
+
+## Proxy System
+
+### How It Works
+
+1. Your `UdonSharpBehaviour` C# class is a **proxy**
+2. The actual data lives in the `UdonBehaviour` component
+3. Changes must be synchronized between proxy and underlying UdonBehaviour
+
+### Proxy Extension Methods
+
+From the `UdonSharpEditor` namespace:
+
+```csharp
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+using UdonSharpEditor;
+#endif
+
+// Get the proxy C# object from UdonBehaviour
+UdonBehaviour udonBehaviour = GetComponent<UdonBehaviour>();
+MyScript proxy = UdonSharpEditorUtility.GetProxyBehaviour(udonBehaviour) as MyScript;
+
+// Get UdonBehaviour from proxy
+UdonBehaviour underlying = UdonSharpEditorUtility.GetBackingUdonBehaviour(proxy);
+```
+
+### Updating Proxy Values
+
+When changing values in editor scripts, use the following pattern:
+
+```csharp
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+// After modifying the proxy, sync to UdonBehaviour
+proxy.speed = 10f;
+UdonSharpEditorUtility.CopyProxyToUdon(proxy);
+
+// After modifying UdonBehaviour directly, sync to proxy
+UdonSharpEditorUtility.CopyUdonToProxy(proxy);
+#endif
+```
+
+## Adding Components
+
+### AddUdonSharpComponent
+
+Use this instead of `AddComponent` when adding UdonSharpBehaviours in the editor:
+
+```csharp
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+using UdonSharpEditor;
+
+// Add UdonSharpBehaviour component
+MyScript script = gameObject.AddUdonSharpComponent<MyScript>();
+
+// This creates the UdonBehaviour, assigns its programSource (.asset), and creates the proxy.
+// Skipping this helper and calling AddComponent<UdonBehaviour>() directly produces a component
+// with empty programSource — silently does nothing at runtime. See troubleshooting.md
+// "UdonBehaviour with Empty Program Source" for the diagnostic walk-through.
+#endif
+```
+
+### GetUdonSharpComponent
+
+Get a typed UdonSharpBehaviour from a GameObject:
+
+```csharp
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+// In editor, this returns the proxy object
+MyScript script = gameObject.GetUdonSharpComponent<MyScript>();
+
+// Get all of a type
+MyScript[] scripts = gameObject.GetUdonSharpComponentsInChildren<MyScript>();
+#endif
+```
+
+## Custom Inspectors
+
+### Basic Custom Inspector
+
+```csharp
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+using UnityEditor;
+using UdonSharpEditor;
+
+[CustomEditor(typeof(MyScript))]
+public class MyScriptEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        MyScript script = (MyScript)target;
+
+        // REQUIRED: Draw the default UdonSharp header
+        if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target))
+        {
+            return; // Returns true if the script is not valid
+        }
+
+        // Your custom inspector code here
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Custom Settings", EditorStyles.boldLabel);
+
+        // Use SerializedProperty for proper Undo support
+        SerializedProperty speedProp = serializedObject.FindProperty("speed");
+        EditorGUILayout.PropertyField(speedProp);
+
+        // Apply changes
+        if (serializedObject.ApplyModifiedProperties())
+        {
+            // Sync changes to UdonBehaviour
+            UdonSharpEditorUtility.CopyProxyToUdon(script);
+        }
+
+        // Custom buttons
+        if (GUILayout.Button("Reset Speed"))
+        {
+            Undo.RecordObject(script, "Reset Speed");
+            script.speed = 5f;
+            UdonSharpEditorUtility.CopyProxyToUdon(script);
+        }
+    }
+}
+#endif
+```
+
+### Important: DrawDefaultUdonSharpBehaviourHeader
+
+**Always call this at the beginning of the inspector.** It handles:
+- Drawing the UdonSharp script reference field
+- Displaying compile errors
+- Showing the sync mode indicator
+- Returning `true` when the component is invalid (skip drawing)
+
+```csharp
+if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target))
+{
+    return; // Don't draw the rest if invalid
+}
+```
+
+## Scene Handles and Gizmos
+
+### Custom Handles
+
+```csharp
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+using UnityEditor;
+
+[CustomEditor(typeof(TeleportPoint))]
+public class TeleportPointEditor : Editor
+{
+    private void OnSceneGUI()
+    {
+        TeleportPoint point = (TeleportPoint)target;
+
+        // Draw position handle
+        EditorGUI.BeginChangeCheck();
+        Vector3 newPosition = Handles.PositionHandle(
+            point.targetPosition,
+            Quaternion.identity
+        );
+        if (EditorGUI.EndChangeCheck())
+        {
+            Undo.RecordObject(point, "Move Teleport Target");
+            point.targetPosition = newPosition;
+            UdonSharpEditorUtility.CopyProxyToUdon(point);
+        }
+
+        // Draw label
+        Handles.Label(point.targetPosition, "Teleport Target");
+
+        // Draw line from object to target
+        Handles.color = Color.cyan;
+        Handles.DrawDottedLine(
+            point.transform.position,
+            point.targetPosition,
+            5f
+        );
+    }
+}
+#endif
+```
+
+### Gizmos
+
+```csharp
+public class TriggerZone : UdonSharpBehaviour
+{
+    public float radius = 5f;
+
+#if UNITY_EDITOR
+    // Gizmos don't need COMPILER_UDONSHARP check
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = new Color(0, 1, 0, 0.3f);
+        Gizmos.DrawSphere(transform.position, radius);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, radius);
+    }
+#endif
+}
+```
+
+## Editor Windows
+
+```csharp
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+using UnityEditor;
+using UdonSharpEditor;
+
+public class MyToolWindow : EditorWindow
+{
+    [MenuItem("Tools/My UdonSharp Tool")]
+    public static void _ShowWindow()
+    {
+        GetWindow<MyToolWindow>("My Tool");
+    }
+
+    private void OnGUI()
+    {
+        EditorGUILayout.LabelField("UdonSharp Tool", EditorStyles.boldLabel);
+
+        if (GUILayout.Button("Find All MyScript Components"))
+        {
+            MyScript[] scripts = FindObjectsOfType<MyScript>();
+            foreach (var script in scripts)
+            {
+                Debug.Log($"Found: {script.gameObject.name}");
+            }
+        }
+
+        if (GUILayout.Button("Reset All Speeds"))
+        {
+            MyScript[] scripts = FindObjectsOfType<MyScript>();
+            foreach (var script in scripts)
+            {
+                Undo.RecordObject(script, "Reset All Speeds");
+                script.speed = 5f;
+                UdonSharpEditorUtility.CopyProxyToUdon(script);
+            }
+        }
+    }
+}
+#endif
+```
+
+## Editor-Only Setup Components (IEditorOnly)
+
+### The Problem
+
+In-scene setup tooling such as light-probe placers, multi-component wiring helpers, and prefab configurators is editor-only by nature. A plain `MonoBehaviour` in a world scene is not on the world component whitelist, so SDK validation reports it as an incompatible script. It would never execute in the VRChat client anyway, because custom MonoBehaviour scripts do not run in the client — Udon is the only user scripting runtime in worlds. Creators need a supported way to keep these helpers in the scene without validation complaints.
+
+### The IEditorOnly Marker Interface
+
+`VRC.SDKBase.IEditorOnly` is a marker interface with no members (verified against SDK 3.10.3). The [official build-pipeline callbacks and interfaces docs](https://creators.vrchat.com/sdk/build-pipeline-callbacks-and-interfaces/) state that implementing it marks a script as editor-only for SDK validation, so the SDK ignores the component when scanning a world or avatar for incompatible scripts. Non-whitelisted components do not function in the VRChat client (see the [world component whitelist](https://creators.vrchat.com/worlds/whitelisted-world-components/)), so the helper has no runtime effect either way — `IEditorOnly` is about passing SDK validation cleanly and declaring intent.
+
+```csharp
+using UnityEngine;
+using VRC.SDKBase;
+
+// Setup-only helper: SDK validation ignores it and it does not run in the client
+public class LightProbeSetupHelper : MonoBehaviour, IEditorOnly
+{
+    public float spacing = 2.0f;
+    public Bounds targetArea;
+
+#if UNITY_EDITOR
+    [ContextMenu("Generate Probes")]
+    private void GenerateProbes()
+    {
+        // Place light probes from spacing / targetArea
+        // (a real implementation uses UnityEditor APIs — hence the directive)
+    }
+#endif
+}
+```
+
+Two key rules:
+
+1. The script must live in a runtime assembly. A component cannot come from an `Editor` folder, so any use of `UnityEditor` APIs inside it must be wrapped in `#if UNITY_EDITOR`; otherwise platform builds fail to compile. Attributes such as `[ContextMenu]`, `[Header]`, `[Range]`, and `[Tooltip]` are `UnityEngine` types and need no directive.
+2. `UdonSharpBehaviour` cannot implement interfaces (see [constraints.md](constraints.md)), so `IEditorOnly` is exclusively for plain `MonoBehaviour` helpers. That is exactly the niche it fills: editor tooling that UdonSharp cannot express.
+
+### IEditorOnly vs the EditorOnly Tag
+
+| Aspect | `IEditorOnly` interface | `EditorOnly` tag |
+|--------|-------------------------|------------------|
+| Granularity | Single component | Entire GameObject (with its children) |
+| Mechanism | VRChat SDK validation treats the component as editor-only | Unity standard: tagged GameObjects are excluded from builds |
+| Runtime components on the same GameObject | Keep working | Removed together with the GameObject |
+| Typical use | Setup helper attached next to runtime components | Dev-only objects (test rigs, reference geometry, measurement guides) |
+
+Use the tag when the whole object is development-only; use the interface when only the tooling component is.
+
+### Setup Helper Pattern: One-Click Udon Configuration
+
+An `IEditorOnly` helper can expose a small set of designer-facing fields, then a custom inspector or `[ContextMenu]` method applies them to one or more `UdonSharpBehaviour` components through the editor APIs covered in [Proxy System](#proxy-system): `Undo.RecordObject`, field assignment, `UdonSharpEditorUtility.CopyProxyToUdon`, then `EditorUtility.SetDirty` or scene dirty marking. Prefab users get explicit, simplified configuration in one place and one button instead of hand-editing serialized fields across several Udon components. Missing references can be surfaced before upload via an inspector help box.
+
+The pattern splits across two files: the runtime `UdonSharpBehaviour` in its own file (the class name must match the file name, paired with its program asset — see [UdonSharpProgramAsset Auto-Generation](#udonsharpprogramasset-auto-generation)), and the editor-only helper with its custom inspector in another.
+
+```csharp
+// TeleporterController.cs — runtime behaviour, ships with the world
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+
+public class TeleporterController : UdonSharpBehaviour
+{
+    public Transform exit;
+
+    public override void Interact()
+    {
+        if (exit == null || Networking.LocalPlayer == null)
+        {
+            return;
+        }
+
+        Networking.LocalPlayer.TeleportTo(exit.position, exit.rotation);
+    }
+}
+```
+
+```csharp
+// TeleporterSetupHelper.cs — editor-only setup component, ignored by SDK validation
+using UnityEngine;
+using VRC.SDKBase;
+
+#if UNITY_EDITOR
+using UdonSharpEditor;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+#endif
+
+public class TeleporterSetupHelper : MonoBehaviour, IEditorOnly
+{
+    public Transform entrance;
+    public Transform exit;
+    public TeleporterController controller;
+
+    private void OnDrawGizmosSelected()
+    {
+        if (entrance == null || exit == null)
+        {
+            return;
+        }
+
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawLine(entrance.position, exit.position);
+        Gizmos.DrawWireSphere(entrance.position, 0.25f);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(exit.position, 0.25f);
+    }
+}
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(TeleporterSetupHelper))]
+public class TeleporterSetupHelperEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+        DrawPropertiesExcluding(serializedObject, "m_Script");
+        serializedObject.ApplyModifiedProperties();
+
+        TeleporterSetupHelper helper = (TeleporterSetupHelper)target;
+        bool missingReferences =
+            helper.entrance == null ||
+            helper.exit == null ||
+            helper.controller == null;
+
+        if (missingReferences)
+        {
+            EditorGUILayout.HelpBox(
+                "Assign entrance, exit, and controller before applying setup.",
+                MessageType.Warning
+            );
+        }
+
+        using (new EditorGUI.DisabledScope(missingReferences))
+        {
+            if (GUILayout.Button("Apply Setup"))
+            {
+                ApplySetup(helper);
+            }
+        }
+    }
+
+    private static void ApplySetup(TeleporterSetupHelper helper)
+    {
+        TeleporterController controller = helper.controller;
+
+        // Move the interactable to the entrance, then wire the destination
+        Undo.RecordObject(controller.transform, "Apply Teleporter Setup");
+        controller.transform.SetPositionAndRotation(
+            helper.entrance.position, helper.entrance.rotation);
+
+        Undo.RecordObject(controller, "Apply Teleporter Setup");
+        controller.exit = helper.exit;
+
+        UdonSharpEditorUtility.CopyProxyToUdon(controller);
+        EditorUtility.SetDirty(controller);
+
+        if (!Application.isPlaying)
+        {
+            EditorSceneManager.MarkSceneDirty(controller.gameObject.scene);
+        }
+    }
+}
+#endif
+```
+
+This inspector is for the plain helper, not for a `UdonSharpBehaviour`, so it does not call `UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader`. Plain `#if UNITY_EDITOR` is also sufficient in the helper file: `!COMPILER_UDONSHARP` guards code against the UdonSharp compile pass (see [Preprocessor Directives](#preprocessor-directives)) and only matters in files containing an `UdonSharpBehaviour`.
+
+### Choosing the Right Mechanism
+
+| Goal | Use |
+|------|-----|
+| Editor-only methods, gizmos, or validation on a U# script itself | `#if UNITY_EDITOR && !COMPILER_UDONSHARP` blocks (see [Preprocessor Directives](#preprocessor-directives)) |
+| Friendly inspector for a single UdonSharpBehaviour | Custom inspector with `DrawDefaultUdonSharpBehaviourHeader` (see [Custom Inspectors](#custom-inspectors)) |
+| Scene-wide or multi-component setup tooling living in the scene | Plain `MonoBehaviour` + `IEditorOnly` (+ custom inspector) |
+| Exclude an entire dev-only GameObject from upload | `EditorOnly` tag |
+
+## Build Pipeline Callbacks
+
+The SDK exposes two documented hooks for running custom code when a world or avatar build starts. Both are verified against SDK 3.10.3 and documented on the [official build pipeline page](https://creators.vrchat.com/sdk/build-pipeline-callbacks-and-interfaces/).
+
+### IVRCSDKBuildRequestedCallback
+
+`IVRCSDKBuildRequestedCallback` lives in the `VRC.SDKBase.Editor.BuildPipeline` namespace. Implement it on an editor-side class in an `Editor` folder, not on a scene component.
+
+Members to implement:
+
+```csharp
+public int callbackOrder { get; }
+
+public bool OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType)
+{
+    return true;
+}
+```
+
+This callback runs before the SDK starts building. Returning `false` from `OnBuildRequested` aborts the build. `VRCSDKRequestedBuildType` is an enum with `Avatar` and `Scene`; worlds are requested as `Scene`.
+
+```csharp
+// Editor/TeleporterSetupBuildGate.cs — aborts the SDK build when setup is incomplete
+using UnityEngine;
+using VRC.SDKBase.Editor.BuildPipeline;
+
+public class TeleporterSetupBuildGate : IVRCSDKBuildRequestedCallback
+{
+    public int callbackOrder => 0;
+
+    public bool OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType)
+    {
+        if (requestedBuildType != VRCSDKRequestedBuildType.Scene)
+        {
+            return true;
+        }
+
+        // includeInactive: disabled helpers must not slip through the gate
+        foreach (TeleporterSetupHelper helper in
+            Object.FindObjectsOfType<TeleporterSetupHelper>(true))
+        {
+            if (helper.entrance == null || helper.exit == null || helper.controller == null)
+            {
+                Debug.LogError(
+                    $"Teleporter setup incomplete on '{helper.name}' — aborting build.",
+                    helper);
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+```
+
+`TeleporterSetupHelper` is the setup-helper example class defined in the previous section.
+
+### IPreprocessCallbackBehaviour
+
+`IPreprocessCallbackBehaviour` lives in the `VRC.SDKBase` namespace and is implemented by a `MonoBehaviour` on the content itself.
+
+Implement `public bool OnPreprocess()` and the `public int PreprocessOrder { get; }`
+property. The complete class below shows both interface members.
+
+> **Docs discrepancy**: the official page shows `void OnPreprocess()`, but the SDK 3.10.3 binary declares `bool OnPreprocess()` (verified via .NET metadata). Implement the `bool` form — the `void` signature fails to compile against the interface. The meaning of the return value is not documented; return `true` unless you have verified otherwise.
+
+This callback runs when the build process is about to begin, before content gets built and uploaded to VRChat. The official docs note that this does not automatically bypass SDK validation; they also recommend using `IEditorOnly` if the script exists directly on the avatar being uploaded.
+
+```csharp
+using UnityEngine;
+using VRC.SDKBase;
+
+public class BuildInfoStamp : MonoBehaviour, IEditorOnly, IPreprocessCallbackBehaviour
+{
+    public int PreprocessOrder => 0;
+
+    public bool OnPreprocess()
+    {
+        Debug.Log($"Build started for {gameObject.scene.name}");
+        return true;
+    }
+}
+```
+
+The example pairs both interfaces per that recommendation; in a world scene the pairing also keeps the helper out of the component whitelist scan (see [Editor-Only Setup Components](#editor-only-setup-components-ieditoronly)).
+
+### When to Use Which
+
+| Goal | Use |
+|------|-----|
+| Validate or abort a build from editor tooling | `IVRCSDKBuildRequestedCallback` (Editor folder, not in the scene) |
+| Run code on a scene component when the build begins | `IPreprocessCallbackBehaviour` (pair with `IEditorOnly` per official docs) |
+| Hide a setup-only component from SDK validation | `IEditorOnly` (see [Editor-Only Setup Components](#editor-only-setup-components-ieditoronly)) |
+
+## Property Drawers
+
+```csharp
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+using UnityEditor;
+
+// Custom attribute
+public class MinMaxAttribute : PropertyAttribute
+{
+    public float min;
+    public float max;
+
+    public MinMaxAttribute(float min, float max)
+    {
+        this.min = min;
+        this.max = max;
+    }
+}
+
+// Property drawer
+[CustomPropertyDrawer(typeof(MinMaxAttribute))]
+public class MinMaxDrawer : PropertyDrawer
+{
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    {
+        MinMaxAttribute attr = (MinMaxAttribute)attribute;
+
+        if (property.propertyType == SerializedPropertyType.Float)
+        {
+            property.floatValue = EditorGUI.Slider(
+                position,
+                label,
+                property.floatValue,
+                attr.min,
+                attr.max
+            );
+        }
+    }
+}
+#endif
+
+// Usage in UdonSharpBehaviour
+public class MyScript : UdonSharpBehaviour
+{
+    [MinMax(0f, 100f)]
+    public float health = 100f;
+}
+```
+
+## DefaultExecutionOrder
+
+The `[DefaultExecutionOrder]` attribute controls the order in which Unity calls `Awake`, `OnEnable`, and `Start` across different `MonoBehaviour` (and `UdonSharpBehaviour`) scripts.
+
+Lower numbers run **earlier**. The default order is `0`. Use negative values for scripts that must initialize before everything else, and positive values for scripts that should run last.
+
+```csharp
+// Runs before all default-order scripts — ideal for world settings and global state
+[DefaultExecutionOrder(-1000)]
+public class WorldSettingsInitializer : UdonSharpBehaviour
+{
+    [SerializeField] private float gravityScale = 0.5f;
+
+    void Start()
+    {
+        // Apply world-wide gravity before any other script reads it
+        Networking.LocalPlayer.SetGravityStrength(gravityScale);
+    }
+}
+
+// Runs after default-order scripts — safe to read values set by initializers
+[DefaultExecutionOrder(100)]
+public class PlayerController : UdonSharpBehaviour
+{
+    void Start()
+    {
+        // WorldSettingsInitializer.Start() has already run
+        Debug.Log("Player controller initialized");
+    }
+}
+```
+
+**When to use `[DefaultExecutionOrder]`:**
+
+| Scenario | Recommended Order |
+|----------|-------------------|
+| World configuration (gravity, spawn zones, global flags) | `-1000` or lower |
+| Managers that other scripts depend on | `-500` to `-100` |
+| Default scripts | `0` (omit the attribute) |
+| Scripts that consume manager output | `100` to `1000` |
+
+> **Note**: `Awake()` is not available in UdonSharp. `Start()` is the first lifecycle hook; `[DefaultExecutionOrder]` controls when `Start()` runs relative to other behaviours.
+
+## Best Practices
+
+### 1. Always Use Undo
+
+```csharp
+Undo.RecordObject(target, "Description of change");
+// Make changes
+UdonSharpEditorUtility.CopyProxyToUdon(target);
+```
+
+### 2. Check for Null Proxy
+
+```csharp
+MyScript script = target as MyScript;
+if (script == null) return;
+```
+
+### 3. Use SerializedProperty When Possible
+
+```csharp
+SerializedProperty prop = serializedObject.FindProperty("fieldName");
+EditorGUILayout.PropertyField(prop);
+serializedObject.ApplyModifiedProperties();
+```
+
+### 4. Batch Proxy Updates
+
+```csharp
+// Don't call CopyProxyToUdon after every change
+script.value1 = 1;
+script.value2 = 2;
+script.value3 = 3;
+UdonSharpEditorUtility.CopyProxyToUdon(script); // Once at the end
+```
+
+### 5. Mark Scene Dirty When Needed
+
+```csharp
+if (GUI.changed)
+{
+    EditorUtility.SetDirty(target);
+    if (!Application.isPlaying)
+    {
+        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
+            UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene()
+        );
+    }
+}
+```
+
+## Common Issues
+
+### Changes Not Persisting
+
+If changes made in a custom inspector are not persisting:
+
+1. Verify you are calling `UdonSharpEditorUtility.CopyProxyToUdon()`
+2. Verify you are using `Undo.RecordObject()` before making changes
+3. Verify you are calling `EditorUtility.SetDirty()` on the target
+
+### Serialization Errors
+
+If you see "SerializedObject target has been destroyed":
+
+```csharp
+if (serializedObject == null || serializedObject.targetObject == null)
+{
+    return;
+}
+```
+
+### Play Mode Changes Lost
+
+Changes made during Play Mode are lost when exiting. This is standard Unity behavior. For testing purposes, use:
+
+```csharp
+[ExecuteInEditMode]
+public class MyScript : UdonSharpBehaviour
+{
+    // Script runs in edit mode too
+}
+```
+
+Note: `ExecuteInEditMode` can cause issues with UdonSharp. Use with caution.
+
+## See Also
+
+- [api.md](api.md) - VRChat API reference including types used in editor scripts
+- [constraints.md](constraints.md) - C# feature constraints that affect editor-time validation
+- [patterns-performance.md](patterns-performance.md) - Event dispatch cost tiers and performance patterns
+
+## UdonSharpProgramAsset Auto-Generation
+
+### The Problem
+
+When a `.cs` UdonSharp script file is created directly on the filesystem, the corresponding `.asset` (UdonSharpProgramAsset) is **not auto-generated**. Without this asset file, Unity cannot associate the C# script with an UdonBehaviour, resulting in "The associated script cannot be loaded" errors.
+
+### The `.cs` to `.asset` Relationship
+
+Every UdonSharp script requires a paired UdonSharpProgramAsset:
+
+```text
+MyScript.cs          → Source code (UdonSharpBehaviour)
+MyScript.asset       → UdonSharpProgramAsset (links script to Udon compiler)
+```
+
+When creating scripts through the Unity Editor (Assets > Create > U# Script), both files are generated automatically. However, when `.cs` files are created directly on the filesystem, the `.asset` file is missing.
+
+If an editor tool creates or moves UdonSharp scripts under a Unity `.asmdef`, also read [assembly-definitions.md](assembly-definitions.md): those scripts need the corresponding U# Assembly Definition with Source Assembly set to the Unity Assembly Definition asset. Keep editor-only code in an `Editor` folder or editor-only assembly, and do not make editor-only scripts inherit `UdonSharpBehaviour`.
+
+### Auto-Generation via AssetPostprocessor
+
+Use `AssetPostprocessor.OnPostprocessAllAssets()` to detect newly imported UdonSharp scripts and auto-generate their program assets. The implementation below handles edge cases such as abstract classes, compile errors, and concurrent asset creation:
+
+```csharp
+#if UNITY_EDITOR
+using System;
+using System.IO;
+using System.Reflection;
+using UdonSharp;
+using UdonSharp.Compiler;
+using UdonSharpEditor;
+using UnityEditor;
+using UnityEngine;
+
+/// <summary>
+/// Automatically generates UdonSharpProgramAsset for newly imported UdonSharpBehaviour scripts.
+/// Place this file in an Editor folder (e.g., Assets/Editor/).
+/// </summary>
+public class UdonSharpProgramAssetAutoGenerator : AssetPostprocessor
+{
+    /// <summary>
+    /// Reads UdonSharpSettings.autoCompileOnModify via reflection
+    /// to avoid hard dependency on internal editor types.
+    /// </summary>
+    private static bool GetAutoCompileOnModify()
+    {
+        try
+        {
+            Assembly udonSharpEditorAssembly = typeof(UdonSharpEditorUtility).Assembly;
+            Type settingsType = udonSharpEditorAssembly.GetType(
+                "UdonSharpEditor.UdonSharpSettings");
+            if (settingsType == null) return false;
+
+            MethodInfo getSettingsMethod = settingsType.GetMethod(
+                "GetSettings", BindingFlags.Public | BindingFlags.Static);
+            if (getSettingsMethod == null) return false;
+
+            object settingsInstance = getSettingsMethod.Invoke(null, null);
+            if (settingsInstance == null) return false;
+
+            FieldInfo autoCompileField = settingsType.GetField(
+                "autoCompileOnModify",
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (autoCompileField == null) return false;
+
+            object fieldValue = autoCompileField.GetValue(settingsInstance);
+            return fieldValue is bool enabled && enabled;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError(
+                $"[UdonSharp AutoGenerator] Failed to read autoCompileOnModify.\n{ex}");
+            return false;
+        }
+    }
+
+    private static void OnPostprocessAllAssets(
+        string[] importedAssets,
+        string[] deletedAssets,
+        string[] movedAssets,
+        string[] movedFromAssetPaths,
+        bool didDomainReload)
+    {
+        // Only run after domain reload (avoids running on every asset import)
+        if (!didDomainReload) return;
+
+        bool createdAny = false;
+
+        foreach (string importedAssetPath in importedAssets)
+        {
+            if (string.IsNullOrEmpty(importedAssetPath)) continue;
+
+            MonoScript script =
+                AssetDatabase.LoadAssetAtPath<MonoScript>(importedAssetPath);
+            if (script == null) continue;
+
+            Type scriptClass = script.GetClass();
+
+            // Skip null (compile errors), abstract classes, non-UdonSharpBehaviour
+            if (scriptClass == null
+                || scriptClass.IsAbstract
+                || !typeof(UdonSharpBehaviour).IsAssignableFrom(scriptClass))
+                continue;
+
+            // Check Udon registration (not just file existence)
+            if (UdonSharpEditorUtility.GetUdonSharpProgramAsset(scriptClass) != null)
+                continue;
+
+            string programAssetPath = Path.ChangeExtension(importedAssetPath, ".asset")
+                ?.Replace('\\', '/');
+            if (string.IsNullOrEmpty(programAssetPath)
+                || !programAssetPath.StartsWith("Assets/", StringComparison.Ordinal))
+                continue;
+
+            if (AssetDatabase.LoadMainAssetAtPath(programAssetPath) != null)
+                continue;
+
+            UdonSharpProgramAsset programAsset =
+                ScriptableObject.CreateInstance<UdonSharpProgramAsset>();
+            programAsset.sourceCsScript = script;
+
+            try
+            {
+                AssetDatabase.CreateAsset(programAsset, programAssetPath);
+                AssetDatabase.ImportAsset(
+                    programAssetPath, ImportAssetOptions.ForceSynchronousImport);
+
+                if (AssetDatabase.LoadAssetAtPath<UdonSharpProgramAsset>(
+                    programAssetPath) == null)
+                {
+                    Debug.LogError(
+                        $"[UdonSharp AutoGenerator] Failed to create asset at " +
+                        $"'{programAssetPath}' for '{importedAssetPath}'.");
+                    continue;
+                }
+
+                Debug.Log(
+                    $"[UdonSharp AutoGenerator] Created ProgramAsset: {programAssetPath}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(
+                    $"[UdonSharp AutoGenerator] Exception creating asset at " +
+                    $"'{programAssetPath}' for '{importedAssetPath}'.\n{ex}");
+                continue;
+            }
+
+            createdAny = true;
+        }
+
+        if (!createdAny) return;
+
+        AssetDatabase.Refresh();
+
+        // Trigger UdonSharp compilation if auto-compile is enabled
+        if (!GetAutoCompileOnModify()) return;
+
+        try
+        {
+            UdonSharpCompilerV1.CompileSync();
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError(
+                $"[UdonSharp AutoGenerator] Compile failed after generating assets.\n{ex}");
+        }
+    }
+}
+#endif
+```
+
+> **Credit**: Based on [nemurigi's AssetPostprocessor pattern](https://gist.github.com/nemurigi/dea7c0a1fb94f7b9cf1c36481a459ded) (MIT License).
+> **Template**: A ready-to-use version is available at `assets/templates/UdonSharpProgramAssetAutoGenerator.cs`.
+
+### Setup Instructions
+
+1. Create an `Editor` folder in your Unity project (e.g., `Assets/Editor/`)
+2. Copy `UdonSharpProgramAssetAutoGenerator.cs` into the `Editor` folder
+3. New UdonSharp scripts will automatically get their `.asset` files after domain reload
+4. If `autoCompileOnModify` is enabled in UdonSharp settings, compilation triggers automatically
+
+### Limitations
+
+- The script must compile successfully before the asset can be generated (`GetClass()` returns `null` for scripts with compile errors)
+- Abstract classes are intentionally skipped (they cannot have their own UdonSharpProgramAsset)
+- The `Editor` folder placement is required (scripts in `Editor` are not compiled by UdonSharp)
+- Generation only runs after domain reload (`didDomainReload`), not on every asset import
+- **Asset generation does not wire `UdonBehaviour.programSource`** — this generator only creates the `.asset` file. Assigning it to a `UdonBehaviour` on a GameObject is a separate step; use [`AddUdonSharpComponent`](#addudonsharpcomponent) for new components, or see "UdonBehaviour with Empty Program Source" in `troubleshooting.md` for diagnosing existing components
+- **Asset generation does not create U# Assembly Definitions** — if generated scripts live under a Unity `.asmdef`, follow [assembly-definitions.md](assembly-definitions.md) and wire the matching U# Assembly Definition separately
