@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## 1.8.4-beta.0 - 2026-11-21
+### Fixed
+- U# compiler error on Unity 6 (workaround for now)
+- Inspector layout issue on Unity 6
+
 ## 1.8.3 - 2026-11-07
 ### Fixed
 - Keep the playback history alive when a Quest URL follows a video without one [#97](https://github.com/JLChnToZ/VVMW/pull/97)

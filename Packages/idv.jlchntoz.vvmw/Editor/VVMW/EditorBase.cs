@@ -181,7 +181,9 @@ namespace JLChnToZ.VRC.VVMW.Editors {
         protected static void DrawBanner() {
             if (bannerTexture != null) {
                 var rect = GUILayoutUtility.GetRect(0, 120);
+#if !UNITY_6000_0_OR_NEWER
                 GUILayout.Space(rect.height);
+#endif
                 var bannerRect = new Rect(
                     rect.x + (rect.width - bannerTexture.width * rect.height / bannerTexture.height) / 2,
                     rect.y,

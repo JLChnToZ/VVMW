@@ -160,7 +160,9 @@ namespace JLChnToZ.VRC.VVMW.Designer {
 
             public override bool Equals(object obj) => obj is SphereBounds other && Equals(other);
 
+#if !COMPILER_UDONSHARP
             public override int GetHashCode() => HashCode.Combine(center, radius);
+#endif
         }
     }
 }
